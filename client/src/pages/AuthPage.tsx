@@ -3,9 +3,9 @@ import { useAuth, BAYI_KODU } from "@/lib/auth";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Lock, ChevronRight, Instagram, HelpCircle, ExternalLink, CheckCircle2 } from "lucide-react";
+import { ChevronRight, Instagram, HelpCircle, ArrowRight, Info, Check, ShieldCheck, Wallet } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
@@ -30,7 +30,6 @@ export default function AuthPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Simple validation
     if (!username || !password) {
       toast({
         variant: "destructive",
@@ -49,13 +48,12 @@ export default function AuthPage() {
 
     const codeToUse = isLogin ? BAYI_KODU : referralCode; 
     
-    // Mock login logic - In a real app, referralCode would be checked against a DB of issued codes
     const success = await login(username, codeToUse);
 
     if (success) {
       toast({
         description: "Giriş başarılı! Yönlendiriliyorsunuz...",
-        className: "bg-secondary text-secondary-foreground border-none font-bold",
+        className: "bg-green-500 text-white border-none font-bold",
       });
       setLocation("/");
     } else {
@@ -67,145 +65,205 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      {/* Background Image */}
+    <div className="min-h-screen bg-black flex flex-col relative overflow-hidden">
+      {/* Dynamic Background */}
       <div 
-        className="absolute inset-0 z-0 opacity-40"
+        className="absolute inset-0 z-0 opacity-30 animate-in fade-in duration-1000"
         style={{
           backgroundImage: `url(${bgImage})`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}
       />
-      
-      {/* Gradient Overlay */}
-      <div className="absolute inset-0 z-0 bg-gradient-to-b from-background/80 via-background/90 to-background" />
+      <div className="absolute inset-0 z-0 bg-gradient-to-t from-black via-black/90 to-transparent" />
 
-      <div className="w-full max-w-md space-y-8 relative z-10 animate-in fade-in zoom-in duration-500">
-        <div className="flex flex-col items-center text-center space-y-4">
-          <div className="w-20 h-20 bg-card rounded-2xl flex items-center justify-center border border-primary/20 shadow-[0_0_30px_rgba(255,215,0,0.1)]">
-             <img src={logoIcon} alt="Logo" className="w-12 h-12 object-contain" />
-          </div>
-          <div>
-            <h1 className="text-4xl font-display font-bold text-primary tracking-wider drop-shadow-lg">TUTTURDUK<span className="text-white">.COM</span></h1>
-            <p className="text-muted-foreground uppercase tracking-[0.3em] text-xs font-medium">Günlük Tahmin Merkezi</p>
-          </div>
-        </div>
-
-        <Card className="border-primary/20 bg-card/60 backdrop-blur-xl shadow-2xl shadow-black/50">
-          <CardHeader>
-            <CardTitle className="text-xl font-bold text-center font-display tracking-wide uppercase">
-              {isLogin ? "Giriş Yap" : "Aramıza Katıl"}
-            </CardTitle>
-            <CardDescription className="text-center text-muted-foreground">
-              {isLogin ? "Kazananlar kulübüne hoş geldiniz." : "Üyelik sadece davetiye ile alınmaktadır."}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="username">Kullanıcı Adı</Label>
-                <Input 
-                  id="username" 
-                  placeholder="Kullanıcı adınız" 
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="bg-background/50 border-input focus:border-primary h-11"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="password">Şifre</Label>
-                <Input 
-                  id="password" 
-                  type="password" 
-                  placeholder="••••••••" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="bg-background/50 border-input focus:border-primary h-11"
-                />
-              </div>
-
-              {!isLogin && (
-                <div className="space-y-4">
-                  <div className="bg-primary/5 p-4 rounded-lg border border-primary/10 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="referral" className="text-primary font-bold flex items-center gap-2">
-                        Davet Kodu
-                        <Dialog>
-                          <DialogTrigger>
-                             <HelpCircle className="w-4 h-4 text-muted-foreground hover:text-white transition-colors" />
-                          </DialogTrigger>
-                          <DialogContent className="bg-card border-primary/20">
-                            <DialogHeader>
-                              <DialogTitle className="text-primary">Davet Kodu Nasıl Alınır?</DialogTitle>
-                              <DialogDescription className="space-y-4 pt-4">
-                                <div className="flex gap-3">
-                                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold shrink-0">1</div>
-                                  <p><strong>iddaa.com</strong>'a üye olurken Bayi Kodu alanına <span className="text-primary font-bold">303603</span> yazın.</p>
-                                </div>
-                                <div className="flex gap-3">
-                                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold shrink-0">2</div>
-                                  <p>Üyelik işleminiz tamamlandıktan sonra Instagram adresimizden bize yazın.</p>
-                                </div>
-                                <div className="flex gap-3">
-                                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold shrink-0">3</div>
-                                  <p>Ekibimiz kontrol ettikten sonra size özel <strong>Davet Kodunuzu</strong> iletecektir.</p>
-                                </div>
-                                
-                                <Button className="w-full mt-2 gap-2" variant="outline" onClick={() => window.open('https://instagram.com', '_blank')}>
-                                  <Instagram className="w-4 h-4" /> Instagram'dan Yaz
-                                </Button>
-                              </DialogDescription>
-                            </DialogHeader>
-                          </DialogContent>
-                        </Dialog>
-                      </Label>
-                    </div>
-                    
-                    <Input 
-                      id="referral" 
-                      placeholder="Kodunuzu buraya girin" 
-                      value={referralCode}
-                      onChange={(e) => setReferralCode(e.target.value)}
-                      className="bg-background border-primary/50 focus:border-primary h-11 font-mono text-center tracking-widest text-lg"
-                    />
-                  </div>
-
-                  {/* Info Box */}
-                  <div className="text-[11px] text-muted-foreground bg-black/20 p-3 rounded border border-white/5">
-                    <p className="flex items-start gap-2">
-                      <CheckCircle2 className="w-3 h-3 text-secondary mt-0.5 shrink-0" />
-                      <span>Sadece iddaa.com'da <span className="text-white font-bold">303603</span> bayi kodunu kullanan üyelerimiz platforma erişebilir.</span>
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              <Button type="submit" className="w-full font-bold text-base h-12 uppercase tracking-wide shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all">
-                {isLogin ? "Giriş Yap" : "Kayıt Ol"} <ChevronRight className="w-4 h-4 ml-1" />
-              </Button>
-            </form>
-
-            <div className="mt-6 text-center space-y-4">
-              <button 
-                onClick={() => setIsLogin(!isLogin)}
-                className="text-sm text-muted-foreground hover:text-primary transition-colors underline decoration-dotted underline-offset-4"
-              >
-                {isLogin ? "Davet kodunuz var mı? Kayıt Olun" : "Zaten üye misiniz? Giriş Yapın"}
-              </button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Social Proof / Trust Footer */}
-        <div className="text-center space-y-2">
-           <p className="text-[10px] text-muted-foreground uppercase tracking-widest opacity-60">Resmi İş Ortağı</p>
-           <div className="flex items-center justify-center gap-2 opacity-50 grayscale hover:grayscale-0 transition-all">
-             {/* Simple text representation of iddaa logo for now */}
-             <span className="font-black text-xl tracking-tighter text-white">iddaa<span className="text-primary">.com</span></span>
+      {/* Header Content */}
+      <div className="relative z-10 flex flex-col items-center justify-center pt-16 pb-6 px-6 text-center space-y-4">
+        <div className="relative">
+           <div className="absolute -inset-4 bg-primary/20 blur-xl rounded-full animate-pulse" />
+           <div className="w-20 h-20 bg-black/40 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/10 shadow-2xl relative z-10">
+              <img src={logoIcon} alt="Logo" className="w-12 h-12 object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.2)]" />
            </div>
         </div>
+        
+        <div className="space-y-1">
+          <h1 className="text-3xl font-display font-black text-white tracking-tight">
+            TUTTURDUK<span className="text-primary">.COM</span>
+          </h1>
+          <p className="text-muted-foreground text-xs font-medium tracking-widest uppercase">
+            Kazananların Özel Kulübü
+          </p>
+        </div>
+      </div>
+
+      {/* Main Card */}
+      <div className="flex-1 relative z-10 px-4 pb-8 flex flex-col justify-end sm:justify-center">
+        <div className="bg-zinc-900/80 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] animate-in slide-in-from-bottom-10 duration-500">
+          
+          {/* Tabs */}
+          <div className="flex p-1 bg-black/40 rounded-xl mb-6 border border-white/5">
+            <button 
+              onClick={() => setIsLogin(true)}
+              className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all duration-300 ${isLogin ? 'bg-primary text-black shadow-lg' : 'text-muted-foreground hover:text-white'}`}
+            >
+              Giriş Yap
+            </button>
+            <button 
+              onClick={() => setIsLogin(false)}
+              className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all duration-300 ${!isLogin ? 'bg-primary text-black shadow-lg' : 'text-muted-foreground hover:text-white'}`}
+            >
+              Kayıt Ol
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="username" className="text-xs text-muted-foreground ml-1">Kullanıcı Adı</Label>
+              <Input 
+                id="username" 
+                placeholder="Örn: ahmet1905" 
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="bg-black/20 border-white/10 focus:border-primary h-12 rounded-xl text-white placeholder:text-white/20"
+              />
+            </div>
+            
+            <div className="space-y-1.5">
+              <Label htmlFor="password" className="text-xs text-muted-foreground ml-1">Şifre</Label>
+              <Input 
+                id="password" 
+                type="password" 
+                placeholder="••••••••" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="bg-black/20 border-white/10 focus:border-primary h-12 rounded-xl text-white placeholder:text-white/20"
+              />
+            </div>
+
+            {!isLogin && (
+              <div className="space-y-4 pt-2">
+                <div className="bg-primary/5 p-4 rounded-xl border border-primary/20 space-y-3 relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-primary/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+                  
+                  <div className="flex items-center justify-between relative z-10">
+                    <Label htmlFor="referral" className="text-primary font-bold text-sm flex items-center gap-2">
+                      Davet Kodu Zorunludur
+                    </Label>
+                    
+                    {/* How to get code Modal */}
+                    <Dialog>
+                      <DialogTrigger asChild>
+                         <button className="text-[10px] bg-primary/10 hover:bg-primary/20 text-primary px-2 py-1 rounded-full font-bold transition-colors flex items-center gap-1">
+                           <HelpCircle className="w-3 h-3" />
+                           Kodum Yok?
+                         </button>
+                      </DialogTrigger>
+                      <DialogContent className="bg-zinc-950 border-white/10 text-white sm:max-w-md">
+                        <DialogHeader>
+                          <div className="w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center mb-4 mx-auto text-primary">
+                             <ShieldCheck className="w-6 h-6" />
+                          </div>
+                          <DialogTitle className="text-center text-xl font-display text-white">Davet Kodu Nasıl Alınır?</DialogTitle>
+                          <DialogDescription className="text-center text-gray-400">
+                            Platformumuz kapalı devre bir tahmin topluluğudur.
+                          </DialogDescription>
+                        </DialogHeader>
+                        
+                        <div className="space-y-4 py-4">
+                           <div className="flex gap-4 items-start bg-white/5 p-3 rounded-xl border border-white/5">
+                              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold shrink-0 mt-0.5">1</div>
+                              <div className="space-y-1">
+                                 <h4 className="font-bold text-sm text-white">iddaa.com Üyeliği</h4>
+                                 <p className="text-xs text-gray-400 leading-relaxed">
+                                   <span className="text-white font-bold">iddaa.com</span> üzerinden yeni üyelik oluştururken veya mevcut üyeliğinizde Bayi Kodu alanına <span className="text-primary font-bold text-base px-1">303603</span> yazıp kaydedin.
+                                 </p>
+                              </div>
+                           </div>
+                           
+                           <div className="flex gap-4 items-start bg-white/5 p-3 rounded-xl border border-white/5">
+                              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold shrink-0 mt-0.5">2</div>
+                              <div className="space-y-1">
+                                 <h4 className="font-bold text-sm text-white">Bize Ulaşın</h4>
+                                 <p className="text-xs text-gray-400 leading-relaxed">
+                                   İşlemi tamamladıktan sonra Instagram DM üzerinden bize yazın. Kontrol edip <span className="text-white font-bold">Size Özel Davet Kodunuzu</span> iletelim.
+                                 </p>
+                              </div>
+                           </div>
+                        </div>
+
+                        <Button className="w-full gap-2 font-bold" onClick={() => window.open('https://instagram.com', '_blank')}>
+                          <Instagram className="w-4 h-4" /> Instagram'dan Kod İste
+                        </Button>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                  
+                  <div className="relative">
+                    <Input 
+                      id="referral" 
+                      placeholder="KOD GİRİNİZ" 
+                      value={referralCode}
+                      onChange={(e) => setReferralCode(e.target.value)}
+                      className="bg-black/40 border-primary/30 focus:border-primary h-14 rounded-lg font-mono text-center tracking-[0.5em] text-lg font-bold text-primary placeholder:text-muted-foreground/30 placeholder:tracking-normal placeholder:font-sans placeholder:text-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <Button type="submit" className="w-full h-14 text-base font-bold rounded-xl bg-primary text-black hover:bg-primary/90 transition-all shadow-[0_0_20px_rgba(0,255,0,0.2)] mt-2">
+              {isLogin ? "Giriş Yap" : "Hemen Başla"} <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
+          </form>
+
+          {/* Info Section Trigger */}
+          <div className="mt-6 pt-6 border-t border-white/5 flex justify-center">
+             <Dialog>
+               <DialogTrigger asChild>
+                  <button className="flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-white transition-colors group">
+                     <Info className="w-4 h-4 group-hover:text-primary transition-colors" />
+                     <span>iddaa.com İş Birliği Nedir?</span>
+                  </button>
+               </DialogTrigger>
+               <DialogContent className="bg-zinc-950 border-white/10 text-white">
+                  <DialogHeader>
+                     <DialogTitle className="flex items-center gap-2 text-xl">
+                        <Wallet className="w-6 h-6 text-primary" />
+                        Platform Hakkında
+                     </DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 pt-2">
+                     <p className="text-sm text-gray-300 leading-relaxed">
+                        Bu platform, <strong className="text-white">iddaa.com</strong> resmi bayisi olan <span className="text-primary font-bold">303603</span> nolu bayi üyelerine özel geliştirilmiş bir <strong className="text-white">Premium Tahmin ve Analiz</strong> sistemidir.
+                     </p>
+                     
+                     <div className="bg-white/5 p-4 rounded-xl border border-white/5 space-y-3">
+                        <div className="flex gap-3">
+                           <Check className="w-5 h-5 text-primary shrink-0" />
+                           <p className="text-xs text-gray-400">Yapay zeka destekli maç analizlerine ücretsiz erişim.</p>
+                        </div>
+                        <div className="flex gap-3">
+                           <Check className="w-5 h-5 text-primary shrink-0" />
+                           <p className="text-xs text-gray-400">Uzman yorumcuların banko kupon tahminleri.</p>
+                        </div>
+                        <div className="flex gap-3">
+                           <Check className="w-5 h-5 text-primary shrink-0" />
+                           <p className="text-xs text-gray-400">Yüksek başarı oranlı sistem kuponları.</p>
+                        </div>
+                     </div>
+
+                     <p className="text-xs text-gray-500 italic text-center pt-2">
+                        *Platformumuzda bahis oynatılmaz, sadece yasal bayilerde oynayabileceğiniz tahminler paylaşılır.
+                     </p>
+                  </div>
+               </DialogContent>
+             </Dialog>
+          </div>
+        </div>
+
+        <p className="text-center text-[10px] text-zinc-600 mt-6 pb-2 font-medium">
+          &copy; 2024 Tutturduk.com - Tüm Hakları Saklıdır.
+        </p>
       </div>
     </div>
   );
