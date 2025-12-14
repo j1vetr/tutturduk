@@ -262,7 +262,8 @@ export default function AuthPage() {
         </div>
 
         <p className="text-center text-[10px] text-zinc-600 mt-6 pb-2 font-medium">
-          &copy; 2024 Tutturduk.com - Tüm Hakları Saklıdır.
+          &copy; 2025 Tutturduk.com - Tüm Hakları Saklıdır. <br/>
+          <span className="opacity-75">Geliştirici & Tasarımcı : TOOV</span>
         </p>
       </div>
     </div>
