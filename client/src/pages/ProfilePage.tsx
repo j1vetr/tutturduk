@@ -1,63 +1,137 @@
 import { MobileLayout } from "@/components/MobileLayout";
 import { useAuth, BAYI_KODU } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogOut, User as UserIcon, Shield, Settings } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { LogOut, User as UserIcon, Shield, Settings, Trophy, Wallet, Star, Copy, ChevronRight, CreditCard } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 
 export default function ProfilePage() {
   const { user, logout } = useAuth();
 
   return (
     <MobileLayout activeTab="profile">
-      <div className="space-y-6">
-        <div className="flex items-center gap-4 p-4 bg-card border border-border rounded-xl">
-          <div className="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center text-primary border border-primary/30">
-            <UserIcon className="w-8 h-8" />
+      <div className="pb-20">
+        {/* Hero Profile Header */}
+        <div className="relative mb-6">
+          <div className="h-32 bg-gradient-to-r from-primary/20 via-primary/10 to-background border-b border-primary/10 relative overflow-hidden">
+             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10" />
+             <div className="absolute right-0 top-0 p-4">
+                <Badge variant="outline" className="bg-black/20 backdrop-blur-md border-primary/20 text-primary animate-pulse">
+                  <Star className="w-3 h-3 mr-1 fill-primary" />
+                  PREMIUM ÜYE
+                </Badge>
+             </div>
           </div>
-          <div>
-            <h2 className="text-lg font-bold text-foreground">{user?.username}</h2>
-            <p className="text-xs text-muted-foreground">Üye ID: {user?.id}</p>
-            {user?.role === "admin" && (
-              <span className="inline-block mt-1 px-2 py-0.5 bg-destructive/20 text-destructive text-[10px] font-bold rounded uppercase">Admin</span>
-            )}
+          
+          <div className="px-6 -mt-12 flex items-end justify-between relative z-10">
+             <div className="flex items-end gap-4">
+                <div className="w-24 h-24 rounded-2xl bg-black border-4 border-background shadow-2xl flex items-center justify-center relative group">
+                   <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent rounded-xl" />
+                   <UserIcon className="w-10 h-10 text-primary" />
+                   <div className="absolute bottom-0 right-0 w-6 h-6 bg-green-500 border-4 border-background rounded-full" />
+                </div>
+                <div className="mb-2">
+                   <h2 className="text-2xl font-display font-bold text-foreground leading-none">{user?.username}</h2>
+                   <p className="text-xs text-muted-foreground mt-1 font-medium">Üye ID: <span className="text-foreground font-mono">#{user?.id}</span></p>
+                </div>
+             </div>
           </div>
         </div>
 
-        <Card className="bg-card border-border">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Referans Bilgisi</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center justify-between p-3 bg-background rounded-lg border border-border">
-              <span className="text-sm font-medium">Kayıt Olunan Bayi Kodu</span>
-              <span className="text-lg font-bold text-primary font-mono">{user?.referralCode || BAYI_KODU}</span>
+        <div className="px-4 space-y-6">
+          {/* Stats Grid */}
+          <div className="grid grid-cols-3 gap-3">
+             <Card className="bg-card/50 border-border/50 backdrop-blur-sm">
+                <CardContent className="p-3 flex flex-col items-center justify-center text-center gap-1">
+                   <div className="w-8 h-8 rounded-full bg-yellow-500/10 flex items-center justify-center mb-1">
+                      <Trophy className="w-4 h-4 text-yellow-500" />
+                   </div>
+                   <span className="text-lg font-display font-bold text-foreground">12</span>
+                   <span className="text-[10px] text-muted-foreground uppercase font-bold">Kazanılan</span>
+                </CardContent>
+             </Card>
+             <Card className="bg-card/50 border-border/50 backdrop-blur-sm">
+                <CardContent className="p-3 flex flex-col items-center justify-center text-center gap-1">
+                   <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center mb-1">
+                      <Wallet className="w-4 h-4 text-green-500" />
+                   </div>
+                   <span className="text-lg font-display font-bold text-foreground">%78</span>
+                   <span className="text-[10px] text-muted-foreground uppercase font-bold">Başarı</span>
+                </CardContent>
+             </Card>
+             <Card className="bg-card/50 border-border/50 backdrop-blur-sm">
+                <CardContent className="p-3 flex flex-col items-center justify-center text-center gap-1">
+                   <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center mb-1">
+                      <Star className="w-4 h-4 text-blue-500" />
+                   </div>
+                   <span className="text-lg font-display font-bold text-foreground">345</span>
+                   <span className="text-[10px] text-muted-foreground uppercase font-bold">Puan</span>
+                </CardContent>
+             </Card>
+          </div>
+
+          {/* Referral Card */}
+          <div className="relative group overflow-hidden rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 via-black to-black p-5">
+             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20" />
+             <div className="relative z-10 flex items-center justify-between">
+                <div>
+                   <h3 className="text-sm font-bold text-primary mb-1 flex items-center gap-2">
+                      <CreditCard className="w-4 h-4" />
+                      REFERANS KODUNUZ
+                   </h3>
+                   <p className="text-[10px] text-muted-foreground">Arkadaşlarınızı davet edin, kazanın.</p>
+                </div>
+                <div className="flex items-center gap-2 bg-primary/10 px-3 py-2 rounded-lg border border-primary/20 cursor-pointer active:scale-95 transition-transform hover:bg-primary/20">
+                   <span className="font-mono font-bold text-lg text-white tracking-widest">{user?.referralCode || BAYI_KODU}</span>
+                   <Copy className="w-4 h-4 text-primary" />
+                </div>
+             </div>
+          </div>
+
+          {/* Menu Options */}
+          <div className="space-y-3">
+            <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider pl-1">Hesap Ayarları</h3>
+            
+            <div className="bg-card border border-border rounded-xl overflow-hidden divide-y divide-border/50">
+               {user?.role === "admin" && (
+                 <button className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors">
+                    <div className="flex items-center gap-3">
+                       <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                          <Settings className="w-4 h-4 text-purple-500" />
+                       </div>
+                       <span className="text-sm font-medium text-foreground">Yönetim Paneli</span>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
+                 </button>
+               )}
+
+               <button className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors">
+                  <div className="flex items-center gap-3">
+                     <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                        <Shield className="w-4 h-4 text-blue-500" />
+                     </div>
+                     <span className="text-sm font-medium text-foreground">Gizlilik ve Güvenlik</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-muted-foreground" />
+               </button>
+
+               <button 
+                  onClick={logout}
+                  className="w-full flex items-center justify-between p-4 hover:bg-destructive/10 transition-colors group"
+               >
+                  <div className="flex items-center gap-3">
+                     <div className="w-8 h-8 rounded-lg bg-destructive/10 flex items-center justify-center group-hover:bg-destructive/20">
+                        <LogOut className="w-4 h-4 text-destructive" />
+                     </div>
+                     <span className="text-sm font-medium text-destructive">Çıkış Yap</span>
+                  </div>
+               </button>
             </div>
-          </CardContent>
-        </Card>
-
-        <div className="space-y-2">
-          {user?.role === "admin" && (
-            <Button variant="outline" className="w-full justify-start h-12" asChild>
-              <a href="/admin">
-                <Settings className="w-4 h-4 mr-2" />
-                Yönetim Paneli
-              </a>
-            </Button>
-          )}
-
-          <Button variant="outline" className="w-full justify-start h-12 text-muted-foreground hover:text-foreground">
-            <Shield className="w-4 h-4 mr-2" />
-            Gizlilik Politikası
-          </Button>
-
-          <Button 
-            variant="destructive" 
-            className="w-full justify-start h-12 mt-4"
-            onClick={logout}
-          >
-            <LogOut className="w-4 h-4 mr-2" />
-            Çıkış Yap
-          </Button>
+          </div>
+          
+          <div className="text-center">
+             <p className="text-[10px] text-muted-foreground/50">v2.4.0 • Build 20241214</p>
+          </div>
         </div>
       </div>
     </MobileLayout>
