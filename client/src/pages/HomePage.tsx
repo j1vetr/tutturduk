@@ -1,5 +1,6 @@
 import { MobileLayout } from "@/components/MobileLayout";
 import { PredictionCard } from "@/components/PredictionCard";
+import { HeroPrediction } from "@/components/HeroPrediction";
 import { MOCK_PREDICTIONS } from "@/lib/mockData";
 import { ShieldAlert } from "lucide-react";
 
@@ -9,6 +10,8 @@ export default function HomePage() {
   return (
     <MobileLayout activeTab="home">
       <div className="space-y-6">
+        <HeroPrediction />
+        
         <div className="space-y-2">
           <h2 className="text-xl font-display text-foreground border-l-4 border-primary pl-3">Günün Tahminleri</h2>
           <p className="text-xs text-muted-foreground pl-4">Yapay zeka destekli analizler ve uzman yorumları.</p>
