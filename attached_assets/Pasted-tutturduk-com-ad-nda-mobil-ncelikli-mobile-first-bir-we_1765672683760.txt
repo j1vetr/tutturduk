@@ -1,0 +1,151 @@
+tutturduk.com adında mobil öncelikli (mobile-first) bir web uygulaması yap. Proje, kullanıcılara maç tahminleri ve kazanan kuponlar gösteren bir platform. “Yapay zeka” ifadesi pazarlama dili olarak kullanılacak; tahminler tamamen admin tarafından manuel girilecek ve kullanıcılar bunu uygulamada görecek.
+
+1) Ana Amaç
+
+Kullanıcılar sadece kayıt olursa tahminleri ve kazanan kuponları görebilsin.
+
+Kayıt referans kodu ile zorunlu olsun (referans kodu olmadan kayıt olamasın).
+
+Bizim bayi kodumuz 303603: uygulama içinde görünür şekilde “Bayi Kodumuz: 303603” alanı olsun ve kullanıcıları bu kodu kullanmaya yönlendiren net bir bilgilendirme yer alsın.
+
+2) Kullanıcı Tarafı (Mobil UI)
+
+Ana sayfa çok temiz ve hızlı açılan bir mobil tasarım olsun.
+
+Üstte: Logo/isim (tutturduk.com) + kısa slogan (örn: “Günlük Tahmin Merkezi”).
+
+Ana sayfa bölümleri:
+
+Günün Tahminleri (liste)
+
+Canlı / Yaklaşan Maçlar (istersen opsiyonel liste – admin girerse görünür)
+
+Kazananlar / Başarılı Kuponlar (geçmiş başarı ekranı)
+
+Bayi Kodu 303603 sabit ve belirgin (kopyala butonu gibi davranış)
+
+Tahmin kartı içeriği:
+
+Lig, maç adı, tarih-saat
+
+Tahmin (ör: MS1, Üst 2.5 vs.)
+
+Güven seviyesi (1–10 veya “Düşük/Orta/Yüksek”)
+
+Kısa yorum (adminin yazdığı)
+
+Durum etiketi: “Beklemede / Kazandı / Kaybetti”
+
+“Kazanan Kuponlar” sayfasında:
+
+Adminin eklediği kupon görseli veya kupon metni
+
+Tarih, toplam oran, sonuç
+
+İsterse “kanıt” alanı (admin notu)
+
+3) Kayıt / Giriş Kuralları
+
+Kayıt olurken mutlaka:
+
+Kullanıcı adı veya ad-soyad
+
+Şifre
+
+Referans kodu (zorunlu)
+
+Referans kodu doğruysa kayıt tamamlanır; değilse “Geçersiz referans kodu” uyarısı ver.
+
+Giriş yapmadan:
+
+Sadece tanıtım ekranı + örnek 1-2 “blur” edilmiş tahmin kartı göster (içerik kilitli hissi).
+
+“Kayıt ol / Giriş yap” çağrısı net olsun.
+
+4) Admin Panel (Tam Kontrol)
+
+Admin paneli sadece admin girişi ile açılsın ve şu modüller olsun:
+
+A) Tahmin Yönetimi
+
+Tahmin ekle / düzenle / sil
+
+Alanlar:
+
+Lig, maç adı
+
+Tarih-saat
+
+Tahmin türü
+
+Güven seviyesi
+
+Yorum
+
+Durum (Beklemede/Kazandı/Kaybetti)
+
+“Öne çıkar” seçeneği (anasayfada üstte göster)
+
+B) Kazanan Kuponlar
+
+Kupon ekle / düzenle / sil
+
+Kupon için:
+
+Başlık
+
+Tarih
+
+Toplam oran
+
+Sonuç (Kazandı/Kaybetti)
+
+Kupon açıklaması ve/veya kupon görseli
+
+“Vitrin” (anasayfada göster)
+
+C) Referans Kodu Yönetimi
+
+Sistem “referans kodu” mantığıyla çalışsın:
+
+Admin panelinde geçerli referans kodlarını listele
+
+Kod ekle/sil
+
+Her kodun kaç kayıt getirdiğini göster (basit sayaç)
+
+Bizim ana yönlendirme metni:
+
+“İddaa Bayi Kodu: 303603” alanı tüm uygulamada ayrıca yer alsın.
+
+D) Kullanıcı Yönetimi
+
+Kullanıcıları listele
+
+Hangi referans koduyla kayıt olduğunu göster
+
+Kullanıcıyı pasif et / aktif et (ban gibi)
+
+5) İçerik Dili ve Güvenli Kullanım Uyarısı
+
+Site içinde küçük bir bölümde şu minvalde uyarı olsun:
+
+“Bu platform yatırım/tahmin garantisi vermez. Paylaşılan içerikler bilgilendirme amaçlıdır. 18+.”
+
+Aşırı iddialı “kesin kazanır” dilinden kaçın, daha gerçekçi ifade kullan.
+
+6) Tasarım ve Deneyim
+
+Mobilde tek elle kullanıma uygun, büyük butonlar, net kart tasarımı.
+
+Hızlı geçişler: Alt menü (Ana Sayfa / Tahminler / Kazananlar / Profil)
+
+Profil bölümünde:
+
+Kullanıcı bilgisi
+
+Çıkış yap
+
+“Bayi Kodu: 303603” tekrar göster
+
+Uygulama tamamen adminin manuel girdiği içerikle çalışacak şekilde kurgulansın. Öncelik: mobil kullanıcı deneyimi, içerik kilidi (login zorunluluğu), admin panelinden tam yönetim.
