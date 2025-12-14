@@ -70,24 +70,6 @@ export default function ProfilePage() {
              </Card>
           </div>
 
-          {/* Referral Card */}
-          <div className="relative group overflow-hidden rounded-xl border border-primary/20 bg-gradient-to-br from-primary/5 via-black to-black p-5">
-             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20" />
-             <div className="relative z-10 flex items-center justify-between">
-                <div>
-                   <h3 className="text-sm font-bold text-primary mb-1 flex items-center gap-2">
-                      <CreditCard className="w-4 h-4" />
-                      REFERANS KODUNUZ
-                   </h3>
-                   <p className="text-[10px] text-muted-foreground">Arkadaşlarınızı davet edin, kazanın.</p>
-                </div>
-                <div className="flex items-center gap-2 bg-primary/10 px-3 py-2 rounded-lg border border-primary/20 cursor-pointer active:scale-95 transition-transform hover:bg-primary/20">
-                   <span className="font-mono font-bold text-lg text-white tracking-widest">{user?.referralCode || BAYI_KODU}</span>
-                   <Copy className="w-4 h-4 text-primary" />
-                </div>
-             </div>
-          </div>
-
           {/* Menu Options */}
           <div className="space-y-3">
             <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider pl-1">Hesap Ayarları</h3>

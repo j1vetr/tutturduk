@@ -30,7 +30,7 @@ import { useToast } from "@/hooks/use-toast";
 const MOCK_STATS = [
    { title: "Toplam Kullanıcı", value: "1,245", change: "+12%", icon: Users },
    { title: "Aktif Aboneler", value: "843", change: "+5%", icon: Activity },
-   { title: "Toplam Gelir", value: "₺45,200", change: "+18%", icon: DollarSign },
+   { title: "Bekleyen Onay", value: "24", change: "-8%", icon: Users },
    { title: "Başarı Oranı", value: "%78", change: "+2%", icon: TrendingUp },
 ];
 
@@ -38,6 +38,13 @@ const MOCK_USERS = [
    { id: 1, username: "ahmet123", email: "ahmet@gmail.com", role: "user", status: "active", date: "2024-03-12" },
    { id: 2, username: "mehmet_b", email: "mehmet@hotmail.com", role: "vip", status: "active", date: "2024-03-10" },
    { id: 3, username: "ayse_k", email: "ayse@outlook.com", role: "user", status: "expired", date: "2024-02-28" },
+];
+
+// Mock Codes
+const MOCK_CODES = [
+   { id: 1, code: "VIP2024", type: "vip", uses: 45, maxUses: 100, status: "active" },
+   { id: 2, code: "WELCOME50", type: "standard", uses: 12, maxUses: 50, status: "active" },
+   { id: 3, code: "OZELKOD1", type: "vip", uses: 1, maxUses: 1, status: "used" },
 ];
 
 export default function AdminPage() {
@@ -283,53 +290,93 @@ export default function AdminPage() {
              </div>
           )}
 
-          {/* Users Tab */}
+          {/* Users Tab - Now focused on Invitation Codes */}
           {activeTab === "users" && (
              <div className="space-y-6">
                 <div className="flex items-center justify-between">
                    <div>
-                      <h2 className="text-2xl font-bold text-white mb-1">Kullanıcı Yönetimi</h2>
-                      <p className="text-zinc-400">Davetiye kodları ve üyelikler.</p>
+                      <h2 className="text-2xl font-bold text-white mb-1">Davetiye Yönetimi</h2>
+                      <p className="text-zinc-400">Kullanıcı kayıtları için davetiye kodları oluşturun.</p>
                    </div>
                    <Button className="bg-primary text-black font-bold">
-                      <Plus className="w-4 h-4 mr-2" /> Yeni Davetiye
+                      <Plus className="w-4 h-4 mr-2" /> Yeni Kod Oluştur
                    </Button>
                 </div>
 
-                <div className="flex gap-4 mb-6">
-                   <div className="relative flex-1">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
-                      <Input placeholder="Kullanıcı ara..." className="pl-9 bg-zinc-900 border-white/10 text-white" />
-                   </div>
-                </div>
-
-                <Card className="bg-zinc-900 border-white/5">
-                   <CardContent className="p-0">
-                      <div className="divide-y divide-white/5">
-                         {MOCK_USERS.map((u) => (
-                            <div key={u.id} className="p-4 flex items-center justify-between hover:bg-white/5 transition-colors">
-                               <div className="flex items-center gap-4">
-                                  <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-sm font-bold text-white">
-                                     {u.username.substring(0,2).toUpperCase()}
-                                  </div>
-                                  <div>
-                                     <p className="font-bold text-white">{u.username}</p>
-                                     <p className="text-xs text-zinc-500">{u.email}</p>
-                                  </div>
-                               </div>
-                               <div className="flex items-center gap-4">
-                                  <Badge variant="outline" className="border-white/10 text-zinc-400">
-                                     {u.role.toUpperCase()}
-                                  </Badge>
-                                  <Button size="icon" variant="ghost" className="text-zinc-500 hover:text-red-500">
-                                     <Trash2 className="w-4 h-4" />
-                                  </Button>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                   {/* Create Code Card */}
+                   <Card className="bg-zinc-900 border-white/5 md:col-span-2">
+                      <CardHeader>
+                         <CardTitle className="text-white text-lg">Hızlı Kod Oluştur</CardTitle>
+                         <CardDescription>Tek kullanımlık veya çoklu davetiye kodu</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                         <div className="flex flex-col md:flex-row gap-4 items-end">
+                            <div className="space-y-2 flex-1 w-full">
+                               <Label className="text-zinc-400">Kod (Otomatik veya Özel)</Label>
+                               <div className="flex gap-2">
+                                  <Input placeholder="Örn: OZELUYE2024" className="bg-black border-white/10 text-white font-mono uppercase" />
+                                  <Button variant="outline" className="border-white/10 shrink-0"><RefreshCcw className="w-4 h-4" /></Button>
                                </div>
                             </div>
-                         ))}
-                      </div>
-                   </CardContent>
-                </Card>
+                            <div className="space-y-2 w-full md:w-48">
+                               <Label className="text-zinc-400">Kullanım Limiti</Label>
+                               <Input type="number" defaultValue="1" className="bg-black border-white/10 text-white" />
+                            </div>
+                            <div className="space-y-2 w-full md:w-48">
+                               <Label className="text-zinc-400">Üyelik Tipi</Label>
+                               <select className="flex h-10 w-full rounded-md border border-white/10 bg-black px-3 py-2 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                                  <option value="standard">Standart</option>
+                                  <option value="vip">VIP</option>
+                               </select>
+                            </div>
+                            <Button className="bg-white text-black font-bold hover:bg-gray-200 w-full md:w-auto">
+                               Oluştur
+                            </Button>
+                         </div>
+                      </CardContent>
+                   </Card>
+
+                   {/* Active Codes List */}
+                   <Card className="bg-zinc-900 border-white/5 md:col-span-2">
+                      <CardHeader>
+                         <CardTitle className="text-white text-lg">Aktif Davetiye Kodları</CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-0">
+                         <div className="divide-y divide-white/5">
+                            {MOCK_CODES.map((code) => (
+                               <div key={code.id} className="p-4 flex items-center justify-between hover:bg-white/5 transition-colors">
+                                  <div className="flex items-center gap-4">
+                                     <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                                        <Trophy className="w-5 h-5 text-primary" />
+                                     </div>
+                                     <div>
+                                        <p className="font-mono font-bold text-white text-lg tracking-wider">{code.code}</p>
+                                        <p className="text-xs text-zinc-500">
+                                           {code.type === 'vip' ? 'VIP Üyelik' : 'Standart Üyelik'} • {code.maxUses - code.uses} hak kaldı
+                                        </p>
+                                     </div>
+                                  </div>
+                                  <div className="flex items-center gap-4">
+                                     <div className="text-right hidden md:block">
+                                        <div className="text-xs text-zinc-400 mb-1">Kullanım</div>
+                                        <div className="w-24 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                                           <div 
+                                             className="h-full bg-primary" 
+                                             style={{ width: `${(code.uses / code.maxUses) * 100}%` }}
+                                           />
+                                        </div>
+                                     </div>
+                                     <Button size="icon" variant="ghost" className="text-zinc-500 hover:text-red-500">
+                                        <Trash2 className="w-4 h-4" />
+                                     </Button>
+                                  </div>
+                               </div>
+                            ))}
+                         </div>
+                      </CardContent>
+                   </Card>
+                </div>
              </div>
           )}
 
@@ -359,13 +406,14 @@ export default function AdminPage() {
                          <Switch defaultChecked />
                       </div>
 
-                      <div className="space-y-2 pt-4 border-t border-white/5">
-                         <Label className="text-zinc-400">Bayi Kodu</Label>
-                         <div className="flex gap-2">
-                            <Input defaultValue="303603" className="bg-black border-white/10 text-white" />
-                            <Button size="icon" variant="outline" className="border-white/10"><Save className="w-4 h-4" /></Button>
+                         <div className="space-y-2 pt-4 border-t border-white/5">
+                            <Label className="text-zinc-400">iddaa.com Bayi Kodu</Label>
+                            <p className="text-xs text-zinc-500 mb-2">Kullanıcıların iddaa.com'a kayıt olurken girmesi gereken referans kodu.</p>
+                            <div className="flex gap-2">
+                               <Input defaultValue="303603" className="bg-black border-white/10 text-white" />
+                               <Button size="icon" variant="outline" className="border-white/10"><Save className="w-4 h-4" /></Button>
+                            </div>
                          </div>
-                      </div>
                    </CardContent>
                 </Card>
              </div>
