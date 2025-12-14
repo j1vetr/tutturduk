@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { useLocation } from "wouter";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -16,8 +16,13 @@ export default function AdminPage() {
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("predictions");
 
+  useEffect(() => {
+    if (user?.role !== "admin") {
+      setLocation("/");
+    }
+  }, [user, setLocation]);
+
   if (user?.role !== "admin") {
-    setLocation("/");
     return null;
   }
 
