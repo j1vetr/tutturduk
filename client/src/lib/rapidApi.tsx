@@ -74,7 +74,30 @@ export function useLiveMatches() {
   });
 }
 
-export const fetchUpcomingMatches = async (date: string): Promise<LiveMatch[]> => {
+export interface UpcomingMatch {
+  id: number;
+  leagueId: number;
+  time: string;
+  home: {
+    id: number;
+    name: string;
+    score: number;
+  };
+  away: {
+    id: number;
+    name: string;
+    score: number;
+  };
+  status: {
+    utcTime: string;
+    started: boolean;
+    finished: boolean;
+    cancelled: boolean;
+    scoreStr?: string;
+  };
+}
+
+export const fetchUpcomingMatches = async (date: string): Promise<UpcomingMatch[]> => {
   // date format: YYYYMMDD
   const response = await fetch(`https://${API_HOST}/football-get-matches-by-date?date=${date}`, {
     method: "GET",
@@ -94,7 +117,13 @@ export const fetchUpcomingMatches = async (date: string): Promise<LiveMatch[]> =
     throw new Error("API Abonelik Hatası: Lütfen RapidAPI üzerinden aboneliği başlatın.");
   }
 
-  return data.response || [];
+  // Ensure response is an array
+  if (!Array.isArray(data.response)) {
+    console.error("API response is not an array:", data);
+    return [];
+  }
+
+  return data.response;
 };
 
 export function useUpcomingMatches(date: string) {
