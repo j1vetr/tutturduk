@@ -45,10 +45,8 @@ export default function AuthPage() {
       });
       return;
     }
-
-    const codeToUse = isLogin ? BAYI_KODU : referralCode; 
     
-    const success = await login(username, codeToUse);
+    const success = await login(username, password, !isLogin, referralCode);
 
     if (success) {
       toast({

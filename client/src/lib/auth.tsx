@@ -2,15 +2,14 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { useLocation } from "wouter";
 
 interface User {
-  id: string;
+  id: number;
   username: string;
-  role: "user" | "admin";
-  referralCode: string;
+  role: string;
 }
 
 interface AuthContextType {
   user: User | null;
-  login: (username: string, referralCode: string) => Promise<boolean>;
+  login: (username: string, password: string, isRegister?: boolean, referralCode?: string) => Promise<boolean>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -25,42 +24,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [, setLocation] = useLocation();
 
   useEffect(() => {
-    // Check local storage for session
-    const storedUser = localStorage.getItem("tutturduk_user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
+    // Check session on mount
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data) setUser(data);
+      })
+      .catch(() => {})
+      .finally(() => setIsLoading(false));
   }, []);
 
-  const login = async (username: string, referralCode: string) => {
-    // Admin backdoor for demo
-    if (username === "admin" && referralCode === BAYI_KODU) {
-      const adminUser: User = { id: "1", username: "Admin", role: "admin", referralCode };
-      setUser(adminUser);
-      localStorage.setItem("tutturduk_user", JSON.stringify(adminUser));
-      return true;
-    }
+  const login = async (username: string, password: string, isRegister = false, referralCode = '') => {
+    try {
+      const endpoint = isRegister ? '/api/auth/register' : '/api/auth/login';
+      const body = isRegister 
+        ? { username, password, referralCode }
+        : { username, password };
 
-    // Regular user validation
-    if (referralCode === BAYI_KODU) {
-      const newUser: User = { 
-        id: Math.random().toString(36).substr(2, 9), 
-        username, 
-        role: "user", 
-        referralCode 
-      };
-      setUser(newUser);
-      localStorage.setItem("tutturduk_user", JSON.stringify(newUser));
-      return true;
-    }
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+        credentials: 'include',
+      });
 
-    return false;
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message);
+      }
+
+      const userData = await res.json();
+      setUser(userData);
+      return true;
+    } catch (error) {
+      console.error('Auth error:', error);
+      return false;
+    }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
     setUser(null);
-    localStorage.removeItem("tutturduk_user");
     setLocation("/auth");
   };
 

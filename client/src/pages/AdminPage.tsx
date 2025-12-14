@@ -49,6 +49,15 @@ const MOCK_CODES = [
    { id: 3, code: "OZELKOD1", type: "vip", uses: 1, maxUses: 1, status: "used" },
 ];
 
+interface InvitationCode {
+  id: number;
+  code: string;
+  type: string;
+  max_uses: number;
+  uses: number;
+  status: string;
+}
+
 export default function AdminPage() {
   const { user, logout } = useAuth();
   const [, setLocation] = useLocation();
@@ -63,26 +72,146 @@ export default function AdminPage() {
      time: "22:00",
      analysis: "Real Madrid evinde son 5 maçtır kaybetmiyor..."
   });
+  const [invitationCodes, setInvitationCodes] = useState<InvitationCode[]>([]);
+  const [newCode, setNewCode] = useState({
+    code: "",
+    type: "standard",
+    maxUses: 1
+  });
 
-  // Protect Route
+  // Protect Route & Load Data
   useEffect(() => {
-    // In a real app, check specifically for admin role
     if (!user) {
       setLocation("/admin-login");
+      return;
     }
+    
+    // Load invitation codes
+    loadInvitationCodes();
   }, [user, setLocation]);
+
+  const loadInvitationCodes = async () => {
+    try {
+      const res = await fetch('/api/admin/invitations', { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        setInvitationCodes(data);
+      }
+    } catch (error) {
+      console.error('Failed to load invitation codes:', error);
+    }
+  };
 
   const handleLogout = () => {
      logout();
      setLocation("/admin-login");
   };
 
-  const handleSaveHero = () => {
-     toast({
-        title: "Başarılı",
-        description: "Günün tahmini güncellendi.",
-        className: "bg-green-500 text-white border-none"
-     });
+  const handleSaveHero = async () => {
+     try {
+       const res = await fetch('/api/admin/predictions/hero', {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({
+           home_team: heroMatch.home,
+           away_team: heroMatch.away,
+           league_id: heroMatch.leagueId,
+           prediction: heroMatch.prediction,
+           odds: heroMatch.odds,
+           match_time: heroMatch.time,
+           analysis: heroMatch.analysis
+         }),
+         credentials: 'include'
+       });
+
+       if (res.ok) {
+         toast({
+            title: "Başarılı",
+            description: "Günün tahmini güncellendi.",
+            className: "bg-green-500 text-white border-none"
+         });
+       } else {
+         throw new Error('Failed to save');
+       }
+     } catch (error) {
+       toast({
+         title: "Hata",
+         description: "Tahmin kaydedilemedi.",
+         variant: "destructive"
+       });
+     }
+  };
+
+  const handleCreateCode = async () => {
+    if (!newCode.code) {
+      toast({
+        variant: "destructive",
+        description: "Lütfen kod girin."
+      });
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/admin/invitations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: newCode.code,
+          type: newCode.type,
+          maxUses: newCode.maxUses
+        }),
+        credentials: 'include'
+      });
+
+      if (res.ok) {
+        toast({
+          description: "Davetiye kodu oluşturuldu.",
+          className: "bg-green-500 text-white border-none"
+        });
+        setNewCode({ code: "", type: "standard", maxUses: 1 });
+        loadInvitationCodes();
+      } else {
+        throw new Error('Failed to create');
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        description: "Kod oluşturulamadı."
+      });
+    }
+  };
+
+  const handleDeleteCode = async (id: number) => {
+    try {
+      const res = await fetch(`/api/admin/invitations/${id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+
+      if (res.ok) {
+        toast({
+          description: "Kod silindi.",
+          className: "bg-green-500 text-white border-none"
+        });
+        loadInvitationCodes();
+      } else {
+        throw new Error('Failed to delete');
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        description: "Kod silinemedi."
+      });
+    }
+  };
+
+  const generateRandomCode = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = '';
+    for (let i = 0; i < 8; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setNewCode({...newCode, code});
   };
 
   if (!user) return null;
@@ -347,7 +476,7 @@ export default function AdminPage() {
                       <h2 className="text-2xl font-bold text-white mb-1">Davetiye Yönetimi</h2>
                       <p className="text-zinc-400">Kullanıcı kayıtları için davetiye kodları oluşturun.</p>
                    </div>
-                   <Button className="bg-primary text-black font-bold">
+                   <Button className="bg-primary text-black font-bold" onClick={handleCreateCode} data-testid="button-create-code">
                       <Plus className="w-4 h-4 mr-2" /> Yeni Kod Oluştur
                    </Button>
                 </div>
@@ -364,22 +493,41 @@ export default function AdminPage() {
                             <div className="space-y-2 flex-1 w-full">
                                <Label className="text-zinc-400">Kod (Otomatik veya Özel)</Label>
                                <div className="flex gap-2">
-                                  <Input placeholder="Örn: OZELUYE2024" className="bg-black border-white/10 text-white font-mono uppercase" />
-                                  <Button variant="outline" className="border-white/10 shrink-0"><RefreshCcw className="w-4 h-4" /></Button>
+                                  <Input 
+                                    placeholder="Örn: OZELUYE2024" 
+                                    className="bg-black border-white/10 text-white font-mono uppercase" 
+                                    value={newCode.code}
+                                    onChange={(e) => setNewCode({...newCode, code: e.target.value.toUpperCase()})}
+                                    data-testid="input-code"
+                                  />
+                                  <Button variant="outline" className="border-white/10 shrink-0" onClick={generateRandomCode} data-testid="button-generate-code">
+                                    <RefreshCcw className="w-4 h-4" />
+                                  </Button>
                                </div>
                             </div>
                             <div className="space-y-2 w-full md:w-48">
                                <Label className="text-zinc-400">Kullanım Limiti</Label>
-                               <Input type="number" defaultValue="1" className="bg-black border-white/10 text-white" />
+                               <Input 
+                                 type="number" 
+                                 value={newCode.maxUses} 
+                                 onChange={(e) => setNewCode({...newCode, maxUses: parseInt(e.target.value)})}
+                                 className="bg-black border-white/10 text-white" 
+                                 data-testid="input-max-uses"
+                               />
                             </div>
                             <div className="space-y-2 w-full md:w-48">
                                <Label className="text-zinc-400">Üyelik Tipi</Label>
-                               <select className="flex h-10 w-full rounded-md border border-white/10 bg-black px-3 py-2 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+                               <select 
+                                 className="flex h-10 w-full rounded-md border border-white/10 bg-black px-3 py-2 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                 value={newCode.type}
+                                 onChange={(e) => setNewCode({...newCode, type: e.target.value})}
+                                 data-testid="select-type"
+                               >
                                   <option value="standard">Standart</option>
                                   <option value="vip">VIP</option>
                                </select>
                             </div>
-                            <Button className="bg-white text-black font-bold hover:bg-gray-200 w-full md:w-auto">
+                            <Button className="bg-white text-black font-bold hover:bg-gray-200 w-full md:w-auto" onClick={handleCreateCode} data-testid="button-create-code-form">
                                Oluştur
                             </Button>
                          </div>
@@ -392,37 +540,49 @@ export default function AdminPage() {
                          <CardTitle className="text-white text-lg">Aktif Davetiye Kodları</CardTitle>
                       </CardHeader>
                       <CardContent className="p-0">
-                         <div className="divide-y divide-white/5">
-                            {MOCK_CODES.map((code) => (
-                               <div key={code.id} className="p-4 flex items-center justify-between hover:bg-white/5 transition-colors">
-                                  <div className="flex items-center gap-4">
-                                     <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                                        <Trophy className="w-5 h-5 text-primary" />
-                                     </div>
-                                     <div>
-                                        <p className="font-mono font-bold text-white text-lg tracking-wider">{code.code}</p>
-                                        <p className="text-xs text-zinc-500">
-                                           {code.type === 'vip' ? 'VIP Üyelik' : 'Standart Üyelik'} • {code.maxUses - code.uses} hak kaldı
-                                        </p>
-                                     </div>
-                                  </div>
-                                  <div className="flex items-center gap-4">
-                                     <div className="text-right hidden md:block">
-                                        <div className="text-xs text-zinc-400 mb-1">Kullanım</div>
-                                        <div className="w-24 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
-                                           <div 
-                                             className="h-full bg-primary" 
-                                             style={{ width: `${(code.uses / code.maxUses) * 100}%` }}
-                                           />
-                                        </div>
-                                     </div>
-                                     <Button size="icon" variant="ghost" className="text-zinc-500 hover:text-red-500">
-                                        <Trash2 className="w-4 h-4" />
-                                     </Button>
-                                  </div>
-                               </div>
-                            ))}
-                         </div>
+                         {invitationCodes.length === 0 ? (
+                           <div className="p-8 text-center text-zinc-500">
+                             Henüz davetiye kodu oluşturulmamış.
+                           </div>
+                         ) : (
+                           <div className="divide-y divide-white/5">
+                              {invitationCodes.map((code) => (
+                                 <div key={code.id} className="p-4 flex items-center justify-between hover:bg-white/5 transition-colors" data-testid={`code-${code.id}`}>
+                                    <div className="flex items-center gap-4">
+                                       <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                                          <Trophy className="w-5 h-5 text-primary" />
+                                       </div>
+                                       <div>
+                                          <p className="font-mono font-bold text-white text-lg tracking-wider" data-testid={`text-code-${code.id}`}>{code.code}</p>
+                                          <p className="text-xs text-zinc-500">
+                                             {code.type === 'vip' ? 'VIP Üyelik' : 'Standart Üyelik'} • {code.max_uses - code.uses} hak kaldı
+                                          </p>
+                                       </div>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                       <div className="text-right hidden md:block">
+                                          <div className="text-xs text-zinc-400 mb-1">Kullanım</div>
+                                          <div className="w-24 h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                                             <div 
+                                               className="h-full bg-primary" 
+                                               style={{ width: `${(code.uses / code.max_uses) * 100}%` }}
+                                             />
+                                          </div>
+                                       </div>
+                                       <Button 
+                                         size="icon" 
+                                         variant="ghost" 
+                                         className="text-zinc-500 hover:text-red-500"
+                                         onClick={() => handleDeleteCode(code.id)}
+                                         data-testid={`button-delete-${code.id}`}
+                                       >
+                                          <Trash2 className="w-4 h-4" />
+                                       </Button>
+                                    </div>
+                                 </div>
+                              ))}
+                           </div>
+                         )}
                       </CardContent>
                    </Card>
                 </div>

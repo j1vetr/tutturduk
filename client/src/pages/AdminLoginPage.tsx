@@ -21,22 +21,17 @@ export default function AdminLoginPage() {
     setIsLoading(true);
 
     try {
-      // For mockup purposes, we'll simulate a specific admin login
-      // In a real app, this would validate against the backend with role check
-      if (username === "admin" && password === "admin123") {
-         // Mock successful admin login by calling the auth provider's login
-         // This is a simplification for the prototype
-         await login(username, password);
-         
+      const success = await login(username, password, false);
+      
+      if (success) {
          toast({
             title: "Giriş Başarılı",
             description: "Yönetici paneline yönlendiriliyorsunuz.",
             className: "bg-green-500 text-white border-none",
          });
-         
          setTimeout(() => setLocation("/admin"), 1000);
       } else {
-        throw new Error("Geçersiz yönetici bilgileri");
+        throw new Error("Geçersiz bilgiler");
       }
     } catch (error) {
       toast({

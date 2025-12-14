@@ -1,17 +1,39 @@
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Timer, TrendingUp, BarChart3, Info } from "lucide-react";
 import { useLocation } from "wouter";
-import { getTeam } from "@/lib/teamsData";
+import { getTeam, getLeague } from "@/lib/teamsData";
 import stadiumBg from "@assets/generated_images/dark_cinematic_stadium_atmosphere_background.png";
+
+interface HeroPredictionData {
+  id: number;
+  home_team: string;
+  away_team: string;
+  league_id: string;
+  prediction: string;
+  odds: number;
+  match_time: string;
+  analysis: string;
+}
 
 export function HeroPrediction() {
   const [, setLocation] = useLocation();
+  const [heroPrediction, setHeroPrediction] = useState<HeroPredictionData | null>(null);
   
-  // Hardcoded "Günün Tahmini" match for demo
-  const match = {
-    id: "1", // Real Madrid vs Barcelona
+  useEffect(() => {
+    fetch('/api/predictions/hero')
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data) setHeroPrediction(data);
+      })
+      .catch(err => console.error('Failed to load hero prediction:', err));
+  }, []);
+  
+  // Default match for when no hero prediction is set
+  const defaultMatch = {
+    id: "1",
     homeTeam: "Real Madrid",
     awayTeam: "Barcelona",
     prediction: "MS 1",
@@ -22,6 +44,19 @@ export function HeroPrediction() {
     analysis: "Real Madrid evinde son 5 maçtır kaybetmiyor. Barcelona savunma hattında eksikler var.",
     probabilities: { home: 65, draw: 20, away: 15 }
   };
+
+  const match = heroPrediction ? {
+    id: heroPrediction.id.toString(),
+    homeTeam: heroPrediction.home_team,
+    awayTeam: heroPrediction.away_team,
+    prediction: heroPrediction.prediction,
+    odds: heroPrediction.odds,
+    league: getLeague(heroPrediction.league_id)?.name.toUpperCase() || "FOOTBALL",
+    time: heroPrediction.match_time,
+    confidence: 88,
+    analysis: heroPrediction.analysis,
+    probabilities: { home: 65, draw: 20, away: 15 }
+  } : defaultMatch;
 
   const homeTeamData = getTeam(match.homeTeam);
   const awayTeamData = getTeam(match.awayTeam);
