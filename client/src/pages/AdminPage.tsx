@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup, SelectLabel } from "@/components/ui/select";
 import { 
   LayoutDashboard, 
   Settings, 
@@ -25,6 +26,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { teams, leagues, getTeamsByLeague } from "@/lib/teamsData";
 
 // Mock Data
 const MOCK_STATS = [
@@ -57,7 +59,7 @@ export default function AdminPage() {
      away: "Barcelona",
      prediction: "MS 1",
      odds: "2.15",
-     league: "LA LIGA",
+     leagueId: "laliga",
      time: "22:00",
      analysis: "Real Madrid evinde son 5 maçtır kaybetmiyor..."
   });
@@ -216,34 +218,81 @@ export default function AdminPage() {
                       <CardDescription>Ana sayfadaki büyük kartı düzenle</CardDescription>
                    </CardHeader>
                    <CardContent className="space-y-4">
+                      {/* League Selection First */}
+                      <div className="space-y-2">
+                         <Label className="text-zinc-400">Lig Seçimi</Label>
+                         <Select 
+                            value={heroMatch.leagueId} 
+                            onValueChange={(val) => setHeroMatch({...heroMatch, leagueId: val, home: "", away: ""})}
+                         >
+                            <SelectTrigger className="bg-black border-white/10 text-white">
+                               <SelectValue placeholder="Lig Seçiniz" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                               {leagues.map(league => (
+                                  <SelectItem key={league.id} value={league.id}>
+                                     <div className="flex items-center gap-2">
+                                        <img src={league.logo} alt={league.name} className="w-4 h-4 object-contain" />
+                                        {league.name}
+                                     </div>
+                                  </SelectItem>
+                               ))}
+                            </SelectContent>
+                         </Select>
+                      </div>
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                          <div className="space-y-2">
                             <Label className="text-zinc-400">Ev Sahibi</Label>
-                            <Input 
+                            <Select 
                                value={heroMatch.home} 
-                               onChange={(e) => setHeroMatch({...heroMatch, home: e.target.value})}
-                               className="bg-black border-white/10 text-white" 
-                            />
+                               onValueChange={(val) => setHeroMatch({...heroMatch, home: val})}
+                            >
+                               <SelectTrigger className="bg-black border-white/10 text-white">
+                                  <SelectValue placeholder="Ev Sahibi Seç" />
+                               </SelectTrigger>
+                               <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                                  <SelectGroup>
+                                    <SelectLabel>Takımlar</SelectLabel>
+                                    {getTeamsByLeague(heroMatch.leagueId).map(team => (
+                                       <SelectItem key={team.id} value={team.name}>
+                                          <div className="flex items-center gap-2">
+                                             <img src={team.logo} alt={team.name} className="w-4 h-4 object-contain bg-white/10 rounded-sm" />
+                                             {team.name}
+                                          </div>
+                                       </SelectItem>
+                                    ))}
+                                  </SelectGroup>
+                               </SelectContent>
+                            </Select>
                          </div>
                          <div className="space-y-2">
                             <Label className="text-zinc-400">Deplasman</Label>
-                            <Input 
-                               value={heroMatch.away}
-                               onChange={(e) => setHeroMatch({...heroMatch, away: e.target.value})} 
-                               className="bg-black border-white/10 text-white" 
-                            />
+                            <Select 
+                               value={heroMatch.away} 
+                               onValueChange={(val) => setHeroMatch({...heroMatch, away: val})}
+                            >
+                               <SelectTrigger className="bg-black border-white/10 text-white">
+                                  <SelectValue placeholder="Deplasman Seç" />
+                               </SelectTrigger>
+                               <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                                  <SelectGroup>
+                                    <SelectLabel>Takımlar</SelectLabel>
+                                    {getTeamsByLeague(heroMatch.leagueId).map(team => (
+                                       <SelectItem key={team.id} value={team.name}>
+                                          <div className="flex items-center gap-2">
+                                             <img src={team.logo} alt={team.name} className="w-4 h-4 object-contain bg-white/10 rounded-sm" />
+                                             {team.name}
+                                          </div>
+                                       </SelectItem>
+                                    ))}
+                                  </SelectGroup>
+                               </SelectContent>
+                            </Select>
                          </div>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                         <div className="space-y-2">
-                            <Label className="text-zinc-400">Lig</Label>
-                            <Input 
-                               value={heroMatch.league}
-                               onChange={(e) => setHeroMatch({...heroMatch, league: e.target.value})}
-                               className="bg-black border-white/10 text-white" 
-                            />
-                         </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                          <div className="space-y-2">
                             <Label className="text-zinc-400">Saat</Label>
                             <Input 
