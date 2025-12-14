@@ -10,31 +10,31 @@ export const teams: Team[] = [
   {
     id: "133604",
     name: "Arsenal",
-    logo: "https://www.thesportsdb.com/images/media/team/badge/vrtrtp1448813175.png",
+    logo: "https://upload.wikimedia.org/wikipedia/en/thumb/5/53/Arsenal_FC.svg/200px-Arsenal_FC.svg.png",
     league: "Premier League"
   },
   {
     id: "133613",
     name: "Manchester City",
-    logo: "https://www.thesportsdb.com/images/media/team/badge/vwpvry1467462651.png",
+    logo: "https://upload.wikimedia.org/wikipedia/en/thumb/e/eb/Manchester_City_FC_badge.svg/200px-Manchester_City_FC_badge.svg.png",
     league: "Premier League"
   },
   {
     id: "133602",
     name: "Liverpool",
-    logo: "https://www.thesportsdb.com/images/media/team/badge/uvxupy1448813215.png",
+    logo: "https://upload.wikimedia.org/wikipedia/en/thumb/0/0c/Liverpool_FC.svg/200px-Liverpool_FC.svg.png",
     league: "Premier League"
   },
   {
     id: "133610",
     name: "Chelsea",
-    logo: "https://www.thesportsdb.com/images/media/team/badge/yvwvtu1448813215.png", // Generic placeholder or need to find if missing
+    logo: "https://upload.wikimedia.org/wikipedia/en/thumb/c/cc/Chelsea_FC.svg/200px-Chelsea_FC.svg.png", 
     league: "Premier League"
   },
   {
     id: "133612",
     name: "Manchester United",
-    logo: "https://www.thesportsdb.com/images/media/team/badge/xzqdr11517660252.png", // Generic placeholder or need to find if missing
+    logo: "https://upload.wikimedia.org/wikipedia/en/thumb/7/7a/Manchester_United_FC_crest.svg/200px-Manchester_United_FC_crest.svg.png", 
     league: "Premier League"
   },
   
@@ -42,19 +42,19 @@ export const teams: Team[] = [
   {
     id: "133729",
     name: "Real Madrid",
-    logo: "https://www.thesportsdb.com/images/media/team/badge/txqwyw1448813032.png",
+    logo: "https://upload.wikimedia.org/wikipedia/en/thumb/5/56/Real_Madrid_CF.svg/200px-Real_Madrid_CF.svg.png",
     league: "La Liga"
   },
   {
     id: "133739",
     name: "Barcelona",
-    logo: "https://www.thesportsdb.com/images/media/team/badge/syq4yt1448813088.png",
+    logo: "https://upload.wikimedia.org/wikipedia/en/thumb/4/47/FC_Barcelona_%28crest%29.svg/200px-FC_Barcelona_%28crest%29.svg.png",
     league: "La Liga"
   },
   {
     id: "133727",
     name: "Atletico Madrid",
-    logo: "https://www.thesportsdb.com/images/media/team/badge/wsqtqw1448813000.png", // Deduced/approximated or generic
+    logo: "https://upload.wikimedia.org/wikipedia/en/thumb/f/f4/Atletico_Madrid_2017_logo.svg/200px-Atletico_Madrid_2017_logo.svg.png", 
     league: "La Liga"
   },
 
@@ -62,7 +62,7 @@ export const teams: Team[] = [
   {
     id: "133746",
     name: "Bayern Munich",
-    logo: "https://www.thesportsdb.com/images/media/team/badge/rqstwx1467462811.png",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg/200px-FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg.png",
     league: "Bundesliga"
   },
   {
@@ -76,25 +76,25 @@ export const teams: Team[] = [
   {
     id: "133761",
     name: "Juventus",
-    logo: "https://www.thesportsdb.com/images/media/team/badge/vsqpvx1449751145.png",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Juventus_FC_2017_icon_%28black%29.svg/200px-Juventus_FC_2017_icon_%28black%29.svg.png",
     league: "Serie A"
   },
   {
     id: "133757",
     name: "AC Milan",
-    logo: "https://www.thesportsdb.com/images/media/team/badge/xqwpup1448813018.png",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/Logo_of_AC_Milan.svg/200px-Logo_of_AC_Milan.svg.png",
     league: "Serie A"
   },
   {
     id: "133762",
     name: "Inter Milan",
-    logo: "https://www.thesportsdb.com/images/media/team/badge/trpxpy1448813370.png",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/05/FC_Internazionale_Milano_2021.svg/200px-FC_Internazionale_Milano_2021.svg.png",
     league: "Serie A"
   },
   {
     id: "133758",
     name: "Napoli",
-    logo: "https://www.thesportsdb.com/images/media/team/badge/ywtruq1448813289.png", 
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2d/SSC_Neapel.svg/200px-SSC_Neapel.svg.png", 
     league: "Serie A"
   },
 
@@ -102,13 +102,13 @@ export const teams: Team[] = [
   {
     id: "134265",
     name: "Galatasaray",
-    logo: "https://www.thesportsdb.com/images/media/team/badge/xqssut1448813451.png",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Galatasaray_Sports_Club_Logo.png/200px-Galatasaray_Sports_Club_Logo.png",
     league: "Super Lig"
   },
   {
     id: "134267",
     name: "Fenerbahce",
-    logo: "https://www.thesportsdb.com/images/media/team/badge/qtwyvt1448813196.png",
+    logo: "https://upload.wikimedia.org/wikipedia/en/thumb/7/70/Fenerbah%C3%A7e_SK_logo_2024.png/200px-Fenerbah%C3%A7e_SK_logo_2024.png",
     league: "Super Lig"
   },
   {
