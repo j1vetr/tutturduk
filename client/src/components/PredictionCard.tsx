@@ -1,14 +1,17 @@
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { CheckCircle2, Clock, XCircle, BarChart3 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { CheckCircle2, Clock, XCircle, ChevronRight, TrendingUp } from "lucide-react";
 import { Prediction } from "@/lib/mockData";
 import { cn } from "@/lib/utils";
+import { useLocation } from "wouter";
 
 interface PredictionCardProps {
   prediction: Prediction;
 }
 
 export function PredictionCard({ prediction }: PredictionCardProps) {
+  const [, setLocation] = useLocation();
+
   const statusColor = {
     pending: "text-muted-foreground",
     won: "text-secondary",
@@ -16,66 +19,97 @@ export function PredictionCard({ prediction }: PredictionCardProps) {
   };
 
   const statusIcon = {
-    pending: <Clock className="w-4 h-4" />,
-    won: <CheckCircle2 className="w-4 h-4" />,
-    lost: <XCircle className="w-4 h-4" />,
-  };
-
-  const statusText = {
-    pending: "Beklemede",
-    won: "Kazandı",
-    lost: "Kaybetti",
+    pending: <Clock className="w-3.5 h-3.5" />,
+    won: <CheckCircle2 className="w-3.5 h-3.5" />,
+    lost: <XCircle className="w-3.5 h-3.5" />,
   };
 
   const confidenceColor = {
-    low: "bg-muted text-muted-foreground",
-    medium: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+    low: "bg-muted/50 text-muted-foreground border-transparent",
+    medium: "bg-blue-500/10 text-blue-400 border-blue-500/20",
     high: "bg-primary/10 text-primary border-primary/20",
   };
 
   return (
-    <Card className="border-border bg-card overflow-hidden">
-      <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between space-y-0">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{prediction.league}</span>
-        </div>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span>{prediction.date}</span>
-          <span>{prediction.time}</span>
-        </div>
-      </CardHeader>
-      <CardContent className="p-4 pt-2 space-y-4">
-        <div className="flex flex-col gap-1">
-          <h3 className="text-lg font-bold text-foreground">{prediction.match}</h3>
-        </div>
+    <Card 
+      onClick={() => setLocation(`/match/${prediction.id}`)}
+      className="group relative border-border/50 bg-gradient-to-br from-card to-card/50 overflow-hidden hover:border-primary/30 transition-all active:scale-[0.98] cursor-pointer"
+    >
+      {/* Background Accent */}
+      <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-primary/10 transition-colors" />
 
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-background/50 rounded-lg p-3 border border-border flex flex-col items-center justify-center">
-            <span className="text-xs text-muted-foreground mb-1">Tahmin</span>
-            <span className="text-lg font-bold text-primary">{prediction.prediction}</span>
+      <CardContent className="p-0">
+        {/* Header Section */}
+        <div className="flex items-center justify-between p-3 border-b border-border/50 bg-black/20">
+          <div className="flex items-center gap-2">
+             <div className="w-1 h-4 bg-primary rounded-full" />
+             <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{prediction.league}</span>
           </div>
-          <div className="bg-background/50 rounded-lg p-3 border border-border flex flex-col items-center justify-center">
-            <span className="text-xs text-muted-foreground mb-1">Oran</span>
-            <span className="text-lg font-bold text-white">{prediction.odds.toFixed(2)}</span>
+          <div className="flex items-center gap-2 text-[10px] font-medium text-muted-foreground/80">
+            <span>{prediction.date}</span>
+            <span className="w-1 h-1 bg-muted-foreground rounded-full" />
+            <span>{prediction.time}</span>
           </div>
         </div>
 
-        {prediction.comment && (
-          <div className="bg-muted/30 p-3 rounded-md border-l-2 border-primary">
-            <p className="text-sm text-muted-foreground italic">"{prediction.comment}"</p>
-          </div>
-        )}
+        {/* Match Info */}
+        <div className="p-4 space-y-4">
+          <div className="flex items-center justify-between gap-4">
+             {/* Home Team */}
+             <div className="flex-1 flex flex-col items-center gap-2 text-center">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-800 to-black border border-white/10 flex items-center justify-center shadow-lg">
+                   <span className="text-xs font-bold text-white/80">{prediction.homeTeam.substring(0, 2).toUpperCase()}</span>
+                </div>
+                <span className="text-xs font-medium text-foreground leading-tight">{prediction.homeTeam}</span>
+             </div>
 
-        <div className="flex items-center justify-between pt-2 border-t border-border/50">
-          <Badge variant="outline" className={cn("border", confidenceColor[prediction.confidence])}>
-            <BarChart3 className="w-3 h-3 mr-1" />
-            Güven: {prediction.confidence === "high" ? "Yüksek" : prediction.confidence === "medium" ? "Orta" : "Düşük"}
-          </Badge>
+             {/* VS / Score */}
+             <div className="flex flex-col items-center gap-1">
+                <span className="text-[10px] font-bold text-muted-foreground/50">VS</span>
+             </div>
+
+             {/* Away Team */}
+             <div className="flex-1 flex flex-col items-center gap-2 text-center">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-800 to-black border border-white/10 flex items-center justify-center shadow-lg">
+                   <span className="text-xs font-bold text-white/80">{prediction.awayTeam.substring(0, 2).toUpperCase()}</span>
+                </div>
+                 <span className="text-xs font-medium text-foreground leading-tight">{prediction.awayTeam}</span>
+             </div>
+          </div>
+
+          {/* Prediction Box */}
+          <div className="flex items-stretch gap-2">
+            <div className="flex-1 bg-primary/5 border border-primary/20 rounded-lg p-2 flex flex-col items-center justify-center relative overflow-hidden">
+               <div className="absolute inset-0 bg-primary/5 blur-sm" />
+               <span className="text-[10px] text-primary/80 uppercase font-bold relative z-10">Tahmin</span>
+               <span className="text-lg font-display font-bold text-primary relative z-10">{prediction.prediction}</span>
+            </div>
+            
+            <div className="w-20 bg-card border border-border rounded-lg p-2 flex flex-col items-center justify-center">
+               <span className="text-[10px] text-muted-foreground uppercase font-bold">Oran</span>
+               <span className="text-lg font-display font-bold text-white">{prediction.odds.toFixed(2)}</span>
+            </div>
+          </div>
           
-          <div className={cn("flex items-center gap-1.5 text-sm font-medium", statusColor[prediction.status])}>
-            {statusIcon[prediction.status]}
-            {statusText[prediction.status]}
+          {/* Footer Info */}
+          <div className="flex items-center justify-between pt-2">
+            <Badge variant="outline" className={cn("h-6 px-2 text-[10px]", confidenceColor[prediction.confidence])}>
+              <TrendingUp className="w-3 h-3 mr-1" />
+              {prediction.confidence === "high" ? "Yüksek Güven" : "Analiz"}
+            </Badge>
+
+            <div className={cn("flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider", statusColor[prediction.status])}>
+               {statusIcon[prediction.status]}
+               {prediction.status === 'pending' ? 'Beklemede' : prediction.status === 'won' ? 'Kazandı' : 'Kaybetti'}
+            </div>
           </div>
+        </div>
+
+        {/* View Details Action */}
+        <div className="bg-primary/5 p-2 text-center border-t border-primary/10 group-hover:bg-primary/10 transition-colors">
+           <span className="text-[10px] font-bold text-primary flex items-center justify-center gap-1">
+             DETAYLI ANALİZİ GÖR <ChevronRight className="w-3 h-3" />
+           </span>
         </div>
       </CardContent>
     </Card>

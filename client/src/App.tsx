@@ -10,6 +10,7 @@ import HomePage from "@/pages/HomePage";
 import WinnersPage from "@/pages/WinnersPage";
 import ProfilePage from "@/pages/ProfilePage";
 import AdminPage from "@/pages/AdminPage";
+import MatchDetailPage from "@/pages/MatchDetailPage";
 import { useEffect } from "react";
 
 function ProtectedRoute({ component: Component, ...rest }: any) {
@@ -33,6 +34,9 @@ function Router() {
       <Route path="/auth" component={AuthPage} />
       <Route path="/">
         {() => <ProtectedRoute component={HomePage} />}
+      </Route>
+      <Route path="/match/:id">
+        {() => <ProtectedRoute component={MatchDetailPage} />}
       </Route>
       <Route path="/winners">
         {() => <ProtectedRoute component={WinnersPage} />}
