@@ -1,27 +1,18 @@
 import { useLocation } from "wouter";
-import { Home, Trophy, User, Copy, Ticket, Activity, Radio } from "lucide-react";
+import { Home, Trophy, User, CalendarDays, Radio } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { BAYI_KODU } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
 import logoIcon from "@assets/generated_images/minimalist_sports_betting_logo_icon.png";
 import { LiveScoreTicker } from "./LiveScoreTicker";
 
 interface MobileLayoutProps {
   children: React.ReactNode;
-  activeTab?: "home" | "winners" | "profile" | "admin" | "live";
+  activeTab?: "home" | "winners" | "profile" | "admin" | "live" | "upcoming";
 }
 
 export function MobileLayout({ children, activeTab }: MobileLayoutProps) {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-
-  const handleCopyCode = () => {
-    navigator.clipboard.writeText(BAYI_KODU);
-    toast({
-      description: "iddaa.com Bayi kodu kopyalandı!",
-      className: "bg-primary text-primary-foreground border-none font-bold",
-    });
-  };
 
   return (
     <div className="min-h-screen bg-black font-sans selection:bg-primary/30">
@@ -41,15 +32,15 @@ export function MobileLayout({ children, activeTab }: MobileLayoutProps) {
             </div>
           </div>
           <button 
-            onClick={handleCopyCode}
+            onClick={() => setLocation("/profile")}
             className="flex items-center gap-2 bg-zinc-900 border border-white/10 hover:border-primary/50 px-3 py-1.5 rounded-xl active:scale-95 transition-all shadow-lg group relative overflow-hidden"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
             <div className="flex flex-col items-end leading-none relative z-10">
-              <span className="text-[8px] font-bold text-zinc-500 uppercase group-hover:text-primary transition-colors">Bayi Kodu</span>
-              <span className="text-sm font-display font-bold text-white tracking-widest">{BAYI_KODU}</span>
+              <span className="text-[8px] font-bold text-zinc-500 uppercase group-hover:text-primary transition-colors">Hesabım</span>
+              <span className="text-sm font-display font-bold text-white tracking-widest">Profil</span>
             </div>
-            <Copy className="w-3.5 h-3.5 text-primary group-hover:scale-110 transition-transform relative z-10" />
+            <User className="w-3.5 h-3.5 text-primary group-hover:scale-110 transition-transform relative z-10" />
           </button>
         </div>
         
@@ -89,7 +80,21 @@ export function MobileLayout({ children, activeTab }: MobileLayoutProps) {
           >
             <div className={cn("absolute inset-0 bg-red-500/10 blur-xl opacity-0 transition-opacity", activeTab === "live" && "opacity-100")} />
             <Radio className={cn("w-5 h-5 transition-transform relative z-10", activeTab === "live" ? "scale-110 drop-shadow-[0_0_8px_rgba(239,68,68,0.5)] animate-pulse" : "group-active:scale-90")} />
-            <span className={cn("text-[9px] font-bold tracking-wide relative z-10", activeTab === "live" && "text-white")}>Canlı Skor</span>
+            <span className={cn("text-[9px] font-bold tracking-wide relative z-10", activeTab === "live" && "text-white")}>Canlı</span>
+          </button>
+          
+          <div className="w-[1px] h-8 bg-white/5" />
+
+          <button 
+            onClick={() => setLocation("/upcoming")}
+            className={cn(
+              "flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all duration-300 relative group overflow-hidden",
+              activeTab === "upcoming" ? "text-blue-500 bg-white/5" : "text-zinc-500 hover:text-white hover:bg-white/5"
+            )}
+          >
+            <div className={cn("absolute inset-0 bg-blue-500/10 blur-xl opacity-0 transition-opacity", activeTab === "upcoming" && "opacity-100")} />
+            <CalendarDays className={cn("w-5 h-5 transition-transform relative z-10", activeTab === "upcoming" ? "scale-110 drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]" : "group-active:scale-90")} />
+            <span className={cn("text-[9px] font-bold tracking-wide relative z-10", activeTab === "upcoming" && "text-white")}>Bülten</span>
           </button>
           
           <div className="w-[1px] h-8 bg-white/5" />
@@ -104,20 +109,6 @@ export function MobileLayout({ children, activeTab }: MobileLayoutProps) {
             <div className={cn("absolute inset-0 bg-primary/10 blur-xl opacity-0 transition-opacity", activeTab === "winners" && "opacity-100")} />
             <Trophy className={cn("w-5 h-5 transition-transform relative z-10", activeTab === "winners" ? "scale-110 drop-shadow-[0_0_8px_rgba(34,197,94,0.5)]" : "group-active:scale-90")} />
             <span className={cn("text-[9px] font-bold tracking-wide relative z-10", activeTab === "winners" && "text-white")}>Kazananlar</span>
-          </button>
-          
-          <div className="w-[1px] h-8 bg-white/5" />
-          
-          <button 
-            onClick={() => setLocation("/profile")}
-            className={cn(
-              "flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all duration-300 relative group overflow-hidden",
-              activeTab === "profile" ? "text-primary bg-white/5" : "text-zinc-500 hover:text-white hover:bg-white/5"
-            )}
-          >
-            <div className={cn("absolute inset-0 bg-primary/10 blur-xl opacity-0 transition-opacity", activeTab === "profile" && "opacity-100")} />
-            <User className={cn("w-5 h-5 transition-transform relative z-10", activeTab === "profile" ? "scale-110 drop-shadow-[0_0_8px_rgba(34,197,94,0.5)]" : "group-active:scale-90")} />
-            <span className={cn("text-[9px] font-bold tracking-wide relative z-10", activeTab === "profile" && "text-white")}>Profil</span>
           </button>
         </div>
       </nav>

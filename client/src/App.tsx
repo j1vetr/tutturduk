@@ -12,6 +12,7 @@ import ProfilePage from "@/pages/ProfilePage";
 import AdminPage from "@/pages/AdminPage";
 import MatchDetailPage from "@/pages/MatchDetailPage";
 import LiveMatchesPage from "@/pages/LiveMatchesPage";
+import UpcomingMatchesPage from "@/pages/UpcomingMatchesPage";
 import { useEffect } from "react";
 
 function ProtectedRoute({ component: Component, ...rest }: any) {
@@ -47,6 +48,9 @@ function Router() {
       </Route>
       <Route path="/live">
         {() => <ProtectedRoute component={LiveMatchesPage} />}
+      </Route>
+      <Route path="/upcoming">
+        {() => <ProtectedRoute component={UpcomingMatchesPage} />}
       </Route>
       <Route path="/admin">
         {() => <ProtectedRoute component={AdminPage} />}

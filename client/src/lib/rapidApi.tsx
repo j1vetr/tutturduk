@@ -6,6 +6,8 @@ const API_HOST = "free-api-live-football-data.p.rapidapi.com";
 export interface LiveMatch {
   fixture: {
     id: number;
+    date: string;
+    timestamp: number;
     status: {
       short: string;
       elapsed: number;
@@ -68,6 +70,38 @@ export function useLiveMatches() {
     queryKey: ["liveMatches"],
     queryFn: fetchLiveMatches,
     refetchInterval: 30000, // 30 seconds poll
+    retry: false
+  });
+}
+
+export const fetchUpcomingMatches = async (date: string): Promise<LiveMatch[]> => {
+  // date format: YYYYMMDD
+  const response = await fetch(`https://${API_HOST}/football-get-matches-by-date?date=${date}`, {
+    method: "GET",
+    headers: {
+      "x-rapidapi-key": API_KEY,
+      "x-rapidapi-host": API_HOST,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("API Hatası: " + response.statusText);
+  }
+
+  const data = await response.json();
+
+  if (data.message && typeof data.message === 'string' && data.message.includes("not subscribed")) {
+    throw new Error("API Abonelik Hatası: Lütfen RapidAPI üzerinden aboneliği başlatın.");
+  }
+
+  return data.response || [];
+};
+
+export function useUpcomingMatches(date: string) {
+  return useQuery({
+    queryKey: ["upcomingMatches", date],
+    queryFn: () => fetchUpcomingMatches(date),
+    refetchInterval: 60000, // 1 minute poll
     retry: false
   });
 }
