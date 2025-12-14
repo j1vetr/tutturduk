@@ -140,6 +140,21 @@ export async function registerRoutes(
     });
   });
 
+  // User routes (admin only)
+  app.get('/api/admin/users', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Yetkisiz erişim' });
+    }
+
+    const users = await storage.getAllUsers();
+    res.json(users);
+  });
+
   // Invitation code routes (admin only)
   app.get('/api/admin/invitations', async (req, res) => {
     if (!req.session.userId) {
@@ -203,6 +218,106 @@ export async function registerRoutes(
     res.json(predictions);
   });
 
+  app.get('/api/predictions/pending', async (req, res) => {
+    const predictions = await storage.getPendingPredictions();
+    res.json(predictions);
+  });
+
+  app.get('/api/predictions/won', async (req, res) => {
+    const predictions = await storage.getWonPredictions();
+    res.json(predictions);
+  });
+
+  // Admin prediction routes
+  app.post('/api/admin/predictions', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Yetkisiz erişim' });
+    }
+
+    const { home_team, away_team, league_id, prediction, odds, match_time, match_date, analysis, is_hero } = req.body;
+    
+    // If this will be the hero, first unset current hero
+    if (is_hero) {
+      await pool.query('UPDATE predictions SET is_hero = FALSE');
+    }
+
+    const newPrediction = await storage.createPrediction({
+      home_team,
+      away_team,
+      league_id,
+      prediction,
+      odds: parseFloat(odds),
+      match_time,
+      match_date: match_date || null,
+      analysis,
+      is_hero: is_hero || false,
+      result: 'pending'
+    });
+
+    res.json(newPrediction);
+  });
+
+  app.put('/api/admin/predictions/:id', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Yetkisiz erişim' });
+    }
+
+    const id = parseInt(req.params.id);
+    const { home_team, away_team, league_id, prediction, odds, match_time, match_date, analysis, is_hero, result } = req.body;
+    
+    // If this will be the hero, first unset current hero
+    if (is_hero) {
+      await pool.query('UPDATE predictions SET is_hero = FALSE WHERE id != $1', [id]);
+    }
+
+    const updated = await storage.updatePrediction(id, {
+      home_team,
+      away_team,
+      league_id,
+      prediction,
+      odds: odds ? parseFloat(odds) : undefined,
+      match_time,
+      match_date,
+      analysis,
+      is_hero,
+      result
+    });
+
+    if (!updated) {
+      return res.status(404).json({ message: 'Tahmin bulunamadı' });
+    }
+
+    res.json(updated);
+  });
+
+  app.delete('/api/admin/predictions/:id', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Yetkisiz erişim' });
+    }
+
+    const success = await storage.deletePrediction(parseInt(req.params.id));
+    if (!success) {
+      return res.status(404).json({ message: 'Tahmin bulunamadı' });
+    }
+
+    res.json({ message: 'Başarıyla silindi' });
+  });
+
   app.post('/api/admin/predictions/hero', async (req, res) => {
     if (!req.session.userId) {
       return res.status(401).json({ message: 'Oturum açılmamış' });
@@ -213,7 +328,7 @@ export async function registerRoutes(
       return res.status(403).json({ message: 'Yetkisiz erişim' });
     }
 
-    const { home_team, away_team, league_id, prediction, odds, match_time, analysis } = req.body;
+    const { home_team, away_team, league_id, prediction, odds, match_time, match_date, analysis } = req.body;
     
     const heroPrediction = await storage.updateHeroPrediction({
       home_team,
@@ -222,6 +337,7 @@ export async function registerRoutes(
       prediction,
       odds: parseFloat(odds),
       match_time,
+      match_date: match_date || null,
       analysis,
       is_hero: true,
     });

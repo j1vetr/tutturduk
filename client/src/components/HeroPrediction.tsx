@@ -119,7 +119,7 @@ export function HeroPrediction() {
                     <span className="text-4xl font-display font-black text-primary drop-shadow-[0_0_15px_rgba(255,215,0,0.4)] leading-none">{match.prediction}</span>
                     <div className="mt-2 bg-primary text-black text-[10px] font-black px-3 py-1 rounded-md flex items-center gap-1.5 shadow-lg">
                        <TrendingUp className="w-3 h-3 stroke-[3]" />
-                       <span className="text-sm">{match.odds.toFixed(2)}</span>
+                       <span className="text-sm">{parseFloat(String(match.odds)).toFixed(2)}</span>
                     </div>
                  </div>
               </div>
