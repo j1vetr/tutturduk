@@ -59,24 +59,30 @@ export function PredictionCard({ prediction }: PredictionCardProps) {
         <div className="p-4 space-y-4">
           <div className="flex items-center justify-between gap-4">
              {/* Home Team */}
-             <div className="flex-1 flex flex-col items-center gap-2 text-center">
-                <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center p-2 shadow-lg backdrop-blur-sm">
-                   <img src={homeTeam.logo} alt={homeTeam.name} className="w-full h-full object-contain" />
+             <div className="flex-1 flex flex-col items-center gap-3 text-center">
+                <div className="relative w-16 h-16">
+                   <div className="absolute inset-0 bg-primary/20 rounded-full blur-md animate-pulse" />
+                   <div className="relative w-16 h-16 rounded-full bg-black/40 border border-white/10 flex items-center justify-center p-3 shadow-xl backdrop-blur-md">
+                      <img src={homeTeam.logo} alt={homeTeam.name} className="w-full h-full object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]" />
+                   </div>
                 </div>
-                <span className="text-xs font-medium text-foreground leading-tight">{prediction.homeTeam}</span>
+                <span className="text-sm font-display font-bold text-white leading-tight tracking-wide">{prediction.homeTeam}</span>
              </div>
 
              {/* VS / Score */}
-             <div className="flex flex-col items-center gap-1">
-                <span className="text-[10px] font-bold text-muted-foreground/50">VS</span>
+             <div className="flex flex-col items-center gap-1 pt-2">
+                <span className="text-xl font-display font-black text-white/20 italic">VS</span>
              </div>
 
              {/* Away Team */}
-             <div className="flex-1 flex flex-col items-center gap-2 text-center">
-                <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center p-2 shadow-lg backdrop-blur-sm">
-                   <img src={awayTeam.logo} alt={awayTeam.name} className="w-full h-full object-contain" />
+             <div className="flex-1 flex flex-col items-center gap-3 text-center">
+                <div className="relative w-16 h-16">
+                   <div className="absolute inset-0 bg-primary/20 rounded-full blur-md animate-pulse" style={{ animationDelay: '0.5s' }} />
+                   <div className="relative w-16 h-16 rounded-full bg-black/40 border border-white/10 flex items-center justify-center p-3 shadow-xl backdrop-blur-md">
+                      <img src={awayTeam.logo} alt={awayTeam.name} className="w-full h-full object-contain drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]" />
+                   </div>
                 </div>
-                 <span className="text-xs font-medium text-foreground leading-tight">{prediction.awayTeam}</span>
+                 <span className="text-sm font-display font-bold text-white leading-tight tracking-wide">{prediction.awayTeam}</span>
              </div>
           </div>
 

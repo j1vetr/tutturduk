@@ -2,7 +2,7 @@ import { useParams, useLocation } from "wouter";
 import { MOCK_PREDICTIONS } from "@/lib/mockData";
 import { getTeam } from "@/lib/teamsData";
 import { MobileLayout } from "@/components/MobileLayout";
-import { ArrowLeft, BrainCircuit, TrendingUp, BarChart, ShieldAlert } from "lucide-react";
+import { ArrowLeft, BrainCircuit, TrendingUp, BarChart, ShieldAlert, Sparkles, Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -24,138 +24,222 @@ export default function MatchDetailPage() {
   return (
     <MobileLayout>
       <div className="pb-8 animate-in slide-in-from-bottom-4 duration-500">
-        {/* Header with Image */}
-        <div className="relative h-56 -mt-20 -mx-4 mb-6">
-           <div 
-             className="absolute inset-0 bg-cover bg-center"
-             style={{ backgroundImage: `url(${stadiumBg})` }}
-           />
-           <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/60 to-background" />
+        
+        {/* Unique Header Design */}
+        <div className="relative h-[300px] -mt-20 -mx-4 mb-6 overflow-hidden">
+           {/* Dynamic Background with Team Colors */}
+           <div className="absolute inset-0 bg-black">
+              <div 
+                className="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-overlay"
+                style={{ backgroundImage: `url(${stadiumBg})` }}
+              />
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 to-red-900/20" />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-background" />
+           </div>
            
-           <div className="absolute top-0 left-0 right-0 p-4 pt-6 flex items-center gap-4 z-10">
-              <Button variant="secondary" size="icon" className="h-8 w-8 rounded-full bg-black/40 hover:bg-black/60 text-white border border-white/10 backdrop-blur-md" onClick={() => setLocation("/")}>
-                <ArrowLeft className="w-4 h-4" />
+           {/* Navigation */}
+           <div className="absolute top-0 left-0 right-0 p-4 pt-6 flex items-center justify-between z-20">
+              <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full bg-black/20 hover:bg-black/40 text-white backdrop-blur-md" onClick={() => setLocation("/")}>
+                <ArrowLeft className="w-5 h-5" />
               </Button>
-              <span className="text-xs font-bold text-white/80 uppercase tracking-widest bg-black/40 px-3 py-1 rounded-full backdrop-blur-md border border-white/10">{match.league}</span>
+              <div className="px-3 py-1 rounded-full bg-black/20 backdrop-blur-md border border-white/5 text-xs font-bold text-white/80 uppercase tracking-widest">
+                {match.league}
+              </div>
+              <div className="w-10" /> {/* Spacer for balance */}
            </div>
 
-           <div className="absolute bottom-0 left-0 right-0 p-6 flex items-end justify-between z-10">
-              <div className="flex-1 flex flex-col items-center">
-                 <div className="w-16 h-16 mb-2 bg-white/10 rounded-full p-2 backdrop-blur-sm border border-white/10 shadow-lg">
-                    <img src={homeTeam.logo} alt={homeTeam.name} className="w-full h-full object-contain" />
-                 </div>
-                 <div className="text-xl font-display font-bold text-white leading-tight text-center">{match.homeTeam}</div>
-              </div>
-              
-              <div className="px-4 pb-8 flex flex-col items-center">
-                 <div className="text-primary font-display text-2xl font-bold drop-shadow-[0_0_10px_rgba(255,215,0,0.5)]">VS</div>
-                 <div className="text-xs text-white/60 font-medium mt-1 bg-black/40 px-2 py-0.5 rounded">{match.time}</div>
-              </div>
+           {/* Main Versus Content */}
+           <div className="absolute inset-0 flex items-center justify-center z-10 pt-10">
+              <div className="w-full px-6 flex items-center justify-between gap-4">
+                  {/* Home Team (Left) */}
+                  <div className="flex flex-col items-center gap-4 animate-in slide-in-from-left-8 duration-700">
+                      <div className="relative w-24 h-24">
+                          <div className="absolute inset-0 bg-blue-500/20 blur-2xl rounded-full" />
+                          <div className="relative w-full h-full drop-shadow-[0_0_15px_rgba(255,255,255,0.1)] transition-transform hover:scale-105 duration-300">
+                             <img src={homeTeam.logo} alt={homeTeam.name} className="w-full h-full object-contain" />
+                          </div>
+                      </div>
+                      <div className="text-center">
+                          <h2 className="text-lg font-display font-black text-white leading-none mb-1 tracking-wide">{match.homeTeam.split(' ')[0]}</h2>
+                          <Badge variant="outline" className="text-[10px] border-white/10 bg-white/5 text-white/60">EV SAHİBİ</Badge>
+                      </div>
+                  </div>
 
-              <div className="flex-1 flex flex-col items-center">
-                 <div className="w-16 h-16 mb-2 bg-white/10 rounded-full p-2 backdrop-blur-sm border border-white/10 shadow-lg">
-                    <img src={awayTeam.logo} alt={awayTeam.name} className="w-full h-full object-contain" />
-                 </div>
-                 <div className="text-xl font-display font-bold text-white leading-tight text-center">{match.awayTeam}</div>
+                  {/* VS Badge (Center) */}
+                  <div className="flex flex-col items-center gap-2 -mt-8">
+                      <div className="text-4xl font-display font-black italic text-white/10 select-none">VS</div>
+                      <div className="px-3 py-1 rounded bg-primary/20 border border-primary/30 text-primary text-xs font-bold tracking-wider backdrop-blur-sm shadow-[0_0_10px_rgba(255,215,0,0.2)]">
+                        {match.time}
+                      </div>
+                  </div>
+
+                  {/* Away Team (Right) */}
+                  <div className="flex flex-col items-center gap-4 animate-in slide-in-from-right-8 duration-700">
+                      <div className="relative w-24 h-24">
+                          <div className="absolute inset-0 bg-red-500/20 blur-2xl rounded-full" />
+                          <div className="relative w-full h-full drop-shadow-[0_0_15px_rgba(255,255,255,0.1)] transition-transform hover:scale-105 duration-300">
+                             <img src={awayTeam.logo} alt={awayTeam.name} className="w-full h-full object-contain" />
+                          </div>
+                      </div>
+                      <div className="text-center">
+                          <h2 className="text-lg font-display font-black text-white leading-none mb-1 tracking-wide">{match.awayTeam.split(' ')[0]}</h2>
+                          <Badge variant="outline" className="text-[10px] border-white/10 bg-white/5 text-white/60">DEPLASMAN</Badge>
+                      </div>
+                  </div>
               </div>
            </div>
         </div>
 
-        {/* Prediction Hero */}
-        <div className="flex gap-4 mb-8">
-           <Card className="flex-1 bg-gradient-to-br from-primary/20 to-primary/5 border-primary/20 p-4 flex flex-col items-center justify-center relative overflow-hidden group">
-              <div className="absolute inset-0 bg-primary/10 blur-xl group-hover:bg-primary/20 transition-all" />
-              <span className="text-xs font-bold text-primary mb-1 uppercase tracking-widest relative z-10">Tahmin</span>
-              <span className="text-3xl font-display font-bold text-white relative z-10 drop-shadow-[0_0_10px_rgba(255,215,0,0.5)]">{match.prediction}</span>
-           </Card>
-           
-           <Card className="w-1/3 bg-card border-border p-4 flex flex-col items-center justify-center">
-              <span className="text-xs font-bold text-muted-foreground mb-1 uppercase tracking-widest">Oran</span>
-              <span className="text-3xl font-display font-bold text-white">{match.odds.toFixed(2)}</span>
+        {/* Prediction Hero Card - Unique Design */}
+        <div className="relative mx-1 mb-8">
+           <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-primary/5 to-transparent blur-xl" />
+           <Card className="relative bg-black/40 border-primary/20 backdrop-blur-xl overflow-hidden">
+              <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
+              <div className="p-5 flex items-center justify-between">
+                 <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                       <Sparkles className="w-4 h-4 text-primary animate-pulse" />
+                       <span className="text-xs font-bold text-primary uppercase tracking-widest">Yapay Zeka Tahmini</span>
+                    </div>
+                    <div className="text-3xl font-display font-black text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
+                       {match.prediction}
+                    </div>
+                 </div>
+                 
+                 <div className="flex flex-col items-end">
+                    <span className="text-xs font-bold text-muted-foreground uppercase">Bahis Oranı</span>
+                    <div className="text-3xl font-display font-bold text-white bg-white/5 px-3 py-1 rounded-lg border border-white/10">
+                       {match.odds.toFixed(2)}
+                    </div>
+                 </div>
+              </div>
+              
+              {/* Analysis Snippet */}
+              <div className="px-5 pb-5 pt-0">
+                 <p className="text-sm text-gray-400 border-l-2 border-white/10 pl-3 italic">
+                    "{match.comment}"
+                 </p>
+              </div>
            </Card>
         </div>
 
         {/* AI Analysis Section */}
         <div className="space-y-6">
-           <div className="flex items-center gap-2 mb-4">
+           <div className="flex items-center gap-2 px-1">
               <BrainCircuit className="w-5 h-5 text-primary" />
-              <h2 className="text-lg font-bold text-white">Yapay Zeka Analizi</h2>
+              <h2 className="text-lg font-bold text-white">Detaylı Maç Analizi</h2>
            </div>
            
-           <div className="bg-card border border-border p-5 rounded-xl space-y-4">
-              <p className="text-sm text-gray-300 leading-relaxed">
-                 {match.analysis || match.comment}
-              </p>
-              
-              <div className="flex items-center gap-2 pt-2">
-                 <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-                    Güven: {match.confidence === "high" ? "%85+" : match.confidence === "medium" ? "%70+" : "%60+"}
-                 </Badge>
-                 <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/20">
-                    Risk: {match.confidence === "high" ? "Düşük" : "Orta"}
-                 </Badge>
+           <div className="bg-card/50 border border-border/50 p-6 rounded-2xl space-y-6 backdrop-blur-sm">
+              <div className="flex items-center justify-between gap-4">
+                 <div className="flex-1 space-y-2">
+                    <div className="flex justify-between text-xs font-medium text-muted-foreground">
+                       <span>Güven Seviyesi</span>
+                       <span className="text-primary">{match.confidence === "high" ? "%85+" : match.confidence === "medium" ? "%70+" : "%60+"}</span>
+                    </div>
+                    <div className="h-2 bg-black/40 rounded-full overflow-hidden">
+                       <div 
+                         className={`h-full rounded-full ${match.confidence === 'high' ? 'bg-primary' : match.confidence === 'medium' ? 'bg-yellow-500' : 'bg-orange-500'}`}
+                         style={{ width: match.confidence === 'high' ? '85%' : match.confidence === 'medium' ? '70%' : '60%' }} 
+                       />
+                    </div>
+                 </div>
+                 
+                 <div className="flex-1 space-y-2">
+                    <div className="flex justify-between text-xs font-medium text-muted-foreground">
+                       <span>Risk Faktörü</span>
+                       <span className="text-blue-400">{match.confidence === "high" ? "Düşük" : "Orta"}</span>
+                    </div>
+                    <div className="h-2 bg-black/40 rounded-full overflow-hidden">
+                       <div 
+                         className="h-full rounded-full bg-blue-500"
+                         style={{ width: match.confidence === 'high' ? '20%' : '50%' }} 
+                       />
+                    </div>
+                 </div>
+              </div>
+
+              <div className="p-4 bg-black/20 rounded-xl border border-white/5">
+                 <p className="text-sm text-gray-300 leading-relaxed">
+                    {match.analysis}
+                 </p>
               </div>
            </div>
 
-           {/* Stats Section (Mock Visuals) */}
+           {/* Stats Visualizer */}
            {match.homeStats && (
              <div className="space-y-4">
-               <div className="flex items-center gap-2 mb-2">
+               <div className="flex items-center gap-2 px-1">
                   <BarChart className="w-5 h-5 text-secondary" />
-                  <h2 className="text-lg font-bold text-white">İstatistikler</h2>
+                  <h2 className="text-lg font-bold text-white">Takım İstatistikleri</h2>
                </div>
 
-               <div className="bg-card border border-border p-5 rounded-xl space-y-6">
-                  {/* Wins Bar */}
-                  <div className="space-y-2">
-                     <div className="flex justify-between text-xs font-bold uppercase text-muted-foreground">
-                        <span>{match.homeTeam} Galibiyet</span>
-                        <span>{match.awayTeam} Galibiyet</span>
-                     </div>
-                     <div className="flex h-2 rounded-full overflow-hidden bg-white/5">
-                        <div className="bg-blue-500" style={{ width: `${(match.homeStats.wins / (match.homeStats.wins + match.awayStats!.wins)) * 100}%` }} />
-                        <div className="bg-red-500" style={{ width: `${(match.awayStats!.wins / (match.homeStats!.wins + match.awayStats!.wins)) * 100}%` }} />
-                     </div>
-                  </div>
-
-                  {/* Goals */}
-                  <div className="grid grid-cols-2 gap-4">
-                     <div className="text-center p-3 bg-white/5 rounded-lg">
-                        <div className="text-2xl font-display font-bold text-white">{match.homeStats.goalsFor}</div>
-                        <div className="text-[10px] text-muted-foreground uppercase">Atılan Gol ({match.homeTeam})</div>
-                     </div>
-                     <div className="text-center p-3 bg-white/5 rounded-lg">
-                        <div className="text-2xl font-display font-bold text-white">{match.awayStats?.goalsFor}</div>
-                        <div className="text-[10px] text-muted-foreground uppercase">Atılan Gol ({match.awayTeam})</div>
-                     </div>
-                  </div>
+               <div className="grid gap-4">
+                  {/* Head to Head Card */}
+                  <Card className="bg-card/50 border-border/50 p-5 overflow-hidden relative">
+                      <div className="absolute top-0 right-0 p-4 opacity-10">
+                         <Trophy className="w-24 h-24" />
+                      </div>
+                      
+                      <h3 className="text-sm font-bold text-muted-foreground uppercase mb-4">Galibiyet Olasılığı</h3>
+                      
+                      <div className="flex items-end gap-2 h-32 px-4">
+                         <div className="flex-1 flex flex-col items-center gap-2 group">
+                            <span className="text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">{match.homeStats.wins}G</span>
+                            <div className="w-full bg-blue-500/80 rounded-t-lg transition-all hover:bg-blue-500 relative" style={{ height: `${(match.homeStats.wins / 20) * 100}%` }}>
+                               <div className="absolute bottom-2 left-0 right-0 text-center text-xs font-bold text-white">{match.homeTeam.substring(0,3).toUpperCase()}</div>
+                            </div>
+                         </div>
+                         <div className="flex-1 flex flex-col items-center gap-2 group">
+                             <span className="text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">{match.homeStats.draws}B</span>
+                             <div className="w-full bg-gray-500/50 rounded-t-lg transition-all hover:bg-gray-500 relative" style={{ height: `${(match.homeStats.draws / 20) * 100}%` }}>
+                                <div className="absolute bottom-2 left-0 right-0 text-center text-xs font-bold text-white">BER</div>
+                             </div>
+                         </div>
+                         <div className="flex-1 flex flex-col items-center gap-2 group">
+                             <span className="text-xs font-bold opacity-0 group-hover:opacity-100 transition-opacity">{match.awayStats!.wins}G</span>
+                             <div className="w-full bg-red-500/80 rounded-t-lg transition-all hover:bg-red-500 relative" style={{ height: `${(match.awayStats!.wins / 20) * 100}%` }}>
+                                <div className="absolute bottom-2 left-0 right-0 text-center text-xs font-bold text-white">{match.awayTeam.substring(0,3).toUpperCase()}</div>
+                             </div>
+                         </div>
+                      </div>
+                  </Card>
 
                   {/* Form Guide */}
-                  <div className="space-y-3">
-                     <div className="text-xs font-bold text-muted-foreground uppercase text-center">Son 5 Maç Formu</div>
-                     <div className="flex justify-between items-center gap-4">
-                        <div className="flex gap-1">
-                           {match.homeStats.last5.map((r, i) => (
-                              <div key={i} className={`w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold text-black ${r === 'W' ? 'bg-secondary' : r === 'D' ? 'bg-yellow-500' : 'bg-destructive'}`}>{r}</div>
-                           ))}
-                        </div>
-                        <div className="text-[10px] text-muted-foreground">vs</div>
-                        <div className="flex gap-1">
-                           {match.awayStats?.last5.map((r, i) => (
-                              <div key={i} className={`w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold text-black ${r === 'W' ? 'bg-secondary' : r === 'D' ? 'bg-yellow-500' : 'bg-destructive'}`}>{r}</div>
-                           ))}
-                        </div>
-                     </div>
+                  <div className="grid grid-cols-2 gap-3">
+                      <Card className="bg-card/50 border-border/50 p-4">
+                          <div className="flex items-center gap-2 mb-3">
+                             <img src={homeTeam.logo} className="w-6 h-6 object-contain" />
+                             <span className="text-xs font-bold text-muted-foreground">Son 5 Maç</span>
+                          </div>
+                          <div className="flex justify-between">
+                             {match.homeStats.last5.map((r, i) => (
+                                <div key={i} className={`w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold text-black ${r === 'W' ? 'bg-secondary' : r === 'D' ? 'bg-yellow-500' : 'bg-destructive'}`}>{r}</div>
+                             ))}
+                          </div>
+                      </Card>
+                      
+                      <Card className="bg-card/50 border-border/50 p-4">
+                          <div className="flex items-center gap-2 mb-3">
+                             <img src={awayTeam.logo} className="w-6 h-6 object-contain" />
+                             <span className="text-xs font-bold text-muted-foreground">Son 5 Maç</span>
+                          </div>
+                          <div className="flex justify-between">
+                             {match.awayStats?.last5.map((r, i) => (
+                                <div key={i} className={`w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold text-black ${r === 'W' ? 'bg-secondary' : r === 'D' ? 'bg-yellow-500' : 'bg-destructive'}`}>{r}</div>
+                             ))}
+                          </div>
+                      </Card>
                   </div>
                </div>
              </div>
            )}
 
            {/* Disclaimer */}
-           <div className="bg-destructive/10 border border-destructive/20 p-4 rounded-xl flex gap-3 items-start">
-              <ShieldAlert className="w-5 h-5 text-destructive shrink-0" />
-              <p className="text-xs text-muted-foreground">
-                 Bu istatistikler ve analizler bilgilendirme amaçlıdır. Maç sonucu garanti edilemez. Lütfen sorumlu bahis oynayınız.
+           <div className="bg-destructive/5 border border-destructive/10 p-4 rounded-xl flex gap-3 items-start mt-8">
+              <ShieldAlert className="w-5 h-5 text-destructive/50 shrink-0" />
+              <p className="text-[10px] text-muted-foreground leading-relaxed">
+                 Bu istatistikler ve yapay zeka analizleri yalnızca bilgilendirme amaçlıdır. Bahis oynamak risk içerir ve bağımlılık yapabilir. Lütfen sorumlu oyun prensiplerine uyunuz.
               </p>
            </div>
         </div>

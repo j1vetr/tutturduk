@@ -57,8 +57,8 @@ export function CouponCard({ coupon }: CouponCardProps) {
                <span className="text-3xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-white/70">{coupon.totalOdds.toFixed(2)}</span>
             </div>
             
-            <div className="h-10 w-10 bg-white/5 rounded-full flex items-center justify-center border border-white/10">
-               <div className="w-6 h-6 border-2 border-white/20 rounded-full border-t-secondary animate-spin" style={{ animationDuration: '3s' }} />
+            <div className="h-10 w-10 bg-secondary/20 rounded-full flex items-center justify-center border border-secondary/30 shadow-[0_0_15px_rgba(0,255,0,0.2)]">
+               <Trophy className="w-5 h-5 text-secondary" />
             </div>
           </div>
         </CardContent>
