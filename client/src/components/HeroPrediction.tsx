@@ -44,21 +44,17 @@ export function HeroPrediction() {
       <div className="absolute inset-0 p-8 flex flex-col justify-between z-10">
         
         {/* Top Header */}
-        <div className="flex items-start justify-between">
-          <div className="space-y-2">
-             <div className="flex items-center gap-3">
-                <Badge className="bg-primary text-black hover:bg-primary font-black uppercase tracking-widest text-[11px] px-4 py-1.5 shadow-[0_0_20px_rgba(255,215,0,0.3)] border-none rounded-lg">
-                   Günün Tahmini
-                </Badge>
-                <div className="flex items-center gap-2 px-3 py-1 bg-white/5 backdrop-blur-md rounded-lg border border-white/5">
-                   <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shadow-[0_0_10px_rgba(255,215,0,0.8)]" />
-                   <span className="text-[10px] font-bold text-white/90 tracking-wider uppercase">{match.league}</span>
-                </div>
-             </div>
+        <div className="flex items-center justify-between w-full">
+          <div className="flex items-center gap-3 bg-black/40 backdrop-blur-md p-1.5 pr-4 rounded-xl border border-white/5">
+             <Badge className="bg-primary text-black hover:bg-primary font-black uppercase tracking-widest text-[10px] px-3 py-1.5 shadow-[0_0_15px_rgba(255,215,0,0.3)] border-none rounded-lg whitespace-nowrap">
+                Günün Tahmini
+             </Badge>
+             <div className="h-4 w-[1px] bg-white/10" />
+             <span className="text-[10px] font-bold text-white/90 tracking-wider uppercase whitespace-nowrap">{match.league}</span>
           </div>
           
-          <div className="bg-black/60 backdrop-blur-xl px-4 py-2 rounded-xl border border-white/10 shadow-lg flex items-center gap-2">
-             <Timer className="w-3.5 h-3.5 text-primary" />
+          <div className="bg-black/40 backdrop-blur-md px-4 py-2 rounded-xl border border-white/5 shadow-lg flex items-center gap-2">
+             <Timer className="w-3.5 h-3.5 text-primary animate-pulse" />
              <span className="text-xs font-bold text-white tabular-nums tracking-widest">{match.time}</span>
           </div>
         </div>
