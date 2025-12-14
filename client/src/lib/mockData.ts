@@ -90,9 +90,9 @@ export const MOCK_PREDICTIONS: Prediction[] = [
   {
     id: "4",
     league: "Bundesliga",
-    match: "Bayern Munich - Dortmund",
+    match: "Bayern Munich - Borussia Dortmund",
     homeTeam: "Bayern Munich",
-    awayTeam: "Dortmund",
+    awayTeam: "Borussia Dortmund",
     date: "Dün",
     time: "20:30",
     prediction: "MS 1 & 3.5 Üst",

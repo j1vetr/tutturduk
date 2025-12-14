@@ -1,5 +1,6 @@
 import { useParams, useLocation } from "wouter";
 import { MOCK_PREDICTIONS } from "@/lib/mockData";
+import { getTeam } from "@/lib/teamsData";
 import { MobileLayout } from "@/components/MobileLayout";
 import { ArrowLeft, BrainCircuit, TrendingUp, BarChart, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,11 +18,14 @@ export default function MatchDetailPage() {
     return null;
   }
 
+  const homeTeam = getTeam(match.homeTeam);
+  const awayTeam = getTeam(match.awayTeam);
+
   return (
     <MobileLayout>
       <div className="pb-8 animate-in slide-in-from-bottom-4 duration-500">
         {/* Header with Image */}
-        <div className="relative h-48 -mt-20 -mx-4 mb-6">
+        <div className="relative h-56 -mt-20 -mx-4 mb-6">
            <div 
              className="absolute inset-0 bg-cover bg-center"
              style={{ backgroundImage: `url(${stadiumBg})` }}
@@ -36,12 +40,23 @@ export default function MatchDetailPage() {
            </div>
 
            <div className="absolute bottom-0 left-0 right-0 p-6 flex items-end justify-between z-10">
-              <div className="flex-1 text-center">
-                 <div className="text-3xl font-display font-bold text-white mb-1">{match.homeTeam}</div>
+              <div className="flex-1 flex flex-col items-center">
+                 <div className="w-16 h-16 mb-2 bg-white/10 rounded-full p-2 backdrop-blur-sm border border-white/10 shadow-lg">
+                    <img src={homeTeam.logo} alt={homeTeam.name} className="w-full h-full object-contain" />
+                 </div>
+                 <div className="text-xl font-display font-bold text-white leading-tight text-center">{match.homeTeam}</div>
               </div>
-              <div className="px-4 pb-2 text-primary font-display text-xl font-bold">VS</div>
-              <div className="flex-1 text-center">
-                 <div className="text-3xl font-display font-bold text-white mb-1">{match.awayTeam}</div>
+              
+              <div className="px-4 pb-8 flex flex-col items-center">
+                 <div className="text-primary font-display text-2xl font-bold drop-shadow-[0_0_10px_rgba(255,215,0,0.5)]">VS</div>
+                 <div className="text-xs text-white/60 font-medium mt-1 bg-black/40 px-2 py-0.5 rounded">{match.time}</div>
+              </div>
+
+              <div className="flex-1 flex flex-col items-center">
+                 <div className="w-16 h-16 mb-2 bg-white/10 rounded-full p-2 backdrop-blur-sm border border-white/10 shadow-lg">
+                    <img src={awayTeam.logo} alt={awayTeam.name} className="w-full h-full object-contain" />
+                 </div>
+                 <div className="text-xl font-display font-bold text-white leading-tight text-center">{match.awayTeam}</div>
               </div>
            </div>
         </div>

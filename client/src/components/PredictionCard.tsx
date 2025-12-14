@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle2, Clock, XCircle, ChevronRight, TrendingUp } from "lucide-react";
 import { Prediction } from "@/lib/mockData";
+import { getTeam } from "@/lib/teamsData";
 import { cn } from "@/lib/utils";
 import { useLocation } from "wouter";
 
@@ -11,6 +12,8 @@ interface PredictionCardProps {
 
 export function PredictionCard({ prediction }: PredictionCardProps) {
   const [, setLocation] = useLocation();
+  const homeTeam = getTeam(prediction.homeTeam);
+  const awayTeam = getTeam(prediction.awayTeam);
 
   const statusColor = {
     pending: "text-muted-foreground",
@@ -57,8 +60,8 @@ export function PredictionCard({ prediction }: PredictionCardProps) {
           <div className="flex items-center justify-between gap-4">
              {/* Home Team */}
              <div className="flex-1 flex flex-col items-center gap-2 text-center">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-800 to-black border border-white/10 flex items-center justify-center shadow-lg">
-                   <span className="text-xs font-bold text-white/80">{prediction.homeTeam.substring(0, 2).toUpperCase()}</span>
+                <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center p-2 shadow-lg backdrop-blur-sm">
+                   <img src={homeTeam.logo} alt={homeTeam.name} className="w-full h-full object-contain" />
                 </div>
                 <span className="text-xs font-medium text-foreground leading-tight">{prediction.homeTeam}</span>
              </div>
@@ -70,8 +73,8 @@ export function PredictionCard({ prediction }: PredictionCardProps) {
 
              {/* Away Team */}
              <div className="flex-1 flex flex-col items-center gap-2 text-center">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-800 to-black border border-white/10 flex items-center justify-center shadow-lg">
-                   <span className="text-xs font-bold text-white/80">{prediction.awayTeam.substring(0, 2).toUpperCase()}</span>
+                <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center p-2 shadow-lg backdrop-blur-sm">
+                   <img src={awayTeam.logo} alt={awayTeam.name} className="w-full h-full object-contain" />
                 </div>
                  <span className="text-xs font-medium text-foreground leading-tight">{prediction.awayTeam}</span>
              </div>
