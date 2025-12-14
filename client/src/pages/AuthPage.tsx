@@ -5,8 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Lock, ChevronRight } from "lucide-react";
+import { Lock, ChevronRight, Instagram, HelpCircle, ExternalLink, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import logoIcon from "@assets/generated_images/minimalist_sports_betting_logo_icon.png";
 import bgImage from "@assets/generated_images/dark_abstract_geometric_background.png";
 
@@ -34,14 +42,14 @@ export default function AuthPage() {
     if (!isLogin && !referralCode) {
       toast({
         variant: "destructive",
-        description: "Kayıt olmak için referans kodu zorunludur.",
+        description: "Kayıt olmak için Davet Kodu zorunludur.",
       });
       return;
     }
 
     const codeToUse = isLogin ? BAYI_KODU : referralCode; 
     
-    // Mock login logic
+    // Mock login logic - In a real app, referralCode would be checked against a DB of issued codes
     const success = await login(username, codeToUse);
 
     if (success) {
@@ -53,7 +61,7 @@ export default function AuthPage() {
     } else {
       toast({
         variant: "destructive",
-        description: "Geçersiz bilgiler veya referans kodu.",
+        description: "Geçersiz bilgiler veya davet kodu.",
       });
     }
   };
@@ -90,7 +98,7 @@ export default function AuthPage() {
               {isLogin ? "Giriş Yap" : "Aramıza Katıl"}
             </CardTitle>
             <CardDescription className="text-center text-muted-foreground">
-              Kazananlar kulübüne hoş geldiniz.
+              {isLogin ? "Kazananlar kulübüne hoş geldiniz." : "Üyelik sadece davetiye ile alınmaktadır."}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -119,18 +127,58 @@ export default function AuthPage() {
               </div>
 
               {!isLogin && (
-                <div className="space-y-2 bg-primary/5 p-3 rounded-lg border border-primary/10">
-                  <Label htmlFor="referral" className="text-primary font-bold">Referans Kodu (Zorunlu)</Label>
-                  <Input 
-                    id="referral" 
-                    placeholder="Referans kodunuzu girin" 
-                    value={referralCode}
-                    onChange={(e) => setReferralCode(e.target.value)}
-                    className="bg-background border-primary/50 focus:border-primary h-11 font-mono text-center tracking-widest text-lg"
-                  />
-                  <p className="text-[10px] text-muted-foreground text-center mt-1">
-                    Bayi kodumuz: <span className="text-primary font-bold">{BAYI_KODU}</span>
-                  </p>
+                <div className="space-y-4">
+                  <div className="bg-primary/5 p-4 rounded-lg border border-primary/10 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="referral" className="text-primary font-bold flex items-center gap-2">
+                        Davet Kodu
+                        <Dialog>
+                          <DialogTrigger>
+                             <HelpCircle className="w-4 h-4 text-muted-foreground hover:text-white transition-colors" />
+                          </DialogTrigger>
+                          <DialogContent className="bg-card border-primary/20">
+                            <DialogHeader>
+                              <DialogTitle className="text-primary">Davet Kodu Nasıl Alınır?</DialogTitle>
+                              <DialogDescription className="space-y-4 pt-4">
+                                <div className="flex gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold shrink-0">1</div>
+                                  <p><strong>iddaa.com</strong>'a üye olurken Bayi Kodu alanına <span className="text-primary font-bold">303603</span> yazın.</p>
+                                </div>
+                                <div className="flex gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold shrink-0">2</div>
+                                  <p>Üyelik işleminiz tamamlandıktan sonra Instagram adresimizden bize yazın.</p>
+                                </div>
+                                <div className="flex gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold shrink-0">3</div>
+                                  <p>Ekibimiz kontrol ettikten sonra size özel <strong>Davet Kodunuzu</strong> iletecektir.</p>
+                                </div>
+                                
+                                <Button className="w-full mt-2 gap-2" variant="outline" onClick={() => window.open('https://instagram.com', '_blank')}>
+                                  <Instagram className="w-4 h-4" /> Instagram'dan Yaz
+                                </Button>
+                              </DialogDescription>
+                            </DialogHeader>
+                          </DialogContent>
+                        </Dialog>
+                      </Label>
+                    </div>
+                    
+                    <Input 
+                      id="referral" 
+                      placeholder="Kodunuzu buraya girin" 
+                      value={referralCode}
+                      onChange={(e) => setReferralCode(e.target.value)}
+                      className="bg-background border-primary/50 focus:border-primary h-11 font-mono text-center tracking-widest text-lg"
+                    />
+                  </div>
+
+                  {/* Info Box */}
+                  <div className="text-[11px] text-muted-foreground bg-black/20 p-3 rounded border border-white/5">
+                    <p className="flex items-start gap-2">
+                      <CheckCircle2 className="w-3 h-3 text-secondary mt-0.5 shrink-0" />
+                      <span>Sadece iddaa.com'da <span className="text-white font-bold">303603</span> bayi kodunu kullanan üyelerimiz platforma erişebilir.</span>
+                    </p>
+                  </div>
                 </div>
               )}
 
@@ -139,30 +187,24 @@ export default function AuthPage() {
               </Button>
             </form>
 
-            <div className="mt-6 text-center">
+            <div className="mt-6 text-center space-y-4">
               <button 
                 onClick={() => setIsLogin(!isLogin)}
                 className="text-sm text-muted-foreground hover:text-primary transition-colors underline decoration-dotted underline-offset-4"
               >
-                {isLogin ? "Hesabınız yok mu? Kayıt Olun" : "Zaten üye misiniz? Giriş Yapın"}
+                {isLogin ? "Davet kodunuz var mı? Kayıt Olun" : "Zaten üye misiniz? Giriş Yapın"}
               </button>
             </div>
           </CardContent>
         </Card>
 
-        {/* Locked Content Preview */}
-        <div className="relative opacity-60 pointer-events-none select-none overflow-hidden rounded-xl border border-white/5">
-          <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/60 backdrop-blur-[3px] text-center p-4">
-            <div className="bg-primary/20 p-3 rounded-full mb-2 border border-primary/30">
-              <Lock className="w-6 h-6 text-primary" />
-            </div>
-            <p className="text-xs font-bold text-white uppercase tracking-wider">İçerik Kilitli</p>
-            <p className="text-[10px] text-white/60">Görmek için giriş yapmalısınız</p>
-          </div>
-          <div className="space-y-3 p-3 filter blur-[2px] opacity-50 bg-card">
-             <div className="bg-background/50 h-24 rounded-lg border border-white/5"></div>
-             <div className="bg-background/50 h-24 rounded-lg border border-white/5"></div>
-          </div>
+        {/* Social Proof / Trust Footer */}
+        <div className="text-center space-y-2">
+           <p className="text-[10px] text-muted-foreground uppercase tracking-widest opacity-60">Resmi İş Ortağı</p>
+           <div className="flex items-center justify-center gap-2 opacity-50 grayscale hover:grayscale-0 transition-all">
+             {/* Simple text representation of iddaa logo for now */}
+             <span className="font-black text-xl tracking-tighter text-white">iddaa<span className="text-primary">.com</span></span>
+           </div>
         </div>
       </div>
     </div>

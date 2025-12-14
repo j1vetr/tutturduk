@@ -1,5 +1,5 @@
 import { useLocation } from "wouter";
-import { Home, Trophy, User, Copy } from "lucide-react";
+import { Home, Trophy, User, Copy, Ticket } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BAYI_KODU } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
@@ -17,7 +17,7 @@ export function MobileLayout({ children, activeTab }: MobileLayoutProps) {
   const handleCopyCode = () => {
     navigator.clipboard.writeText(BAYI_KODU);
     toast({
-      description: "Bayi kodu kopyalandı!",
+      description: "iddaa.com Bayi kodu kopyalandı!",
       className: "bg-primary text-primary-foreground border-none font-bold",
     });
   };
@@ -35,13 +35,13 @@ export function MobileLayout({ children, activeTab }: MobileLayoutProps) {
         </div>
         <button 
           onClick={handleCopyCode}
-          className="flex items-center gap-2 bg-card/80 border border-primary/20 hover:border-primary/50 px-3 py-1.5 rounded-full active:scale-95 transition-all shadow-sm"
+          className="flex items-center gap-2 bg-gradient-to-r from-card to-background border border-primary/20 hover:border-primary/50 px-3 py-1.5 rounded-full active:scale-95 transition-all shadow-sm group"
         >
           <div className="flex flex-col items-end leading-none">
-            <span className="text-[9px] font-medium text-muted-foreground uppercase">Bayi Kodu</span>
-            <span className="text-sm font-display font-bold text-primary tracking-wider">{BAYI_KODU}</span>
+            <span className="text-[8px] font-medium text-muted-foreground uppercase group-hover:text-primary transition-colors">iddaa.com Bayi</span>
+            <span className="text-sm font-display font-bold text-white tracking-wider">{BAYI_KODU}</span>
           </div>
-          <Copy className="w-3.5 h-3.5 text-primary" />
+          <Copy className="w-3.5 h-3.5 text-primary group-hover:scale-110 transition-transform" />
         </button>
       </header>
 
