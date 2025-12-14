@@ -13,6 +13,7 @@ import AdminPage from "@/pages/AdminPage";
 import MatchDetailPage from "@/pages/MatchDetailPage";
 import LiveMatchesPage from "@/pages/LiveMatchesPage";
 import UpcomingMatchesPage from "@/pages/UpcomingMatchesPage";
+import AdminLoginPage from "@/pages/AdminLoginPage";
 import { useEffect } from "react";
 
 function ProtectedRoute({ component: Component, ...rest }: any) {
@@ -21,9 +22,14 @@ function ProtectedRoute({ component: Component, ...rest }: any) {
 
   useEffect(() => {
     if (!isLoading && !user) {
-      setLocation("/auth");
+      // If trying to access admin page without auth, redirect to admin login
+      if (rest.path === "/admin") {
+         setLocation("/admin-login");
+      } else {
+         setLocation("/auth");
+      }
     }
-  }, [user, isLoading, setLocation]);
+  }, [user, isLoading, setLocation, rest.path]);
 
   if (isLoading) return <div className="min-h-screen bg-background flex items-center justify-center text-primary">Yükleniyor...</div>;
   
@@ -34,6 +40,7 @@ function Router() {
   return (
     <Switch>
       <Route path="/auth" component={AuthPage} />
+      <Route path="/admin-login" component={AdminLoginPage} />
       <Route path="/">
         {() => <ProtectedRoute component={HomePage} />}
       </Route>
