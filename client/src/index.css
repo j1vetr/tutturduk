@@ -115,3 +115,23 @@
     @apply font-display uppercase tracking-tight;
   }
 }
+
+@layer utilities {
+  .animate-marquee {
+    animation: marquee 25s linear infinite;
+  }
+  
+  .animate-bounce-horizontal {
+    animation: bounce-horizontal 1s infinite;
+  }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes bounce-horizontal {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(25%); }
+}
