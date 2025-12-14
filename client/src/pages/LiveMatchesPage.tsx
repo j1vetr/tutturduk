@@ -2,50 +2,12 @@ import { MobileLayout } from "@/components/MobileLayout";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, Filter, ArrowRight } from "lucide-react";
-import { getTeam } from "@/lib/teamsData"; // Assuming we might map names to logos if they match
-
-// Mock Data simulating RapidAPI API-Football response
-const LIVE_MATCHES = [
-  { 
-    id: 101, 
-    league: { name: "Süper Lig", country: "Turkey", logo: "https://media.api-sports.io/football/leagues/203.png" },
-    home: { name: "Galatasaray", logo: "https://upload.wikimedia.org/wikipedia/commons/3/37/Galatasaray_Star_Logo.png", goals: 1 },
-    away: { name: "Fenerbahçe", logo: "https://upload.wikimedia.org/wikipedia/tr/8/86/Fenerbah%C3%A7e_SK.png", goals: 1 },
-    time: "78'",
-    status: "2H",
-    events: ["78' Gol - Icardi", "42' Gol - Dzeko"]
-  },
-  { 
-    id: 102, 
-    league: { name: "Premier League", country: "England", logo: "https://media.api-sports.io/football/leagues/39.png" },
-    home: { name: "Manchester City", logo: "https://upload.wikimedia.org/wikipedia/en/e/eb/Manchester_City_FC_badge.svg", goals: 2 },
-    away: { name: "Liverpool", logo: "https://upload.wikimedia.org/wikipedia/en/0/0c/Liverpool_FC.svg", goals: 1 },
-    time: "42'",
-    status: "1H",
-    events: ["12' Gol - Haaland", "38' Gol - Salah", "40' Gol - De Bruyne"]
-  },
-  { 
-    id: 103, 
-    league: { name: "Bundesliga", country: "Germany", logo: "https://media.api-sports.io/football/leagues/78.png" },
-    home: { name: "Bayern Munich", logo: "https://upload.wikimedia.org/wikipedia/commons/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg", goals: 0 },
-    away: { name: "Dortmund", logo: "https://upload.wikimedia.org/wikipedia/commons/6/67/Borussia_Dortmund_logo.svg", goals: 0 },
-    time: "12'",
-    status: "1H",
-    events: []
-  },
-  { 
-    id: 104, 
-    league: { name: "Serie A", country: "Italy", logo: "https://media.api-sports.io/football/leagues/135.png" },
-    home: { name: "AC Milan", logo: "https://upload.wikimedia.org/wikipedia/commons/d/d0/Logo_of_AC_Milan.svg", goals: 1 },
-    away: { name: "Inter", logo: "https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg", goals: 2 },
-    time: "88'",
-    status: "2H",
-    events: ["10' Gol - Martinez", "55' Gol - Leao", "82' Gol - Thuram"]
-  }
-];
+import { Search, Filter, ArrowRight, AlertTriangle, Loader2 } from "lucide-react";
+import { useLiveMatches } from "@/lib/rapidApi";
 
 export default function LiveMatchesPage() {
+  const { data: matches, isLoading, error } = useLiveMatches();
+
   return (
     <MobileLayout activeTab="live">
        <div className="space-y-6 pb-20">
@@ -66,10 +28,38 @@ export default function LiveMatchesPage() {
              </button>
           </div>
 
+          {/* Error State */}
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-red-500 shrink-0" />
+              <div className="space-y-1">
+                <h3 className="text-sm font-bold text-red-500">Veri Alınamadı</h3>
+                <p className="text-xs text-red-400/80 leading-relaxed">
+                  {(error as Error).message}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Loading State */}
+          {isLoading && (
+            <div className="flex flex-col items-center justify-center py-20 gap-4">
+               <Loader2 className="w-8 h-8 text-primary animate-spin" />
+               <p className="text-xs text-muted-foreground animate-pulse">Canlı veriler yükleniyor...</p>
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!isLoading && !error && matches?.length === 0 && (
+            <div className="text-center py-20 text-muted-foreground">
+               <p>Şu an canlı oynanan maç bulunmuyor.</p>
+            </div>
+          )}
+
           {/* Live Matches List */}
           <div className="space-y-4">
-             {LIVE_MATCHES.map((match) => (
-                <Card key={match.id} className="bg-zinc-900/50 border-white/10 overflow-hidden relative group">
+             {matches?.map((match) => (
+                <Card key={match.fixture.id} className="bg-zinc-900/50 border-white/10 overflow-hidden relative group">
                    {/* Live Indicator Bar */}
                    <div className="absolute top-0 left-0 bottom-0 w-1 bg-gradient-to-b from-red-500 to-red-600 animate-pulse" />
                    
@@ -77,12 +67,13 @@ export default function LiveMatchesPage() {
                       {/* League Header */}
                       <div className="flex items-center justify-between mb-4">
                          <div className="flex items-center gap-2">
+                            {match.league.flag && <img src={match.league.flag} className="w-4 h-3 object-cover rounded-[1px]" />}
                             <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
                                {match.league.country} • {match.league.name}
                             </span>
                          </div>
                          <Badge variant="destructive" className="h-5 px-2 text-[9px] font-bold animate-pulse">
-                            {match.time}
+                            {match.fixture.status.elapsed}'
                          </Badge>
                       </div>
 
@@ -90,31 +81,31 @@ export default function LiveMatchesPage() {
                       <div className="flex items-center justify-between gap-4">
                          {/* Home */}
                          <div className="flex-1 flex flex-col items-center gap-2 text-center">
-                            <img src={match.home.logo} className="w-10 h-10 object-contain" alt={match.home.name} />
-                            <span className="text-xs font-bold text-white leading-tight">{match.home.name}</span>
+                            <img src={match.teams.home.logo} className="w-10 h-10 object-contain" alt={match.teams.home.name} />
+                            <span className="text-xs font-bold text-white leading-tight">{match.teams.home.name}</span>
                          </div>
 
                          {/* Score */}
                          <div className="flex flex-col items-center justify-center w-20 shrink-0">
                             <div className="text-3xl font-display font-black text-white tracking-widest bg-white/5 px-3 py-1 rounded-lg border border-white/10">
-                               {match.home.goals}-{match.away.goals}
+                               {match.goals.home ?? 0}-{match.goals.away ?? 0}
                             </div>
                             <span className="text-[10px] font-bold text-red-500 mt-1 uppercase tracking-widest">CANLI</span>
                          </div>
 
                          {/* Away */}
                          <div className="flex-1 flex flex-col items-center gap-2 text-center">
-                            <img src={match.away.logo} className="w-10 h-10 object-contain" alt={match.away.name} />
-                            <span className="text-xs font-bold text-white leading-tight">{match.away.name}</span>
+                            <img src={match.teams.away.logo} className="w-10 h-10 object-contain" alt={match.teams.away.name} />
+                            <span className="text-xs font-bold text-white leading-tight">{match.teams.away.name}</span>
                          </div>
                       </div>
 
-                      {/* Latest Event Snippet */}
-                      {match.events.length > 0 && (
+                      {/* Latest Event Snippet (If available) */}
+                      {match.events && match.events.length > 0 && (
                          <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between">
                             <p className="text-[10px] text-muted-foreground flex items-center gap-1">
                                <span className="w-1.5 h-1.5 bg-green-500 rounded-full inline-block" />
-                               Son Olay: <span className="text-white">{match.events[0]}</span>
+                               Son Olay: <span className="text-white">{match.events[match.events.length - 1].type} ({match.events[match.events.length - 1].time.elapsed}')</span>
                             </p>
                             <ArrowRight className="w-3 h-3 text-muted-foreground group-hover:text-primary transition-colors" />
                          </div>
