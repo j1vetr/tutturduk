@@ -1,5 +1,5 @@
 import { useLocation } from "wouter";
-import { Home, Trophy, User, Copy, Ticket } from "lucide-react";
+import { Home, Trophy, User, Copy, Ticket, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BAYI_KODU } from "@/lib/auth";
 import { useToast } from "@/hooks/use-toast";
@@ -23,76 +23,83 @@ export function MobileLayout({ children, activeTab }: MobileLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-20 font-sans">
+    <div className="min-h-screen bg-black font-sans selection:bg-primary/30">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md border-b border-border/50 h-16 flex items-center justify-between px-4 shadow-lg shadow-black/20">
-        <div className="flex items-center gap-2">
-          <img src={logoIcon} alt="Logo" className="w-8 h-8 object-contain" />
+      <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/5 h-16 flex items-center justify-between px-4 shadow-[0_4px_20px_rgba(0,0,0,0.4)]">
+        <div className="flex items-center gap-3">
+          <div className="relative group">
+            <div className="absolute -inset-2 bg-primary/20 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <img src={logoIcon} alt="Logo" className="w-9 h-9 object-contain relative z-10 drop-shadow-[0_0_10px_rgba(255,255,255,0.1)]" />
+          </div>
           <div>
-            <h1 className="text-xl font-display font-bold text-primary tracking-wider leading-none">TUTTURDUK<span className="text-white">.COM</span></h1>
-            <p className="text-[9px] text-muted-foreground uppercase tracking-[0.2em] font-medium">Günlük Tahmin Merkezi</p>
+            <h1 className="text-xl font-display font-black text-white tracking-tight leading-none flex items-center gap-0.5">
+              TUTTURDUK<span className="text-primary">.COM</span>
+            </h1>
+            <p className="text-[9px] text-zinc-500 uppercase tracking-[0.25em] font-bold">Premium Analiz</p>
           </div>
         </div>
         <button 
           onClick={handleCopyCode}
-          className="flex items-center gap-2 bg-gradient-to-r from-card to-background border border-primary/20 hover:border-primary/50 px-3 py-1.5 rounded-full active:scale-95 transition-all shadow-sm group"
+          className="flex items-center gap-2 bg-zinc-900 border border-white/10 hover:border-primary/50 px-3 py-1.5 rounded-xl active:scale-95 transition-all shadow-lg group relative overflow-hidden"
         >
-          <div className="flex flex-col items-end leading-none">
-            <span className="text-[8px] font-medium text-muted-foreground uppercase group-hover:text-primary transition-colors">iddaa.com Bayi</span>
-            <span className="text-sm font-display font-bold text-white tracking-wider">{BAYI_KODU}</span>
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+          <div className="flex flex-col items-end leading-none relative z-10">
+            <span className="text-[8px] font-bold text-zinc-500 uppercase group-hover:text-primary transition-colors">Bayi Kodu</span>
+            <span className="text-sm font-display font-bold text-white tracking-widest">{BAYI_KODU}</span>
           </div>
-          <Copy className="w-3.5 h-3.5 text-primary group-hover:scale-110 transition-transform" />
+          <Copy className="w-3.5 h-3.5 text-primary group-hover:scale-110 transition-transform relative z-10" />
         </button>
       </header>
 
       {/* Main Content */}
-      <main className="pt-20 px-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+      <main className="pt-20 px-4 pb-32 animate-in fade-in slide-in-from-bottom-2 duration-500">
         {children}
       </main>
 
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-t border-border h-20 pb-safe shadow-[0_-5px_20px_rgba(0,0,0,0.3)]">
-        <div className="grid grid-cols-3 h-16">
+      {/* Floating Bottom Navigation */}
+      <nav className="fixed bottom-6 left-6 right-6 z-50">
+        <div className="bg-black/80 backdrop-blur-2xl border border-white/10 rounded-2xl p-2 shadow-[0_8px_32px_rgba(0,0,0,0.8)] flex items-center justify-between relative">
+          
+          {/* Active Indicator Background (Optional: can be added for moving pill effect) */}
+          
           <button 
             onClick={() => setLocation("/")}
             className={cn(
-              "flex flex-col items-center justify-center gap-1 transition-all duration-300 relative group",
-              activeTab === "home" ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              "flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all duration-300 relative group overflow-hidden",
+              activeTab === "home" ? "text-primary bg-white/5" : "text-zinc-500 hover:text-white hover:bg-white/5"
             )}
           >
-            {activeTab === "home" && (
-              <span className="absolute -top-[1px] left-1/2 -translate-x-1/2 w-12 h-[2px] bg-primary shadow-[0_0_10px_rgba(255,215,0,0.5)] rounded-full" />
-            )}
-            <Home className={cn("w-6 h-6 transition-transform", activeTab === "home" ? "scale-110" : "group-active:scale-90")} />
-            <span className="text-[10px] font-bold tracking-wide">Tahminler</span>
+            <div className={cn("absolute inset-0 bg-primary/10 blur-xl opacity-0 transition-opacity", activeTab === "home" && "opacity-100")} />
+            <Home className={cn("w-5 h-5 transition-transform relative z-10", activeTab === "home" ? "scale-110 drop-shadow-[0_0_8px_rgba(34,197,94,0.5)]" : "group-active:scale-90")} />
+            <span className={cn("text-[9px] font-bold tracking-wide relative z-10", activeTab === "home" && "text-white")}>Tahminler</span>
           </button>
+          
+          <div className="w-[1px] h-8 bg-white/5" />
           
           <button 
             onClick={() => setLocation("/winners")}
             className={cn(
-              "flex flex-col items-center justify-center gap-1 transition-all duration-300 relative group",
-              activeTab === "winners" ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              "flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all duration-300 relative group overflow-hidden",
+              activeTab === "winners" ? "text-primary bg-white/5" : "text-zinc-500 hover:text-white hover:bg-white/5"
             )}
           >
-            {activeTab === "winners" && (
-              <span className="absolute -top-[1px] left-1/2 -translate-x-1/2 w-12 h-[2px] bg-primary shadow-[0_0_10px_rgba(255,215,0,0.5)] rounded-full" />
-            )}
-            <Trophy className={cn("w-6 h-6 transition-transform", activeTab === "winners" ? "scale-110" : "group-active:scale-90")} />
-            <span className="text-[10px] font-bold tracking-wide">Kazananlar</span>
+            <div className={cn("absolute inset-0 bg-primary/10 blur-xl opacity-0 transition-opacity", activeTab === "winners" && "opacity-100")} />
+            <Trophy className={cn("w-5 h-5 transition-transform relative z-10", activeTab === "winners" ? "scale-110 drop-shadow-[0_0_8px_rgba(34,197,94,0.5)]" : "group-active:scale-90")} />
+            <span className={cn("text-[9px] font-bold tracking-wide relative z-10", activeTab === "winners" && "text-white")}>Kazananlar</span>
           </button>
+          
+          <div className="w-[1px] h-8 bg-white/5" />
           
           <button 
             onClick={() => setLocation("/profile")}
             className={cn(
-              "flex flex-col items-center justify-center gap-1 transition-all duration-300 relative group",
-              activeTab === "profile" ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              "flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all duration-300 relative group overflow-hidden",
+              activeTab === "profile" ? "text-primary bg-white/5" : "text-zinc-500 hover:text-white hover:bg-white/5"
             )}
           >
-            {activeTab === "profile" && (
-              <span className="absolute -top-[1px] left-1/2 -translate-x-1/2 w-12 h-[2px] bg-primary shadow-[0_0_10px_rgba(255,215,0,0.5)] rounded-full" />
-            )}
-            <User className={cn("w-6 h-6 transition-transform", activeTab === "profile" ? "scale-110" : "group-active:scale-90")} />
-            <span className="text-[10px] font-bold tracking-wide">Profil</span>
+            <div className={cn("absolute inset-0 bg-primary/10 blur-xl opacity-0 transition-opacity", activeTab === "profile" && "opacity-100")} />
+            <User className={cn("w-5 h-5 transition-transform relative z-10", activeTab === "profile" ? "scale-110 drop-shadow-[0_0_8px_rgba(34,197,94,0.5)]" : "group-active:scale-90")} />
+            <span className={cn("text-[9px] font-bold tracking-wide relative z-10", activeTab === "profile" && "text-white")}>Profil</span>
           </button>
         </div>
       </nav>
