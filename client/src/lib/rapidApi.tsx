@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 
 const API_KEY = "512d6eddddmshcb0be5e6a4e5669p17ee09jsn1b2105916f81";
-const API_HOST = "api-football-v1.p.rapidapi.com";
+const API_HOST = "free-api-live-football-data.p.rapidapi.com";
 
 export interface LiveMatch {
   fixture: {
@@ -41,7 +41,7 @@ export interface LiveMatch {
 }
 
 export const fetchLiveMatches = async (): Promise<LiveMatch[]> => {
-  const response = await fetch(`https://${API_HOST}/v3/fixtures?live=all`, {
+  const response = await fetch(`https://${API_HOST}/football-current-live`, {
     method: "GET",
     headers: {
       "x-rapidapi-key": API_KEY,
@@ -50,16 +50,17 @@ export const fetchLiveMatches = async (): Promise<LiveMatch[]> => {
   });
 
   if (!response.ok) {
-    throw new Error("API Hatası");
+    throw new Error("API Hatası: " + response.statusText);
   }
 
   const data = await response.json();
 
-  if (data.message && data.message.includes("not subscribed")) {
+  if (data.message && typeof data.message === 'string' && data.message.includes("not subscribed")) {
     throw new Error("API Abonelik Hatası: Lütfen RapidAPI üzerinden aboneliği başlatın.");
   }
 
-  return data.response;
+  // Handle different response structures if necessary
+  return data.response || [];
 };
 
 export function useLiveMatches() {
