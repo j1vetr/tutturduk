@@ -3,98 +3,122 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
-import { useUpcomingMatches } from "@/lib/rapidApi";
-import { Loader2, CalendarDays, Shield, Trophy } from "lucide-react";
-import { useState } from "react";
+import { CalendarDays, Shield, Trophy, Clock } from "lucide-react";
 
 export default function UpcomingMatchesPage() {
-  // Use today's date formatted as YYYYMMDD
   const today = new Date();
-  const formattedDate = format(today, "yyyyMMdd");
-  const [date] = useState(formattedDate);
   
-  const { data: matches, isLoading, error } = useUpcomingMatches(date);
+  // Mock Data for Design Simulation
+  const mockUpcomingMatches = [
+    {
+      id: 1,
+      league: "UEFA Champions League",
+      time: "22:00",
+      home: "Real Madrid",
+      away: "Man. City",
+      homeLogo: "https://media.api-sports.io/football/teams/541.png",
+      awayLogo: "https://media.api-sports.io/football/teams/50.png"
+    },
+    {
+      id: 2,
+      league: "UEFA Champions League",
+      time: "22:00",
+      home: "Arsenal",
+      away: "Bayern Munich",
+      homeLogo: "https://media.api-sports.io/football/teams/42.png",
+      awayLogo: "https://media.api-sports.io/football/teams/157.png"
+    },
+    {
+      id: 3,
+      league: "Süper Lig",
+      time: "19:00",
+      home: "Beşiktaş",
+      away: "Trabzonspor",
+      homeLogo: "https://media.api-sports.io/football/teams/607.png",
+      awayLogo: "https://media.api-sports.io/football/teams/616.png"
+    },
+    {
+      id: 4,
+      league: "Serie A",
+      time: "20:45",
+      home: "Inter",
+      away: "Napoli",
+      homeLogo: "https://media.api-sports.io/football/teams/505.png",
+      awayLogo: "https://media.api-sports.io/football/teams/492.png"
+    }
+  ];
 
   return (
     <MobileLayout activeTab="upcoming">
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-display font-black text-white uppercase tracking-tighter">
-            Gelecek <span className="text-primary">Maçlar</span>
-          </h1>
-          <Badge variant="outline" className="text-xs font-bold text-zinc-400 border-zinc-800">
+          <div className="flex items-center gap-2">
+            <CalendarDays className="w-6 h-6 text-blue-500" />
+            <h1 className="text-2xl font-display font-black text-white uppercase tracking-tighter">
+              BÜLTEN
+            </h1>
+          </div>
+          <Badge variant="outline" className="text-xs font-bold text-zinc-400 border-zinc-800 bg-zinc-900/50">
             {format(today, "d MMMM yyyy", { locale: tr })}
           </Badge>
         </div>
 
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4">
-            <Loader2 className="w-8 h-8 text-primary animate-spin" />
-            <p className="text-sm text-zinc-500 font-bold animate-pulse">Maçlar yükleniyor...</p>
-          </div>
-        ) : error ? (
-          <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-6 text-center">
-            <p className="text-red-500 font-bold mb-2">Veri Alınamadı</p>
-            <p className="text-xs text-red-400/60">{(error as Error).message}</p>
-          </div>
-        ) : matches?.length === 0 ? (
-           <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl p-8 text-center space-y-3">
-             <CalendarDays className="w-10 h-10 text-zinc-700 mx-auto" />
-             <p className="text-zinc-500 font-bold">Bugün için planlanmış maç bulunamadı.</p>
-           </div>
-        ) : (
-          <div className="space-y-3">
-            {matches?.map((match) => (
-              <Card 
-                key={match.id} 
-                className="bg-zinc-900/50 border-zinc-800 overflow-hidden hover:bg-zinc-900 transition-colors"
-              >
-                <div className="p-4 space-y-4">
-                  {/* League Header (Using ID since name is missing in this endpoint) */}
-                  <div className="flex items-center gap-2 pb-3 border-b border-white/5">
-                    <Trophy className="w-3.5 h-3.5 text-zinc-500" />
-                    <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider truncate">
-                      Lig #{match.leagueId}
-                    </span>
+        <div className="space-y-3">
+          {mockUpcomingMatches.map((match) => (
+            <Card 
+              key={match.id} 
+              className="bg-zinc-900/40 border-zinc-800/60 overflow-hidden hover:bg-zinc-900/80 transition-all duration-300 group"
+            >
+              <div className="p-4 space-y-4">
+                {/* League Header */}
+                <div className="flex items-center gap-2 pb-3 border-b border-white/5">
+                  <Trophy className="w-3.5 h-3.5 text-blue-500" />
+                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider truncate group-hover:text-white transition-colors">
+                    {match.league}
+                  </span>
+                </div>
+
+                {/* Teams & Time */}
+                <div className="flex items-center justify-between relative">
+                  {/* Home */}
+                  <div className="flex flex-col items-center gap-3 w-1/3">
+                    <div className="relative w-10 h-10 group-hover:scale-110 transition-transform duration-300">
+                      <div className="absolute inset-0 bg-white/5 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <img 
+                        src={match.homeLogo} 
+                        alt={match.home}
+                        className="w-full h-full object-contain relative z-10"
+                      />
+                    </div>
+                    <span className="text-xs font-bold text-white leading-tight text-center">{match.home}</span>
                   </div>
 
-                  {/* Teams */}
-                  <div className="grid grid-cols-[1fr_auto_1fr] gap-4 items-center">
-                    {/* Home */}
-                    <div className="flex flex-col items-center gap-2 text-center">
-                      <div className="relative w-10 h-10 bg-white/5 rounded-full flex items-center justify-center">
-                        <Shield className="w-5 h-5 text-zinc-600" />
-                      </div>
-                      <span className="text-xs font-bold text-white leading-tight">
-                        {match.home.name}
-                      </span>
-                    </div>
+                  {/* Time Center */}
+                  <div className="flex flex-col items-center justify-center w-1/3 gap-1">
+                     <div className="bg-zinc-950/80 border border-zinc-800 px-4 py-1.5 rounded-lg flex items-center gap-1.5 group-hover:border-blue-500/30 transition-colors shadow-lg">
+                        <Clock className="w-3 h-3 text-blue-500" />
+                        <span className="text-sm font-black text-white tracking-widest">{match.time}</span>
+                     </div>
+                     <span className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest">Başlama</span>
+                  </div>
 
-                    {/* Time/Score */}
-                    <div className="flex flex-col items-center gap-1">
-                      <div className="bg-zinc-950 border border-zinc-800 px-3 py-1 rounded text-xs font-bold text-zinc-400">
-                        {match.time.split(' ')[1] || match.time}
-                      </div>
-                      {match.status.started && (
-                        <span className="text-[9px] font-bold text-primary animate-pulse">CANLI</span>
-                      )}
+                  {/* Away */}
+                  <div className="flex flex-col items-center gap-3 w-1/3">
+                    <div className="relative w-10 h-10 group-hover:scale-110 transition-transform duration-300">
+                      <div className="absolute inset-0 bg-white/5 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <img 
+                        src={match.awayLogo} 
+                        alt={match.away}
+                        className="w-full h-full object-contain relative z-10"
+                      />
                     </div>
-
-                    {/* Away */}
-                    <div className="flex flex-col items-center gap-2 text-center">
-                      <div className="relative w-10 h-10 bg-white/5 rounded-full flex items-center justify-center">
-                        <Shield className="w-5 h-5 text-zinc-600" />
-                      </div>
-                      <span className="text-xs font-bold text-white leading-tight">
-                        {match.away.name}
-                      </span>
-                    </div>
+                    <span className="text-xs font-bold text-white leading-tight text-center">{match.away}</span>
                   </div>
                 </div>
-              </Card>
-            ))}
-          </div>
-        )}
+              </div>
+            </Card>
+          ))}
+        </div>
       </div>
     </MobileLayout>
   );
