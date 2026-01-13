@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
 import { MobileLayout } from "@/components/MobileLayout";
-import { ArrowLeft, BrainCircuit, BarChart, Sparkles, Trophy, Clock, Loader2, TrendingUp, Target, Users, Zap, Shield, Swords, Activity, Percent, Goal, AlertCircle } from "lucide-react";
+import { ArrowLeft, BrainCircuit, BarChart, Sparkles, Trophy, Clock, Loader2, TrendingUp, Target, Users, Zap, Shield, Swords, Activity, Percent, Goal, AlertCircle, CheckCircle, XCircle, TrendingDown, ChevronUp, ChevronDown, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -22,15 +22,16 @@ interface TeamStats {
   league?: {
     form: string;
     goals: {
-      for: { total: { home: number; away: number; total: number }; average: { home: string; away: string; total: string } };
-      against: { total: { home: number; away: number; total: number }; average: { home: string; away: string; total: string } };
+      for: { total: { home: number; away: number; total: number }; average: { home: string; away: string; total: string }; minute?: Record<string, { total: number | null; percentage: string | null }> };
+      against: { total: { home: number; away: number; total: number }; average: { home: string; away: string; total: string }; minute?: Record<string, { total: number | null; percentage: string | null }> };
     };
-    fixtures: { wins: { total: number }; draws: { total: number }; loses: { total: number }; played: { total: number } };
-    clean_sheet: { total: number };
-    failed_to_score: { total: number };
-    penalty: { scored: { total: number }; missed: { total: number } };
+    fixtures: { wins: { total: number; home: number; away: number }; draws: { total: number }; loses: { total: number }; played: { total: number; home: number; away: number } };
+    clean_sheet: { total: number; home: number; away: number };
+    failed_to_score: { total: number; home: number; away: number };
+    penalty: { scored: { total: number; percentage: string }; missed: { total: number; percentage: string } };
     lineups: { formation: string; played: number }[];
-    biggest: { wins: { home: string; away: string }; loses: { home: string; away: string }; streak: { wins: number; loses: number } };
+    cards?: { yellow: Record<string, { total: number | null; percentage: string | null }>; red: Record<string, { total: number | null; percentage: string | null }> };
+    biggest: { wins: { home: string; away: string }; loses: { home: string; away: string }; streak: { wins: number; loses: number; draws: number }; goals: { for: { home: number; away: number }; against: { home: number; away: number } } };
   };
 }
 
@@ -174,6 +175,9 @@ function PublishedMatchDetail({ match, onBack }: { match: PublishedMatch; onBack
   const getFormArray = (form?: string) => form?.split('').slice(-5) || [];
   const homeForm = getFormArray(homeTeam?.league?.form);
   const awayForm = getFormArray(awayTeam?.league?.form);
+  
+  const homeLast5 = homeTeam?.last_5;
+  const awayLast5 = awayTeam?.last_5;
 
   const FormBadge = ({ result }: { result: string }) => {
     const colors: Record<string, string> = {
@@ -188,14 +192,14 @@ function PublishedMatchDetail({ match, onBack }: { match: PublishedMatch; onBack
     );
   };
 
-  const ComparisonBar = ({ label, homeVal, awayVal }: { label: string; homeVal: string; awayVal: string }) => {
+  const ComparisonBar = ({ label, homeVal, awayVal, icon }: { label: string; homeVal: string; awayVal: string; icon?: React.ReactNode }) => {
     const home = parsePercent(homeVal);
     const away = parsePercent(awayVal);
     return (
       <div className="space-y-1">
         <div className="flex justify-between text-xs">
           <span className="text-green-400 font-medium">{homeVal}</span>
-          <span className="text-zinc-400">{label}</span>
+          <span className="text-zinc-400 flex items-center gap-1">{icon}{label}</span>
           <span className="text-blue-400 font-medium">{awayVal}</span>
         </div>
         <div className="flex h-2 rounded-full overflow-hidden bg-zinc-800">
@@ -205,6 +209,9 @@ function PublishedMatchDetail({ match, onBack }: { match: PublishedMatch; onBack
       </div>
     );
   };
+
+  const isOverPrediction = match.api_under_over?.toLowerCase().includes('over');
+  const underOverValue = match.api_under_over?.match(/[\d.]+/)?.[0] || '2.5';
 
   return (
     <MobileLayout>
@@ -294,21 +301,22 @@ function PublishedMatchDetail({ match, onBack }: { match: PublishedMatch; onBack
                   <Sparkles className="w-4 h-4 text-primary animate-pulse" />
                   <span className="text-xs font-bold text-primary uppercase tracking-widest">Uzman Analizi</span>
                 </div>
-                <p className="text-lg font-display font-bold text-white leading-relaxed mb-2">
+                <p className="text-lg font-display font-bold text-white leading-relaxed mb-3">
                   {match.api_advice}
                 </p>
                 {match.api_winner_comment && (
-                  <p className="text-sm text-zinc-400 italic">"{match.api_winner_comment}"</p>
+                  <p className="text-sm text-zinc-400 italic mb-3">"{match.api_winner_comment}"</p>
                 )}
-                <div className="flex flex-wrap gap-2 mt-3">
+                <div className="flex flex-wrap gap-2">
                   {match.api_winner_name && (
                     <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
                       <Trophy className="w-3 h-3 mr-1" /> Favori: {match.api_winner_name}
                     </Badge>
                   )}
                   {match.api_under_over && (
-                    <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">
-                      <Goal className="w-3 h-3 mr-1" /> {match.api_under_over}
+                    <Badge className={`${isOverPrediction ? 'bg-orange-500/20 text-orange-400 border-orange-500/30' : 'bg-blue-500/20 text-blue-400 border-blue-500/30'}`}>
+                      {isOverPrediction ? <ChevronUp className="w-3 h-3 mr-1" /> : <ChevronDown className="w-3 h-3 mr-1" />}
+                      {match.api_under_over}
                     </Badge>
                   )}
                 </div>
@@ -317,10 +325,40 @@ function PublishedMatchDetail({ match, onBack }: { match: PublishedMatch; onBack
           </div>
         )}
 
+        <div className="grid grid-cols-2 gap-2 mb-4 mx-1">
+          <Card className="bg-gradient-to-br from-orange-500/10 to-orange-500/5 border-orange-500/20 p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <ChevronUp className="w-4 h-4 text-orange-400" />
+              <span className="text-[10px] text-orange-400 font-bold uppercase">Üst {underOverValue}</span>
+            </div>
+            <div className="text-lg font-bold text-white">
+              {isOverPrediction ? (
+                <span className="text-orange-400 flex items-center gap-1"><CheckCircle className="w-4 h-4" /> TAVSİYE</span>
+              ) : (
+                <span className="text-zinc-500">-</span>
+              )}
+            </div>
+          </Card>
+          <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20 p-3">
+            <div className="flex items-center gap-2 mb-1">
+              <ChevronDown className="w-4 h-4 text-blue-400" />
+              <span className="text-[10px] text-blue-400 font-bold uppercase">Alt {underOverValue}</span>
+            </div>
+            <div className="text-lg font-bold text-white">
+              {!isOverPrediction && match.api_under_over ? (
+                <span className="text-blue-400 flex items-center gap-1"><CheckCircle className="w-4 h-4" /> TAVSİYE</span>
+              ) : (
+                <span className="text-zinc-500">-</span>
+              )}
+            </div>
+          </Card>
+        </div>
+
         <Tabs defaultValue="analysis" className="w-full">
           <TabsList className="w-full bg-zinc-900/50 border border-white/5 mb-4">
             <TabsTrigger value="analysis" className="flex-1 text-xs">Analiz</TabsTrigger>
             <TabsTrigger value="stats" className="flex-1 text-xs">İstatistik</TabsTrigger>
+            <TabsTrigger value="goals" className="flex-1 text-xs">Goller</TabsTrigger>
             <TabsTrigger value="h2h" className="flex-1 text-xs">H2H</TabsTrigger>
           </TabsList>
 
@@ -356,12 +394,12 @@ function PublishedMatchDetail({ match, onBack }: { match: PublishedMatch; onBack
                   <BarChart className="w-4 h-4 text-primary" /> Detaylı Karşılaştırma
                 </h3>
                 <div className="space-y-4">
-                  {comparison.att && <ComparisonBar label="Atak Gücü" homeVal={comparison.att.home} awayVal={comparison.att.away} />}
-                  {comparison.def && <ComparisonBar label="Defans Gücü" homeVal={comparison.def.home} awayVal={comparison.def.away} />}
-                  {comparison.form && <ComparisonBar label="Form" homeVal={comparison.form.home} awayVal={comparison.form.away} />}
-                  {comparison.goals && <ComparisonBar label="Gol Gücü" homeVal={comparison.goals.home} awayVal={comparison.goals.away} />}
-                  {comparison.h2h && <ComparisonBar label="H2H Avantajı" homeVal={comparison.h2h.home} awayVal={comparison.h2h.away} />}
-                  {comparison.poisson_distribution && <ComparisonBar label="Poisson Dağılımı" homeVal={comparison.poisson_distribution.home} awayVal={comparison.poisson_distribution.away} />}
+                  {comparison.att && <ComparisonBar label="Atak Gücü" homeVal={comparison.att.home} awayVal={comparison.att.away} icon={<Swords className="w-3 h-3" />} />}
+                  {comparison.def && <ComparisonBar label="Defans Gücü" homeVal={comparison.def.home} awayVal={comparison.def.away} icon={<Shield className="w-3 h-3" />} />}
+                  {comparison.form && <ComparisonBar label="Form" homeVal={comparison.form.home} awayVal={comparison.form.away} icon={<TrendingUp className="w-3 h-3" />} />}
+                  {comparison.goals && <ComparisonBar label="Gol Gücü" homeVal={comparison.goals.home} awayVal={comparison.goals.away} icon={<Goal className="w-3 h-3" />} />}
+                  {comparison.h2h && <ComparisonBar label="H2H Avantajı" homeVal={comparison.h2h.home} awayVal={comparison.h2h.away} icon={<Users className="w-3 h-3" />} />}
+                  {comparison.poisson_distribution && <ComparisonBar label="Poisson Dağılımı" homeVal={comparison.poisson_distribution.home} awayVal={comparison.poisson_distribution.away} icon={<Activity className="w-3 h-3" />} />}
                 </div>
                 {comparison.total && (
                   <div className="mt-4 pt-4 border-t border-white/10">
@@ -381,17 +419,85 @@ function PublishedMatchDetail({ match, onBack }: { match: PublishedMatch; onBack
             {match.api_goals_home && match.api_goals_away && (
               <Card className="bg-card/50 border-border/50 p-4">
                 <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-primary" /> Beklenen Gol
+                  <Zap className="w-4 h-4 text-primary" /> Beklenen Skor
                 </h3>
                 <div className="flex items-center justify-center gap-6">
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-green-400">{match.api_goals_home?.replace('-', '')}</div>
-                    <div className="text-xs text-zinc-500">{match.home_team}</div>
+                    <div className="text-4xl font-bold text-green-400">{match.api_goals_home?.replace('-', '')}</div>
+                    <div className="text-xs text-zinc-500 mt-1">{match.home_team}</div>
                   </div>
-                  <div className="text-2xl text-zinc-600">-</div>
+                  <div className="text-3xl text-zinc-600 font-bold">-</div>
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-blue-400">{match.api_goals_away?.replace('-', '')}</div>
-                    <div className="text-xs text-zinc-500">{match.away_team}</div>
+                    <div className="text-4xl font-bold text-blue-400">{match.api_goals_away?.replace('-', '')}</div>
+                    <div className="text-xs text-zinc-500 mt-1">{match.away_team}</div>
+                  </div>
+                </div>
+                <div className="mt-4 pt-4 border-t border-white/10 text-center">
+                  <span className="text-xs text-zinc-500">Toplam Beklenen Gol: </span>
+                  <span className="text-sm font-bold text-primary">
+                    {(parseFloat(match.api_goals_home?.replace('-', '') || '0') + parseFloat(match.api_goals_away?.replace('-', '') || '0')).toFixed(1)}
+                  </span>
+                </div>
+              </Card>
+            )}
+
+            {(homeLast5 || awayLast5) && (
+              <Card className="bg-card/50 border-border/50 p-4">
+                <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-primary" /> Son 5 Maç Performansı
+                </h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 mb-2">
+                      <img src={match.home_logo} className="w-4 h-4" />
+                      <span className="text-xs font-bold text-white truncate">{match.home_team}</span>
+                    </div>
+                    {homeLast5 && (
+                      <>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-zinc-500">Atak</span>
+                          <span className="text-green-400 font-bold">{homeLast5.att}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-zinc-500">Defans</span>
+                          <span className="text-blue-400 font-bold">{homeLast5.def}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-zinc-500">Atılan Gol</span>
+                          <span className="text-white font-bold">{homeLast5.goals.for.total} ({homeLast5.goals.for.average})</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-zinc-500">Yenilen Gol</span>
+                          <span className="text-white font-bold">{homeLast5.goals.against.total} ({homeLast5.goals.against.average})</span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 mb-2">
+                      <img src={match.away_logo} className="w-4 h-4" />
+                      <span className="text-xs font-bold text-white truncate">{match.away_team}</span>
+                    </div>
+                    {awayLast5 && (
+                      <>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-zinc-500">Atak</span>
+                          <span className="text-green-400 font-bold">{awayLast5.att}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-zinc-500">Defans</span>
+                          <span className="text-blue-400 font-bold">{awayLast5.def}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-zinc-500">Atılan Gol</span>
+                          <span className="text-white font-bold">{awayLast5.goals.for.total} ({awayLast5.goals.for.average})</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-zinc-500">Yenilen Gol</span>
+                          <span className="text-white font-bold">{awayLast5.goals.against.total} ({awayLast5.goals.against.average})</span>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
               </Card>
@@ -409,7 +515,7 @@ function PublishedMatchDetail({ match, onBack }: { match: PublishedMatch; onBack
                     <div className="space-y-3">
                       <div className="flex items-center gap-2 mb-2">
                         <img src={match.home_logo} className="w-5 h-5" />
-                        <span className="text-xs font-bold text-white">{match.home_team}</span>
+                        <span className="text-xs font-bold text-white truncate">{match.home_team}</span>
                       </div>
                       <StatRow label="Maç" value={homeTeam.league.fixtures.played.total} />
                       <StatRow label="Galibiyet" value={homeTeam.league.fixtures.wins.total} color="text-green-400" />
@@ -423,7 +529,7 @@ function PublishedMatchDetail({ match, onBack }: { match: PublishedMatch; onBack
                     <div className="space-y-3">
                       <div className="flex items-center gap-2 mb-2">
                         <img src={match.away_logo} className="w-5 h-5" />
-                        <span className="text-xs font-bold text-white">{match.away_team}</span>
+                        <span className="text-xs font-bold text-white truncate">{match.away_team}</span>
                       </div>
                       <StatRow label="Maç" value={awayTeam.league.fixtures.played.total} />
                       <StatRow label="Galibiyet" value={awayTeam.league.fixtures.wins.total} color="text-green-400" />
@@ -511,16 +617,16 @@ function PublishedMatchDetail({ match, onBack }: { match: PublishedMatch; onBack
                   </h3>
                   <div className="space-y-2">
                     {homeTeam.league.biggest.streak.wins > 2 && (
-                      <HighlightRow icon="🔥" text={`${match.home_team} son ${homeTeam.league.biggest.streak.wins} maçını kazandı`} type="positive" />
+                      <HighlightRow icon="🔥" text={`${match.home_team} en uzun galibiyet serisi: ${homeTeam.league.biggest.streak.wins} maç`} type="positive" />
                     )}
                     {awayTeam.league.biggest.streak.wins > 2 && (
-                      <HighlightRow icon="🔥" text={`${match.away_team} son ${awayTeam.league.biggest.streak.wins} maçını kazandı`} type="positive" />
+                      <HighlightRow icon="🔥" text={`${match.away_team} en uzun galibiyet serisi: ${awayTeam.league.biggest.streak.wins} maç`} type="positive" />
                     )}
                     {homeTeam.league.biggest.streak.loses > 2 && (
-                      <HighlightRow icon="📉" text={`${match.home_team} son ${homeTeam.league.biggest.streak.loses} maçını kaybetti`} type="negative" />
+                      <HighlightRow icon="📉" text={`${match.home_team} en uzun mağlubiyet serisi: ${homeTeam.league.biggest.streak.loses} maç`} type="negative" />
                     )}
                     {awayTeam.league.biggest.streak.loses > 2 && (
-                      <HighlightRow icon="📉" text={`${match.away_team} son ${awayTeam.league.biggest.streak.loses} maçını kaybetti`} type="negative" />
+                      <HighlightRow icon="📉" text={`${match.away_team} en uzun mağlubiyet serisi: ${awayTeam.league.biggest.streak.loses} maç`} type="negative" />
                     )}
                     {homeTeam.league.clean_sheet.total > 5 && (
                       <HighlightRow icon="🧤" text={`${match.home_team} ${homeTeam.league.clean_sheet.total} kez kalesini gole kapattı`} type="neutral" />
@@ -531,6 +637,163 @@ function PublishedMatchDetail({ match, onBack }: { match: PublishedMatch; onBack
                     {homeTeam.league.failed_to_score.total > 5 && (
                       <HighlightRow icon="⚠️" text={`${match.home_team} ${homeTeam.league.failed_to_score.total} maçta gol atamadı`} type="warning" />
                     )}
+                    {homeTeam.league.biggest.goals.for.home > 4 && (
+                      <HighlightRow icon="⚽" text={`${match.home_team} evinde tek maçta ${homeTeam.league.biggest.goals.for.home} gol attı`} type="positive" />
+                    )}
+                    {awayTeam.league.biggest.goals.for.away > 4 && (
+                      <HighlightRow icon="⚽" text={`${match.away_team} deplasmanda tek maçta ${awayTeam.league.biggest.goals.for.away} gol attı`} type="positive" />
+                    )}
+                  </div>
+                </Card>
+
+                {(homeTeam.league.penalty || awayTeam.league.penalty) && (
+                  <Card className="bg-card/50 border-border/50 p-4">
+                    <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
+                      <Target className="w-4 h-4 text-primary" /> Penaltı İstatistikleri
+                    </h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <div className="text-xs text-zinc-500 mb-2">{match.home_team}</div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-zinc-400">Atılan</span>
+                          <span className="text-green-400 font-bold">{homeTeam.league.penalty.scored.total} ({homeTeam.league.penalty.scored.percentage})</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-zinc-400">Kaçırılan</span>
+                          <span className="text-red-400 font-bold">{homeTeam.league.penalty.missed.total} ({homeTeam.league.penalty.missed.percentage})</span>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="text-xs text-zinc-500 mb-2">{match.away_team}</div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-zinc-400">Atılan</span>
+                          <span className="text-green-400 font-bold">{awayTeam.league.penalty.scored.total} ({awayTeam.league.penalty.scored.percentage})</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-zinc-400">Kaçırılan</span>
+                          <span className="text-red-400 font-bold">{awayTeam.league.penalty.missed.total} ({awayTeam.league.penalty.missed.percentage})</span>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                )}
+              </>
+            )}
+          </TabsContent>
+
+          <TabsContent value="goals" className="space-y-4">
+            {homeTeam?.league && awayTeam?.league && (
+              <>
+                <Card className="bg-card/50 border-border/50 p-4">
+                  <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
+                    <Goal className="w-4 h-4 text-primary" /> Ev/Deplasman Gol Analizi
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <img src={match.home_logo} className="w-5 h-5" />
+                        <span className="text-xs font-bold text-white">Evinde</span>
+                      </div>
+                      <div className="text-center p-3 bg-green-500/10 rounded-lg border border-green-500/20">
+                        <div className="text-2xl font-bold text-green-400">{homeTeam.league.goals.for.total.home}</div>
+                        <div className="text-[10px] text-zinc-500">Atılan Gol</div>
+                      </div>
+                      <div className="text-center p-3 bg-red-500/10 rounded-lg border border-red-500/20">
+                        <div className="text-2xl font-bold text-red-400">{homeTeam.league.goals.against.total.home}</div>
+                        <div className="text-[10px] text-zinc-500">Yenilen Gol</div>
+                      </div>
+                      <div className="text-xs text-zinc-500 text-center">
+                        {homeTeam.league.fixtures.played.home} ev maçı
+                      </div>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <img src={match.away_logo} className="w-5 h-5" />
+                        <span className="text-xs font-bold text-white">Deplasmanda</span>
+                      </div>
+                      <div className="text-center p-3 bg-green-500/10 rounded-lg border border-green-500/20">
+                        <div className="text-2xl font-bold text-green-400">{awayTeam.league.goals.for.total.away}</div>
+                        <div className="text-[10px] text-zinc-500">Atılan Gol</div>
+                      </div>
+                      <div className="text-center p-3 bg-red-500/10 rounded-lg border border-red-500/20">
+                        <div className="text-2xl font-bold text-red-400">{awayTeam.league.goals.against.total.away}</div>
+                        <div className="text-[10px] text-zinc-500">Yenilen Gol</div>
+                      </div>
+                      <div className="text-xs text-zinc-500 text-center">
+                        {awayTeam.league.fixtures.played.away} deplasman maçı
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+
+                <Card className="bg-card/50 border-border/50 p-4">
+                  <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
+                    <Zap className="w-4 h-4 text-primary" /> Bu Maç İçin Gol Beklentisi
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-black/30 rounded-lg">
+                      <span className="text-sm text-zinc-400">Ev sahibi evde ortalama atıyor</span>
+                      <span className="text-lg font-bold text-green-400">{homeTeam.league.goals.for.average.home}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-black/30 rounded-lg">
+                      <span className="text-sm text-zinc-400">Misafir deplasmanda ortalama atıyor</span>
+                      <span className="text-lg font-bold text-blue-400">{awayTeam.league.goals.for.average.away}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-black/30 rounded-lg">
+                      <span className="text-sm text-zinc-400">Ev sahibi evde ortalama yiyor</span>
+                      <span className="text-lg font-bold text-red-400">{homeTeam.league.goals.against.average.home}</span>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-black/30 rounded-lg">
+                      <span className="text-sm text-zinc-400">Misafir deplasmanda ortalama yiyor</span>
+                      <span className="text-lg font-bold text-orange-400">{awayTeam.league.goals.against.average.away}</span>
+                    </div>
+                    <div className="mt-4 p-4 bg-primary/10 rounded-lg border border-primary/30">
+                      <div className="text-center">
+                        <span className="text-xs text-zinc-400 block mb-1">Tahmini Toplam Gol</span>
+                        <span className="text-3xl font-bold text-primary">
+                          {(
+                            (parseFloat(homeTeam.league.goals.for.average.home) + parseFloat(awayTeam.league.goals.for.average.away)) / 2 +
+                            (parseFloat(homeTeam.league.goals.against.average.home) + parseFloat(awayTeam.league.goals.against.average.away)) / 2
+                          ).toFixed(1)}
+                        </span>
+                        <span className="text-xs text-zinc-500 block mt-1">
+                          {(
+                            (parseFloat(homeTeam.league.goals.for.average.home) + parseFloat(awayTeam.league.goals.for.average.away)) / 2 +
+                            (parseFloat(homeTeam.league.goals.against.average.home) + parseFloat(awayTeam.league.goals.against.average.away)) / 2
+                          ) > 2.5 ? '2.5 Üst önerilir' : '2.5 Alt önerilir'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+
+                <Card className="bg-card/50 border-border/50 p-4">
+                  <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-primary" /> Temiz Kale / Gol Atamama
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <div className="text-xs text-zinc-500 mb-2">{match.home_team}</div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-zinc-400">Temiz Kale (Ev)</span>
+                        <span className="text-green-400 font-bold">{homeTeam.league.clean_sheet.home}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-zinc-400">Gol Atamadığı (Ev)</span>
+                        <span className="text-red-400 font-bold">{homeTeam.league.failed_to_score.home}</span>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="text-xs text-zinc-500 mb-2">{match.away_team}</div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-zinc-400">Temiz Kale (Dep)</span>
+                        <span className="text-green-400 font-bold">{awayTeam.league.clean_sheet.away}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-zinc-400">Gol Atamadığı (Dep)</span>
+                        <span className="text-red-400 font-bold">{awayTeam.league.failed_to_score.away}</span>
+                      </div>
+                    </div>
                   </div>
                 </Card>
               </>
@@ -552,11 +815,11 @@ function PublishedMatchDetail({ match, onBack }: { match: PublishedMatch; onBack
                       <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-black/30 border border-white/5">
                         <div className="text-xs text-zinc-500 w-20">{new Date(game.date).toLocaleDateString('tr-TR')}</div>
                         <div className="flex items-center gap-2 flex-1 justify-center">
-                          <span className={`text-sm ${homeWin ? 'text-green-400 font-bold' : 'text-white'}`}>{game.homeTeam}</span>
+                          <span className={`text-xs ${homeWin ? 'text-green-400 font-bold' : 'text-white'} truncate max-w-[80px]`}>{game.homeTeam}</span>
                           <div className={`px-3 py-1 rounded font-bold text-sm ${draw ? 'bg-yellow-500/20 text-yellow-400' : homeWin ? 'bg-green-500/20 text-green-400' : 'bg-blue-500/20 text-blue-400'}`}>
                             {game.homeGoals} - {game.awayGoals}
                           </div>
-                          <span className={`text-sm ${awayWin ? 'text-blue-400 font-bold' : 'text-white'}`}>{game.awayTeam}</span>
+                          <span className={`text-xs ${awayWin ? 'text-blue-400 font-bold' : 'text-white'} truncate max-w-[80px]`}>{game.awayTeam}</span>
                         </div>
                       </div>
                     );
@@ -566,7 +829,7 @@ function PublishedMatchDetail({ match, onBack }: { match: PublishedMatch; onBack
                   <div className="flex justify-around text-center">
                     <div>
                       <div className="text-lg font-bold text-green-400">{h2h.filter(g => g.homeGoals > g.awayGoals).length}</div>
-                      <div className="text-[10px] text-zinc-500">Ev Sahibi Galibiyeti</div>
+                      <div className="text-[10px] text-zinc-500">Ev Sahibi Gal.</div>
                     </div>
                     <div>
                       <div className="text-lg font-bold text-yellow-400">{h2h.filter(g => g.homeGoals === g.awayGoals).length}</div>
@@ -574,7 +837,23 @@ function PublishedMatchDetail({ match, onBack }: { match: PublishedMatch; onBack
                     </div>
                     <div>
                       <div className="text-lg font-bold text-blue-400">{h2h.filter(g => g.awayGoals > g.homeGoals).length}</div>
-                      <div className="text-[10px] text-zinc-500">Deplasman Galibiyeti</div>
+                      <div className="text-[10px] text-zinc-500">Deplasman Gal.</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4 pt-4 border-t border-white/10">
+                  <div className="flex justify-around text-center">
+                    <div>
+                      <div className="text-lg font-bold text-white">{h2h.reduce((sum, g) => sum + g.homeGoals + g.awayGoals, 0)}</div>
+                      <div className="text-[10px] text-zinc-500">Toplam Gol</div>
+                    </div>
+                    <div>
+                      <div className="text-lg font-bold text-primary">{(h2h.reduce((sum, g) => sum + g.homeGoals + g.awayGoals, 0) / h2h.length).toFixed(1)}</div>
+                      <div className="text-[10px] text-zinc-500">Maç Başı Ort.</div>
+                    </div>
+                    <div>
+                      <div className="text-lg font-bold text-orange-400">{h2h.filter(g => g.homeGoals + g.awayGoals > 2.5).length}/{h2h.length}</div>
+                      <div className="text-[10px] text-zinc-500">2.5 Üst</div>
                     </div>
                   </div>
                 </div>
@@ -611,7 +890,7 @@ function HighlightRow({ icon, text, type }: { icon: string; text: string; type: 
   return (
     <div className={`flex items-center gap-2 p-2 rounded-lg border ${colors[type]}`}>
       <span>{icon}</span>
-      <span className="text-sm">{text}</span>
+      <span className="text-xs">{text}</span>
     </div>
   );
 }
