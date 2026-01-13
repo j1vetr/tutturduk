@@ -292,16 +292,73 @@ export const apiFootball = {
 };
 
 export const SUPPORTED_LEAGUES = [
+  // Türkiye
   { id: 203, name: 'Süper Lig', country: 'Turkey', flag: '🇹🇷' },
+  { id: 206, name: 'TFF 1. Lig', country: 'Turkey', flag: '🇹🇷' },
+  { id: 208, name: 'Türkiye Kupası', country: 'Turkey', flag: '🇹🇷' },
+  
+  // İngiltere
   { id: 39, name: 'Premier League', country: 'England', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' },
+  { id: 40, name: 'Championship', country: 'England', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' },
+  { id: 45, name: 'FA Cup', country: 'England', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' },
+  { id: 48, name: 'EFL Cup', country: 'England', flag: '🏴󠁧󠁢󠁥󠁮󠁧󠁿' },
+  
+  // İskoçya & Galler
+  { id: 179, name: 'Scottish Premiership', country: 'Scotland', flag: '🏴󠁧󠁢󠁳󠁣󠁴󠁿' },
+  { id: 110, name: 'Welsh Premier League', country: 'Wales', flag: '🏴󠁧󠁢󠁷󠁬󠁳󠁿' },
+  
+  // İspanya
   { id: 140, name: 'La Liga', country: 'Spain', flag: '🇪🇸' },
+  { id: 141, name: 'La Liga 2', country: 'Spain', flag: '🇪🇸' },
+  { id: 143, name: 'Copa del Rey', country: 'Spain', flag: '🇪🇸' },
+  
+  // Almanya
   { id: 78, name: 'Bundesliga', country: 'Germany', flag: '🇩🇪' },
+  { id: 79, name: '2. Bundesliga', country: 'Germany', flag: '🇩🇪' },
+  { id: 81, name: 'DFB Pokal', country: 'Germany', flag: '🇩🇪' },
+  
+  // İtalya
   { id: 135, name: 'Serie A', country: 'Italy', flag: '🇮🇹' },
+  { id: 136, name: 'Serie B', country: 'Italy', flag: '🇮🇹' },
+  { id: 137, name: 'Coppa Italia', country: 'Italy', flag: '🇮🇹' },
+  
+  // Fransa
   { id: 61, name: 'Ligue 1', country: 'France', flag: '🇫🇷' },
+  { id: 62, name: 'Ligue 2', country: 'France', flag: '🇫🇷' },
+  { id: 66, name: 'Coupe de France', country: 'France', flag: '🇫🇷' },
+  
+  // Hollanda
   { id: 88, name: 'Eredivisie', country: 'Netherlands', flag: '🇳🇱' },
+  { id: 89, name: 'Eerste Divisie', country: 'Netherlands', flag: '🇳🇱' },
+  
+  // Portekiz
   { id: 94, name: 'Primeira Liga', country: 'Portugal', flag: '🇵🇹' },
+  { id: 96, name: 'Taça de Portugal', country: 'Portugal', flag: '🇵🇹' },
+  
+  // Belçika
+  { id: 144, name: 'Pro League', country: 'Belgium', flag: '🇧🇪' },
+  
+  // Avusturya & İsviçre
+  { id: 218, name: 'Bundesliga', country: 'Austria', flag: '🇦🇹' },
+  { id: 207, name: 'Super League', country: 'Switzerland', flag: '🇨🇭' },
+  
+  // Yunanistan
+  { id: 197, name: 'Super League', country: 'Greece', flag: '🇬🇷' },
+  
+  // Rusya & Ukrayna
+  { id: 235, name: 'Premier League', country: 'Russia', flag: '🇷🇺' },
+  { id: 333, name: 'Premier League', country: 'Ukraine', flag: '🇺🇦' },
+  
+  // Amerika
+  { id: 253, name: 'MLS', country: 'USA', flag: '🇺🇸' },
+  { id: 262, name: 'Liga MX', country: 'Mexico', flag: '🇲🇽' },
+  { id: 71, name: 'Serie A', country: 'Brazil', flag: '🇧🇷' },
+  { id: 128, name: 'Primera División', country: 'Argentina', flag: '🇦🇷' },
+  
+  // UEFA Turnuvaları
   { id: 2, name: 'UEFA Champions League', country: 'World', flag: '🇪🇺' },
   { id: 3, name: 'UEFA Europa League', country: 'World', flag: '🇪🇺' },
+  { id: 848, name: 'UEFA Conference League', country: 'World', flag: '🇪🇺' },
 ];
 
 export const CURRENT_SEASON = 2024;
