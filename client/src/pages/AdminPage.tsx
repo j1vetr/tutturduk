@@ -225,18 +225,33 @@ export default function AdminPage() {
   const loadUpcomingMatches = async () => {
     setLoadingMatches(true);
     try {
-      const res = await fetch('/api/football/fixtures');
+      // Tüm tahminleri maçlarla birlikte çek
+      const res = await fetch('/api/football/all-predictions');
       if (res.ok) {
         const data = await res.json();
+        // Mevcut UpcomingMatch formatına dönüştür
         const formatted = data.map((m: any) => ({
-          ...m,
-          localDate: new Date(m.date).toLocaleDateString('tr-TR'),
-          localTime: new Date(m.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
+          id: m.id,
+          date: m.date,
+          timestamp: new Date(m.date).getTime() / 1000,
+          status: { long: 'Not Started', short: 'NS', elapsed: null },
+          homeTeam: m.homeTeam,
+          awayTeam: m.awayTeam,
+          league: m.league,
+          goals: { home: null, away: null },
+          localDate: m.localDate,
+          localTime: m.localTime,
+          apiPrediction: m.prediction // API tahmini ekle
         }));
         setUpcomingMatches(formatted);
+        toast({ 
+          title: "Tahminler yüklendi", 
+          description: `${data.length} maç ve tahmin getirildi` 
+        });
       }
     } catch (error) {
-      console.error('Failed to load matches:', error);
+      console.error('Failed to load predictions:', error);
+      toast({ title: "Hata", description: "Tahminler yüklenemedi", variant: "destructive" });
     } finally {
       setLoadingMatches(false);
     }
@@ -875,8 +890,12 @@ export default function AdminPage() {
                     <Button onClick={loadPublishedMatches} variant="outline" className="border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400">
                       <RefreshCcw className="w-4 h-4 mr-2" /> Yenile
                     </Button>
-                    <Button onClick={loadUpcomingMatches} className="bg-emerald-500 text-black font-bold hover:bg-emerald-400">
-                      <Calendar className="w-4 h-4 mr-2" /> Maçları getir
+                    <Button onClick={loadUpcomingMatches} disabled={loadingMatches} className="bg-emerald-500 text-black font-bold hover:bg-emerald-400">
+                      {loadingMatches ? (
+                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Yükleniyor...</>
+                      ) : (
+                        <><Target className="w-4 h-4 mr-2" /> Tahminleri getir</>
+                      )}
                     </Button>
                   </div>
                 </div>

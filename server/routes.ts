@@ -737,6 +737,89 @@ export async function registerRoutes(
     }
   });
 
+  // Bugün ve yarının TÜM maçlarını tahminleriyle birlikte getir
+  app.get('/api/football/all-predictions', async (req, res) => {
+    try {
+      const today = new Date();
+      const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+      const todayStr = today.toISOString().split('T')[0];
+      const tomorrowStr = tomorrow.toISOString().split('T')[0];
+      
+      const cacheKey = `all_predictions_${todayStr}`;
+      
+      const result = await getCachedData(cacheKey, async () => {
+        console.log(`[All Predictions] ${todayStr} ve ${tomorrowStr} için tüm tahminler çekiliyor...`);
+        
+        // 1. Bugün ve yarının tüm maçlarını çek
+        const [todayFixtures, tomorrowFixtures] = await Promise.all([
+          apiFootball.getFixtures({ date: todayStr }),
+          apiFootball.getFixtures({ date: tomorrowStr })
+        ]);
+        
+        const allFixtures = [...todayFixtures, ...tomorrowFixtures];
+        console.log(`[All Predictions] Bugün: ${todayFixtures.length}, Yarın: ${tomorrowFixtures.length}, Toplam: ${allFixtures.length} maç`);
+        
+        // 2. Her maç için tahmin çek (paralel, 10'lu gruplar halinde)
+        const matchesWithPredictions: any[] = [];
+        const batchSize = 10;
+        
+        for (let i = 0; i < allFixtures.length; i += batchSize) {
+          const batch = allFixtures.slice(i, i + batchSize);
+          const predictions = await Promise.all(
+            batch.map(async (fixture: any) => {
+              try {
+                const prediction = await apiFootball.getPrediction(fixture.fixture.id);
+                return { fixture, prediction };
+              } catch (e) {
+                return { fixture, prediction: null };
+              }
+            })
+          );
+          matchesWithPredictions.push(...predictions);
+        }
+        
+        console.log(`[All Predictions] ${matchesWithPredictions.length} maç için tahmin alındı`);
+        
+        return matchesWithPredictions.map(({ fixture, prediction }) => ({
+          id: fixture.fixture.id,
+          date: fixture.fixture.date,
+          localDate: new Date(fixture.fixture.date).toLocaleDateString('tr-TR'),
+          localTime: new Date(fixture.fixture.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
+          homeTeam: {
+            id: fixture.teams.home.id,
+            name: fixture.teams.home.name,
+            logo: fixture.teams.home.logo,
+          },
+          awayTeam: {
+            id: fixture.teams.away.id,
+            name: fixture.teams.away.name,
+            logo: fixture.teams.away.logo,
+          },
+          league: {
+            id: fixture.league.id,
+            name: fixture.league.name,
+            logo: fixture.league.logo,
+            country: fixture.league.country,
+          },
+          prediction: prediction ? {
+            winner: prediction.predictions?.winner,
+            advice: prediction.predictions?.advice,
+            percent: prediction.predictions?.percent,
+            goals: prediction.predictions?.goals,
+            comparison: prediction.comparison,
+            homeForm: prediction.teams?.home?.last_5?.form,
+            awayForm: prediction.teams?.away?.last_5?.form,
+          } : null
+        }));
+      }, 300); // 5 dakika cache
+      
+      res.json(result);
+    } catch (error: any) {
+      console.error('All predictions error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // Published matches endpoints (public)
   app.get('/api/matches', async (req, res) => {
     try {
