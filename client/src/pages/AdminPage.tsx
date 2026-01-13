@@ -12,7 +12,7 @@ import {
   LayoutDashboard, Users, Trophy, LogOut, Plus, Trash2, RefreshCcw, 
   CheckCircle, XCircle, Clock, Star, Ticket, Calendar, Loader2,
   TrendingUp, Target, Zap, Eye, ChevronRight, ChevronDown, Search, Filter,
-  BarChart3, Award, Sparkles, ArrowUpRight, ArrowDownRight, Goal, Lock, Flame
+  BarChart3, Award, Sparkles, ArrowUpRight, ArrowDownRight, Goal, Lock, Flame, Check
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -138,6 +138,10 @@ export default function AdminPage() {
   const [publishedMatches, setPublishedMatches] = useState<any[]>([]);
   const [publishingId, setPublishingId] = useState<number | null>(null);
   
+  // Bulk selection
+  const [selectedMatchIds, setSelectedMatchIds] = useState<Set<number>>(new Set());
+  const [bulkPublishing, setBulkPublishing] = useState(false);
+  
   // Form states
   const [newCode, setNewCode] = useState({ code: "", type: "standard", maxUses: 1 });
   const [newPrediction, setNewPrediction] = useState({
@@ -220,6 +224,61 @@ export default function AdminPage() {
 
   const isMatchPublished = (fixtureId: number) => {
     return publishedMatches.some(m => m.fixture_id === fixtureId);
+  };
+
+  const toggleMatchSelection = (matchId: number) => {
+    setSelectedMatchIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(matchId)) newSet.delete(matchId);
+      else newSet.add(matchId);
+      return newSet;
+    });
+  };
+
+  const selectAllUnpublished = () => {
+    const unpublishedIds = upcomingMatches
+      .filter(m => !isMatchPublished(m.id))
+      .map(m => m.id);
+    setSelectedMatchIds(new Set(unpublishedIds));
+  };
+
+  const clearSelection = () => {
+    setSelectedMatchIds(new Set());
+  };
+
+  const bulkPublishMatches = async () => {
+    if (selectedMatchIds.size === 0) return;
+    setBulkPublishing(true);
+    let successCount = 0;
+    let failCount = 0;
+    
+    for (const matchId of selectedMatchIds) {
+      const match = upcomingMatches.find(m => m.id === matchId);
+      if (!match || isMatchPublished(matchId)) continue;
+      
+      try {
+        const res = await fetch('/api/admin/matches/publish', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ fixtureId: matchId, isFeatured: false })
+        });
+        if (res.ok) successCount++;
+        else failCount++;
+      } catch {
+        failCount++;
+      }
+    }
+    
+    toast({
+      title: `${successCount} maç yayınlandı`,
+      description: failCount > 0 ? `${failCount} maç yayınlanamadı (istatistik eksik olabilir)` : undefined,
+      className: successCount > 0 ? 'bg-emerald-500 text-black border-none' : undefined
+    });
+    
+    setSelectedMatchIds(new Set());
+    loadPublishedMatches();
+    setBulkPublishing(false);
   };
 
   const loadUpcomingMatches = async () => {
@@ -1001,6 +1060,45 @@ export default function AdminPage() {
                       </Badge>
                     )}
                   </div>
+                  
+                  {/* Bulk Actions */}
+                  <div className="flex items-center gap-2">
+                    {selectedMatchIds.size > 0 && (
+                      <>
+                        <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+                          {selectedMatchIds.size} seçili
+                        </Badge>
+                        <Button
+                          onClick={clearSelection}
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 text-zinc-400 hover:text-white"
+                        >
+                          Temizle
+                        </Button>
+                      </>
+                    )}
+                    <Button
+                      onClick={selectAllUnpublished}
+                      variant="outline"
+                      size="sm"
+                      className="h-8 border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+                    >
+                      Tümünü Seç
+                    </Button>
+                    <Button
+                      onClick={bulkPublishMatches}
+                      disabled={selectedMatchIds.size === 0 || bulkPublishing}
+                      size="sm"
+                      className="h-8 bg-emerald-500 text-black font-bold hover:bg-emerald-400 disabled:opacity-50"
+                    >
+                      {bulkPublishing ? (
+                        <><Loader2 className="w-3 h-3 mr-1 animate-spin" /> Yayınlanıyor...</>
+                      ) : (
+                        <>Seçilenleri Yayınla ({selectedMatchIds.size})</>
+                      )}
+                    </Button>
+                  </div>
                 </div>
 
                 <div className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl border border-zinc-800 overflow-hidden">
@@ -1176,10 +1274,24 @@ export default function AdminPage() {
                                     return (
                                       <div
                                         key={match.id}
-                                        className={`p-4 transition-all hover:bg-white/[0.02] ${published ? 'bg-emerald-500/5' : ''}`}
+                                        className={`p-4 transition-all hover:bg-white/[0.02] ${published ? 'bg-emerald-500/5' : ''} ${selectedMatchIds.has(match.id) ? 'bg-blue-500/10' : ''}`}
                                       >
                                         <div className="flex items-center justify-between">
                                           <div className="flex items-center gap-4">
+                                            {/* Checkbox */}
+                                            {!published && (
+                                              <button
+                                                onClick={() => toggleMatchSelection(match.id)}
+                                                className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                                                  selectedMatchIds.has(match.id)
+                                                    ? 'bg-emerald-500 border-emerald-500 text-black'
+                                                    : 'border-zinc-600 hover:border-emerald-500'
+                                                }`}
+                                              >
+                                                {selectedMatchIds.has(match.id) && <Check className="w-3 h-3" />}
+                                              </button>
+                                            )}
+                                            
                                             {/* Time */}
                                             <div className="min-w-[60px] text-center">
                                               <p className="text-lg font-black text-emerald-400">{match.localTime}</p>
