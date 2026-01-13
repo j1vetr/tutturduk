@@ -4,6 +4,7 @@ import { MobileLayout } from "@/components/MobileLayout";
 import { ArrowLeft, Clock, Loader2, MapPin, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PreMatchScenario } from "@/components/PreMatchScenario";
 
 interface TeamStats {
   id: number;
@@ -292,6 +293,17 @@ export default function MatchDetailPage() {
             </TabsList>
 
             <TabsContent value="analysis" className="mt-4 space-y-4">
+              <PreMatchScenario 
+                homePercent={homePercent}
+                drawPercent={drawPercent}
+                awayPercent={awayPercent}
+                homeTeam={match.home_team}
+                awayTeam={match.away_team}
+                comparison={comparison}
+                expectedGoalsHome={match.api_goals_home}
+                expectedGoalsAway={match.api_goals_away}
+              />
+
               <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
                 <div className="text-xs text-zinc-500 uppercase tracking-wide mb-4">Kazanma olasılığı</div>
                 <div className="flex justify-between items-end mb-4">

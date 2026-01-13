@@ -1,0 +1,103 @@
+We need to implement a new “Pre-Match Scenario” section (no live/in-play). We already use API-Football v3 and we already have these on Match Detail: /fixtures, /predictions, /odds, /fixtures/lineups.
+
+Place the new section inside the “Analiz” tab, above “Kazanma Olasılığı”, matching our DARK UI (rounded cards, soft shadows, green accent). Mobile-first, smooth subtle animations.
+
+DATA (use existing /predictions response as primary):
+- P_home, P_draw, P_away (win probabilities in %)
+- P_over25 or equivalent (Over 2.5 probability). If not available, use our existing “expected total goals” value.
+- P_btts_yes (BTTS yes probability, if available)
+- team comparison values from /predictions: form, attack, defense, goals, h2h advantage (home vs away)
+
+FORMULAS (implement exactly):
+1) Dominance Index:
+DI = (P_home - P_away) / 100   // -1..+1
+
+2) Balance:
+BAL = 1 - abs(DI)             // 0..1
+
+3) Draw pressure:
+DRW = P_draw / 100            // 0..1
+
+4) Goals Index:
+If P_over25 exists: GI = P_over25 / 100
+Else: GI = clamp(expected_total_goals / 3.2, 0, 1)
+
+5) BTTS Index:
+If P_btts_yes exists: BI = P_btts_yes / 100
+Else: BI = clamp(0.5*GI + 0.2*BAL, 0, 1)  // fallback
+
+6) Strength Gap (from comparison values, each in %):
+GAP_attack = (Atk_home - Atk_away)/100
+GAP_def    = (Def_home - Def_away)/100
+GAP_form   = (Form_home - Form_away)/100
+GAP_goals  = (Goals_home - Goals_away)/100
+SG = 0.35*GAP_attack + 0.25*GAP_def + 0.25*GAP_form + 0.15*GAP_goals
+
+7) Chaos Score (0–100):
+Chaos = 100 * clamp(0.45*BAL + 0.25*BI + 0.20*GI + 0.10*DRW, 0, 1)
+Chaos label:
+0–33 Low, 34–66 Medium, 67–100 High
+
+SCENARIO CLASSIFICATION (pick one main scenario):
+A) One-Sided Pressure:
+if abs(DI) >= 0.25 AND abs(SG) >= 0.15
+title: if DI>0 “Home Pressure” else “Away Pressure”
+
+B) Tight / Low-Scoring:
+if GI <= 0.45 AND DRW >= 0.30
+title: “Tight Match”
+
+C) High Goals:
+if GI >= 0.62
+if BI >= 0.58 => title “BTTS & Goals”
+else => title “Goals Likely”
+
+D) Balanced:
+if abs(DI) < 0.15 AND BAL > 0.85
+title: “Balanced Battle”
+
+E) Upset-Prone / Chaotic:
+if Chaos >= 67 AND abs(DI) < 0.22
+title: “Upset-Prone”
+
+(If multiple match, use the first matching in the order above.)
+
+MATCH FLOW TIMELINE (3 segments: 0–30 / 30–60 / 60–90):
+TEMPO = clamp(0.6*GI + 0.4*BI, 0, 1)
+EARLY = clamp(0.55*abs(DI) + 0.25*abs(SG) - 0.20*DRW, 0, 1)
+S0_30  = 0.45*TEMPO + 0.55*EARLY
+S30_60 = 0.70*TEMPO + 0.15*EARLY + 0.15*DRW
+S60_90 = 0.85*TEMPO + 0.15*(1-EARLY)
+
+Segment label rule:
+<0.40 “Controlled”
+0.40–0.65 “Balanced”
+>0.65 “High Tempo”
+
+REASONS (auto-generate 2–3 bullets based on thresholds):
+- If abs(DI) >= 0.25: “Win probabilities lean clearly to one side.”
+- If GI >= 0.62: “Goal tendency is high.”
+- If GI <= 0.45: “Low-scoring profile stands out.”
+- If BI >= 0.58: “Both teams scoring is likely.”
+- If Chaos >= 67: “Probabilities are close → surprise potential is high.”
+Pick the top 2–3 that apply.
+
+UI COMPONENTS (animated):
+1) Scenario Card:
+- Scenario title + 2–3 reasons + Chaos ring (0–100) with label
+
+2) Match Flow Timeline:
+- 3 animated segmented bars filling left-to-right on load, with labels
+
+3) Dominance Gauge:
+- Smooth animated gauge/progress showing P_home / P_draw / P_away (premium version of existing)
+
+4) Scenario DNA Radar:
+- Radar chart for home vs away using comparison values (form, attack, defense, goals, h2h). Animate drawing from 0 to final.
+
+IMPORTANT:
+- Keep it consistent with our current DARK theme and green accent.
+- No betting CTA / no “guaranteed” wording.
+- Must not break on iOS/mobile.
+- Use existing data first (no heavy backend changes). If lineups formation exists, optionally tweak TEMPO slightly (+0.05 for 4-3-3/3-4-3, -0.08 for 5-4-1/5-3-2) and add a bullet like “Formation supports a cautious approach” if defensive.
+Deliver the implementation directly in the Match Detail page.
