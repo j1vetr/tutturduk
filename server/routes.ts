@@ -83,7 +83,7 @@ export async function registerRoutes(
 
       // Verify invitation code
       const invCode = await storage.getInvitationCode(referralCode);
-      if (!invCode || invCode.status !== 'active' || invCode.uses >= invCode.max_uses) {
+      if (!invCode || !invCode.is_active || invCode.current_uses >= invCode.max_uses) {
         return res.status(400).json({ message: 'Geçersiz veya kullanılmış davet kodu' });
       }
 
