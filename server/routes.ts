@@ -534,11 +534,15 @@ export async function registerRoutes(
         } else {
           const allFixtures: any[] = [];
           for (const lg of SUPPORTED_LEAGUES) {
-            const lgFixtures = await apiFootball.getFixtures({
-              league: lg.id,
-              next: 15
-            });
-            allFixtures.push(...lgFixtures);
+            try {
+              const lgFixtures = await apiFootball.getFixtures({
+                league: lg.id,
+                next: 30
+              });
+              allFixtures.push(...lgFixtures);
+            } catch (e) {
+              console.log(`Lig ${lg.name} için maç alınamadı`);
+            }
           }
           return allFixtures.sort((a, b) => 
             new Date(a.fixture.date).getTime() - new Date(b.fixture.date).getTime()
