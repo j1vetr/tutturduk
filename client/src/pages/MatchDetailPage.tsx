@@ -302,6 +302,8 @@ export default function MatchDetailPage() {
                 comparison={comparison}
                 expectedGoalsHome={match.api_goals_home}
                 expectedGoalsAway={match.api_goals_away}
+                homeFormation={lineups[0]?.formation}
+                awayFormation={lineups[1]?.formation}
               />
 
               <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
