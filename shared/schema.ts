@@ -12,9 +12,10 @@ export const users = pgTable("users", {
   created_at: timestamp("created_at").defaultNow(),
 });
 
-export const invitations = pgTable("invitations", {
+export const invitationCodes = pgTable("invitation_codes", {
   id: serial("id").primaryKey(),
   code: text("code").notNull().unique(),
+  type: text("type").default("single"),
   max_uses: integer("max_uses").default(1),
   current_uses: integer("current_uses").default(0),
   is_active: boolean("is_active").default(true),
@@ -77,6 +78,76 @@ export const sessions = pgTable("sessions", {
   expire: timestamp("expire", { precision: 6 }).notNull(),
 });
 
+export const predictions = pgTable("predictions", {
+  id: serial("id").primaryKey(),
+  home_team: text("home_team").notNull(),
+  away_team: text("away_team").notNull(),
+  home_logo: text("home_logo"),
+  away_logo: text("away_logo"),
+  league_id: integer("league_id"),
+  league_name: text("league_name"),
+  league_logo: text("league_logo"),
+  prediction: text("prediction").notNull(),
+  odds: decimal("odds", { precision: 5, scale: 2 }),
+  match_time: text("match_time"),
+  match_date: text("match_date"),
+  analysis: text("analysis"),
+  confidence: integer("confidence").default(70),
+  is_hero: boolean("is_hero").default(false),
+  result: text("result").default("pending"),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const couponPredictions = pgTable("coupon_predictions", {
+  id: serial("id").primaryKey(),
+  coupon_id: integer("coupon_id").notNull(),
+  prediction_id: integer("prediction_id").notNull(),
+});
+
+export const bestBets = pgTable("best_bets", {
+  id: serial("id").primaryKey(),
+  date_for: text("date_for").notNull(),
+  fixture_id: integer("fixture_id").notNull(),
+  home_team: text("home_team").notNull(),
+  away_team: text("away_team").notNull(),
+  home_logo: text("home_logo"),
+  away_logo: text("away_logo"),
+  league_name: text("league_name"),
+  league_logo: text("league_logo"),
+  match_time: text("match_time"),
+  best_bet: text("best_bet").notNull(),
+  confidence: integer("confidence").default(70),
+  reasoning: text("reasoning"),
+  odds: decimal("odds", { precision: 5, scale: 2 }),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const userCoupons = pgTable("user_coupons", {
+  id: serial("id").primaryKey(),
+  user_id: text("user_id").notNull(),
+  name: text("name").notNull(),
+  coupon_type: text("coupon_type").default("single"),
+  status: text("status").default("pending"),
+  total_odds: decimal("total_odds", { precision: 10, scale: 2 }),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
+export const userCouponItems = pgTable("user_coupon_items", {
+  id: serial("id").primaryKey(),
+  coupon_id: integer("coupon_id").notNull(),
+  fixture_id: integer("fixture_id").notNull(),
+  home_team: text("home_team").notNull(),
+  away_team: text("away_team").notNull(),
+  home_logo: text("home_logo"),
+  away_logo: text("away_logo"),
+  league_name: text("league_name"),
+  bet_type: text("bet_type").notNull(),
+  bet_pick: text("bet_pick").notNull(),
+  odds: decimal("odds", { precision: 5, scale: 2 }).notNull(),
+  status: text("status").default("pending"),
+  created_at: timestamp("created_at").defaultNow(),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password_hash: true,
@@ -84,6 +155,8 @@ export const insertUserSchema = createInsertSchema(users).pick({
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
-export type Invitation = typeof invitations.$inferSelect;
+export type InvitationCode = typeof invitationCodes.$inferSelect;
 export type PublishedMatch = typeof publishedMatches.$inferSelect;
 export type Coupon = typeof coupons.$inferSelect;
+export type Prediction = typeof predictions.$inferSelect;
+export type BestBet = typeof bestBets.$inferSelect;
