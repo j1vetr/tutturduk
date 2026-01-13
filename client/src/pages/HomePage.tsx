@@ -2,10 +2,29 @@ import { useState, useEffect } from "react";
 import { MobileLayout } from "@/components/MobileLayout";
 import { PredictionCard } from "@/components/PredictionCard";
 import { HeroPrediction } from "@/components/HeroPrediction";
-import { ShieldAlert, Calendar, Loader2, Ticket } from "lucide-react";
+import { ShieldAlert, Calendar, Loader2, Ticket, TrendingUp, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useLocation } from "wouter";
+
+interface PublishedMatch {
+  id: number;
+  fixture_id: number;
+  home_team: string;
+  away_team: string;
+  home_logo?: string;
+  away_logo?: string;
+  league_name?: string;
+  league_logo?: string;
+  match_date: string;
+  match_time: string;
+  prediction_advice?: string;
+  prediction_home?: string;
+  prediction_draw?: string;
+  prediction_away?: string;
+  prediction_under_over?: string;
+  prediction_winner?: string;
+}
 
 interface Prediction {
   id: number;
@@ -42,6 +61,7 @@ export default function HomePage() {
   const [, setLocation] = useLocation();
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [publishedMatches, setPublishedMatches] = useState<PublishedMatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<"all" | "today" | "tomorrow">("all");
 
@@ -52,9 +72,10 @@ export default function HomePage() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [predsRes, couponsRes] = await Promise.all([
+      const [predsRes, couponsRes, matchesRes] = await Promise.all([
         fetch('/api/predictions/pending'),
-        fetch('/api/coupons')
+        fetch('/api/coupons'),
+        fetch('/api/matches')
       ]);
       
       if (predsRes.ok) {
@@ -65,6 +86,11 @@ export default function HomePage() {
       if (couponsRes.ok) {
         const data = await couponsRes.json();
         setCoupons(data);
+      }
+      
+      if (matchesRes.ok) {
+        const data = await matchesRes.json();
+        setPublishedMatches(data);
       }
     } catch (error) {
       console.error('Failed to load data:', error);
@@ -142,6 +168,57 @@ export default function HomePage() {
                       <span className="text-xs text-zinc-500">Kombine</span>
                       <Badge className="bg-primary text-black font-bold">{coupon.combined_odds}x</Badge>
                     </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Published Matches - AI Predictions */}
+        {publishedMatches.length > 0 && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-display text-foreground border-l-4 border-primary pl-3">Uzman Tahminleri</h2>
+              <Badge variant="outline" className="text-primary border-primary/30">
+                <TrendingUp className="w-3 h-3 mr-1" /> API Destekli
+              </Badge>
+            </div>
+            <div className="space-y-3">
+              {publishedMatches.map(match => (
+                <Card 
+                  key={match.id} 
+                  className="bg-gradient-to-br from-zinc-900 to-zinc-800 border-white/5 hover:border-primary/30 transition-all cursor-pointer"
+                  onClick={() => setLocation(`/match/${match.id}`)}
+                  data-testid={`match-card-${match.id}`}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        {match.league_logo && <img src={match.league_logo} alt="" className="w-4 h-4" />}
+                        <span className="text-xs text-zinc-500">{match.league_name}</span>
+                      </div>
+                      <span className="text-xs text-primary font-medium">{match.match_date} • {match.match_time}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-2">
+                          {match.home_logo && <img src={match.home_logo} alt="" className="w-8 h-8 object-contain" />}
+                          <span className="font-semibold text-white">{match.home_team}</span>
+                        </div>
+                        <span className="text-zinc-600 text-sm">vs</span>
+                        <div className="flex items-center gap-2">
+                          {match.away_logo && <img src={match.away_logo} alt="" className="w-8 h-8 object-contain" />}
+                          <span className="font-semibold text-white">{match.away_team}</span>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-5 h-5 text-zinc-600" />
+                    </div>
+                    {match.prediction_advice && (
+                      <div className="mt-3 pt-3 border-t border-white/5">
+                        <p className="text-sm text-zinc-400 line-clamp-1">{match.prediction_advice}</p>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               ))}
