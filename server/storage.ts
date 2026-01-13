@@ -690,17 +690,17 @@ export class PostgresStorage implements IStorage {
       ]
     );
     
-    await this.updateCouponOdds(item.coupon_id);
+    await this.updateUserCouponOdds(item.coupon_id);
     return result.rows[0];
   }
 
   async removeCouponItem(itemId: number, couponId: number): Promise<boolean> {
     const result = await pool.query('DELETE FROM user_coupon_items WHERE id = $1', [itemId]);
-    await this.updateCouponOdds(couponId);
+    await this.updateUserCouponOdds(couponId);
     return result.rowCount! > 0;
   }
 
-  async updateCouponOdds(couponId: number): Promise<void> {
+  async updateUserCouponOdds(couponId: number): Promise<void> {
     const result = await pool.query(
       'SELECT COALESCE(EXP(SUM(LN(odds))), 1) as total_odds FROM user_coupon_items WHERE coupon_id = $1',
       [couponId]
