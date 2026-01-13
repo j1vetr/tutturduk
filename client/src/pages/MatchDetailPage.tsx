@@ -98,12 +98,24 @@ interface OddsData {
   }[];
 }
 
+interface TeamStanding {
+  rank: number;
+  points: number;
+  played: number;
+  wins: number;
+  draws: number;
+  loses: number;
+  goalsDiff: number;
+}
+
 export default function MatchDetailPage() {
   const { id } = useParams();
   const [, setLocation] = useLocation();
   const [match, setMatch] = useState<PublishedMatch | null>(null);
   const [lineups, setLineups] = useState<Lineup[]>([]);
   const [odds, setOdds] = useState<OddsData[]>([]);
+  const [homeStanding, setHomeStanding] = useState<TeamStanding | undefined>();
+  const [awayStanding, setAwayStanding] = useState<TeamStanding | undefined>();
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -120,6 +132,43 @@ export default function MatchDetailPage() {
         setMatch(data);
         fetch(`/api/matches/${id}/lineups`).then(r => r.json()).then(setLineups).catch(() => {});
         fetch(`/api/matches/${id}/odds`).then(r => r.json()).then(setOdds).catch(() => {});
+        
+        if (data.league_id) {
+          fetch(`/api/football/standings/${data.league_id}`)
+            .then(r => r.json())
+            .then(standings => {
+              if (standings && standings.length > 0) {
+                const homeTeamId = data.api_teams?.home?.id;
+                const awayTeamId = data.api_teams?.away?.id;
+                const flat = standings.flat();
+                const homeSt = flat.find((s: any) => s.team?.id === homeTeamId);
+                const awaySt = flat.find((s: any) => s.team?.id === awayTeamId);
+                if (homeSt) {
+                  setHomeStanding({
+                    rank: homeSt.rank,
+                    points: homeSt.points,
+                    played: homeSt.all?.played || 0,
+                    wins: homeSt.all?.win || 0,
+                    draws: homeSt.all?.draw || 0,
+                    loses: homeSt.all?.lose || 0,
+                    goalsDiff: homeSt.goalsDiff || 0,
+                  });
+                }
+                if (awaySt) {
+                  setAwayStanding({
+                    rank: awaySt.rank,
+                    points: awaySt.points,
+                    played: awaySt.all?.played || 0,
+                    wins: awaySt.all?.win || 0,
+                    draws: awaySt.all?.draw || 0,
+                    loses: awaySt.all?.lose || 0,
+                    goalsDiff: awaySt.goalsDiff || 0,
+                  });
+                }
+              }
+            })
+            .catch(() => {});
+        }
       }
     } catch (error) {
       console.error('Failed to load match:', error);
@@ -556,7 +605,15 @@ export default function MatchDetailPage() {
             <TabsContent value="h2h" className="mt-4 space-y-4">
               {h2h.length > 0 ? (
                 <>
-                  <H2HSummary h2h={h2h} homeTeam={match.home_team} awayTeam={match.away_team} />
+                  <H2HSummary 
+                    h2h={h2h} 
+                    homeTeam={match.home_team} 
+                    awayTeam={match.away_team}
+                    homeLogo={match.home_logo}
+                    awayLogo={match.away_logo}
+                    homeStanding={homeStanding}
+                    awayStanding={awayStanding}
+                  />
                   <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
                     <div className="p-4 border-b border-zinc-800">
                       <div className="text-xs text-zinc-500 uppercase tracking-wide">Son karşılaşmalar</div>

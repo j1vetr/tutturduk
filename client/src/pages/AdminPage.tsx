@@ -1488,10 +1488,9 @@ export default function AdminPage() {
                         <div className="flex items-center gap-2">
                           <Badge className={
                             u.role === 'admin' ? 'bg-red-500/20 text-red-400' :
-                            u.role === 'vip' ? 'bg-primary/20 text-primary' :
                             'bg-zinc-500/20 text-zinc-400'
                           }>
-                            {u.role.toUpperCase()}
+                            {u.role === 'admin' ? 'ADMİN' : 'ÜYE'}
                           </Badge>
                           <span className="text-xs text-zinc-500">{formatDate(u.created_at)}</span>
                         </div>
@@ -1536,7 +1535,6 @@ export default function AdminPage() {
                         </SelectTrigger>
                         <SelectContent className="bg-zinc-900 border-white/10">
                           <SelectItem value="standard">Standard</SelectItem>
-                          <SelectItem value="vip">VIP</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -1571,8 +1569,8 @@ export default function AdminPage() {
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <Badge className={code.type === 'vip' ? 'bg-primary/20 text-primary' : 'bg-zinc-500/20 text-zinc-400'}>
-                            {code.type.toUpperCase()}
+                          <Badge className="bg-zinc-500/20 text-zinc-400">
+                            STANDARD
                           </Badge>
                           <Badge className={code.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}>
                             {code.status === 'active' ? 'Aktif' : 'Kullanıldı'}

@@ -89,7 +89,7 @@ export async function registerRoutes(
         username,
         password,
         referral_code: referralCode,
-        role: invCode.type === 'vip' ? 'vip' : 'user',
+        role: 'user',
       });
 
       // Use the invitation code
