@@ -5,6 +5,7 @@ import session from 'express-session';
 import connectPgSimple from 'connect-pg-simple';
 import { pool } from './db';
 import { apiFootball, SUPPORTED_LEAGUES, CURRENT_SEASON } from './apiFootball';
+import { generateMatchAnalysis } from './openai-analysis';
 
 const PgSession = connectPgSimple(session);
 
@@ -940,6 +941,48 @@ export async function registerRoutes(
     } catch (error: any) {
       console.error('Odds fetch error:', error);
       res.json([]);
+    }
+  });
+
+  app.get('/api/matches/:id/ai-analysis', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const match = await storage.getPublishedMatchById(id);
+      if (!match) {
+        return res.status(404).json({ message: 'Maç bulunamadı' });
+      }
+
+      const cacheKey = `ai_analysis_${match.fixture_id}`;
+      const analysis = await getCachedData(cacheKey, async () => {
+        const homeTeam = match.api_teams?.home;
+        const awayTeam = match.api_teams?.away;
+        const h2h = match.api_h2h || [];
+        
+        return generateMatchAnalysis({
+          homeTeam: match.home_team,
+          awayTeam: match.away_team,
+          league: match.league_name,
+          homeForm: homeTeam?.league?.form,
+          awayForm: awayTeam?.league?.form,
+          homeGoalsFor: homeTeam?.league?.goals?.for?.total,
+          homeGoalsAgainst: homeTeam?.league?.goals?.against?.total,
+          awayGoalsFor: awayTeam?.league?.goals?.for?.total,
+          awayGoalsAgainst: awayTeam?.league?.goals?.against?.total,
+          homeWins: homeTeam?.league?.fixtures?.wins?.total,
+          homeDraws: homeTeam?.league?.fixtures?.draws?.total,
+          homeLosses: homeTeam?.league?.fixtures?.loses?.total,
+          awayWins: awayTeam?.league?.fixtures?.wins?.total,
+          awayDraws: awayTeam?.league?.fixtures?.draws?.total,
+          awayLosses: awayTeam?.league?.fixtures?.loses?.total,
+          h2hResults: h2h.map((m: any) => ({ homeGoals: m.homeGoals, awayGoals: m.awayGoals })),
+          comparison: match.api_comparison,
+        });
+      }, 1440);
+
+      res.json(analysis);
+    } catch (error: any) {
+      console.error('AI Analysis error:', error);
+      res.status(500).json({ message: 'AI analizi oluşturulamadı', error: error.message });
     }
   });
 

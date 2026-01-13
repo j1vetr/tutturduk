@@ -9,6 +9,7 @@ import { ModelOddsComparison } from "@/components/ModelOddsComparison";
 import { H2HSummary } from "@/components/H2HSummary";
 import { LineupImpact } from "@/components/LineupImpact";
 import { FormTrendGraph } from "@/components/FormTrendGraph";
+import { AIAnalysis } from "@/components/AIAnalysis";
 import { calculateScenario } from "@/lib/scenarioEngine";
 import { useToast } from "@/hooks/use-toast";
 
@@ -363,6 +364,12 @@ export default function MatchDetailPage() {
             </TabsList>
 
             <TabsContent value="analysis" className="mt-4 space-y-4">
+              <AIAnalysis 
+                matchId={match.id}
+                homeTeam={match.home_team}
+                awayTeam={match.away_team}
+              />
+
               <PreMatchScenario 
                 homePercent={homePercent}
                 drawPercent={drawPercent}
