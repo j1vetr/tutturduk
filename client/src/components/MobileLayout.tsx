@@ -45,8 +45,11 @@ export function MobileLayout({ children, activeTab }: MobileLayoutProps) {
         
       </header>
 
+      {/* Header Spacer */}
+      <div className="h-20" />
+      
       {/* Main Content */}
-      <main className="pt-24 px-4 pb-32 animate-in fade-in slide-in-from-bottom-2 duration-500">
+      <main className="px-4 pb-32 animate-in fade-in slide-in-from-bottom-2 duration-500 relative z-10">
         {children}
       </main>
 
