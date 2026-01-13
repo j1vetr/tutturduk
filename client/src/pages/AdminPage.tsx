@@ -894,7 +894,7 @@ export default function AdminPage() {
                       {loadingMatches ? (
                         <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Yükleniyor...</>
                       ) : (
-                        <><Target className="w-4 h-4 mr-2" /> Tahminleri getir</>
+                        <><Target className="w-4 h-4 mr-2" /> Maçları getir</>
                       )}
                     </Button>
                   </div>
@@ -1038,24 +1038,12 @@ export default function AdminPage() {
                   <div className="flex items-center gap-3">
                     <div className="w-1 h-6 bg-blue-500 rounded-full" />
                     <h3 className="text-lg font-bold text-white">Tüm Maçlar</h3>
-                    {matchPredictions.size > 0 && (
+                    {upcomingMatches.length > 0 && (
                       <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
-                        {matchPredictions.size} tahmin yüklendi
+                        {upcomingMatches.length} maç
                       </Badge>
                     )}
                   </div>
-                  <Button 
-                    onClick={loadAllPredictions} 
-                    disabled={loadingPredictions || upcomingMatches.length === 0}
-                    variant="outline" 
-                    className="border-blue-500/30 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400"
-                  >
-                    {loadingPredictions ? (
-                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Yükleniyor...</>
-                    ) : (
-                      <><BarChart3 className="w-4 h-4 mr-2" /> Tahminleri yükle</>
-                    )}
-                  </Button>
                 </div>
 
                 <div className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl border border-zinc-800 overflow-hidden">
