@@ -379,6 +379,130 @@ export async function registerRoutes(
     res.json(heroPrediction);
   });
 
+  // Coupon routes (Admin)
+  app.get('/api/admin/coupons', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Yetkisiz erişim' });
+    }
+    const coupons = await storage.getAllCoupons();
+    res.json(coupons);
+  });
+
+  app.get('/api/admin/coupons/:id', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Yetkisiz erişim' });
+    }
+    const coupon = await storage.getCouponWithPredictions(parseInt(req.params.id));
+    if (!coupon) {
+      return res.status(404).json({ message: 'Kupon bulunamadı' });
+    }
+    res.json(coupon);
+  });
+
+  app.post('/api/admin/coupons', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Yetkisiz erişim' });
+    }
+    const { name, date } = req.body;
+    if (!name || !date) {
+      return res.status(400).json({ message: 'Kupon adı ve tarihi gereklidir' });
+    }
+    const coupon = await storage.createCoupon(name, date);
+    res.json(coupon);
+  });
+
+  app.post('/api/admin/coupons/:id/predictions', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Yetkisiz erişim' });
+    }
+    const { predictionId } = req.body;
+    await storage.addPredictionToCoupon(parseInt(req.params.id), predictionId);
+    const coupon = await storage.getCouponWithPredictions(parseInt(req.params.id));
+    res.json(coupon);
+  });
+
+  app.delete('/api/admin/coupons/:id/predictions/:predictionId', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Yetkisiz erişim' });
+    }
+    await storage.removePredictionFromCoupon(parseInt(req.params.id), parseInt(req.params.predictionId));
+    const coupon = await storage.getCouponWithPredictions(parseInt(req.params.id));
+    res.json(coupon);
+  });
+
+  app.put('/api/admin/coupons/:id/result', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Yetkisiz erişim' });
+    }
+    const { result } = req.body;
+    const coupon = await storage.updateCouponResult(parseInt(req.params.id), result);
+    res.json(coupon);
+  });
+
+  app.delete('/api/admin/coupons/:id', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Yetkisiz erişim' });
+    }
+    const success = await storage.deleteCoupon(parseInt(req.params.id));
+    if (!success) {
+      return res.status(404).json({ message: 'Kupon bulunamadı' });
+    }
+    res.json({ message: 'Kupon silindi' });
+  });
+
+  // Public coupon routes
+  app.get('/api/coupons', async (req, res) => {
+    const coupons = await storage.getAllCoupons();
+    res.json(coupons);
+  });
+
+  app.get('/api/coupons/date/:date', async (req, res) => {
+    const coupons = await storage.getCouponsByDate(req.params.date);
+    res.json(coupons);
+  });
+
+  app.get('/api/coupons/:id', async (req, res) => {
+    const coupon = await storage.getCouponWithPredictions(parseInt(req.params.id));
+    if (!coupon) {
+      return res.status(404).json({ message: 'Kupon bulunamadı' });
+    }
+    res.json(coupon);
+  });
+
+  // Predictions by date
+  app.get('/api/predictions/date/:date', async (req, res) => {
+    const predictions = await storage.getPredictionsByDate(req.params.date);
+    res.json(predictions);
+  });
+
   // Football Data API routes
   app.get('/api/football/leagues', async (req, res) => {
     try {

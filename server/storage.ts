@@ -47,6 +47,24 @@ export interface Prediction {
   created_at: Date;
 }
 
+export interface Coupon {
+  id: number;
+  name: string;
+  coupon_date: string;
+  combined_odds: number;
+  status: string;
+  result: string;
+  created_at: Date;
+  predictions?: Prediction[];
+}
+
+export interface CouponPrediction {
+  id: number;
+  coupon_id: number;
+  prediction_id: number;
+  created_at: Date;
+}
+
 function hashPassword(password: string): string {
   return crypto.createHash('sha256').update(password).digest('hex');
 }
@@ -70,10 +88,22 @@ export interface IStorage {
   getAllPredictions(): Promise<Prediction[]>;
   getPendingPredictions(): Promise<Prediction[]>;
   getWonPredictions(): Promise<Prediction[]>;
+  getPredictionsByDate(date: string): Promise<Prediction[]>;
   createPrediction(prediction: Partial<Prediction>): Promise<Prediction>;
   updatePrediction(id: number, prediction: Partial<Prediction>): Promise<Prediction | null>;
   deletePrediction(id: number): Promise<boolean>;
   updateHeroPrediction(prediction: Partial<Prediction>): Promise<Prediction>;
+  
+  // Coupon methods
+  getAllCoupons(): Promise<Coupon[]>;
+  getCouponsByDate(date: string): Promise<Coupon[]>;
+  getCouponWithPredictions(id: number): Promise<Coupon | undefined>;
+  createCoupon(name: string, date: string): Promise<Coupon>;
+  addPredictionToCoupon(couponId: number, predictionId: number): Promise<void>;
+  removePredictionFromCoupon(couponId: number, predictionId: number): Promise<void>;
+  updateCouponOdds(couponId: number): Promise<Coupon>;
+  updateCouponResult(couponId: number, result: string): Promise<Coupon>;
+  deleteCoupon(id: number): Promise<boolean>;
 }
 
 export class PostgresStorage implements IStorage {
@@ -260,6 +290,96 @@ export class PostgresStorage implements IStorage {
     if (user.password_hash !== passwordHash) return null;
     
     return user;
+  }
+
+  // Prediction by date
+  async getPredictionsByDate(date: string): Promise<Prediction[]> {
+    const result = await pool.query('SELECT * FROM predictions WHERE match_date = $1 ORDER BY match_time ASC', [date]);
+    return result.rows;
+  }
+
+  // Coupon methods
+  async getAllCoupons(): Promise<Coupon[]> {
+    const result = await pool.query('SELECT * FROM coupons ORDER BY coupon_date DESC, created_at DESC');
+    return result.rows;
+  }
+
+  async getCouponsByDate(date: string): Promise<Coupon[]> {
+    const result = await pool.query('SELECT * FROM coupons WHERE coupon_date = $1 ORDER BY created_at DESC', [date]);
+    return result.rows;
+  }
+
+  async getCouponWithPredictions(id: number): Promise<Coupon | undefined> {
+    const couponResult = await pool.query('SELECT * FROM coupons WHERE id = $1', [id]);
+    if (couponResult.rows.length === 0) return undefined;
+    
+    const coupon = couponResult.rows[0];
+    const predictionsResult = await pool.query(
+      `SELECT p.* FROM predictions p 
+       INNER JOIN coupon_predictions cp ON p.id = cp.prediction_id 
+       WHERE cp.coupon_id = $1 
+       ORDER BY p.match_time ASC`,
+      [id]
+    );
+    coupon.predictions = predictionsResult.rows;
+    return coupon;
+  }
+
+  async createCoupon(name: string, date: string): Promise<Coupon> {
+    const result = await pool.query(
+      'INSERT INTO coupons (name, coupon_date) VALUES ($1, $2) RETURNING *',
+      [name, date]
+    );
+    return result.rows[0];
+  }
+
+  async addPredictionToCoupon(couponId: number, predictionId: number): Promise<void> {
+    await pool.query(
+      'INSERT INTO coupon_predictions (coupon_id, prediction_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+      [couponId, predictionId]
+    );
+    await this.updateCouponOdds(couponId);
+  }
+
+  async removePredictionFromCoupon(couponId: number, predictionId: number): Promise<void> {
+    await pool.query(
+      'DELETE FROM coupon_predictions WHERE coupon_id = $1 AND prediction_id = $2',
+      [couponId, predictionId]
+    );
+    await this.updateCouponOdds(couponId);
+  }
+
+  async updateCouponOdds(couponId: number): Promise<Coupon> {
+    const result = await pool.query(
+      `SELECT COALESCE(
+        (SELECT EXP(SUM(LN(CAST(p.odds AS DECIMAL)))) 
+         FROM predictions p 
+         INNER JOIN coupon_predictions cp ON p.id = cp.prediction_id 
+         WHERE cp.coupon_id = $1),
+        1.00
+      ) as combined_odds`,
+      [couponId]
+    );
+    const combinedOdds = parseFloat(result.rows[0].combined_odds).toFixed(2);
+    
+    const updateResult = await pool.query(
+      'UPDATE coupons SET combined_odds = $1 WHERE id = $2 RETURNING *',
+      [combinedOdds, couponId]
+    );
+    return updateResult.rows[0];
+  }
+
+  async updateCouponResult(couponId: number, result: string): Promise<Coupon> {
+    const updateResult = await pool.query(
+      'UPDATE coupons SET result = $1 WHERE id = $2 RETURNING *',
+      [result, couponId]
+    );
+    return updateResult.rows[0];
+  }
+
+  async deleteCoupon(id: number): Promise<boolean> {
+    const result = await pool.query('DELETE FROM coupons WHERE id = $1', [id]);
+    return result.rowCount! > 0;
   }
 }
 

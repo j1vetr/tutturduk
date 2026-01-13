@@ -90,6 +90,17 @@ interface UpcomingMatch {
   competition: { id: number; code: string; name: string; logo: string; };
 }
 
+interface Coupon {
+  id: number;
+  name: string;
+  coupon_date: string;
+  combined_odds: number;
+  status: string;
+  result: string;
+  created_at: string;
+  predictions?: Prediction[];
+}
+
 export default function AdminPage() {
   const { user, logout } = useAuth();
   const [, setLocation] = useLocation();
@@ -110,6 +121,12 @@ export default function AdminPage() {
   const [selectedMatch, setSelectedMatch] = useState<UpcomingMatch | null>(null);
   const [matchFilter, setMatchFilter] = useState<string>("all");
   const [dateFilter, setDateFilter] = useState<string>("all");
+  
+  // Coupon states
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
+  const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
+  const [newCouponName, setNewCouponName] = useState("");
+  const [newCouponDate, setNewCouponDate] = useState("");
   
   // Form states
   const [newCode, setNewCode] = useState({ code: "", type: "standard", maxUses: 1 });
@@ -152,6 +169,127 @@ export default function AdminPage() {
     loadUsers();
     loadPredictions();
     loadWonPredictions();
+    loadCoupons();
+  };
+
+  const loadCoupons = async () => {
+    try {
+      const res = await fetch('/api/admin/coupons', { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        setCoupons(data);
+      }
+    } catch (error) {
+      console.error('Failed to load coupons:', error);
+    }
+  };
+
+  const handleCreateCoupon = async () => {
+    if (!newCouponName || !newCouponDate) {
+      toast({ variant: "destructive", description: "Kupon adı ve tarih gerekli." });
+      return;
+    }
+    try {
+      const res = await fetch('/api/admin/coupons', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newCouponName, date: newCouponDate }),
+        credentials: 'include'
+      });
+      if (res.ok) {
+        toast({ description: "Kupon oluşturuldu!", className: "bg-green-500 text-white border-none" });
+        setNewCouponName("");
+        setNewCouponDate("");
+        loadCoupons();
+      }
+    } catch (error) {
+      toast({ variant: "destructive", description: "Kupon oluşturulamadı." });
+    }
+  };
+
+  const handleSelectCoupon = async (couponId: number) => {
+    try {
+      const res = await fetch(`/api/admin/coupons/${couponId}`, { credentials: 'include' });
+      if (res.ok) {
+        const coupon = await res.json();
+        setSelectedCoupon(coupon);
+      }
+    } catch (error) {
+      console.error('Failed to load coupon:', error);
+    }
+  };
+
+  const handleAddPredictionToCoupon = async (predictionId: number) => {
+    if (!selectedCoupon) return;
+    try {
+      const res = await fetch(`/api/admin/coupons/${selectedCoupon.id}/predictions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ predictionId }),
+        credentials: 'include'
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setSelectedCoupon(updated);
+        loadCoupons();
+        toast({ description: "Tahmin kupona eklendi!", className: "bg-green-500 text-white border-none" });
+      }
+    } catch (error) {
+      toast({ variant: "destructive", description: "Tahmin eklenemedi." });
+    }
+  };
+
+  const handleRemovePredictionFromCoupon = async (predictionId: number) => {
+    if (!selectedCoupon) return;
+    try {
+      const res = await fetch(`/api/admin/coupons/${selectedCoupon.id}/predictions/${predictionId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setSelectedCoupon(updated);
+        loadCoupons();
+        toast({ description: "Tahmin kupondan çıkarıldı.", className: "bg-green-500 text-white border-none" });
+      }
+    } catch (error) {
+      toast({ variant: "destructive", description: "İşlem başarısız." });
+    }
+  };
+
+  const handleDeleteCoupon = async (couponId: number) => {
+    try {
+      const res = await fetch(`/api/admin/coupons/${couponId}`, { method: 'DELETE', credentials: 'include' });
+      if (res.ok) {
+        toast({ description: "Kupon silindi.", className: "bg-green-500 text-white border-none" });
+        if (selectedCoupon?.id === couponId) {
+          setSelectedCoupon(null);
+        }
+        loadCoupons();
+      }
+    } catch (error) {
+      toast({ variant: "destructive", description: "Kupon silinemedi." });
+    }
+  };
+
+  const handleCouponResult = async (couponId: number, result: string) => {
+    try {
+      const res = await fetch(`/api/admin/coupons/${couponId}/result`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ result }),
+        credentials: 'include'
+      });
+      if (res.ok) {
+        toast({ description: `Kupon ${result === 'won' ? 'kazandı' : 'kaybetti'} olarak işaretlendi.`, className: "bg-green-500 text-white border-none" });
+        loadCoupons();
+        if (selectedCoupon?.id === couponId) {
+          handleSelectCoupon(couponId);
+        }
+      }
+    } catch (error) {
+      toast({ variant: "destructive", description: "İşlem başarısız." });
+    }
   };
 
   const loadUpcomingMatches = async () => {
@@ -221,8 +359,8 @@ export default function AdminPage() {
   };
 
   const getUniqueDates = () => {
-    const dates = [...new Set(upcomingMatches.map(m => m.localDate))];
-    return dates;
+    const dateSet = new Set(upcomingMatches.map(m => m.localDate));
+    return Array.from(dateSet);
   };
 
   const getUniqueLeagues = () => {
@@ -457,6 +595,9 @@ export default function AdminPage() {
           </Button>
           <Button variant={activeTab === "predictions" ? "secondary" : "ghost"} className="w-full justify-start" onClick={() => setActiveTab("predictions")}>
             <Trophy className="w-4 h-4 mr-2" /> Tahmin Yönetimi
+          </Button>
+          <Button variant={activeTab === "coupons" ? "secondary" : "ghost"} className="w-full justify-start" onClick={() => setActiveTab("coupons")}>
+            <Ticket className="w-4 h-4 mr-2" /> Kupon Yönetimi
           </Button>
           <Button variant={activeTab === "users" ? "secondary" : "ghost"} className="w-full justify-start" onClick={() => setActiveTab("users")}>
             <Users className="w-4 h-4 mr-2" /> Kullanıcılar
@@ -831,6 +972,192 @@ export default function AdminPage() {
                 )}
               </CardContent>
             </Card>
+          </div>
+        )}
+
+        {/* Coupons Tab */}
+        {activeTab === "coupons" && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-white mb-1">Kupon Yönetimi</h2>
+                <p className="text-zinc-400">Günlük kuponlar oluşturun ve tahminleri gruplayın.</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left: Coupon List & Create */}
+              <div className="space-y-4">
+                {/* Create Coupon */}
+                <Card className="bg-zinc-900 border-white/5">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-primary flex items-center gap-2 text-lg">
+                      <Plus className="w-5 h-5" /> Yeni Kupon Oluştur
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <Label className="text-zinc-400">Kupon Adı</Label>
+                        <Input 
+                          value={newCouponName} 
+                          onChange={(e) => setNewCouponName(e.target.value)} 
+                          placeholder="Günün Kuponu" 
+                          className="bg-black border-white/10 text-white" 
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-zinc-400">Tarih</Label>
+                        <Input 
+                          type="date" 
+                          value={newCouponDate} 
+                          onChange={(e) => setNewCouponDate(e.target.value)} 
+                          className="bg-black border-white/10 text-white" 
+                        />
+                      </div>
+                    </div>
+                    <Button onClick={handleCreateCoupon} className="w-full bg-primary text-black font-bold hover:bg-white">
+                      <Plus className="w-4 h-4 mr-2" /> Kupon Oluştur
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Coupon List */}
+                <Card className="bg-zinc-900 border-white/5">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-white flex items-center gap-2">
+                      <Ticket className="w-5 h-5 text-primary" /> Kuponlar ({coupons.length})
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    {coupons.length === 0 ? (
+                      <div className="p-8 text-center text-zinc-500">Henüz kupon yok.</div>
+                    ) : (
+                      <div className="divide-y divide-white/5 max-h-[400px] overflow-y-auto">
+                        {coupons.map((coupon) => (
+                          <div 
+                            key={coupon.id} 
+                            className={`p-4 hover:bg-white/5 transition-colors cursor-pointer ${selectedCoupon?.id === coupon.id ? 'bg-primary/10 border-l-2 border-primary' : ''}`}
+                            onClick={() => handleSelectCoupon(coupon.id)}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="font-bold text-white">{coupon.name}</p>
+                                <p className="text-xs text-zinc-500">{formatDate(coupon.coupon_date)}</p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Badge variant="outline" className="text-primary border-primary/30 font-bold">
+                                  {coupon.combined_odds}x
+                                </Badge>
+                                {coupon.result === 'won' && <Badge className="bg-green-500">KAZANDI</Badge>}
+                                {coupon.result === 'lost' && <Badge className="bg-red-500">KAYBETTİ</Badge>}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Right: Selected Coupon Details */}
+              <div className="space-y-4">
+                {selectedCoupon ? (
+                  <>
+                    <Card className="bg-gradient-to-br from-zinc-900 to-zinc-800 border-primary/30">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-white flex items-center gap-2">
+                            <Ticket className="w-5 h-5 text-primary" /> {selectedCoupon.name}
+                          </CardTitle>
+                          <div className="flex items-center gap-2">
+                            <Button size="sm" variant="outline" className="border-green-500/30 text-green-500" onClick={() => handleCouponResult(selectedCoupon.id, 'won')}>
+                              <CheckCircle className="w-4 h-4 mr-1" /> Kazandı
+                            </Button>
+                            <Button size="sm" variant="outline" className="border-red-500/30 text-red-500" onClick={() => handleCouponResult(selectedCoupon.id, 'lost')}>
+                              <XCircle className="w-4 h-4 mr-1" /> Kaybetti
+                            </Button>
+                            <Button size="sm" variant="ghost" className="text-zinc-500 hover:text-red-500" onClick={() => handleDeleteCoupon(selectedCoupon.id)}>
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        <CardDescription>
+                          {formatDate(selectedCoupon.coupon_date)} • Kombine Oran: <span className="text-primary font-bold">{selectedCoupon.combined_odds}x</span>
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="p-0">
+                        {selectedCoupon.predictions && selectedCoupon.predictions.length > 0 ? (
+                          <div className="divide-y divide-white/5">
+                            {selectedCoupon.predictions.map((pred) => (
+                              <div key={pred.id} className="p-3 flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <div className="flex items-center gap-1">
+                                    {pred.home_logo && <img src={pred.home_logo} className="w-5 h-5 object-contain" />}
+                                    <span className="text-white text-sm">{pred.home_team}</span>
+                                    <span className="text-zinc-600 text-xs">vs</span>
+                                    {pred.away_logo && <img src={pred.away_logo} className="w-5 h-5 object-contain" />}
+                                    <span className="text-white text-sm">{pred.away_team}</span>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="outline" className="text-xs">{pred.prediction}</Badge>
+                                  <Badge variant="outline" className="text-primary border-primary/30 text-xs">{pred.odds}</Badge>
+                                  <Button size="sm" variant="ghost" className="h-6 w-6 p-0 text-zinc-500 hover:text-red-500" onClick={() => handleRemovePredictionFromCoupon(pred.id)}>
+                                    <XCircle className="w-3 h-3" />
+                                  </Button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="p-6 text-center text-zinc-500">Bu kuponda tahmin yok.</div>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    {/* Add predictions to coupon */}
+                    <Card className="bg-zinc-900 border-white/5">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-white text-sm">Tahmin Ekle</CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-0">
+                        {predictions.length === 0 ? (
+                          <div className="p-4 text-center text-zinc-500 text-sm">Eklenecek bekleyen tahmin yok.</div>
+                        ) : (
+                          <div className="divide-y divide-white/5 max-h-[250px] overflow-y-auto">
+                            {predictions.filter(p => !selectedCoupon.predictions?.find(cp => cp.id === p.id)).map((pred) => (
+                              <div 
+                                key={pred.id} 
+                                className="p-3 hover:bg-white/5 transition-colors cursor-pointer flex items-center justify-between"
+                                onClick={() => handleAddPredictionToCoupon(pred.id)}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <span className="text-white text-sm">{pred.home_team} vs {pred.away_team}</span>
+                                  <Badge variant="outline" className="text-xs">{pred.prediction}</Badge>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-primary text-sm">{pred.odds}</span>
+                                  <Plus className="w-4 h-4 text-green-500" />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </>
+                ) : (
+                  <Card className="bg-zinc-900 border-white/5">
+                    <CardContent className="p-8 text-center text-zinc-500">
+                      <Ticket className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                      <p>Detayları görmek için bir kupon seçin.</p>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            </div>
           </div>
         )}
 
