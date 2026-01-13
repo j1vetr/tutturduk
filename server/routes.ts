@@ -6,6 +6,7 @@ import connectPgSimple from 'connect-pg-simple';
 import { pool } from './db';
 import { apiFootball, SUPPORTED_LEAGUES, CURRENT_SEASON } from './apiFootball';
 import { generateMatchAnalysis } from './openai-analysis';
+import { filterMatches, hasValidStatistics, getStatisticsScore } from './matchFilter';
 
 const PgSession = connectPgSimple(session);
 
@@ -554,7 +555,10 @@ export async function registerRoutes(
           const allFixtures = [...todayFixtures, ...tomorrowFixtures];
           console.log(`[Fixtures] Bugün: ${todayFixtures.length}, Yarın: ${tomorrowFixtures.length}, Toplam: ${allFixtures.length} maç`);
           
-          return allFixtures.sort((a, b) => 
+          // Filter out U23, Women's, Reserve leagues
+          const filteredFixtures = filterMatches(allFixtures);
+          
+          return filteredFixtures.sort((a, b) => 
             new Date(a.fixture.date).getTime() - new Date(b.fixture.date).getTime()
           );
         }
@@ -759,7 +763,10 @@ export async function registerRoutes(
         const allFinished = [...todayFixtures, ...yesterdayFixtures];
         console.log(`[Finished] Toplam ${allFinished.length} bitmiş maç bulundu`);
         
-        return allFinished.sort((a, b) => 
+        // Filter out U23, Women's, Reserve leagues
+        const filteredFinished = filterMatches(allFinished);
+        
+        return filteredFinished.sort((a, b) => 
           new Date(b.fixture.date).getTime() - new Date(a.fixture.date).getTime()
         );
       }, 120);
@@ -821,12 +828,16 @@ export async function registerRoutes(
         const allFixtures = [...todayFixtures, ...tomorrowFixtures];
         console.log(`[All Predictions] Bugün: ${todayFixtures.length}, Yarın: ${tomorrowFixtures.length}, Toplam: ${allFixtures.length} maç`);
         
+        // Filter out U23, Women's, Reserve leagues BEFORE fetching predictions (saves API calls)
+        const filteredFixtures = filterMatches(allFixtures);
+        console.log(`[All Predictions] Filtreleme sonrası: ${filteredFixtures.length} maç`);
+        
         // 2. Her maç için tahmin çek (paralel, 10'lu gruplar halinde)
         const matchesWithPredictions: any[] = [];
         const batchSize = 10;
         
-        for (let i = 0; i < allFixtures.length; i += batchSize) {
-          const batch = allFixtures.slice(i, i + batchSize);
+        for (let i = 0; i < filteredFixtures.length; i += batchSize) {
+          const batch = filteredFixtures.slice(i, i + batchSize);
           const predictions = await Promise.all(
             batch.map(async (fixture: any) => {
               try {
@@ -1243,6 +1254,18 @@ export async function registerRoutes(
         }, 120);
       } catch (e) {
         console.log('No prediction available for fixture', fixtureId);
+      }
+
+      // Check if match has valid statistics
+      if (!hasValidStatistics(apiPrediction)) {
+        const statsScore = getStatisticsScore(apiPrediction);
+        console.log(`[Publish] Fixture ${fixtureId} has low statistics score: ${statsScore}`);
+        if (statsScore < 30) {
+          return res.status(400).json({ 
+            message: 'Bu maç için yeterli istatistik verisi yok. Sadece istatistik verisi olan maçlar yayınlanabilir.',
+            statsScore 
+          });
+        }
       }
 
       const matchDate = new Date(fixture.fixture?.date);
