@@ -87,12 +87,7 @@ export default function BestBets() {
               }`}
               data-testid={`best-bet-${bet.id}`}
             >
-              {index === 0 && (
-                <div className="absolute top-0 right-0 px-3 py-1 bg-gradient-to-r from-amber-500 to-orange-500 text-black text-[9px] font-black uppercase tracking-wider rounded-bl-xl flex items-center gap-1">
-                  <Zap className="w-3 h-3" /> 1. Sıra
-                </div>
-              )}
-              
+                            
               <div className="p-4">
                 <div className="flex items-center gap-3 mb-3">
                   {bet.league_logo && (
