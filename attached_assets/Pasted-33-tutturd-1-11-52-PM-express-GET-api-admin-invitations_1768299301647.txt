@@ -1,0 +1,33 @@
+33|tutturd | 1:11:52 PM [express] GET /api/admin/invitations 200 in 2ms :: [{"id":3,"code":"TUTTUR","type":"standard","max_uses":10,"current_uses":0,"is_active":true,"created_at":"2026-01-13T10:11:52.561Z"}]
+33|tutturd | 1:11:58 PM [express] GET /api/auth/me 401 in 1ms :: {"message":"Oturum açılmamış"}
+33|tutturd | 1:12:07 PM [express] POST /api/auth/register 400 in 8ms :: {"message":"Geçersiz veya kullanılmış davet kodu"}
+33|tutturd | 1:14:13 PM [express] serving on port 9991
+33|tutturd | 1:14:16 PM [express] POST /api/auth/register 500 in 25ms :: {"message":"Kayıt sırasında hata oluştu"}
+33|tutturd | 1:14:19 PM [express] GET /api/auth/me 401 in 1ms :: {"message":"Oturum açılmamış"}
+33|tutturd | 1:14:31 PM [express] POST /api/auth/register 400 in 9ms :: {"message":"Bu kullanıcı adı zaten kullanılıyor"}
+
+33|tutturduk  | Register error: error: column "uses" does not exist
+33|tutturduk  |     at /var/www/tutturduk/dist/index.cjs:64:13326
+33|tutturduk  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+33|tutturduk  |     at async zp.useInvitationCode (/var/www/tutturduk/dist/index.cjs:70:10952)
+33|tutturduk  |     at async /var/www/tutturduk/dist/index.cjs:244:1021 {
+33|tutturduk  |   length: 105,
+33|tutturduk  |   severity: 'ERROR',
+33|tutturduk  |   code: '42703',
+33|tutturduk  |   detail: undefined,
+33|tutturduk  |   hint: undefined,
+33|tutturduk  |   position: '149',
+33|tutturduk  |   internalPosition: undefined,
+33|tutturduk  |   internalQuery: undefined,
+33|tutturduk  |   where: undefined,
+33|tutturduk  |   schema: undefined,
+33|tutturduk  |   table: undefined,
+33|tutturduk  |   column: undefined,
+33|tutturduk  |   dataType: undefined,
+33|tutturduk  |   constraint: undefined,
+33|tutturduk  |   file: 'parse_relation.c',
+33|tutturduk  |   line: '3647',
+33|tutturduk  |   routine: 'errorMissingColumn'
+33|tutturduk  | }
+33|tutturduk  | 1:14:46 PM [express] POST /api/auth/register 500 in 11ms :: {"message":"Kayıt sırasında hata oluştu"}
+

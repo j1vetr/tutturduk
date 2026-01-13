@@ -248,8 +248,8 @@ export class PostgresStorage implements IStorage {
   async useInvitationCode(code: string): Promise<boolean> {
     const result = await pool.query(
       `UPDATE invitation_codes 
-       SET uses = uses + 1, status = CASE WHEN uses + 1 >= max_uses THEN 'used' ELSE status END
-       WHERE code = $1 AND uses < max_uses AND status = 'active'
+       SET current_uses = current_uses + 1, is_active = CASE WHEN current_uses + 1 >= max_uses THEN false ELSE is_active END
+       WHERE code = $1 AND current_uses < max_uses AND is_active = true
        RETURNING *`,
       [code]
     );
