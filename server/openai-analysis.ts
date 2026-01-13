@@ -104,7 +104,8 @@ export interface AIAnalysisResult {
   scorePredictions: string[];
   expectedGoalRange: string;
   riskLevel: 'düşük' | 'orta' | 'yüksek';
-  bestBet: string;
+  riskReason: string;
+  primaryInsight: string;
 }
 
 function formatForm(form?: string): string {
@@ -200,42 +201,71 @@ ${matchData.injuries?.home?.length || matchData.injuries?.away?.length ? `SAKATL
 ${matchData.injuries?.home?.length ? `${matchData.homeTeam}: ${matchData.injuries.home.map(i => `${i.player} (${i.reason})`).join(', ')}` : ''}
 ${matchData.injuries?.away?.length ? `${matchData.awayTeam}: ${matchData.injuries.away.map(i => `${i.player} (${i.reason})`).join(', ')}` : ''}` : ''}
 
-GÖREVİN:
-- Maçı genel senaryo açısından değerlendir.
-- Aşırı iddialı veya kesin ifadeler kullanma.
-- "Olası", "beklenen", "öne çıkıyor" gibi analiz dili kullan.
-- Tek bir kesin skor vermek yerine 2-3 olası skor aralığı belirt.
-- Toplam gol beklentisi aralığı ver.
-- Detaylı istatistikleri ve bahis oranlarını analiz et.
+--------------------------------
+ANALİZ YAKLAŞIMI
+--------------------------------
 
-ÇIKTI KURALLARI:
-- Türkçe yaz.
-- Kısa, net ve mobilde okunabilir olsun.
-- Yüzdelik güven ifadelerini "model güveni" olarak ele al.
-- Tahminler kesin değil, olasılık temelli olmalıdır.
+1️⃣ ANALİZE GİRİŞ
+- Analize FARKLI bir açıdan başla.
+- Şu başlıklardan BİRİNİ seçerek giriş yap:
+  • Form ve momentum
+  • Gol beklentisi ve tempo
+  • Savunma dengesi
+  • İki takım arasındaki güç farkı
+  • Sürpriz / belirsizlik ihtimali
+  • H2H geçmişi
+❌ "Bu maçta…", "Bu karşılaşmada…" ile BAŞLAMA.
 
-Lütfen aşağıdaki formatta JSON yanıt ver:
+2️⃣ ANA ANALİZ
+- Verileri tek tek sayma, aralarındaki ilişkiyi anlat.
+- "Bu yüzden", "bunun sonucunda", "bu durum" gibi bağlaçlar kullan.
+- 3-4 kısa cümleyi geçme.
+
+3️⃣ ALT SENARYOLAR
+Her tahmin için NEDEN olduğunu anlat, yüzdeyi gerekçelendir.
+
+4️⃣ SKOR BEKLENTİSİ
+- Kesin skor verme, 2-3 olası skor veya gol aralığı belirt.
+- "En olası", "öne çıkan", "diğer ihtimaller" gibi ifadeler kullan.
+
+5️⃣ RİSK DEĞERLENDİRMESİ
+- Risk seviyesini 1 cümleyle açıkla.
+- Neden düşük/orta/yüksek olduğunu belirt.
+
+--------------------------------
+GENEL KURALLAR
+--------------------------------
+- Kesin ifadeler KULLANMA.
+- "Olası", "öne çıkıyor", "bekleniyor", "işaret ediyor" gibi ifadeler kullan.
+- Aynı kalıplarla başlayan cümleleri TEKRARLAMA.
+- Bir yorumcu gibi değil, bir analizci gibi konuş.
+- Türkçe yaz, kısa ve mobilde okunabilir olsun.
+
+--------------------------------
+JSON ÇIKTI FORMATI (ZORUNLU)
+--------------------------------
 {
-  "matchAnalysis": "2-3 cümlelik senaryo analizi. Kesin ifadeler yerine 'olası', 'beklenen', 'öne çıkıyor' gibi ifadeler kullan.",
+  "matchAnalysis": "3-4 cümlelik, akıcı ve insani maç analizi",
   "over25": {
     "prediction": true/false,
-    "confidence": 0-100 (model güveni),
-    "reasoning": "Kısa açıklama"
+    "confidence": 0-100,
+    "reasoning": "İnsan gibi yazılmış kısa gerekçe"
   },
   "btts": {
     "prediction": true/false,
-    "confidence": 0-100 (model güveni),
-    "reasoning": "Kısa açıklama"
+    "confidence": 0-100,
+    "reasoning": "İnsan gibi yazılmış kısa gerekçe"
   },
   "winner": {
-    "prediction": "1" veya "X" veya "2",
-    "confidence": 0-100 (model güveni),
-    "reasoning": "Kısa açıklama"
+    "prediction": "Ev Sahibi" veya "Beraberlik" veya "Deplasman",
+    "confidence": 0-100,
+    "reasoning": "İnsan gibi yazılmış kısa gerekçe"
   },
-  "scorePredictions": ["2-1", "1-1", "2-0"],
-  "expectedGoalRange": "2-3 gol arası",
+  "scorePredictions": ["2-1", "1-1", "3-1"],
+  "expectedGoalRange": "2-4 gol",
   "riskLevel": "düşük" veya "orta" veya "yüksek",
-  "bestBet": "En olası bahis önerisi"
+  "riskReason": "Bu risk seviyesinin kısa açıklaması",
+  "primaryInsight": "Maçın en güçlü sinyali (bahis dili kullanma)"
 }`;
 
   try {
@@ -244,7 +274,7 @@ Lütfen aşağıdaki formatta JSON yanıt ver:
       messages: [
         {
           role: "system",
-          content: "Sen profesyonel bir futbol analisti ve bahis uzmanısın. Verilen detaylı istatistikleri, bahis oranlarını ve API tahminlerini analiz ederek kapsamlı bir değerlendirme yaparsın. Kesin ifadeler yerine olasılık temelli analiz dili kullanırsın. Sadece JSON formatında yanıt ver."
+          content: "Sen deneyimli bir futbol analisti ve veri yorumcususun. Amacın sayıları tekrar etmek değil, verilerden anlam çıkarıp bunu insani ve akıcı bir dille anlatmaktır. Bir yorumcu gibi değil, bir analizci gibi konuş. Kesin ifadeler kullanma. 'Olası', 'öne çıkıyor', 'bekleniyor', 'işaret ediyor' gibi ifadeler kullan. Aynı kalıplarla başlayan cümleleri TEKRARLAMA. Sadece JSON formatında yanıt ver."
         },
         {
           role: "user",
