@@ -521,35 +521,37 @@ export async function registerRoutes(
 
   app.get('/api/football/fixtures', async (req, res) => {
     try {
-      const { league } = req.query;
+      const { league, date } = req.query;
       const leagueId = league ? parseInt(league as string) : undefined;
-      const cacheKey = `fixtures_${leagueId || 'all'}_next`;
+      
+      // Bugün ve yarın tarihleri
+      const today = new Date();
+      const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+      const todayStr = today.toISOString().split('T')[0];
+      const tomorrowStr = tomorrow.toISOString().split('T')[0];
+      
+      const cacheKey = `fixtures_${leagueId || 'all'}_${todayStr}`;
       
       const fixtures = await getCachedData(cacheKey, async () => {
         if (leagueId) {
-          return apiFootball.getFixtures({
-            league: leagueId,
-            next: 20
-          });
+          // Belirli lig için bugün ve yarının maçları
+          const [todayFixtures, tomorrowFixtures] = await Promise.all([
+            apiFootball.getFixtures({ league: leagueId, date: todayStr }),
+            apiFootball.getFixtures({ league: leagueId, date: tomorrowStr })
+          ]);
+          return [...todayFixtures, ...tomorrowFixtures];
         } else {
-          const allFixtures: any[] = [];
+          // Tüm ligler için bugün ve yarının TÜM maçları
+          // API'den tarih bazlı sorgu - lig kısıtlaması YOK
+          console.log(`[Fixtures] ${todayStr} ve ${tomorrowStr} için tüm maçlar çekiliyor...`);
           
-          // Sıralı istekler - rate limit aşmamak için
-          for (const lg of SUPPORTED_LEAGUES) {
-            try {
-              const lgFixtures = await apiFootball.getFixtures({
-                league: lg.id,
-                next: 10
-              });
-              allFixtures.push(...lgFixtures);
-              // Rate limit için kısa bekleme
-              await new Promise(resolve => setTimeout(resolve, 100));
-            } catch (e) {
-              console.log(`Lig ${lg.name} için maç alınamadı`);
-            }
-          }
+          const [todayFixtures, tomorrowFixtures] = await Promise.all([
+            apiFootball.getFixtures({ date: todayStr }),
+            apiFootball.getFixtures({ date: tomorrowStr })
+          ]);
           
-          console.log(`[Fixtures] Toplam ${allFixtures.length} maç bulundu`);
+          const allFixtures = [...todayFixtures, ...tomorrowFixtures];
+          console.log(`[Fixtures] Bugün: ${todayFixtures.length}, Yarın: ${tomorrowFixtures.length}, Toplam: ${allFixtures.length} maç`);
           
           return allFixtures.sort((a, b) => 
             new Date(a.fixture.date).getTime() - new Date(b.fixture.date).getTime()
