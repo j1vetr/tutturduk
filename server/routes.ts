@@ -12,20 +12,20 @@ const PgSession = connectPgSimple(session);
 
 async function getCachedData<T>(key: string, fetchFn: () => Promise<T>, ttlMinutes: number = 60): Promise<T> {
   const cached = await pool.query(
-    'SELECT data FROM api_cache WHERE key = $1 AND expires_at > NOW()',
+    'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
     [key]
   );
   
   if (cached.rows.length > 0) {
-    return cached.rows[0].data as T;
+    return JSON.parse(cached.rows[0].value) as T;
   }
   
   const data = await fetchFn();
   const expiresAt = new Date(Date.now() + ttlMinutes * 60 * 1000);
   
   await pool.query(
-    `INSERT INTO api_cache (key, data, expires_at) VALUES ($1, $2, $3)
-     ON CONFLICT (key) DO UPDATE SET data = $2, expires_at = $3`,
+    `INSERT INTO api_cache (key, value, expires_at) VALUES ($1, $2, $3)
+     ON CONFLICT (key) DO UPDATE SET value = $2, expires_at = $3`,
     [key, JSON.stringify(data), expiresAt]
   );
   
@@ -911,10 +911,13 @@ export async function registerRoutes(
       
       for (const match of matches) {
         const cacheKey = `ai_analysis_v2_${match.fixture_id}`;
-        const cached = await storage.getCachedData(cacheKey);
-        if (cached) {
+        const cachedResult = await pool.query(
+          'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
+          [cacheKey]
+        );
+        if (cachedResult.rows.length > 0) {
           try {
-            const analysis = JSON.parse(cached);
+            const analysis = JSON.parse(cachedResult.rows[0].value);
             badges[match.id] = {
               bestBet: analysis.bestBet,
               riskLevel: analysis.riskLevel,
