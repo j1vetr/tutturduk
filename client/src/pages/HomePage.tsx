@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { MobileLayout } from "@/components/MobileLayout";
 import { HeroPrediction } from "@/components/HeroPrediction";
-import { ShieldAlert, Loader2, Ticket, TrendingUp, ChevronRight, Clock } from "lucide-react";
+import { ShieldAlert, Loader2, Ticket, TrendingUp, ChevronRight, Clock, Zap, Trophy, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
 import { useLocation } from "wouter";
 
 interface PublishedMatch {
@@ -20,6 +19,11 @@ interface PublishedMatch {
   timestamp?: string;
   prediction_advice?: string;
   api_advice?: string;
+  api_winner_name?: string;
+  api_percent_home?: string;
+  api_percent_draw?: string;
+  api_percent_away?: string;
+  is_featured?: boolean;
 }
 
 interface Coupon {
@@ -53,7 +57,7 @@ function getTimeRemaining(matchDate: string, matchTime: string): { hours: number
   return { hours: hoursRemaining, minutes: minutesRemaining, isLive: false, isPast: false };
 }
 
-function CountdownBadge({ matchDate, matchTime }: { matchDate: string; matchTime: string }) {
+function MatchCountdown({ matchDate, matchTime }: { matchDate: string; matchTime: string }) {
   const [timeLeft, setTimeLeft] = useState(getTimeRemaining(matchDate, matchTime));
   
   useEffect(() => {
@@ -65,44 +69,44 @@ function CountdownBadge({ matchDate, matchTime }: { matchDate: string; matchTime
   
   if (timeLeft.isPast) {
     return (
-      <Badge variant="outline" className="text-zinc-500 border-zinc-700 text-[10px]">
-        Bitti
-      </Badge>
+      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-zinc-800/80 border border-zinc-700">
+        <span className="text-[10px] font-medium text-zinc-500">Bitti</span>
+      </div>
     );
   }
   
   if (timeLeft.isLive) {
     return (
-      <Badge className="bg-red-500/20 text-red-400 border-red-500/30 animate-pulse text-[10px]">
-        <span className="w-1.5 h-1.5 bg-red-500 rounded-full mr-1 inline-block" />
-        CANLI
-      </Badge>
+      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-red-500/20 border border-red-500/30 animate-pulse">
+        <span className="w-1.5 h-1.5 bg-red-500 rounded-full" />
+        <span className="text-[10px] font-bold text-red-400 uppercase">Canlı</span>
+      </div>
     );
   }
   
   if (timeLeft.hours === 0 && timeLeft.minutes < 60) {
     return (
-      <Badge className="bg-orange-500/20 text-orange-400 border-orange-500/30 text-[10px]">
-        <Clock className="w-3 h-3 mr-1" />
-        {timeLeft.minutes} dk
-      </Badge>
+      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-orange-500/20 border border-orange-500/30">
+        <Clock className="w-3 h-3 text-orange-400" />
+        <span className="text-[10px] font-bold text-orange-400">{timeLeft.minutes} dk</span>
+      </div>
     );
   }
   
   if (timeLeft.hours < 24) {
     return (
-      <Badge className="bg-primary/20 text-primary border-primary/30 text-[10px]">
-        <Clock className="w-3 h-3 mr-1" />
-        {timeLeft.hours} sa {timeLeft.minutes} dk
-      </Badge>
+      <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/20 border border-emerald-500/30">
+        <Clock className="w-3 h-3 text-emerald-400" />
+        <span className="text-[10px] font-bold text-emerald-400">{timeLeft.hours}s {timeLeft.minutes}dk</span>
+      </div>
     );
   }
   
   return (
-    <Badge variant="outline" className="text-zinc-400 border-zinc-700 text-[10px]">
-      <Clock className="w-3 h-3 mr-1" />
-      {Math.floor(timeLeft.hours / 24)} gün
-    </Badge>
+    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-zinc-800/80 border border-zinc-700">
+      <Clock className="w-3 h-3 text-zinc-500" />
+      <span className="text-[10px] font-medium text-zinc-400">{Math.floor(timeLeft.hours / 24)} gün</span>
+    </div>
   );
 }
 
@@ -131,7 +135,7 @@ export default function HomePage() {
       
       if (matchesRes.ok) {
         const data = await matchesRes.json();
-        setPublishedMatches(data);
+        setPublishedMatches(data.filter((m: PublishedMatch) => !m.is_featured));
       }
     } catch (error) {
       console.error('Failed to load data:', error);
@@ -149,30 +153,33 @@ export default function HomePage() {
 
   return (
     <MobileLayout activeTab="home">
-      <div className="space-y-6">
+      <div className="space-y-6 pb-4">
         <HeroPrediction />
 
         {todayCoupons.length > 0 && (
           <div className="space-y-3">
-            <h2 className="text-lg font-display text-foreground border-l-4 border-primary pl-3">Günün Kuponları</h2>
-            <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4">
+            <div className="flex items-center gap-2">
+              <div className="w-1 h-5 bg-amber-500 rounded-full" />
+              <h2 className="text-base font-bold text-white">Günün kuponları</h2>
+            </div>
+            <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
               {todayCoupons.map(coupon => (
-                <Card 
+                <div 
                   key={coupon.id} 
-                  className="bg-gradient-to-br from-zinc-900 to-zinc-800 border-primary/20 min-w-[200px] cursor-pointer hover:border-primary/50 transition-colors"
+                  className="min-w-[180px] p-4 rounded-2xl bg-gradient-to-br from-amber-500/10 via-zinc-900 to-zinc-900 border border-amber-500/20 cursor-pointer hover:border-amber-500/40 transition-all"
                   onClick={() => setLocation(`/coupon/${coupon.id}`)}
                 >
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Ticket className="w-4 h-4 text-primary" />
-                      <span className="text-white font-bold text-sm">{coupon.name}</span>
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-8 h-8 rounded-xl bg-amber-500/20 flex items-center justify-center">
+                      <Ticket className="w-4 h-4 text-amber-400" />
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-zinc-500">Kombine</span>
-                      <Badge className="bg-primary text-black font-bold">{coupon.combined_odds}x</Badge>
-                    </div>
-                  </CardContent>
-                </Card>
+                    <span className="text-white font-bold text-sm">{coupon.name}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] text-zinc-500 uppercase">Kombine oran</span>
+                    <Badge className="bg-amber-500 text-black font-black text-sm px-2">{coupon.combined_odds}x</Badge>
+                  </div>
+                </div>
               ))}
             </div>
           </div>
@@ -180,104 +187,151 @@ export default function HomePage() {
 
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-display text-foreground border-l-4 border-primary pl-3">Uzman Tahminleri</h2>
-            <Badge variant="outline" className="text-primary border-primary/30">
-              <TrendingUp className="w-3 h-3 mr-1" /> API Destekli
-            </Badge>
+            <div className="flex items-center gap-2">
+              <div className="w-1 h-5 bg-emerald-500 rounded-full" />
+              <h2 className="text-base font-bold text-white">Uzman tahminleri</h2>
+            </div>
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+              <Zap className="w-3 h-3 text-emerald-400" />
+              <span className="text-[10px] font-bold text-emerald-400 uppercase">AI destekli</span>
+            </div>
           </div>
           
           {loading ? (
-            <div className="flex justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <div className="flex flex-col items-center justify-center py-16">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center mb-3">
+                <Loader2 className="w-6 h-6 animate-spin text-emerald-500" />
+              </div>
+              <p className="text-sm text-zinc-500">Tahminler yükleniyor...</p>
             </div>
           ) : publishedMatches.length === 0 ? (
-            <Card className="bg-zinc-900/50 border-white/5 p-8 text-center">
-              <TrendingUp className="w-12 h-12 mx-auto mb-3 text-zinc-700" />
-              <p className="text-zinc-500">Henüz yayınlanan maç yok</p>
+            <div className="rounded-2xl bg-zinc-900/80 border border-zinc-800 p-8 text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-zinc-800 flex items-center justify-center">
+                <Trophy className="w-8 h-8 text-zinc-600" />
+              </div>
+              <p className="text-zinc-400 font-medium">Henüz yayınlanan maç yok</p>
               <p className="text-xs text-zinc-600 mt-1">Yakında uzman tahminleri eklenecek</p>
-            </Card>
+            </div>
           ) : (
             <div className="space-y-3">
-              {publishedMatches.map(match => (
-                <Card 
-                  key={match.id} 
-                  className="bg-gradient-to-br from-zinc-900 to-zinc-800 border-white/5 hover:border-primary/30 transition-all cursor-pointer overflow-hidden"
-                  onClick={() => setLocation(`/match/${match.id}`)}
-                  data-testid={`match-card-${match.id}`}
-                >
-                  <CardContent className="p-0">
-                    <div className="flex items-center justify-between px-4 py-2 bg-black/30 border-b border-white/5">
+              {publishedMatches.map(match => {
+                const timeLeft = getTimeRemaining(match.match_date, match.match_time);
+                const homePercent = parseInt(match.api_percent_home?.replace('%', '') || '0');
+                const awayPercent = parseInt(match.api_percent_away?.replace('%', '') || '0');
+                
+                return (
+                  <div 
+                    key={match.id} 
+                    className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-800 border border-zinc-800 hover:border-emerald-500/30 transition-all cursor-pointer group"
+                    onClick={() => setLocation(`/match/${match.id}`)}
+                    data-testid={`match-card-${match.id}`}
+                  >
+                    {/* League Header */}
+                    <div className="flex items-center justify-between px-4 py-2.5 bg-black/40 border-b border-zinc-800/50">
                       <div className="flex items-center gap-2">
-                        {match.league_logo && <img src={match.league_logo} alt="" className="w-4 h-4 object-contain" />}
-                        <span className="text-[11px] text-zinc-500 truncate max-w-[120px]">{match.league_name}</span>
+                        {match.league_logo && (
+                          <div className="w-5 h-5 rounded bg-white/5 p-0.5">
+                            <img src={match.league_logo} alt="" className="w-full h-full object-contain" />
+                          </div>
+                        )}
+                        <span className="text-[11px] text-zinc-500 font-medium">{match.league_name}</span>
                       </div>
-                      <CountdownBadge matchDate={match.match_date} matchTime={match.match_time} />
+                      <MatchCountdown matchDate={match.match_date} matchTime={match.match_time} />
                     </div>
                     
+                    {/* Match Content */}
                     <div className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1 flex items-center gap-3 min-w-0">
-                          <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center">
+                      <div className="flex items-center">
+                        {/* Home Team */}
+                        <div className="flex-1 flex items-center gap-3">
+                          <div className="w-12 h-12 rounded-xl bg-white/5 p-2 border border-white/5 group-hover:border-emerald-500/20 transition-colors">
                             {match.home_logo ? (
-                              <img src={match.home_logo} alt="" className="w-10 h-10 object-contain" />
+                              <img src={match.home_logo} alt="" className="w-full h-full object-contain" />
                             ) : (
-                              <div className="w-10 h-10 bg-zinc-800 rounded-full flex items-center justify-center text-xs font-bold text-white">
-                                {match.home_team.substring(0, 2).toUpperCase()}
+                              <div className="w-full h-full flex items-center justify-center text-sm font-bold text-white">
+                                {match.home_team.substring(0, 2)}
                               </div>
                             )}
                           </div>
-                          <div className="min-w-0 flex-1">
-                            <p className="text-white font-semibold text-sm truncate">{match.home_team}</p>
-                            <p className="text-[10px] text-zinc-600">Ev Sahibi</p>
+                          <div className="min-w-0">
+                            <p className="text-white font-bold text-sm truncate">{match.home_team}</p>
+                            <p className="text-[10px] text-zinc-600">Ev sahibi</p>
                           </div>
                         </div>
                         
-                        <div className="flex flex-col items-center px-3 flex-shrink-0">
-                          <span className="text-xs text-zinc-600 mb-1">{match.match_time}</span>
-                          <div className="text-lg font-bold text-primary">VS</div>
-                          <span className="text-[10px] text-zinc-600 mt-1">{new Date(match.match_date).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })}</span>
+                        {/* VS & Time */}
+                        <div className="flex flex-col items-center px-3 mx-2">
+                          <div className="text-[10px] text-zinc-600 mb-1">
+                            {new Date(match.match_date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
+                          </div>
+                          <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                            <span className="text-sm font-black text-emerald-400">{match.match_time}</span>
+                          </div>
                         </div>
                         
-                        <div className="flex-1 flex items-center gap-3 min-w-0 justify-end">
-                          <div className="min-w-0 flex-1 text-right">
-                            <p className="text-white font-semibold text-sm truncate">{match.away_team}</p>
+                        {/* Away Team */}
+                        <div className="flex-1 flex items-center gap-3 justify-end">
+                          <div className="min-w-0 text-right">
+                            <p className="text-white font-bold text-sm truncate">{match.away_team}</p>
                             <p className="text-[10px] text-zinc-600">Deplasman</p>
                           </div>
-                          <div className="w-10 h-10 flex-shrink-0 flex items-center justify-center">
+                          <div className="w-12 h-12 rounded-xl bg-white/5 p-2 border border-white/5 group-hover:border-emerald-500/20 transition-colors">
                             {match.away_logo ? (
-                              <img src={match.away_logo} alt="" className="w-10 h-10 object-contain" />
+                              <img src={match.away_logo} alt="" className="w-full h-full object-contain" />
                             ) : (
-                              <div className="w-10 h-10 bg-zinc-800 rounded-full flex items-center justify-center text-xs font-bold text-white">
-                                {match.away_team.substring(0, 2).toUpperCase()}
+                              <div className="w-full h-full flex items-center justify-center text-sm font-bold text-white">
+                                {match.away_team.substring(0, 2)}
                               </div>
                             )}
                           </div>
                         </div>
                         
-                        <ChevronRight className="w-5 h-5 text-zinc-600 ml-2 flex-shrink-0" />
+                        {/* Arrow */}
+                        <div className="ml-3 w-8 h-8 rounded-lg bg-zinc-800 group-hover:bg-emerald-500/20 flex items-center justify-center transition-colors">
+                          <ChevronRight className="w-4 h-4 text-zinc-600 group-hover:text-emerald-400 transition-colors" />
+                        </div>
                       </div>
                       
-                      {(match.api_advice || match.prediction_advice) && (
-                        <div className="mt-3 pt-3 border-t border-white/5">
-                          <p className="text-xs text-zinc-400 line-clamp-1">
-                            <span className="text-primary font-medium mr-1">Tavsiye:</span>
-                            {match.api_advice || match.prediction_advice}
+                      {/* Prediction Bar */}
+                      {(homePercent > 0 || awayPercent > 0) && (
+                        <div className="mt-4 pt-3 border-t border-zinc-800/50">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-[10px] font-bold text-emerald-400">%{homePercent}</span>
+                            <span className="text-[9px] text-zinc-600 uppercase">Kazanma olasılığı</span>
+                            <span className="text-[10px] font-bold text-white">%{awayPercent}</span>
+                          </div>
+                          <div className="h-1 w-full bg-zinc-800 rounded-full flex overflow-hidden gap-0.5">
+                            <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${homePercent}%` }} />
+                            <div className="flex-1" />
+                            <div className="h-full bg-white rounded-full" style={{ width: `${awayPercent}%` }} />
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Prediction Advice */}
+                      {(match.api_winner_name || match.api_advice) && (
+                        <div className="mt-3 flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                          <Star className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                          <p className="text-xs text-emerald-400 font-medium truncate">
+                            {match.api_winner_name ? `${match.api_winner_name} kazanır` : match.api_advice}
                           </p>
                         </div>
                       )}
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
 
-        <div className="mt-8 p-4 bg-muted/20 rounded-lg border border-border/50">
+        <div className="mt-6 p-4 rounded-2xl bg-zinc-900/50 border border-zinc-800">
           <div className="flex items-start gap-3">
-            <ShieldAlert className="w-5 h-5 text-muted-foreground flex-shrink-0 mt-0.5" />
-            <p className="text-[10px] text-muted-foreground leading-relaxed">
-              Bu platform yatırım/tahmin garantisi vermez. Paylaşılan içerikler bilgilendirme amaçlıdır. 
+            <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center flex-shrink-0">
+              <ShieldAlert className="w-4 h-4 text-zinc-500" />
+            </div>
+            <p className="text-[10px] text-zinc-500 leading-relaxed">
+              Bu platform yatırım veya tahmin garantisi vermez. Paylaşılan içerikler bilgilendirme amaçlıdır. 
               Bahis oynamak risk içerir ve bağımlılık yapabilir. 18 yaşından küçükler kullanamaz.
             </p>
           </div>
