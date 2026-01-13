@@ -431,16 +431,25 @@ export default function MatchDetailPage() {
                   {overUnderOdds && (
                     <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
                       <div className="flex items-center justify-between mb-3">
-                        <div className="text-xs text-zinc-500 uppercase tracking-wide">Alt/üst oranları</div>
+                        <div className="text-xs text-zinc-500 uppercase tracking-wide">Alt/Üst Oranları</div>
                         <span className="text-[10px] text-zinc-600">{overUnderOdds.bookmaker}</span>
                       </div>
                       <div className="space-y-2">
-                        {overUnderOdds.values.slice(0, 6).map((v, i) => (
-                          <div key={i} className="flex justify-between bg-zinc-800 rounded-lg px-3 py-2">
-                            <span className="text-sm text-zinc-400">{v.value}</span>
-                            <span className="text-sm font-bold text-white">{v.odd}</span>
-                          </div>
-                        ))}
+                        {overUnderOdds.values.slice(0, 6).map((v, i) => {
+                          const turkishValue = v.value
+                            .replace('Over ', '')
+                            .replace('Under ', '')
+                            .replace('over ', '')
+                            .replace('under ', '');
+                          const isOver = v.value.toLowerCase().includes('over');
+                          const displayValue = isOver ? `${turkishValue} Üst` : `${turkishValue} Alt`;
+                          return (
+                            <div key={i} className="flex justify-between bg-zinc-800 rounded-lg px-3 py-2">
+                              <span className="text-sm text-zinc-400">{displayValue}</span>
+                              <span className="text-sm font-bold text-white">{v.odd}</span>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
