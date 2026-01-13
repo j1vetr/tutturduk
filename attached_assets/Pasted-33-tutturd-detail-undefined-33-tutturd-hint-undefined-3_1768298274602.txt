@@ -1,0 +1,32 @@
+33|tutturd |   detail: undefined,
+33|tutturd |   hint: undefined,
+33|tutturd |   position: '15',
+33|tutturd |   internalPosition: undefined,
+33|tutturd |   internalQuery: undefined,
+33|tutturd |   where: undefined,
+33|tutturd |   schema: undefined,
+33|tutturd |   table: undefined,
+33|tutturd |   column: undefined,
+33|tutturd |   dataType: undefined,
+33|tutturd |   constraint: undefined,
+33|tutturd |   file: 'parse_relation.c',
+33|tutturd |   line: '1381',
+33|tutturd |   routine: 'parserOpenTable'
+33|tutturd | }
+
+/root/.pm2/logs/tutturduk-out.log last 15 lines:
+33|tutturd | 12:11:59 PM [express] GET /api/auth/me 401 in 0ms :: {"message":"Oturum açılmamış"}
+33|tutturd | 12:12:01 PM [express] GET /api/auth/me 401 in 1ms :: {"message":"Oturum açılmamış"}
+33|tutturd | 12:12:22 PM [express] GET /api/football/all-predictions 500 in 8ms :: {"message":"column \"data\" does not exist"}
+33|tutturd | 12:12:25 PM [express] GET /api/admin/matches 401 in 1ms :: {"message":"Oturum açılmamış"}
+33|tutturd | 12:12:26 PM [express] GET /api/football/all-predictions 500 in 8ms :: {"message":"column \"data\" does not exist"}
+33|tutturd | 12:33:09 PM [express] GET /api/auth/me 401 in 0ms :: {"message":"Oturum açılmamış"}
+33|tutturd | 12:33:09 PM [express] GET /api/auth/me 401 in 0ms :: {"message":"Oturum açılmamış"}
+33|tutturd | 12:57:10 PM [express] GET /api/auth/me 401 in 1ms :: {"message":"Oturum açılmamış"}
+33|tutturd | 12:57:16 PM [express] GET /api/auth/me 401 in 1ms :: {"message":"Oturum açılmamış"}
+33|tutturd | 12:57:24 PM [express] POST /api/auth/login 200 in 9ms :: {"id":"fc3c796b-d33b-4d4a-b05b-03ca8030d4a6","username":"Toov","role":"admin"}
+33|tutturd | 12:57:25 PM [express] GET /api/admin/invitations 401 in 1ms :: {"message":"Oturum açılmamış"}
+33|tutturd | 12:57:25 PM [express] GET /api/admin/users 401 in 1ms :: {"message":"Oturum açılmamış"}
+33|tutturd | 12:57:25 PM [express] GET /api/admin/coupons 401 in 1ms :: {"message":"Oturum açılmamış"}
+33|tutturd | 12:57:25 PM [express] GET /api/admin/matches 401 in 3ms :: {"message":"Oturum açılmamış"}
+33|tutturd | 12:57:34 PM [express] POST /api/admin/invitations 401 in 0ms :: {"message":"Oturum açılmamış"}
