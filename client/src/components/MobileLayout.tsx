@@ -16,8 +16,8 @@ export function MobileLayout({ children, activeTab }: MobileLayoutProps) {
   return (
     <div className="min-h-screen bg-black font-sans selection:bg-primary/30">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/5 shadow-[0_4px_20px_rgba(0,0,0,0.4)] overflow-hidden">
-        <div className="h-16 flex items-center justify-between px-4">
+      <header className="fixed top-0 left-0 right-0 z-[100] bg-black backdrop-blur-xl border-b border-white/5 shadow-[0_4px_20px_rgba(0,0,0,0.4)]">
+        <div className="h-16 flex items-center justify-between px-4 max-w-full">
           <div className="flex items-center gap-3">
             <div className="relative group">
               <div className="absolute -inset-2 bg-primary/20 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
