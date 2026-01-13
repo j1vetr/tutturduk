@@ -903,6 +903,34 @@ export async function registerRoutes(
     }
   });
 
+  app.get('/api/matches/ai-badges', async (req, res) => {
+    try {
+      const matches = await storage.getPublishedMatches();
+      const badges: Record<number, { bestBet?: string; riskLevel?: string; over25?: boolean; btts?: boolean; winner?: string }> = {};
+      
+      for (const match of matches) {
+        const cacheKey = `ai_analysis_v2_${match.fixture_id}`;
+        const cached = await storage.getCachedData(cacheKey);
+        if (cached) {
+          try {
+            const analysis = JSON.parse(cached);
+            badges[match.id] = {
+              bestBet: analysis.bestBet,
+              riskLevel: analysis.riskLevel,
+              over25: analysis.over25?.prediction,
+              btts: analysis.btts?.prediction,
+              winner: analysis.winner?.prediction,
+            };
+          } catch (e) {}
+        }
+      }
+      
+      res.json(badges);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   app.get('/api/matches/featured', async (req, res) => {
     try {
       const match = await storage.getFeaturedMatch();

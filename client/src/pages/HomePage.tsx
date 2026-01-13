@@ -2,10 +2,18 @@ import { useState, useEffect } from "react";
 import { MobileLayout } from "@/components/MobileLayout";
 import { HeroPrediction } from "@/components/HeroPrediction";
 import BestBets from "@/components/BestBets";
-import { Loader2, Clock, Filter, ChevronDown, ChevronUp } from "lucide-react";
+import { Loader2, Clock, Filter, ChevronDown, ChevronUp, Brain, Target, Flame, TrendingUp } from "lucide-react";
 import { useLocation } from "wouter";
 import { calculateScenario, getChaosColor } from "@/lib/scenarioEngine";
 import { Badge } from "@/components/ui/badge";
+
+interface AIBadgeInfo {
+  bestBet?: string;
+  riskLevel?: string;
+  over25?: boolean;
+  btts?: boolean;
+  winner?: string;
+}
 
 interface PublishedMatch {
   id: number;
@@ -172,6 +180,7 @@ type TimeFilter = 'all' | 'soon' | 'today' | 'tomorrow';
 export default function HomePage() {
   const [, setLocation] = useLocation();
   const [matches, setMatches] = useState<PublishedMatch[]>([]);
+  const [aiBadges, setAiBadges] = useState<Record<number, AIBadgeInfo>>({});
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<SortOption>('time-asc');
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
@@ -185,10 +194,17 @@ export default function HomePage() {
 
   const loadData = async () => {
     try {
-      const res = await fetch('/api/matches');
-      if (res.ok) {
-        const data = await res.json();
+      const [matchesRes, badgesRes] = await Promise.all([
+        fetch('/api/matches'),
+        fetch('/api/matches/ai-badges'),
+      ]);
+      if (matchesRes.ok) {
+        const data = await matchesRes.json();
         setMatches(data.filter((m: PublishedMatch) => !m.is_featured));
+      }
+      if (badgesRes.ok) {
+        const badges = await badgesRes.json();
+        setAiBadges(badges);
       }
     } catch (error) {
       console.error('Failed to load data:', error);
@@ -356,6 +372,7 @@ export default function HomePage() {
                 const timeInfo = getTimeInfo(match.match_date, match.match_time);
                 const homePercent = parseInt(match.api_percent_home?.replace('%', '') || '0');
                 const awayPercent = parseInt(match.api_percent_away?.replace('%', '') || '0');
+                const aiBadge = aiBadges[match.id];
                 
                 return (
                   <div 
@@ -368,12 +385,20 @@ export default function HomePage() {
                         {match.league_logo && <img src={match.league_logo} className="w-4 h-4" alt="" />}
                         <span className="text-[11px] text-zinc-500">{match.league_name}</span>
                       </div>
-                      <span className={`text-[11px] font-medium ${
-                        timeInfo.isLive ? 'text-red-400' : timeInfo.isPast ? 'text-zinc-600' : 'text-emerald-400'
-                      }`}>
-                        {timeInfo.isLive && <span className="inline-block w-1.5 h-1.5 bg-red-500 rounded-full mr-1 animate-pulse" />}
-                        {timeInfo.text}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        {aiBadge && (
+                          <div className="flex items-center gap-1 px-1.5 py-0.5 bg-emerald-500/10 rounded border border-emerald-500/20">
+                            <Brain className="w-2.5 h-2.5 text-emerald-400" />
+                            <span className="text-[8px] text-emerald-400 font-medium">AI</span>
+                          </div>
+                        )}
+                        <span className={`text-[11px] font-medium ${
+                          timeInfo.isLive ? 'text-red-400' : timeInfo.isPast ? 'text-zinc-600' : 'text-emerald-400'
+                        }`}>
+                          {timeInfo.isLive && <span className="inline-block w-1.5 h-1.5 bg-red-500 rounded-full mr-1 animate-pulse" />}
+                          {timeInfo.text}
+                        </span>
+                      </div>
                     </div>
 
                     <div className="p-3">
@@ -422,6 +447,52 @@ export default function HomePage() {
                       )}
 
                       <ScenarioRow match={match} />
+
+                      {aiBadge && (
+                        <div className="mt-2 pt-2 border-t border-zinc-800/50">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <div className="flex items-center gap-1 text-[9px] text-emerald-400">
+                              <Brain className="w-3 h-3" />
+                              <span className="font-medium">AI Tahmin:</span>
+                            </div>
+                            {aiBadge.winner && (
+                              <span className={`text-[9px] px-1.5 py-0.5 rounded-full border ${
+                                aiBadge.winner === '1' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
+                                aiBadge.winner === '2' ? 'bg-purple-500/20 text-purple-400 border-purple-500/30' :
+                                'bg-zinc-500/20 text-zinc-400 border-zinc-500/30'
+                              }`}>
+                                {aiBadge.winner === '1' ? match.home_team.substring(0, 8) : 
+                                 aiBadge.winner === '2' ? match.away_team.substring(0, 8) : 'Beraberlik'}
+                              </span>
+                            )}
+                            {aiBadge.over25 !== undefined && (
+                              <span className={`text-[9px] px-1.5 py-0.5 rounded-full border ${
+                                aiBadge.over25 ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 
+                                'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                              }`}>
+                                {aiBadge.over25 ? '2.5 Üst' : '2.5 Alt'}
+                              </span>
+                            )}
+                            {aiBadge.btts !== undefined && (
+                              <span className={`text-[9px] px-1.5 py-0.5 rounded-full border ${
+                                aiBadge.btts ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 
+                                'bg-zinc-500/20 text-zinc-400 border-zinc-500/30'
+                              }`}>
+                                {aiBadge.btts ? 'KG Var' : 'KG Yok'}
+                              </span>
+                            )}
+                            {aiBadge.riskLevel && (
+                              <span className={`text-[9px] px-1.5 py-0.5 rounded-full border ml-auto ${
+                                aiBadge.riskLevel === 'düşük' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' :
+                                aiBadge.riskLevel === 'orta' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' :
+                                'bg-red-500/20 text-red-400 border-red-500/30'
+                              }`}>
+                                {aiBadge.riskLevel} risk
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
