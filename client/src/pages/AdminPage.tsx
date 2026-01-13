@@ -739,113 +739,186 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* Predictions Tab */}
+          {/* Predictions Tab - Premium Design */}
           {activeTab === "predictions" && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-display font-bold text-white">Maç Yayınlama</h2>
-                <div className="flex gap-2">
-                  <Button onClick={loadPublishedMatches} variant="outline" size="sm" className="border-white/10">
-                    <RefreshCcw className="w-4 h-4 mr-2" /> Yenile
-                  </Button>
-                  <Button onClick={loadUpcomingMatches} variant="outline" size="sm" className="border-white/10">
-                    <Calendar className="w-4 h-4 mr-2" /> Maçları Getir
-                  </Button>
+            <div className="space-y-8">
+              {/* Header Section */}
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500/20 via-zinc-900 to-zinc-900 border border-emerald-500/20 p-6">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+                <div className="relative z-10 flex items-center justify-between">
+                  <div>
+                    <h2 className="text-3xl font-display font-black text-white mb-1">Maç yönetimi</h2>
+                    <p className="text-sm text-zinc-400">Maçları yayınla, öne çıkar ve yönet</p>
+                  </div>
+                  <div className="flex gap-3">
+                    <Button onClick={loadPublishedMatches} variant="outline" className="border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400">
+                      <RefreshCcw className="w-4 h-4 mr-2" /> Yenile
+                    </Button>
+                    <Button onClick={loadUpcomingMatches} className="bg-emerald-500 text-black font-bold hover:bg-emerald-400">
+                      <Calendar className="w-4 h-4 mr-2" /> Maçları getir
+                    </Button>
+                  </div>
                 </div>
               </div>
 
-              {/* Published Matches */}
+              {/* Published Matches - Premium Cards */}
               {publishedMatches.length > 0 && (
-                <Card className="bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-500/20">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-white flex items-center gap-2">
-                      <CheckCircle className="w-5 h-5 text-green-500" /> Yayındaki Maçlar ({publishedMatches.length})
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      {publishedMatches.map(pm => (
-                        <div key={pm.id} className={`flex items-center justify-between p-3 rounded-lg ${pm.is_featured ? 'bg-primary/20 border border-primary/30' : 'bg-black/30'}`}>
-                          <div className="flex items-center gap-3">
-                            {pm.is_featured && <Star className="w-4 h-4 text-primary" />}
-                            <div className="flex items-center gap-2">
-                              {pm.home_logo && <img src={pm.home_logo} alt="" className="w-5 h-5" />}
-                              <span className="text-white text-sm">{pm.home_team}</span>
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-1 h-6 bg-emerald-500 rounded-full" />
+                    <h3 className="text-lg font-bold text-white">Yayındaki maçlar</h3>
+                    <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">{publishedMatches.length} maç</Badge>
+                  </div>
+                  <div className="grid gap-4">
+                    {publishedMatches.map(pm => {
+                      const matchDate = new Date(pm.match_date + 'T' + pm.match_time);
+                      const now = new Date();
+                      const diff = matchDate.getTime() - now.getTime();
+                      const hours = Math.max(0, Math.floor(diff / (1000 * 60 * 60)));
+                      const minutes = Math.max(0, Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)));
+                      const isLive = diff < 0 && diff > -2 * 60 * 60 * 1000;
+                      const isPast = diff < -2 * 60 * 60 * 1000;
+                      
+                      return (
+                        <div 
+                          key={pm.id} 
+                          className={`relative overflow-hidden rounded-2xl border transition-all ${
+                            pm.is_featured 
+                              ? 'bg-gradient-to-r from-amber-500/10 via-zinc-900 to-zinc-900 border-amber-500/30' 
+                              : 'bg-gradient-to-r from-zinc-900 via-zinc-900 to-zinc-800 border-zinc-800 hover:border-emerald-500/30'
+                          }`}
+                        >
+                          {pm.is_featured && (
+                            <div className="absolute top-0 left-0 px-3 py-1 bg-amber-500 text-black text-[10px] font-black uppercase tracking-wider rounded-br-xl">
+                              Öne çıkan
                             </div>
-                            <span className="text-zinc-500 text-xs">vs</span>
-                            <div className="flex items-center gap-2">
-                              {pm.away_logo && <img src={pm.away_logo} alt="" className="w-5 h-5" />}
-                              <span className="text-white text-sm">{pm.away_team}</span>
+                          )}
+                          <div className="p-5">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-5">
+                                {/* Time Badge */}
+                                <div className={`min-w-[80px] text-center p-3 rounded-xl ${
+                                  isLive ? 'bg-red-500/20 border border-red-500/30' : 
+                                  isPast ? 'bg-zinc-800 border border-zinc-700' :
+                                  'bg-emerald-500/10 border border-emerald-500/20'
+                                }`}>
+                                  {isLive ? (
+                                    <>
+                                      <div className="flex items-center justify-center gap-1 text-red-400 mb-1">
+                                        <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                                        <span className="text-[10px] font-bold uppercase">Canlı</span>
+                                      </div>
+                                      <span className="text-lg font-black text-red-400">{pm.match_time}</span>
+                                    </>
+                                  ) : isPast ? (
+                                    <>
+                                      <span className="text-[10px] text-zinc-500 uppercase">Bitti</span>
+                                      <span className="text-lg font-black text-zinc-500 block">{pm.match_time}</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <span className="text-[10px] text-emerald-400 uppercase font-bold">Başlamak üzere</span>
+                                      <div className="text-lg font-black text-white">
+                                        {hours > 0 ? `${hours}s ${minutes}dk` : `${minutes}dk`}
+                                      </div>
+                                    </>
+                                  )}
+                                </div>
+
+                                {/* Teams */}
+                                <div className="flex items-center gap-4">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-12 h-12 rounded-xl bg-white/5 p-2 border border-white/10">
+                                      {pm.home_logo && <img src={pm.home_logo} alt="" className="w-full h-full object-contain" />}
+                                    </div>
+                                    <span className="text-white font-bold">{pm.home_team}</span>
+                                  </div>
+                                  <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
+                                    <span className="text-xs font-bold text-zinc-500">VS</span>
+                                  </div>
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-12 h-12 rounded-xl bg-white/5 p-2 border border-white/10">
+                                      {pm.away_logo && <img src={pm.away_logo} alt="" className="w-full h-full object-contain" />}
+                                    </div>
+                                    <span className="text-white font-bold">{pm.away_team}</span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Actions */}
+                              <div className="flex items-center gap-2">
+                                <div className="text-right mr-4">
+                                  <p className="text-[10px] text-zinc-500 uppercase">Tarih</p>
+                                  <p className="text-sm text-white font-medium">{new Date(pm.match_date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}</p>
+                                </div>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon"
+                                  onClick={async () => {
+                                    try {
+                                      const res = await fetch(`/api/admin/matches/${pm.id}`, {
+                                        method: 'PATCH',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ is_featured: !pm.is_featured })
+                                      });
+                                      if (res.ok) {
+                                        toast({ title: pm.is_featured ? 'Öne çıkarma kaldırıldı' : 'Maç öne çıkarıldı' });
+                                        loadPublishedMatches();
+                                      }
+                                    } catch (e) {
+                                      toast({ title: 'Hata', description: 'İşlem başarısız', variant: 'destructive' });
+                                    }
+                                  }}
+                                  className={`h-10 w-10 rounded-xl ${pm.is_featured ? 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-amber-400'}`}
+                                  title={pm.is_featured ? 'Öne çıkarmayı kaldır' : 'Öne çıkar'}
+                                >
+                                  <Star className={`w-5 h-5 ${pm.is_featured ? 'fill-current' : ''}`} />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon"
+                                  onClick={() => unpublishMatch(pm.id)}
+                                  className="h-10 w-10 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20"
+                                >
+                                  <Trash2 className="w-5 h-5" />
+                                </Button>
+                              </div>
                             </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs text-zinc-500">{pm.match_date} {pm.match_time}</span>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={async () => {
-                                try {
-                                  const res = await fetch(`/api/admin/matches/${pm.id}`, {
-                                    method: 'PATCH',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ is_featured: !pm.is_featured })
-                                  });
-                                  if (res.ok) {
-                                    toast({ title: pm.is_featured ? 'Öne çıkarma kaldırıldı' : 'Maç öne çıkarıldı' });
-                                    loadPublishedMatches();
-                                  }
-                                } catch (e) {
-                                  toast({ title: 'Hata', description: 'İşlem başarısız', variant: 'destructive' });
-                                }
-                              }}
-                              className={pm.is_featured ? 'text-primary hover:text-primary/80 hover:bg-primary/10' : 'text-zinc-400 hover:text-primary hover:bg-primary/10'}
-                              title={pm.is_featured ? 'Öne çıkarmayı kaldır' : 'Öne çıkar'}
-                            >
-                              <Star className={`w-4 h-4 ${pm.is_featured ? 'fill-current' : ''}`} />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm" 
-                              onClick={() => unpublishMatch(pm.id)}
-                              className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+                      );
+                    })}
+                  </div>
+                </div>
               )}
 
-              {/* Match Selection */}
-                <Card className="bg-zinc-900/50 border-white/5">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="text-white flex items-center gap-2">
-                      <Calendar className="w-5 h-5 text-primary" /> Yaklaşan Maçlar
-                    </CardTitle>
-                    <CardDescription>Tahmin eklemek için maç seçin</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {/* Filters */}
-                    <div className="flex flex-wrap gap-3 mb-4">
+              {/* Match Selection - Premium Design */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-1 h-6 bg-blue-500 rounded-full" />
+                  <h3 className="text-lg font-bold text-white">Yaklaşan maçlar</h3>
+                </div>
+
+                <div className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl border border-zinc-800 overflow-hidden">
+                  {/* Search & Filter Bar */}
+                  <div className="p-4 border-b border-zinc-800 bg-zinc-900">
+                    <div className="flex flex-wrap gap-3">
                       <div className="relative flex-1 min-w-[200px]">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                         <Input 
                           placeholder="Takım veya lig ara..."
                           value={searchQuery}
                           onChange={e => setSearchQuery(e.target.value)}
-                          className="pl-9 bg-black/50 border-white/10 text-white"
+                          className="pl-11 h-11 bg-zinc-800 border-zinc-700 text-white rounded-xl focus:border-emerald-500/50"
                         />
                       </div>
                       <Select value={matchFilter} onValueChange={setMatchFilter}>
-                        <SelectTrigger className="w-48 bg-black/50 border-white/10 text-white">
-                          <Filter className="w-4 h-4 mr-2" />
+                        <SelectTrigger className="w-52 h-11 bg-zinc-800 border-zinc-700 text-white rounded-xl">
+                          <Filter className="w-4 h-4 mr-2 text-zinc-500" />
                           <SelectValue placeholder="Lig filtrele" />
                         </SelectTrigger>
-                        <SelectContent className="bg-zinc-900 border-white/10">
-                          <SelectItem value="all">Tüm Ligler</SelectItem>
+                        <SelectContent className="bg-zinc-900 border-zinc-800 rounded-xl">
+                          <SelectItem value="all">Tüm ligler</SelectItem>
                           {getUniqueLeagues().map(league => (
                             <SelectItem key={league.id} value={league.id.toString()}>
                               <div className="flex items-center gap-2">
@@ -857,69 +930,82 @@ export default function AdminPage() {
                         </SelectContent>
                       </Select>
                     </div>
+                  </div>
 
-                    {/* Match List */}
+                  {/* Match List */}
+                  <div className="max-h-[600px] overflow-y-auto">
                     {loadingMatches ? (
-                      <div className="text-center py-12">
-                        <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-3" />
+                      <div className="text-center py-16">
+                        <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                          <Loader2 className="w-6 h-6 animate-spin text-emerald-500" />
+                        </div>
                         <p className="text-zinc-500">Maçlar yükleniyor...</p>
                       </div>
                     ) : getFilteredMatches().length === 0 ? (
-                      <div className="text-center py-12">
-                        <Calendar className="w-12 h-12 text-zinc-700 mx-auto mb-3" />
-                        <p className="text-zinc-500">
+                      <div className="text-center py-16">
+                        <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-zinc-800 flex items-center justify-center">
+                          <Calendar className="w-8 h-8 text-zinc-600" />
+                        </div>
+                        <p className="text-zinc-400 font-medium">
                           {upcomingMatches.length === 0 
-                            ? "Maç bulunamadı. API ücretli üyelik gerekebilir." 
-                            : "Filtreye uygun maç yok."}
+                            ? "Maç bulunamadı" 
+                            : "Filtreye uygun maç yok"}
                         </p>
+                        <p className="text-xs text-zinc-600 mt-1">Yukarıdan maçları getir butonuna tıklayın</p>
                       </div>
                     ) : (
-                      <div className="grid gap-3 max-h-[500px] overflow-y-auto pr-2">
+                      <div className="divide-y divide-zinc-800/50">
                         {getFilteredMatches().map(match => {
                           const published = isMatchPublished(match.id);
                           return (
                             <div
                               key={match.id}
-                              className={`p-4 rounded-xl transition-all border ${published ? 'bg-green-500/10 border-green-500/30' : 'bg-white/5 border-transparent hover:border-primary/30'}`}
+                              className={`p-4 transition-all hover:bg-white/[0.02] ${published ? 'bg-emerald-500/5' : ''}`}
                             >
                               <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-4">
-                                  <div className="text-center min-w-[60px]">
-                                    <p className="text-xs text-zinc-500">{match.localDate}</p>
-                                    <p className="text-sm font-bold text-primary">{match.localTime}</p>
+                                <div className="flex items-center gap-5">
+                                  {/* Time */}
+                                  <div className="min-w-[70px] text-center">
+                                    <p className="text-[10px] text-zinc-600 uppercase">{match.localDate}</p>
+                                    <p className="text-lg font-black text-emerald-400">{match.localTime}</p>
                                   </div>
-                                  <div className="flex items-center gap-3">
-                                    <img src={match.league.logo} alt="" className="w-5 h-5 object-contain" />
-                                    <div className="flex items-center gap-3">
-                                      <div className="flex items-center gap-2">
-                                        <img src={match.homeTeam.logo} alt="" className="w-6 h-6 object-contain" />
-                                        <span className="text-white font-medium text-sm">{match.homeTeam.name}</span>
-                                      </div>
-                                      <span className="text-zinc-600 text-sm">vs</span>
-                                      <div className="flex items-center gap-2">
-                                        <img src={match.awayTeam.logo} alt="" className="w-6 h-6 object-contain" />
-                                        <span className="text-white font-medium text-sm">{match.awayTeam.name}</span>
-                                      </div>
+                                  
+                                  {/* League */}
+                                  <div className="w-8 h-8 rounded-lg bg-zinc-800 p-1.5">
+                                    <img src={match.league.logo} alt="" className="w-full h-full object-contain" />
+                                  </div>
+
+                                  {/* Teams */}
+                                  <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-2">
+                                      <img src={match.homeTeam.logo} alt="" className="w-8 h-8 object-contain" />
+                                      <span className="text-white font-semibold">{match.homeTeam.name}</span>
+                                    </div>
+                                    <span className="text-zinc-700 text-sm font-bold">vs</span>
+                                    <div className="flex items-center gap-2">
+                                      <img src={match.awayTeam.logo} alt="" className="w-8 h-8 object-contain" />
+                                      <span className="text-white font-semibold">{match.awayTeam.name}</span>
                                     </div>
                                   </div>
                                 </div>
-                                <div className="flex items-center gap-2">
+                                
+                                {/* Action */}
+                                <div>
                                   {published ? (
-                                    <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
-                                      <CheckCircle className="w-3 h-3 mr-1" /> Yayında
+                                    <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 px-4 py-2 rounded-xl">
+                                      <CheckCircle className="w-4 h-4 mr-2" /> Yayında
                                     </Badge>
                                   ) : (
                                     <Button 
-                                      size="sm" 
                                       onClick={() => publishMatch(match)}
                                       disabled={publishingId === match.id}
-                                      className="bg-primary text-black hover:bg-white font-semibold"
+                                      className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-black font-bold hover:from-emerald-400 hover:to-emerald-500 rounded-xl px-5"
                                     >
                                       {publishingId === match.id ? (
                                         <Loader2 className="w-4 h-4 animate-spin" />
                                       ) : (
                                         <>
-                                          <Plus className="w-4 h-4 mr-1" /> Yayınla
+                                          <Zap className="w-4 h-4 mr-2" /> Yayınla
                                         </>
                                       )}
                                     </Button>
@@ -931,62 +1017,62 @@ export default function AdminPage() {
                         })}
                       </div>
                     )}
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
+              </div>
 
-              {/* Active Predictions */}
-              <Card className="bg-zinc-900/50 border-white/5">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <Clock className="w-5 h-5 text-yellow-500" /> Aktif Tahminler ({predictions.length})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {predictions.length === 0 ? (
-                    <p className="text-zinc-500 text-center py-8">Henüz aktif tahmin yok</p>
-                  ) : (
-                    <div className="space-y-3">
+              {/* Active Predictions - Premium Design */}
+              {predictions.length > 0 && (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-1 h-6 bg-amber-500 rounded-full" />
+                    <h3 className="text-lg font-bold text-white">Aktif tahminler</h3>
+                    <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">{predictions.length} tahmin</Badge>
+                  </div>
+                  
+                  <div className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl border border-zinc-800 overflow-hidden">
+                    <div className="divide-y divide-zinc-800/50">
                       {predictions.map(pred => (
-                        <div key={pred.id} className="p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-all">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-3">
+                        <div key={pred.id} className="p-4 hover:bg-white/[0.02] transition-all">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
                               {pred.is_hero && (
-                                <Badge className="bg-primary/20 text-primary">
-                                  <Star className="w-3 h-3 mr-1" /> HERO
+                                <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 rounded-lg">
+                                  <Star className="w-3 h-3 mr-1 fill-current" /> Öne çıkan
                                 </Badge>
                               )}
-                              <span className="font-bold text-white">{pred.home_team} vs {pred.away_team}</span>
+                              <div>
+                                <span className="font-bold text-white">{pred.home_team} vs {pred.away_team}</span>
+                                <p className="text-xs text-zinc-500 mt-0.5">
+                                  {getLeague(pred.league_id)?.name || pred.league_id} • {formatDate(pred.match_date)} • {pred.match_time}
+                                </p>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Badge variant="outline" className="text-white border-white/20">{pred.prediction}</Badge>
-                              <Badge variant="outline" className="text-primary border-primary/30">{pred.odds}x</Badge>
-                            </div>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <p className="text-xs text-zinc-500">
-                              {getLeague(pred.league_id)?.name || pred.league_id} • {formatDate(pred.match_date)} • {pred.match_time}
-                            </p>
-                            <div className="flex items-center gap-2">
-                              <Button size="sm" variant="ghost" onClick={() => handleSetAsHero(pred.id)} className="text-primary hover:bg-primary/20">
-                                <Star className="w-4 h-4" />
-                              </Button>
-                              <Button size="sm" variant="ghost" onClick={() => handleMarkResult(pred.id, 'won')} className="text-green-500 hover:bg-green-500/20">
-                                <CheckCircle className="w-4 h-4" />
-                              </Button>
-                              <Button size="sm" variant="ghost" onClick={() => handleMarkResult(pred.id, 'lost')} className="text-red-500 hover:bg-red-500/20">
-                                <XCircle className="w-4 h-4" />
-                              </Button>
-                              <Button size="sm" variant="ghost" onClick={() => handleDeletePrediction(pred.id)} className="text-zinc-500 hover:bg-zinc-500/20">
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
+                            <div className="flex items-center gap-3">
+                              <Badge variant="outline" className="text-white border-zinc-700 rounded-lg">{pred.prediction}</Badge>
+                              <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 rounded-lg">{pred.odds}x</Badge>
+                              <div className="flex items-center gap-1 ml-2">
+                                <Button size="icon" variant="ghost" onClick={() => handleSetAsHero(pred.id)} className="h-8 w-8 rounded-lg text-amber-400 hover:bg-amber-500/20">
+                                  <Star className="w-4 h-4" />
+                                </Button>
+                                <Button size="icon" variant="ghost" onClick={() => handleMarkResult(pred.id, 'won')} className="h-8 w-8 rounded-lg text-emerald-400 hover:bg-emerald-500/20">
+                                  <CheckCircle className="w-4 h-4" />
+                                </Button>
+                                <Button size="icon" variant="ghost" onClick={() => handleMarkResult(pred.id, 'lost')} className="h-8 w-8 rounded-lg text-red-400 hover:bg-red-500/20">
+                                  <XCircle className="w-4 h-4" />
+                                </Button>
+                                <Button size="icon" variant="ghost" onClick={() => handleDeletePrediction(pred.id)} className="h-8 w-8 rounded-lg text-zinc-500 hover:bg-zinc-700">
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
                             </div>
                           </div>
                         </div>
                       ))}
                     </div>
-                  )}
-                </CardContent>
-              </Card>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
