@@ -4,42 +4,31 @@ import { storage } from "./storage";
 import session from 'express-session';
 import connectPgSimple from 'connect-pg-simple';
 import { pool } from './db';
-
-const FOOTBALL_DATA_API_KEY = process.env.FOOTBALL_DATA_API_KEY;
-const FOOTBALL_DATA_BASE_URL = 'https://api.football-data.org/v4';
-
-const LEAGUE_CODES: Record<string, string> = {
-  pl: 'PL',           // Premier League
-  laliga: 'PD',       // La Liga (Primera División)
-  bundesliga: 'BL1',  // Bundesliga
-  seriea: 'SA',       // Serie A
-  ligue1: 'FL1',      // Ligue 1
-  eredivisie: 'DED',  // Eredivisie (Hollanda)
-  primeiraligia: 'PPL', // Primeira Liga (Portekiz)
-  championship: 'ELC', // Championship (İngiltere 2. Lig)
-  championsleague: 'CL', // UEFA Champions League
-  brasilseriea: 'BSA', // Brezilya Serie A
-};
-
-async function fetchFromFootballData(endpoint: string) {
-  if (!FOOTBALL_DATA_API_KEY) {
-    throw new Error('Football Data API key not configured');
-  }
-  
-  const response = await fetch(`${FOOTBALL_DATA_BASE_URL}${endpoint}`, {
-    headers: {
-      'X-Auth-Token': FOOTBALL_DATA_API_KEY,
-    },
-  });
-  
-  if (!response.ok) {
-    throw new Error(`Football Data API error: ${response.status}`);
-  }
-  
-  return response.json();
-}
+import { apiFootball, SUPPORTED_LEAGUES, CURRENT_SEASON } from './apiFootball';
 
 const PgSession = connectPgSimple(session);
+
+async function getCachedData<T>(key: string, fetchFn: () => Promise<T>, ttlMinutes: number = 60): Promise<T> {
+  const cached = await pool.query(
+    'SELECT data FROM api_cache WHERE key = $1 AND expires_at > NOW()',
+    [key]
+  );
+  
+  if (cached.rows.length > 0) {
+    return cached.rows[0].data as T;
+  }
+  
+  const data = await fetchFn();
+  const expiresAt = new Date(Date.now() + ttlMinutes * 60 * 1000);
+  
+  await pool.query(
+    `INSERT INTO api_cache (key, data, expires_at) VALUES ($1, $2, $3)
+     ON CONFLICT (key) DO UPDATE SET data = $2, expires_at = $3`,
+    [key, JSON.stringify(data), expiresAt]
+  );
+  
+  return data;
+}
 
 declare module 'express-session' {
   interface SessionData {
@@ -515,186 +504,222 @@ export async function registerRoutes(
     res.json(predictions);
   });
 
-  // Football Data API routes
+  // API-Football routes
   app.get('/api/football/leagues', async (req, res) => {
     try {
-      const data = await fetchFromFootballData('/competitions');
-      const supportedLeagues = ['PL', 'PD', 'BL1', 'SA', 'FL1', 'DED', 'PPL', 'ELC', 'CL'];
-      const leagues = data.competitions
-        .filter((c: any) => supportedLeagues.includes(c.code))
-        .map((c: any) => ({
-          id: c.code.toLowerCase(),
-          code: c.code,
-          name: c.name,
-          logo: c.emblem,
-          country: c.area?.name,
-        }));
-      res.json(leagues);
+      res.json(SUPPORTED_LEAGUES);
     } catch (error: any) {
       console.error('Football API error:', error);
       res.status(500).json({ message: error.message });
     }
   });
 
-  // Get all upcoming matches from all leagues (next 7 days)
-  app.get('/api/football/upcoming-matches', async (req, res) => {
+  app.get('/api/football/fixtures', async (req, res) => {
     try {
-      const today = new Date();
-      const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
-      const dateFrom = today.toISOString().split('T')[0];
-      const dateTo = nextWeek.toISOString().split('T')[0];
+      const { league, date, from, to } = req.query;
+      const leagueId = league ? parseInt(league as string) : undefined;
+      const cacheKey = `fixtures_${leagueId || 'all'}_${date || from || 'upcoming'}`;
       
-      const data = await fetchFromFootballData(`/matches?dateFrom=${dateFrom}&dateTo=${dateTo}`);
-      
-      const leagueNames: Record<string, string> = {
-        'PL': 'Premier League',
-        'PD': 'La Liga',
-        'BL1': 'Bundesliga',
-        'SA': 'Serie A',
-        'FL1': 'Ligue 1',
-        'DED': 'Eredivisie',
-        'PPL': 'Primeira Liga',
-        'ELC': 'Championship',
-        'CL': 'Champions League',
-      };
-      
-      const matches = data.matches
-        .filter((m: any) => m.status === 'SCHEDULED' || m.status === 'TIMED')
-        .map((m: any) => ({
-          id: m.id,
-          homeTeam: {
-            id: m.homeTeam.id,
-            name: m.homeTeam.name,
-            shortName: m.homeTeam.shortName || m.homeTeam.name,
-            logo: m.homeTeam.crest,
-          },
-          awayTeam: {
-            id: m.awayTeam.id,
-            name: m.awayTeam.name,
-            shortName: m.awayTeam.shortName || m.awayTeam.name,
-            logo: m.awayTeam.crest,
-          },
-          utcDate: m.utcDate,
-          localDate: new Date(m.utcDate).toLocaleDateString('tr-TR'),
-          localTime: new Date(m.utcDate).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
-          matchday: m.matchday,
-          status: m.status,
-          competition: {
-            id: m.competition.id,
-            code: m.competition.code,
-            name: leagueNames[m.competition.code] || m.competition.name,
-            logo: m.competition.emblem,
-          },
-        }))
-        .sort((a: any, b: any) => new Date(a.utcDate).getTime() - new Date(b.utcDate).getTime());
-      
-      res.json(matches);
-    } catch (error: any) {
-      console.error('Football API error:', error);
-      res.status(500).json({ message: error.message });
-    }
-  });
+      const fixtures = await getCachedData(cacheKey, async () => {
+        if (leagueId) {
+          return apiFootball.getFixtures({
+            league: leagueId,
+            season: CURRENT_SEASON,
+            date: date as string,
+            from: from as string,
+            to: to as string
+          });
+        } else {
+          const allFixtures: any[] = [];
+          for (const lg of SUPPORTED_LEAGUES.slice(0, 5)) {
+            const fixtures = await apiFootball.getFixtures({
+              league: lg.id,
+              season: CURRENT_SEASON,
+              from: from as string || new Date().toISOString().split('T')[0],
+              to: to as string || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+            });
+            allFixtures.push(...fixtures);
+          }
+          return allFixtures.sort((a, b) => 
+            new Date(a.fixture.date).getTime() - new Date(b.fixture.date).getTime()
+          );
+        }
+      }, 60);
 
-  app.get('/api/football/teams/:leagueId', async (req, res) => {
-    try {
-      const { leagueId } = req.params;
-      const code = LEAGUE_CODES[leagueId];
-      
-      if (!code) {
-        return res.status(400).json({ message: 'Geçersiz lig kodu' });
-      }
-      
-      const data = await fetchFromFootballData(`/competitions/${code}/teams`);
-      const teams = data.teams.map((t: any) => ({
-        id: t.id,
-        name: t.name,
-        shortName: t.shortName,
-        tla: t.tla,
-        logo: t.crest,
-        leagueId: leagueId,
-      }));
-      res.json(teams);
-    } catch (error: any) {
-      console.error('Football API error:', error);
-      res.status(500).json({ message: error.message });
-    }
-  });
-
-  app.get('/api/football/matches/:leagueId', async (req, res) => {
-    try {
-      const { leagueId } = req.params;
-      const code = LEAGUE_CODES[leagueId];
-      
-      if (!code) {
-        return res.status(400).json({ message: 'Geçersiz lig kodu' });
-      }
-      
-      const data = await fetchFromFootballData(`/competitions/${code}/matches?status=SCHEDULED`);
-      const matches = data.matches.slice(0, 20).map((m: any) => ({
-        id: m.id,
+      const formatted = fixtures.map((f: any) => ({
+        id: f.fixture.id,
+        date: f.fixture.date,
+        timestamp: f.fixture.timestamp,
+        status: f.fixture.status,
         homeTeam: {
-          id: m.homeTeam.id,
-          name: m.homeTeam.name,
-          shortName: m.homeTeam.shortName,
-          logo: m.homeTeam.crest,
+          id: f.teams.home.id,
+          name: f.teams.home.name,
+          logo: f.teams.home.logo,
         },
         awayTeam: {
-          id: m.awayTeam.id,
-          name: m.awayTeam.name,
-          shortName: m.awayTeam.shortName,
-          logo: m.awayTeam.crest,
+          id: f.teams.away.id,
+          name: f.teams.away.name,
+          logo: f.teams.away.logo,
         },
-        utcDate: m.utcDate,
-        matchday: m.matchday,
-        status: m.status,
+        league: {
+          id: f.league.id,
+          name: f.league.name,
+          logo: f.league.logo,
+          country: f.league.country,
+          round: f.league.round,
+        },
+        goals: f.goals,
+        localDate: new Date(f.fixture.date).toLocaleDateString('tr-TR'),
+        localTime: new Date(f.fixture.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
       }));
-      res.json(matches);
+
+      res.json(formatted);
     } catch (error: any) {
       console.error('Football API error:', error);
       res.status(500).json({ message: error.message });
     }
   });
 
-  // Sync teams from Football Data API to local teamsData
-  app.post('/api/admin/sync-teams', async (req, res) => {
-    if (!req.session.userId) {
-      return res.status(401).json({ message: 'Oturum açılmamış' });
-    }
-
-    const user = await storage.getUser(req.session.userId);
-    if (!user || user.role !== 'admin') {
-      return res.status(403).json({ message: 'Yetkisiz erişim' });
-    }
-
+  app.get('/api/football/fixtures/:id', async (req, res) => {
     try {
-      const allTeams: any[] = [];
-      const leagues = ['PL', 'PD', 'BL1', 'SA', 'FL1'];
-      const leagueIdMap: Record<string, string> = {
-        'PL': 'pl',
-        'PD': 'laliga',
-        'BL1': 'bundesliga',
-        'SA': 'seriea',
-        'FL1': 'ligue1',
-      };
+      const fixtureId = parseInt(req.params.id);
+      const cacheKey = `fixture_${fixtureId}`;
+      
+      const fixture = await getCachedData(cacheKey, async () => {
+        return apiFootball.getFixtureById(fixtureId);
+      }, 30);
 
-      for (const code of leagues) {
-        const data = await fetchFromFootballData(`/competitions/${code}/teams`);
-        const teams = data.teams.map((t: any) => ({
-          id: t.tla?.toLowerCase() || t.id.toString(),
-          name: t.shortName || t.name,
-          logo: t.crest,
-          leagueId: leagueIdMap[code],
-        }));
-        allTeams.push(...teams);
+      if (!fixture) {
+        return res.status(404).json({ message: 'Maç bulunamadı' });
       }
 
       res.json({
-        message: 'Takımlar başarıyla senkronize edildi',
-        totalTeams: allTeams.length,
-        teams: allTeams,
+        id: fixture.fixture.id,
+        date: fixture.fixture.date,
+        timestamp: fixture.fixture.timestamp,
+        status: fixture.fixture.status,
+        homeTeam: {
+          id: fixture.teams.home.id,
+          name: fixture.teams.home.name,
+          logo: fixture.teams.home.logo,
+        },
+        awayTeam: {
+          id: fixture.teams.away.id,
+          name: fixture.teams.away.name,
+          logo: fixture.teams.away.logo,
+        },
+        league: {
+          id: fixture.league.id,
+          name: fixture.league.name,
+          logo: fixture.league.logo,
+          country: fixture.league.country,
+          round: fixture.league.round,
+        },
+        goals: fixture.goals,
+        score: fixture.score,
       });
     } catch (error: any) {
-      console.error('Sync error:', error);
+      console.error('Football API error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get('/api/football/standings/:leagueId', async (req, res) => {
+    try {
+      const leagueId = parseInt(req.params.leagueId);
+      const cacheKey = `standings_${leagueId}_${CURRENT_SEASON}`;
+      
+      const standings = await getCachedData(cacheKey, async () => {
+        return apiFootball.getStandings(leagueId, CURRENT_SEASON);
+      }, 360);
+
+      res.json(standings);
+    } catch (error: any) {
+      console.error('Football API error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get('/api/football/predictions/:fixtureId', async (req, res) => {
+    try {
+      const fixtureId = parseInt(req.params.fixtureId);
+      const cacheKey = `prediction_${fixtureId}`;
+      
+      const prediction = await getCachedData(cacheKey, async () => {
+        return apiFootball.getPrediction(fixtureId);
+      }, 120);
+
+      if (!prediction) {
+        return res.status(404).json({ message: 'Tahmin bulunamadı' });
+      }
+
+      res.json({
+        winner: prediction.predictions.winner,
+        advice: prediction.predictions.advice,
+        percent: prediction.predictions.percent,
+        underOver: prediction.predictions.under_over,
+        goals: prediction.predictions.goals,
+        comparison: prediction.comparison,
+        teams: {
+          home: {
+            id: prediction.teams.home.id,
+            name: prediction.teams.home.name,
+            logo: prediction.teams.home.logo,
+            form: prediction.teams.home.last_5?.form,
+          },
+          away: {
+            id: prediction.teams.away.id,
+            name: prediction.teams.away.name,
+            logo: prediction.teams.away.logo,
+            form: prediction.teams.away.last_5?.form,
+          }
+        },
+        h2h: prediction.h2h?.slice(0, 5).map((h: any) => ({
+          date: h.fixture?.date,
+          homeTeam: h.teams?.home?.name,
+          awayTeam: h.teams?.away?.name,
+          homeGoals: h.goals?.home,
+          awayGoals: h.goals?.away,
+        }))
+      });
+    } catch (error: any) {
+      console.error('Football API error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get('/api/football/h2h/:team1Id/:team2Id', async (req, res) => {
+    try {
+      const team1Id = parseInt(req.params.team1Id);
+      const team2Id = parseInt(req.params.team2Id);
+      const cacheKey = `h2h_${team1Id}_${team2Id}`;
+      
+      const h2h = await getCachedData(cacheKey, async () => {
+        return apiFootball.getHeadToHead(team1Id, team2Id, 10);
+      }, 120);
+
+      const formatted = h2h.map((match: any) => ({
+        date: match.fixture?.date,
+        homeTeam: {
+          name: match.teams?.home?.name,
+          logo: match.teams?.home?.logo,
+          winner: match.teams?.home?.winner,
+        },
+        awayTeam: {
+          name: match.teams?.away?.name,
+          logo: match.teams?.away?.logo,
+          winner: match.teams?.away?.winner,
+        },
+        score: {
+          home: match.goals?.home,
+          away: match.goals?.away,
+        },
+        league: match.league?.name,
+      }));
+
+      res.json(formatted);
+    } catch (error: any) {
+      console.error('Football API error:', error);
       res.status(500).json({ message: error.message });
     }
   });
