@@ -80,14 +80,15 @@ interface Prediction {
 
 interface UpcomingMatch {
   id: number;
-  homeTeam: { id: number; name: string; shortName: string; logo: string; };
-  awayTeam: { id: number; name: string; shortName: string; logo: string; };
-  utcDate: string;
+  date: string;
+  timestamp: number;
+  status: { long: string; short: string; elapsed: number | null };
+  homeTeam: { id: number; name: string; logo: string; };
+  awayTeam: { id: number; name: string; logo: string; };
+  league: { id: number; name: string; logo: string; country: string; round: string; };
+  goals: { home: number | null; away: number | null };
   localDate: string;
   localTime: string;
-  matchday: number;
-  status: string;
-  competition: { id: number; code: string; name: string; logo: string; };
 }
 
 interface Coupon {
@@ -295,10 +296,14 @@ export default function AdminPage() {
   const loadUpcomingMatches = async () => {
     setLoadingMatches(true);
     try {
-      const res = await fetch('/api/football/upcoming-matches');
+      const res = await fetch('/api/football/fixtures');
       if (res.ok) {
         const matches = await res.json();
         setUpcomingMatches(matches);
+      } else {
+        const errorData = await res.json();
+        console.error('API Error:', errorData);
+        toast({ variant: "destructive", description: errorData.message || "Maçlar yüklenemedi." });
       }
     } catch (error) {
       console.error('Failed to load upcoming matches:', error);
@@ -311,17 +316,17 @@ export default function AdminPage() {
   const handleSelectMatch = (match: UpcomingMatch) => {
     setSelectedMatch(match);
     setNewPrediction({
-      home: match.homeTeam.shortName,
-      away: match.awayTeam.shortName,
+      home: match.homeTeam.name,
+      away: match.awayTeam.name,
       homeLogo: match.homeTeam.logo,
       awayLogo: match.awayTeam.logo,
       prediction: "",
       odds: "",
-      leagueId: match.competition.code.toLowerCase(),
-      leagueName: match.competition.name,
-      leagueLogo: match.competition.logo,
+      leagueId: match.league.id.toString(),
+      leagueName: match.league.name,
+      leagueLogo: match.league.logo,
       time: match.localTime,
-      date: match.utcDate.split('T')[0],
+      date: match.date.split('T')[0],
       analysis: "",
       confidence: "medium",
       isHero: false
@@ -341,7 +346,7 @@ export default function AdminPage() {
     let filtered = upcomingMatches;
     
     if (matchFilter !== "all") {
-      filtered = filtered.filter(m => m.competition.code === matchFilter);
+      filtered = filtered.filter(m => m.league.id.toString() === matchFilter);
     }
     
     if (dateFilter !== "all") {
@@ -349,9 +354,9 @@ export default function AdminPage() {
       const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
       
       if (dateFilter === "today") {
-        filtered = filtered.filter(m => m.utcDate.split('T')[0] === today);
+        filtered = filtered.filter(m => m.date.split('T')[0] === today);
       } else if (dateFilter === "tomorrow") {
-        filtered = filtered.filter(m => m.utcDate.split('T')[0] === tomorrow);
+        filtered = filtered.filter(m => m.date.split('T')[0] === tomorrow);
       }
     }
     
@@ -366,8 +371,8 @@ export default function AdminPage() {
   const getUniqueLeagues = () => {
     const leaguesMap = new Map();
     upcomingMatches.forEach(m => {
-      if (!leaguesMap.has(m.competition.code)) {
-        leaguesMap.set(m.competition.code, { code: m.competition.code, name: m.competition.name, logo: m.competition.logo });
+      if (!leaguesMap.has(m.league.id)) {
+        leaguesMap.set(m.league.id, { id: m.league.id, name: m.league.name, logo: m.league.logo });
       }
     });
     return Array.from(leaguesMap.values());
@@ -818,7 +823,7 @@ export default function AdminPage() {
                         <SelectContent className="bg-zinc-900 border-white/10 text-white">
                           <SelectItem value="all">Tüm Ligler</SelectItem>
                           {getUniqueLeagues().map(league => (
-                            <SelectItem key={league.code} value={league.code}>
+                            <SelectItem key={league.id} value={league.id.toString()}>
                               <div className="flex items-center gap-2">
                                 <img src={league.logo} alt="" className="w-4 h-4 object-contain" />
                                 {league.name}
@@ -854,18 +859,18 @@ export default function AdminPage() {
                               <p className="text-sm font-bold text-white">{match.localTime}</p>
                             </div>
                             <div className="flex items-center gap-2">
-                              <img src={match.competition.logo} alt="" className="w-5 h-5 object-contain" />
-                              <span className="text-xs text-zinc-500 hidden md:inline">{match.competition.name}</span>
+                              <img src={match.league.logo} alt="" className="w-5 h-5 object-contain" />
+                              <span className="text-xs text-zinc-500 hidden md:inline">{match.league.name}</span>
                             </div>
                             <div className="flex items-center gap-3 flex-1">
                               <div className="flex items-center gap-2 flex-1 justify-end">
-                                <span className="text-white font-medium text-sm">{match.homeTeam.shortName}</span>
+                                <span className="text-white font-medium text-sm">{match.homeTeam.name}</span>
                                 <img src={match.homeTeam.logo} alt="" className="w-6 h-6 object-contain" onError={(e) => { e.currentTarget.style.opacity = '0.3'; }} />
                               </div>
                               <span className="text-zinc-600 font-bold text-xs">VS</span>
                               <div className="flex items-center gap-2 flex-1">
                                 <img src={match.awayTeam.logo} alt="" className="w-6 h-6 object-contain" onError={(e) => { e.currentTarget.style.opacity = '0.3'; }} />
-                                <span className="text-white font-medium text-sm">{match.awayTeam.shortName}</span>
+                                <span className="text-white font-medium text-sm">{match.awayTeam.name}</span>
                               </div>
                             </div>
                           </div>
