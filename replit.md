@@ -56,10 +56,32 @@ Key entities include:
 - Production: Custom build script using esbuild for server, Vite for client
 - Output: `dist/` directory with `public/` for static assets
 
+## Match Filtering & Optimization
+
+### League Filtering (matchFilter.ts)
+- Automatically excludes U23, U21, U20, U19 youth leagues
+- Filters out Women's/Kadın leagues
+- Removes Reserve/Rezerv team matches
+- Excludes Amateur and B Team matches
+- Uses keyword-based filtering on league names and team names
+
+### AI Token Optimization
+- AI analysis results are cached in PostgreSQL `api_cache` table
+- 24-hour TTL for AI analysis cache (saves tokens on repeated views)
+- Statistics score check before publishing (minimum score: 30)
+- Only matches with valid form data and comparisons are published
+
+### Statistics Validation
+- `hasValidStatistics()`: Checks if match has form data and comparison data
+- `getStatisticsScore()`: Returns 0-100 score based on available data
+- Matches without sufficient statistics cannot be published
+- This ensures AI analysis has meaningful data to work with
+
 ## External Dependencies
 
 ### Third-Party APIs
-- **RapidAPI Football Data**: Live match scores and upcoming fixtures (API key in client-side code)
+- **API-Football (v3)**: Live match scores, fixtures, predictions, H2H data (via API_FOOTBALL_KEY)
+- **OpenAI GPT-4o-mini**: AI-powered match analysis and predictions (via OPENAI_API_KEY)
 
 ### Key NPM Packages
 - `@tanstack/react-query`: Data fetching and caching
@@ -71,3 +93,14 @@ Key entities include:
 ### Environment Variables Required
 - `DATABASE_URL`: PostgreSQL connection string
 - `SESSION_SECRET`: Secret for session encryption (optional, has default)
+- `API_FOOTBALL_KEY`: API-Football (RapidAPI) key for match data
+- `OPENAI_API_KEY`: OpenAI API key for AI analysis
+
+## Recent Changes
+
+### January 2026
+- Added match filtering to exclude U23/Women's/Reserve leagues
+- Implemented AI analysis caching in PostgreSQL (24h TTL)
+- Added statistics validation before match publishing
+- Created AI-powered Coupon Creator feature
+- Added "Kuponlar" tab in bottom navigation
