@@ -55,6 +55,21 @@ function getTimeInfo(matchDate: string, matchTime: string) {
   return { text: `${Math.floor(hoursLeft / 24)} gün`, isLive: false, isPast: false };
 }
 
+function getContextHint(scenario: ReturnType<typeof calculateScenario>): string {
+  const { DI, GI, BI, chaos, classification } = scenario;
+  
+  if (chaos > 70) return "Tahmin zorluğu yüksek";
+  if (classification === 'goals-likely' && GI > 60) return "Gol beklentisi yüksek";
+  if (classification === 'btts-goals' && BI > 55) return "İki takım da gol bulabilir";
+  if (classification === 'one-sided' && DI > 65) return "Güç farkı belirgin";
+  if (classification === 'upset-prone') return "Sürpriz ihtimali var";
+  if (classification === 'tight' && DI < 30) return "Olasılıklar dengede";
+  if (classification === 'balanced') return "Düşük gol beklentisi";
+  if (GI < 40) return "Düşük gol beklentisi";
+  if (DI > 50) return "Form farkı belirgin";
+  return "Dengeli mücadele";
+}
+
 function ScenarioRow({ match }: { match: PublishedMatch }) {
   const homePercent = parseInt(match.api_percent_home?.replace('%', '') || '0');
   const drawPercent = parseInt(match.api_percent_draw?.replace('%', '') || '0');
@@ -73,6 +88,8 @@ function ScenarioRow({ match }: { match: PublishedMatch }) {
     expectedGoalsAway: match.api_goals_away,
   });
 
+  const contextHint = getContextHint(scenario);
+
   const badgeColors: Record<string, string> = {
     'Kilit Maç': 'bg-blue-500/20 text-blue-400 border-blue-500/30',
     'Gollü Maç': 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
@@ -82,31 +99,34 @@ function ScenarioRow({ match }: { match: PublishedMatch }) {
   };
 
   return (
-    <div className="flex items-center gap-2 mt-2">
-      {scenario.badges.slice(0, 2).map((badge, i) => (
-        <span 
-          key={i} 
-          className={`text-[9px] px-2 py-0.5 rounded-full border ${badgeColors[badge] || badgeColors['Dengeli']}`}
-        >
-          {badge}
-        </span>
-      ))}
-      <div className="relative w-6 h-6 ml-auto">
-        <svg className="w-full h-full transform -rotate-90">
-          <circle cx="12" cy="12" r="10" stroke="#27272a" strokeWidth="2" fill="none" />
-          <circle 
-            cx="12" cy="12" r="10" 
-            stroke={getChaosColor(scenario.chaos)}
-            strokeWidth="2" 
-            fill="none"
-            strokeDasharray={`${(scenario.chaos / 100) * 63} 63`}
-            strokeLinecap="round"
-          />
-        </svg>
-        <span className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-white">
-          {scenario.chaos}
-        </span>
+    <div className="mt-2">
+      <div className="flex items-center gap-2">
+        {scenario.badges.slice(0, 2).map((badge, i) => (
+          <span 
+            key={i} 
+            className={`text-[9px] px-2 py-0.5 rounded-full border ${badgeColors[badge] || badgeColors['Dengeli']}`}
+          >
+            {badge}
+          </span>
+        ))}
+        <div className="relative w-6 h-6 ml-auto">
+          <svg className="w-full h-full transform -rotate-90">
+            <circle cx="12" cy="12" r="10" stroke="#27272a" strokeWidth="2" fill="none" />
+            <circle 
+              cx="12" cy="12" r="10" 
+              stroke={getChaosColor(scenario.chaos)}
+              strokeWidth="2" 
+              fill="none"
+              strokeDasharray={`${(scenario.chaos / 100) * 63} 63`}
+              strokeLinecap="round"
+            />
+          </svg>
+          <span className="absolute inset-0 flex items-center justify-center text-[8px] font-bold text-white">
+            {scenario.chaos}
+          </span>
+        </div>
       </div>
+      <p className="text-[9px] text-zinc-500 mt-1">{contextHint}</p>
     </div>
   );
 }
