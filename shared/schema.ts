@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, serial, integer, boolean, timestamp, decimal, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, serial, integer, boolean, timestamp, decimal, jsonb, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -123,7 +123,9 @@ export const bestBets = pgTable("best_bets", {
   reasoning: text("reasoning"),
   date_for: text("date_for").notNull(),
   created_at: timestamp("created_at").defaultNow(),
-});
+}, (table) => [
+  uniqueIndex("best_bets_fixture_date_unique").on(table.fixture_id, table.date_for)
+]);
 
 export const userCoupons = pgTable("user_coupons", {
   id: serial("id").primaryKey(),

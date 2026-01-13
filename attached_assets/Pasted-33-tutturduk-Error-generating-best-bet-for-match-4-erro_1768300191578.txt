@@ -1,0 +1,232 @@
+33|tutturduk  | Error generating best bet for match 4: error: there is no unique or exclusion constraint matching the ON CONFLICT specification
+33|tutturduk  |     at /var/www/tutturduk/dist/index.cjs:64:13326
+33|tutturduk  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+33|tutturduk  |     at async zp.createBestBet (/var/www/tutturduk/dist/index.cjs:104:1610)
+33|tutturduk  |     at async /var/www/tutturduk/dist/index.cjs:273:27110 {
+33|tutturduk  |   length: 148,
+33|tutturduk  |   severity: 'ERROR',
+33|tutturduk  |   code: '42P10',
+33|tutturduk  |   detail: undefined,
+33|tutturduk  |   hint: undefined,
+33|tutturduk  |   position: undefined,
+33|tutturduk  |   internalPosition: undefined,
+33|tutturduk  |   internalQuery: undefined,
+33|tutturduk  |   where: undefined,
+33|tutturduk  |   schema: undefined,
+33|tutturduk  |   table: undefined,
+33|tutturduk  |   column: undefined,
+33|tutturduk  |   dataType: undefined,
+33|tutturduk  |   constraint: undefined,
+33|tutturduk  |   file: 'plancat.c',
+33|tutturduk  |   line: '882',
+33|tutturduk  |   routine: 'infer_arbiter_indexes'
+33|tutturduk  | }
+33|tutturduk  | Error generating best bet for match 3: error: there is no unique or exclusion constraint matching the ON CONFLICT specification
+33|tutturduk  |     at /var/www/tutturduk/dist/index.cjs:64:13326
+33|tutturduk  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+33|tutturduk  |     at async zp.createBestBet (/var/www/tutturduk/dist/index.cjs:104:1610)
+33|tutturduk  |     at async /var/www/tutturduk/dist/index.cjs:273:27110 {
+33|tutturduk  |   length: 148,
+33|tutturduk  |   severity: 'ERROR',
+33|tutturduk  |   code: '42P10',
+33|tutturduk  |   detail: undefined,
+33|tutturduk  |   hint: undefined,
+33|tutturduk  |   position: undefined,
+33|tutturduk  |   internalPosition: undefined,
+33|tutturduk  |   internalQuery: undefined,
+33|tutturduk  |   where: undefined,
+33|tutturduk  |   schema: undefined,
+33|tutturduk  |   table: undefined,
+33|tutturduk  |   column: undefined,
+33|tutturduk  |   dataType: undefined,
+33|tutturduk  |   constraint: undefined,
+33|tutturduk  |   file: 'plancat.c',
+33|tutturduk  |   line: '882',
+33|tutturduk  |   routine: 'infer_arbiter_indexes'
+33|tutturduk  | }
+33|tutturduk  | Error generating best bet for match 2: error: there is no unique or exclusion constraint matching the ON CONFLICT specification
+33|tutturduk  |     at /var/www/tutturduk/dist/index.cjs:64:13326
+33|tutturduk  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+33|tutturduk  |     at async zp.createBestBet (/var/www/tutturduk/dist/index.cjs:104:1610)
+33|tutturduk  |     at async /var/www/tutturduk/dist/index.cjs:273:27110 {
+33|tutturduk  |   length: 148,
+33|tutturduk  |   severity: 'ERROR',
+33|tutturduk  |   code: '42P10',
+33|tutturduk  |   detail: undefined,
+33|tutturduk  |   hint: undefined,
+33|tutturduk  |   position: undefined,
+33|tutturduk  |   internalPosition: undefined,
+33|tutturduk  |   internalQuery: undefined,
+33|tutturduk  |   where: undefined,
+33|tutturduk  |   schema: undefined,
+33|tutturduk  |   table: undefined,
+33|tutturduk  |   column: undefined,
+33|tutturduk  |   dataType: undefined,
+33|tutturduk  |   constraint: undefined,
+33|tutturduk  |   file: 'plancat.c',
+33|tutturduk  |   line: '882',
+33|tutturduk  |   routine: 'infer_arbiter_indexes'
+33|tutturduk  | }
+33|tutturduk  | Error generating best bet for match 1: error: there is no unique or exclusion constraint matching the ON CONFLICT specification
+33|tutturduk  |     at /var/www/tutturduk/dist/index.cjs:64:13326
+33|tutturduk  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+33|tutturduk  |     at async zp.createBestBet (/var/www/tutturduk/dist/index.cjs:104:1610)
+33|tutturduk  |     at async /var/www/tutturduk/dist/index.cjs:273:27110 {
+33|tutturduk  |   length: 148,
+33|tutturduk  |   severity: 'ERROR',
+33|tutturduk  |   code: '42P10',
+33|tutturduk  |   detail: undefined,
+33|tutturduk  |   hint: undefined,
+33|tutturduk  |   position: undefined,
+33|tutturduk  |   internalPosition: undefined,
+33|tutturduk  |   internalQuery: undefined,
+33|tutturduk  |   where: undefined,
+33|tutturduk  |   schema: undefined,
+33|tutturduk  |   table: undefined,
+33|tutturduk  |   column: undefined,
+33|tutturduk  |   dataType: undefined,
+33|tutturduk  |   constraint: undefined,
+33|tutturduk  |   file: 'plancat.c',
+33|tutturduk  |   line: '882',
+33|tutturduk  |   routine: 'infer_arbiter_indexes'
+33|tutturduk  | }
+33|tutturduk  | Error generating best bet for match 5: error: there is no unique or exclusion constraint matching the ON CONFLICT specification
+33|tutturduk  |     at /var/www/tutturduk/dist/index.cjs:64:13326
+33|tutturduk  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+33|tutturduk  |     at async zp.createBestBet (/var/www/tutturduk/dist/index.cjs:104:1610)
+33|tutturduk  |     at async /var/www/tutturduk/dist/index.cjs:273:27110 {
+33|tutturduk  |   length: 148,
+33|tutturduk  |   severity: 'ERROR',
+33|tutturduk  |   code: '42P10',
+33|tutturduk  |   detail: undefined,
+33|tutturduk  |   hint: undefined,
+33|tutturduk  |   position: undefined,
+33|tutturduk  |   internalPosition: undefined,
+33|tutturduk  |   internalQuery: undefined,
+33|tutturduk  |   where: undefined,
+33|tutturduk  |   schema: undefined,
+33|tutturduk  |   table: undefined,
+33|tutturduk  |   column: undefined,
+33|tutturduk  |   dataType: undefined,
+33|tutturduk  |   constraint: undefined,
+33|tutturduk  |   file: 'plancat.c',
+33|tutturduk  |   line: '882',
+33|tutturduk  |   routine: 'infer_arbiter_indexes'
+33|tutturduk  | }
+33|tutturduk  | Error generating best bet for match 6: error: there is no unique or exclusion constraint matching the ON CONFLICT specification
+33|tutturduk  |     at /var/www/tutturduk/dist/index.cjs:64:13326
+33|tutturduk  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+33|tutturduk  |     at async zp.createBestBet (/var/www/tutturduk/dist/index.cjs:104:1610)
+33|tutturduk  |     at async /var/www/tutturduk/dist/index.cjs:273:27110 {
+33|tutturduk  |   length: 148,
+33|tutturduk  |   severity: 'ERROR',
+33|tutturduk  |   code: '42P10',
+33|tutturduk  |   detail: undefined,
+33|tutturduk  |   hint: undefined,
+33|tutturduk  |   position: undefined,
+33|tutturduk  |   internalPosition: undefined,
+33|tutturduk  |   internalQuery: undefined,
+33|tutturduk  |   where: undefined,
+33|tutturduk  |   schema: undefined,
+33|tutturduk  |   table: undefined,
+33|tutturduk  |   column: undefined,
+33|tutturduk  |   dataType: undefined,
+33|tutturduk  |   constraint: undefined,
+33|tutturduk  |   file: 'plancat.c',
+33|tutturduk  |   line: '882',
+33|tutturduk  |   routine: 'infer_arbiter_indexes'
+33|tutturduk  | }
+33|tutturduk  | Error generating best bet for match 7: error: there is no unique or exclusion constraint matching the ON CONFLICT specification
+33|tutturduk  |     at /var/www/tutturduk/dist/index.cjs:64:13326
+33|tutturduk  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+33|tutturduk  |     at async zp.createBestBet (/var/www/tutturduk/dist/index.cjs:104:1610)
+33|tutturduk  |     at async /var/www/tutturduk/dist/index.cjs:273:27110 {
+33|tutturduk  |   length: 148,
+33|tutturduk  |   severity: 'ERROR',
+33|tutturduk  |   code: '42P10',
+33|tutturduk  |   detail: undefined,
+33|tutturduk  |   hint: undefined,
+33|tutturduk  |   position: undefined,
+33|tutturduk  |   internalPosition: undefined,
+33|tutturduk  |   internalQuery: undefined,
+33|tutturduk  |   where: undefined,
+33|tutturduk  |   schema: undefined,
+33|tutturduk  |   table: undefined,
+33|tutturduk  |   column: undefined,
+33|tutturduk  |   dataType: undefined,
+33|tutturduk  |   constraint: undefined,
+33|tutturduk  |   file: 'plancat.c',
+33|tutturduk  |   line: '882',
+33|tutturduk  |   routine: 'infer_arbiter_indexes'
+33|tutturduk  | }
+33|tutturduk  | Error generating best bet for match 8: error: there is no unique or exclusion constraint matching the ON CONFLICT specification
+33|tutturduk  |     at /var/www/tutturduk/dist/index.cjs:64:13326
+33|tutturduk  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+33|tutturduk  |     at async zp.createBestBet (/var/www/tutturduk/dist/index.cjs:104:1610)
+33|tutturduk  |     at async /var/www/tutturduk/dist/index.cjs:273:27110 {
+33|tutturduk  |   length: 148,
+33|tutturduk  |   severity: 'ERROR',
+33|tutturduk  |   code: '42P10',
+33|tutturduk  |   detail: undefined,
+33|tutturduk  |   hint: undefined,
+33|tutturduk  |   position: undefined,
+33|tutturduk  |   internalPosition: undefined,
+33|tutturduk  |   internalQuery: undefined,
+33|tutturduk  |   where: undefined,
+33|tutturduk  |   schema: undefined,
+33|tutturduk  |   table: undefined,
+33|tutturduk  |   column: undefined,
+33|tutturduk  |   dataType: undefined,
+33|tutturduk  |   constraint: undefined,
+33|tutturduk  |   file: 'plancat.c',
+33|tutturduk  |   line: '882',
+33|tutturduk  |   routine: 'infer_arbiter_indexes'
+33|tutturduk  | }
+33|tutturduk  | Error generating best bet for match 9: error: there is no unique or exclusion constraint matching the ON CONFLICT specification
+33|tutturduk  |     at /var/www/tutturduk/dist/index.cjs:64:13326
+33|tutturduk  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+33|tutturduk  |     at async zp.createBestBet (/var/www/tutturduk/dist/index.cjs:104:1610)
+33|tutturduk  |     at async /var/www/tutturduk/dist/index.cjs:273:27110 {
+33|tutturduk  |   length: 148,
+33|tutturduk  |   severity: 'ERROR',
+33|tutturduk  |   code: '42P10',
+33|tutturduk  |   detail: undefined,
+33|tutturduk  |   hint: undefined,
+33|tutturduk  |   position: undefined,
+33|tutturduk  |   internalPosition: undefined,
+33|tutturduk  |   internalQuery: undefined,
+33|tutturduk  |   where: undefined,
+33|tutturduk  |   schema: undefined,
+33|tutturduk  |   table: undefined,
+33|tutturduk  |   column: undefined,
+33|tutturduk  |   dataType: undefined,
+33|tutturduk  |   constraint: undefined,
+33|tutturduk  |   file: 'plancat.c',
+33|tutturduk  |   line: '882',
+33|tutturduk  |   routine: 'infer_arbiter_indexes'
+33|tutturduk  | }
+33|tutturduk  | Error generating best bet for match 15: error: there is no unique or exclusion constraint matching the ON CONFLICT specification
+33|tutturduk  |     at /var/www/tutturduk/dist/index.cjs:64:13326
+33|tutturduk  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+33|tutturduk  |     at async zp.createBestBet (/var/www/tutturduk/dist/index.cjs:104:1610)
+33|tutturduk  |     at async /var/www/tutturduk/dist/index.cjs:273:27110 {
+33|tutturduk  |   length: 148,
+33|tutturduk  |   severity: 'ERROR',
+33|tutturduk  |   code: '42P10',
+33|tutturduk  |   detail: undefined,
+33|tutturduk  |   hint: undefined,
+33|tutturduk  |   position: undefined,
+33|tutturduk  |   internalPosition: undefined,
+33|tutturduk  |   internalQuery: undefined,
+33|tutturduk  |   where: undefined,
+33|tutturduk  |   schema: undefined,
+33|tutturduk  |   table: undefined,
+33|tutturduk  |   column: undefined,
+33|tutturduk  |   dataType: undefined,
+33|tutturduk  |   constraint: undefined,
+33|tutturduk  |   file: 'plancat.c',
+33|tutturduk  |   line: '882',
+33|tutturduk  |   routine: 'infer_arbiter_indexes'
+33|tutturduk  | }
+33|tutturduk  | 1:29:35 PM [express] POST /api/admin/best-bets/generate 200 in 87ms :: {"message":"0 günün en iyi bahsi oluşturuldu","bets":[]}
+
