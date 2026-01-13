@@ -31,12 +31,17 @@ export interface Prediction {
   id: number;
   home_team: string;
   away_team: string;
+  home_logo?: string;
+  away_logo?: string;
   league_id: string;
+  league_name?: string;
+  league_logo?: string;
   prediction: string;
   odds: number;
   match_time: string;
   match_date: string | null;
   analysis: string | null;
+  confidence?: string;
   is_hero: boolean;
   result: string; // 'pending' | 'won' | 'lost'
   created_at: Date;
@@ -155,17 +160,22 @@ export class PostgresStorage implements IStorage {
 
   async createPrediction(prediction: Partial<Prediction>): Promise<Prediction> {
     const result = await pool.query(
-      `INSERT INTO predictions (home_team, away_team, league_id, prediction, odds, match_time, match_date, analysis, is_hero, result)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *`,
+      `INSERT INTO predictions (home_team, away_team, home_logo, away_logo, league_id, league_name, league_logo, prediction, odds, match_time, match_date, analysis, confidence, is_hero, result)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15) RETURNING *`,
       [
         prediction.home_team,
         prediction.away_team,
+        prediction.home_logo || null,
+        prediction.away_logo || null,
         prediction.league_id,
+        prediction.league_name || null,
+        prediction.league_logo || null,
         prediction.prediction,
         prediction.odds,
         prediction.match_time,
         prediction.match_date || null,
         prediction.analysis,
+        prediction.confidence || 'medium',
         prediction.is_hero || false,
         prediction.result || 'pending'
       ]

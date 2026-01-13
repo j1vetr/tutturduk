@@ -383,7 +383,7 @@ export async function registerRoutes(
   app.get('/api/football/leagues', async (req, res) => {
     try {
       const data = await fetchFromFootballData('/competitions');
-      const supportedLeagues = ['PL', 'PD', 'BL1', 'SA', 'FL1'];
+      const supportedLeagues = ['PL', 'PD', 'BL1', 'SA', 'FL1', 'DED', 'PPL', 'ELC', 'CL'];
       const leagues = data.competitions
         .filter((c: any) => supportedLeagues.includes(c.code))
         .map((c: any) => ({
@@ -394,6 +394,65 @@ export async function registerRoutes(
           country: c.area?.name,
         }));
       res.json(leagues);
+    } catch (error: any) {
+      console.error('Football API error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Get all upcoming matches from all leagues (next 7 days)
+  app.get('/api/football/upcoming-matches', async (req, res) => {
+    try {
+      const today = new Date();
+      const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+      const dateFrom = today.toISOString().split('T')[0];
+      const dateTo = nextWeek.toISOString().split('T')[0];
+      
+      const data = await fetchFromFootballData(`/matches?dateFrom=${dateFrom}&dateTo=${dateTo}`);
+      
+      const leagueNames: Record<string, string> = {
+        'PL': 'Premier League',
+        'PD': 'La Liga',
+        'BL1': 'Bundesliga',
+        'SA': 'Serie A',
+        'FL1': 'Ligue 1',
+        'DED': 'Eredivisie',
+        'PPL': 'Primeira Liga',
+        'ELC': 'Championship',
+        'CL': 'Champions League',
+      };
+      
+      const matches = data.matches
+        .filter((m: any) => m.status === 'SCHEDULED' || m.status === 'TIMED')
+        .map((m: any) => ({
+          id: m.id,
+          homeTeam: {
+            id: m.homeTeam.id,
+            name: m.homeTeam.name,
+            shortName: m.homeTeam.shortName || m.homeTeam.name,
+            logo: m.homeTeam.crest,
+          },
+          awayTeam: {
+            id: m.awayTeam.id,
+            name: m.awayTeam.name,
+            shortName: m.awayTeam.shortName || m.awayTeam.name,
+            logo: m.awayTeam.crest,
+          },
+          utcDate: m.utcDate,
+          localDate: new Date(m.utcDate).toLocaleDateString('tr-TR'),
+          localTime: new Date(m.utcDate).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
+          matchday: m.matchday,
+          status: m.status,
+          competition: {
+            id: m.competition.id,
+            code: m.competition.code,
+            name: leagueNames[m.competition.code] || m.competition.name,
+            logo: m.competition.emblem,
+          },
+        }))
+        .sort((a: any, b: any) => new Date(a.utcDate).getTime() - new Date(b.utcDate).getTime());
+      
+      res.json(matches);
     } catch (error: any) {
       console.error('Football API error:', error);
       res.status(500).json({ message: error.message });

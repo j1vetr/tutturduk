@@ -62,15 +62,32 @@ interface Prediction {
   id: number;
   home_team: string;
   away_team: string;
+  home_logo?: string;
+  away_logo?: string;
   league_id: string;
+  league_name?: string;
+  league_logo?: string;
   prediction: string;
   odds: number;
   match_time: string;
   match_date: string | null;
   analysis: string | null;
+  confidence?: string;
   is_hero: boolean;
   result: string;
   created_at: string;
+}
+
+interface UpcomingMatch {
+  id: number;
+  homeTeam: { id: number; name: string; shortName: string; logo: string; };
+  awayTeam: { id: number; name: string; shortName: string; logo: string; };
+  utcDate: string;
+  localDate: string;
+  localTime: string;
+  matchday: number;
+  status: string;
+  competition: { id: number; code: string; name: string; logo: string; };
 }
 
 export default function AdminPage() {
@@ -87,18 +104,30 @@ export default function AdminPage() {
   const [apiTeamsCache, setApiTeamsCache] = useState<Record<string, ApiTeam[]>>({});
   const [loadingTeams, setLoadingTeams] = useState(false);
   
+  // New match selection states
+  const [upcomingMatches, setUpcomingMatches] = useState<UpcomingMatch[]>([]);
+  const [loadingMatches, setLoadingMatches] = useState(false);
+  const [selectedMatch, setSelectedMatch] = useState<UpcomingMatch | null>(null);
+  const [matchFilter, setMatchFilter] = useState<string>("all");
+  const [dateFilter, setDateFilter] = useState<string>("all");
+  
   // Form states
   const [newCode, setNewCode] = useState({ code: "", type: "standard", maxUses: 1 });
   const [editingPrediction, setEditingPrediction] = useState<Prediction | null>(null);
   const [newPrediction, setNewPrediction] = useState({
     home: "",
     away: "",
+    homeLogo: "",
+    awayLogo: "",
     prediction: "",
     odds: "",
-    leagueId: "superlig",
-    time: "21:00",
+    leagueId: "",
+    leagueName: "",
+    leagueLogo: "",
+    time: "",
     date: "",
     analysis: "",
+    confidence: "medium",
     isHero: false
   });
 
@@ -111,10 +140,10 @@ export default function AdminPage() {
     loadAllData();
   }, [user, setLocation]);
 
-  // Load teams when predictions tab is active
+  // Load matches when predictions tab is active
   useEffect(() => {
-    if (activeTab === "predictions" && newPrediction.leagueId !== 'superlig') {
-      loadTeamsFromApi(newPrediction.leagueId);
+    if (activeTab === "predictions" && upcomingMatches.length === 0) {
+      loadUpcomingMatches();
     }
   }, [activeTab]);
 
@@ -123,6 +152,87 @@ export default function AdminPage() {
     loadUsers();
     loadPredictions();
     loadWonPredictions();
+  };
+
+  const loadUpcomingMatches = async () => {
+    setLoadingMatches(true);
+    try {
+      const res = await fetch('/api/football/upcoming-matches');
+      if (res.ok) {
+        const matches = await res.json();
+        setUpcomingMatches(matches);
+      }
+    } catch (error) {
+      console.error('Failed to load upcoming matches:', error);
+      toast({ variant: "destructive", description: "Maçlar yüklenemedi." });
+    } finally {
+      setLoadingMatches(false);
+    }
+  };
+
+  const handleSelectMatch = (match: UpcomingMatch) => {
+    setSelectedMatch(match);
+    setNewPrediction({
+      home: match.homeTeam.shortName,
+      away: match.awayTeam.shortName,
+      homeLogo: match.homeTeam.logo,
+      awayLogo: match.awayTeam.logo,
+      prediction: "",
+      odds: "",
+      leagueId: match.competition.code.toLowerCase(),
+      leagueName: match.competition.name,
+      leagueLogo: match.competition.logo,
+      time: match.localTime,
+      date: match.utcDate.split('T')[0],
+      analysis: "",
+      confidence: "medium",
+      isHero: false
+    });
+  };
+
+  const handleCancelSelection = () => {
+    setSelectedMatch(null);
+    setNewPrediction({
+      home: "", away: "", homeLogo: "", awayLogo: "",
+      prediction: "", odds: "", leagueId: "", leagueName: "", leagueLogo: "",
+      time: "", date: "", analysis: "", confidence: "medium", isHero: false
+    });
+  };
+
+  const getFilteredMatches = () => {
+    let filtered = upcomingMatches;
+    
+    if (matchFilter !== "all") {
+      filtered = filtered.filter(m => m.competition.code === matchFilter);
+    }
+    
+    if (dateFilter !== "all") {
+      const today = new Date().toISOString().split('T')[0];
+      const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      
+      if (dateFilter === "today") {
+        filtered = filtered.filter(m => m.utcDate.split('T')[0] === today);
+      } else if (dateFilter === "tomorrow") {
+        filtered = filtered.filter(m => m.utcDate.split('T')[0] === tomorrow);
+      }
+    }
+    
+    return filtered;
+  };
+
+  const getUniqueDates = () => {
+    const dates = [...new Set(upcomingMatches.map(m => m.localDate))];
+    return dates;
+  };
+
+  const getUniqueLeagues = () => {
+    const leaguesMap = new Map();
+    upcomingMatches.forEach(m => {
+      if (!leaguesMap.has(m.competition.code)) {
+        leaguesMap.set(m.competition.code, { code: m.competition.code, name: m.competition.name, logo: m.competition.logo });
+      }
+    });
+    return Array.from(leaguesMap.values());
   };
 
   const loadTeamsFromApi = async (leagueId: string) => {
@@ -245,7 +355,11 @@ export default function AdminPage() {
   // Prediction handlers
   const handleCreatePrediction = async () => {
     if (!newPrediction.home || !newPrediction.away || !newPrediction.prediction) {
-      toast({ variant: "destructive", description: "Ev sahibi, deplasman ve tahmin zorunludur." });
+      toast({ variant: "destructive", description: "Takımlar ve tahmin zorunludur." });
+      return;
+    }
+    if (!newPrediction.odds) {
+      toast({ variant: "destructive", description: "Oran giriniz." });
       return;
     }
     try {
@@ -255,19 +369,24 @@ export default function AdminPage() {
         body: JSON.stringify({
           home_team: newPrediction.home,
           away_team: newPrediction.away,
+          home_logo: newPrediction.homeLogo,
+          away_logo: newPrediction.awayLogo,
           league_id: newPrediction.leagueId,
+          league_name: newPrediction.leagueName,
+          league_logo: newPrediction.leagueLogo,
           prediction: newPrediction.prediction,
-          odds: newPrediction.odds || "1.00",
+          odds: newPrediction.odds,
           match_time: newPrediction.time,
           match_date: newPrediction.date || null,
           analysis: newPrediction.analysis,
+          confidence: newPrediction.confidence,
           is_hero: newPrediction.isHero
         }),
         credentials: 'include'
       });
       if (res.ok) {
-        toast({ description: "Tahmin eklendi.", className: "bg-green-500 text-white border-none" });
-        setNewPrediction({ home: "", away: "", prediction: "", odds: "", leagueId: "superlig", time: "21:00", date: "", analysis: "", isHero: false });
+        toast({ description: "Tahmin eklendi!", className: "bg-green-500 text-white border-none" });
+        handleCancelSelection();
         loadPredictions();
       }
     } catch (error) {
@@ -423,117 +542,202 @@ export default function AdminPage() {
         {/* Predictions Tab */}
         {activeTab === "predictions" && (
           <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-1">Tahmin Yönetimi</h2>
-              <p className="text-zinc-400">Günün tahminlerini ekleyin, düzenleyin ve sonuçlandırın.</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-white mb-1">Tahmin Yönetimi</h2>
+                <p className="text-zinc-400">Maç seçin, tahmin girin, yayınlayın.</p>
+              </div>
+              <Button variant="outline" onClick={loadUpcomingMatches} disabled={loadingMatches} className="border-white/10 text-white">
+                <RefreshCcw className={`w-4 h-4 mr-2 ${loadingMatches ? 'animate-spin' : ''}`} /> Maçları Yenile
+              </Button>
             </div>
 
-            {/* Add New Prediction Form */}
-            <Card className="bg-zinc-900 border-white/5">
-              <CardHeader>
-                <CardTitle className="text-primary flex items-center gap-2">
-                  <Plus className="w-5 h-5" /> Yeni Tahmin Ekle
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {/* League Selection */}
-                <div className="space-y-2">
-                  <Label className="text-zinc-400">Lig</Label>
-                  <Select value={newPrediction.leagueId} onValueChange={(val) => { loadTeamsFromApi(val); setNewPrediction({...newPrediction, leagueId: val, home: "", away: ""}); }}>
-                    <SelectTrigger className="bg-black border-white/10 text-white">
-                      <SelectValue placeholder="Lig Seçiniz" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-zinc-900 border-white/10 text-white">
-                      {leagues.map(league => (
-                        <SelectItem key={league.id} value={league.id}>
-                          <div className="flex items-center gap-2">
-                            <img src={league.logo} alt={league.name} className="w-4 h-4 object-contain" />
-                            {league.name}
+            {/* Selected Match - Prediction Form */}
+            {selectedMatch && (
+              <Card className="bg-gradient-to-br from-zinc-900 to-zinc-800 border-primary/30">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-primary flex items-center gap-2">
+                      <Plus className="w-5 h-5" /> Tahmin Ekle
+                    </CardTitle>
+                    <Button variant="ghost" size="sm" onClick={handleCancelSelection} className="text-zinc-400 hover:text-white">
+                      <XCircle className="w-4 h-4 mr-1" /> İptal
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Selected Match Display */}
+                  <div className="bg-black/40 rounded-xl p-4 flex items-center justify-center gap-6">
+                    <div className="flex flex-col items-center gap-2">
+                      <img src={newPrediction.homeLogo} alt={newPrediction.home} className="w-12 h-12 object-contain" onError={(e) => { e.currentTarget.src = '/placeholder-team.png'; }} />
+                      <span className="text-white font-bold text-sm">{newPrediction.home}</span>
+                    </div>
+                    <div className="flex flex-col items-center">
+                      <span className="text-zinc-500 text-xs">{newPrediction.date}</span>
+                      <span className="text-2xl font-black text-primary">VS</span>
+                      <span className="text-zinc-400 text-sm">{newPrediction.time}</span>
+                    </div>
+                    <div className="flex flex-col items-center gap-2">
+                      <img src={newPrediction.awayLogo} alt={newPrediction.away} className="w-12 h-12 object-contain" onError={(e) => { e.currentTarget.src = '/placeholder-team.png'; }} />
+                      <span className="text-white font-bold text-sm">{newPrediction.away}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 justify-center">
+                    <img src={newPrediction.leagueLogo} alt="" className="w-5 h-5 object-contain" />
+                    <span className="text-zinc-400 text-sm">{newPrediction.leagueName}</span>
+                  </div>
+
+                  {/* Prediction Inputs */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-zinc-400">Tahmin *</Label>
+                      <Select value={newPrediction.prediction} onValueChange={(val) => setNewPrediction({...newPrediction, prediction: val})}>
+                        <SelectTrigger className="bg-black border-white/10 text-white">
+                          <SelectValue placeholder="Tahmin Seç" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                          <SelectItem value="MS 1">MS 1 (Ev Sahibi Kazanır)</SelectItem>
+                          <SelectItem value="MS X">MS X (Beraberlik)</SelectItem>
+                          <SelectItem value="MS 2">MS 2 (Deplasman Kazanır)</SelectItem>
+                          <SelectItem value="1X">1X (Ev Sahibi Kaybetmez)</SelectItem>
+                          <SelectItem value="X2">X2 (Deplasman Kaybetmez)</SelectItem>
+                          <SelectItem value="12">12 (Beraberlik Olmaz)</SelectItem>
+                          <SelectItem value="2.5 ÜST">2.5 Üst (3+ Gol)</SelectItem>
+                          <SelectItem value="2.5 ALT">2.5 Alt (0-2 Gol)</SelectItem>
+                          <SelectItem value="1.5 ÜST">1.5 Üst (2+ Gol)</SelectItem>
+                          <SelectItem value="3.5 ÜST">3.5 Üst (4+ Gol)</SelectItem>
+                          <SelectItem value="KG VAR">KG Var (İki Takım da Gol Atar)</SelectItem>
+                          <SelectItem value="KG YOK">KG Yok</SelectItem>
+                          <SelectItem value="İY MS 1-1">İY/MS 1-1</SelectItem>
+                          <SelectItem value="İY MS 2-2">İY/MS 2-2</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-zinc-400">Oran *</Label>
+                      <Input value={newPrediction.odds} onChange={(e) => setNewPrediction({...newPrediction, odds: e.target.value})} placeholder="1.85" className="bg-black border-white/10 text-white" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-zinc-400">Güven</Label>
+                      <Select value={newPrediction.confidence} onValueChange={(val) => setNewPrediction({...newPrediction, confidence: val})}>
+                        <SelectTrigger className="bg-black border-white/10 text-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                          <SelectItem value="low">🔵 Düşük</SelectItem>
+                          <SelectItem value="medium">🟡 Orta</SelectItem>
+                          <SelectItem value="high">🔴 Yüksek</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-zinc-400">Analiz</Label>
+                    <Textarea value={newPrediction.analysis} onChange={(e) => setNewPrediction({...newPrediction, analysis: e.target.value})} className="bg-black border-white/10 text-white min-h-[80px]" placeholder="Maç hakkında kısa analiz yazın..." />
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2">
+                    <div className="flex items-center gap-2">
+                      <Switch checked={newPrediction.isHero} onCheckedChange={(checked) => setNewPrediction({...newPrediction, isHero: checked})} />
+                      <Label className="text-zinc-400">Günün Öne Çıkan Tahmini</Label>
+                    </div>
+                    <Button onClick={handleCreatePrediction} className="bg-primary text-black font-bold hover:bg-white px-6">
+                      <Plus className="w-4 h-4 mr-2" /> Tahmin Yayınla
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Upcoming Matches List */}
+            {!selectedMatch && (
+              <Card className="bg-zinc-900 border-white/5">
+                <CardHeader className="pb-3">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <CardTitle className="text-white flex items-center gap-2">
+                      <Calendar className="w-5 h-5 text-primary" /> Yaklaşan Maçlar ({getFilteredMatches().length})
+                    </CardTitle>
+                    <div className="flex gap-2">
+                      <Select value={dateFilter} onValueChange={setDateFilter}>
+                        <SelectTrigger className="w-[130px] bg-black border-white/10 text-white text-sm">
+                          <SelectValue placeholder="Tarih" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                          <SelectItem value="all">Tüm Günler</SelectItem>
+                          <SelectItem value="today">Bugün</SelectItem>
+                          <SelectItem value="tomorrow">Yarın</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Select value={matchFilter} onValueChange={setMatchFilter}>
+                        <SelectTrigger className="w-[180px] bg-black border-white/10 text-white text-sm">
+                          <SelectValue placeholder="Lig" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                          <SelectItem value="all">Tüm Ligler</SelectItem>
+                          {getUniqueLeagues().map(league => (
+                            <SelectItem key={league.code} value={league.code}>
+                              <div className="flex items-center gap-2">
+                                <img src={league.logo} alt="" className="w-4 h-4 object-contain" />
+                                {league.name}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                  {loadingMatches ? (
+                    <div className="p-8 text-center">
+                      <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto mb-2" />
+                      <p className="text-zinc-500">Maçlar yükleniyor...</p>
+                    </div>
+                  ) : getFilteredMatches().length === 0 ? (
+                    <div className="p-8 text-center text-zinc-500">
+                      {upcomingMatches.length === 0 ? "Maç bulunamadı. Yenilemek için butona tıklayın." : "Filtrelere uygun maç yok."}
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-white/5 max-h-[500px] overflow-y-auto">
+                      {getFilteredMatches().map((match) => (
+                        <div
+                          key={match.id}
+                          className="p-4 hover:bg-white/5 transition-colors cursor-pointer flex items-center justify-between group"
+                          onClick={() => handleSelectMatch(match)}
+                        >
+                          <div className="flex items-center gap-4 flex-1">
+                            <div className="text-center min-w-[60px]">
+                              <p className="text-xs text-zinc-500">{match.localDate}</p>
+                              <p className="text-sm font-bold text-white">{match.localTime}</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <img src={match.competition.logo} alt="" className="w-5 h-5 object-contain" />
+                              <span className="text-xs text-zinc-500 hidden md:inline">{match.competition.name}</span>
+                            </div>
+                            <div className="flex items-center gap-3 flex-1">
+                              <div className="flex items-center gap-2 flex-1 justify-end">
+                                <span className="text-white font-medium text-sm">{match.homeTeam.shortName}</span>
+                                <img src={match.homeTeam.logo} alt="" className="w-6 h-6 object-contain" onError={(e) => { e.currentTarget.style.opacity = '0.3'; }} />
+                              </div>
+                              <span className="text-zinc-600 font-bold text-xs">VS</span>
+                              <div className="flex items-center gap-2 flex-1">
+                                <img src={match.awayTeam.logo} alt="" className="w-6 h-6 object-contain" onError={(e) => { e.currentTarget.style.opacity = '0.3'; }} />
+                                <span className="text-white font-medium text-sm">{match.awayTeam.shortName}</span>
+                              </div>
+                            </div>
                           </div>
-                        </SelectItem>
+                          <Button size="sm" variant="ghost" className="opacity-0 group-hover:opacity-100 transition-opacity text-primary">
+                            <Plus className="w-4 h-4 mr-1" /> Tahmin Ekle
+                          </Button>
+                        </div>
                       ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-zinc-400">Ev Sahibi {loadingTeams && <Loader2 className="inline w-3 h-3 animate-spin ml-1" />}</Label>
-                    <Select value={newPrediction.home} onValueChange={(val) => setNewPrediction({...newPrediction, home: val})} disabled={loadingTeams}>
-                      <SelectTrigger className="bg-black border-white/10 text-white">
-                        <SelectValue placeholder={loadingTeams ? "Yükleniyor..." : "Ev Sahibi Seç"} />
-                      </SelectTrigger>
-                      <SelectContent className="bg-zinc-900 border-white/10 text-white max-h-[300px]">
-                        <SelectGroup>
-                          {getTeamsByLeague(newPrediction.leagueId).map(team => (
-                            <SelectItem key={team.id} value={team.name}>
-                              <div className="flex items-center gap-2">
-                                <img src={team.logo} alt={team.name} className="w-5 h-5 object-contain bg-white/10 rounded-sm" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-                                {team.name}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-zinc-400">Deplasman {loadingTeams && <Loader2 className="inline w-3 h-3 animate-spin ml-1" />}</Label>
-                    <Select value={newPrediction.away} onValueChange={(val) => setNewPrediction({...newPrediction, away: val})} disabled={loadingTeams}>
-                      <SelectTrigger className="bg-black border-white/10 text-white">
-                        <SelectValue placeholder={loadingTeams ? "Yükleniyor..." : "Deplasman Seç"} />
-                      </SelectTrigger>
-                      <SelectContent className="bg-zinc-900 border-white/10 text-white max-h-[300px]">
-                        <SelectGroup>
-                          {getTeamsByLeague(newPrediction.leagueId).map(team => (
-                            <SelectItem key={team.id} value={team.name}>
-                              <div className="flex items-center gap-2">
-                                <img src={team.logo} alt={team.name} className="w-5 h-5 object-contain bg-white/10 rounded-sm" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-                                {team.name}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-zinc-400">Tarih</Label>
-                    <Input type="date" value={newPrediction.date} onChange={(e) => setNewPrediction({...newPrediction, date: e.target.value})} className="bg-black border-white/10 text-white" data-testid="input-date" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-zinc-400">Saat</Label>
-                    <Input value={newPrediction.time} onChange={(e) => setNewPrediction({...newPrediction, time: e.target.value})} className="bg-black border-white/10 text-white" data-testid="input-time" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-zinc-400">Tahmin</Label>
-                    <Input value={newPrediction.prediction} onChange={(e) => setNewPrediction({...newPrediction, prediction: e.target.value})} placeholder="MS 1, 2.5 Üst, vb." className="bg-black border-white/10 text-white" data-testid="input-prediction" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-zinc-400">Oran</Label>
-                    <Input value={newPrediction.odds} onChange={(e) => setNewPrediction({...newPrediction, odds: e.target.value})} placeholder="2.10" className="bg-black border-white/10 text-white" data-testid="input-odds" />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-zinc-400">Analiz</Label>
-                  <Textarea value={newPrediction.analysis} onChange={(e) => setNewPrediction({...newPrediction, analysis: e.target.value})} className="bg-black border-white/10 text-white min-h-[80px]" placeholder="Maç analizi..." data-testid="input-analysis" />
-                </div>
-
-                <div className="flex items-center justify-between pt-2">
-                  <div className="flex items-center gap-2">
-                    <Switch checked={newPrediction.isHero} onCheckedChange={(checked) => setNewPrediction({...newPrediction, isHero: checked})} />
-                    <Label className="text-zinc-400">Günün Tahmini (Hero) olarak ayarla</Label>
-                  </div>
-                  <Button onClick={handleCreatePrediction} className="bg-primary text-black font-bold hover:bg-white" data-testid="button-add-prediction">
-                    <Plus className="w-4 h-4 mr-2" /> Tahmin Ekle
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* Active Predictions List */}
             <Card className="bg-zinc-900 border-white/5">
