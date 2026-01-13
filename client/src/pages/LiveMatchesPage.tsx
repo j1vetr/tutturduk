@@ -3,7 +3,7 @@ import { MobileLayout } from "@/components/MobileLayout";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, Filter, Loader2, CheckCircle } from "lucide-react";
+import { Search, Loader2, CheckCircle, RefreshCcw } from "lucide-react";
 
 interface FinishedMatch {
   id: number;
@@ -17,10 +17,13 @@ interface FinishedMatch {
   status: string;
 }
 
+type DateFilter = 'all' | 'today' | 'yesterday';
+
 export default function LiveMatchesPage() {
   const [matches, setMatches] = useState<FinishedMatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [dateFilter, setDateFilter] = useState<DateFilter>('all');
 
   useEffect(() => {
     loadFinishedMatches();
@@ -41,11 +44,20 @@ export default function LiveMatchesPage() {
     }
   };
 
-  const filteredMatches = matches.filter(m => 
-    m.homeTeam.name.toLowerCase().includes(search.toLowerCase()) ||
-    m.awayTeam.name.toLowerCase().includes(search.toLowerCase()) ||
-    m.league.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const today = new Date().toLocaleDateString('tr-TR');
+  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toLocaleDateString('tr-TR');
+
+  const filteredMatches = matches.filter(m => {
+    const matchesSearch = m.homeTeam.name.toLowerCase().includes(search.toLowerCase()) ||
+      m.awayTeam.name.toLowerCase().includes(search.toLowerCase()) ||
+      m.league.name.toLowerCase().includes(search.toLowerCase());
+    
+    if (!matchesSearch) return false;
+    
+    if (dateFilter === 'today') return m.localDate === today;
+    if (dateFilter === 'yesterday') return m.localDate === yesterday;
+    return true;
+  });
 
   const groupedByDate = filteredMatches.reduce((acc, match) => {
     const date = match.localDate;
@@ -54,36 +66,72 @@ export default function LiveMatchesPage() {
     return acc;
   }, {} as Record<string, FinishedMatch[]>);
 
+  const todayCount = matches.filter(m => m.localDate === today).length;
+  const yesterdayCount = matches.filter(m => m.localDate === yesterday).length;
+
   return (
     <MobileLayout activeTab="live">
       <div className="space-y-6 pb-20">
         <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <CheckCircle className="w-6 h-6 text-emerald-500" />
-            <h2 className="text-2xl font-display font-black text-white tracking-tight">BİTEN MAÇLAR</h2>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-6 h-6 text-emerald-500" />
+              <h2 className="text-2xl font-display font-black text-white tracking-tight">BİTEN MAÇLAR</h2>
+            </div>
+            <button 
+              onClick={loadFinishedMatches}
+              className="p-2 rounded-lg bg-zinc-800 text-zinc-400 hover:text-white transition-colors"
+            >
+              <RefreshCcw className="w-4 h-4" />
+            </button>
           </div>
           <p className="text-xs text-zinc-400 font-medium">Dün ve bugün oynanan maçların sonuçları</p>
         </div>
 
-        <div className="flex gap-3">
-          <div className="relative flex-1 group">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-zinc-700 to-zinc-800 rounded-xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
-            <div className="relative flex items-center bg-black rounded-xl border border-white/10 px-3 h-11">
-              <Search className="w-4 h-4 text-zinc-500 mr-2" />
-              <Input 
-                placeholder="Takım veya lig ara..." 
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="bg-transparent border-none h-full text-xs placeholder:text-zinc-600 focus-visible:ring-0 p-0" 
-              />
-            </div>
-          </div>
-          <button 
-            onClick={loadFinishedMatches}
-            className="w-11 h-11 bg-black border border-white/10 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:border-emerald-500/30 transition-all shadow-lg active:scale-95"
+        <div className="flex gap-2">
+          <button
+            onClick={() => setDateFilter('all')}
+            className={`flex-1 text-xs py-2 px-3 rounded-lg border transition-colors ${
+              dateFilter === 'all'
+                ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-700'
+            }`}
           >
-            <Filter className="w-4 h-4" />
+            Tümü ({matches.length})
           </button>
+          <button
+            onClick={() => setDateFilter('today')}
+            className={`flex-1 text-xs py-2 px-3 rounded-lg border transition-colors ${
+              dateFilter === 'today'
+                ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-700'
+            }`}
+          >
+            Bugün ({todayCount})
+          </button>
+          <button
+            onClick={() => setDateFilter('yesterday')}
+            className={`flex-1 text-xs py-2 px-3 rounded-lg border transition-colors ${
+              dateFilter === 'yesterday'
+                ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-700'
+            }`}
+          >
+            Dün ({yesterdayCount})
+          </button>
+        </div>
+
+        <div className="relative group">
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-zinc-700 to-zinc-800 rounded-xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
+          <div className="relative flex items-center bg-black rounded-xl border border-white/10 px-3 h-11">
+            <Search className="w-4 h-4 text-zinc-500 mr-2" />
+            <Input 
+              placeholder="Takım veya lig ara..." 
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="bg-transparent border-none h-full text-xs placeholder:text-zinc-600 focus-visible:ring-0 p-0" 
+            />
+          </div>
         </div>
 
         {loading ? (
@@ -100,7 +148,9 @@ export default function LiveMatchesPage() {
               <div key={date} className="space-y-3">
                 <div className="flex items-center gap-2">
                   <div className="w-1 h-4 bg-emerald-500 rounded-full" />
-                  <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">{date}</span>
+                  <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+                    {date === today ? 'Bugün' : date === yesterday ? 'Dün' : date}
+                  </span>
                   <Badge className="bg-zinc-800 text-zinc-400 border-zinc-700 text-[10px]">{dateMatches.length} maç</Badge>
                 </div>
                 
