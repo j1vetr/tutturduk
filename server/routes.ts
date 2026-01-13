@@ -758,7 +758,10 @@ export async function registerRoutes(
 
   // Admin: publish a match
   app.post('/api/admin/matches/publish', async (req, res) => {
-    const user = req.session?.user as any;
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+    const user = await storage.getUser(req.session.userId);
     if (!user || user.role !== 'admin') {
       return res.status(403).json({ message: 'Yetkiniz yok' });
     }
@@ -839,7 +842,10 @@ export async function registerRoutes(
 
   // Admin: unpublish a match
   app.delete('/api/admin/matches/:id', async (req, res) => {
-    const user = req.session?.user as any;
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+    const user = await storage.getUser(req.session.userId);
     if (!user || user.role !== 'admin') {
       return res.status(403).json({ message: 'Yetkiniz yok' });
     }
@@ -854,7 +860,10 @@ export async function registerRoutes(
 
   // Admin: update match status
   app.patch('/api/admin/matches/:id', async (req, res) => {
-    const user = req.session?.user as any;
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+    const user = await storage.getUser(req.session.userId);
     if (!user || user.role !== 'admin') {
       return res.status(403).json({ message: 'Yetkiniz yok' });
     }
@@ -882,7 +891,10 @@ export async function registerRoutes(
 
   // Admin: get all published matches (including finished)
   app.get('/api/admin/matches', async (req, res) => {
-    const user = req.session?.user as any;
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+    const user = await storage.getUser(req.session.userId);
     if (!user || user.role !== 'admin') {
       return res.status(403).json({ message: 'Yetkiniz yok' });
     }
