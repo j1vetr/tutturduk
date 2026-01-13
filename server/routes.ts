@@ -490,7 +490,13 @@ export async function registerRoutes(
   // Public coupon routes
   app.get('/api/coupons', async (req, res) => {
     const coupons = await storage.getAllCoupons();
-    res.json(coupons);
+    const couponsWithPredictions = await Promise.all(
+      coupons.slice(0, 3).map(async (coupon) => {
+        const couponWithPreds = await storage.getCouponWithPredictions(coupon.id);
+        return couponWithPreds || coupon;
+      })
+    );
+    res.json(couponsWithPredictions);
   });
 
   app.get('/api/coupons/date/:date', async (req, res) => {
