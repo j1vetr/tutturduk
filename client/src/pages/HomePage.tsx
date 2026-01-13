@@ -94,10 +94,10 @@ export default function HomePage() {
                 return (
                   <div 
                     key={match.id} 
-                    className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden cursor-pointer hover:border-zinc-700 transition-colors"
+                    className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden cursor-pointer active:bg-zinc-800 transition-colors"
                     onClick={() => setLocation(`/match/${match.id}`)}
                   >
-                    <div className="px-4 py-2 flex items-center justify-between border-b border-zinc-800/50 bg-zinc-900/50">
+                    <div className="px-3 py-2 flex items-center justify-between border-b border-zinc-800/50">
                       <div className="flex items-center gap-2">
                         {match.league_logo && <img src={match.league_logo} className="w-4 h-4" alt="" />}
                         <span className="text-[11px] text-zinc-500">{match.league_name}</span>
@@ -110,61 +110,53 @@ export default function HomePage() {
                       </span>
                     </div>
 
-                    <div className="p-4">
-                      <div className="flex items-center">
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                          <div className="w-10 h-10 rounded-lg bg-zinc-800 p-1.5 flex-shrink-0">
+                    <div className="p-3">
+                      <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-lg bg-zinc-800 p-1 flex-shrink-0">
                             {match.home_logo ? (
                               <img src={match.home_logo} alt="" className="w-full h-full object-contain" />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center text-xs font-bold text-zinc-400">
+                              <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-zinc-400">
                                 {match.home_team.substring(0, 2)}
                               </div>
                             )}
                           </div>
-                          <span className="text-white font-medium text-sm truncate">{match.home_team}</span>
+                          <span className="text-white font-medium text-sm">{match.home_team}</span>
                         </div>
 
-                        <div className="px-4 text-center flex-shrink-0">
-                          <span className="text-lg font-bold text-white">{match.match_time}</span>
+                        <div className="text-center px-2">
+                          <span className="text-base font-bold text-white">{match.match_time}</span>
                         </div>
 
-                        <div className="flex items-center gap-3 flex-1 min-w-0 justify-end">
-                          <span className="text-white font-medium text-sm truncate text-right">{match.away_team}</span>
-                          <div className="w-10 h-10 rounded-lg bg-zinc-800 p-1.5 flex-shrink-0">
+                        <div className="flex items-center gap-2 justify-end">
+                          <span className="text-white font-medium text-sm text-right">{match.away_team}</span>
+                          <div className="w-8 h-8 rounded-lg bg-zinc-800 p-1 flex-shrink-0">
                             {match.away_logo ? (
                               <img src={match.away_logo} alt="" className="w-full h-full object-contain" />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center text-xs font-bold text-zinc-400">
+                              <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-zinc-400">
                                 {match.away_team.substring(0, 2)}
                               </div>
                             )}
                           </div>
                         </div>
-
-                        <ChevronRight className="w-5 h-5 text-zinc-700 ml-2 flex-shrink-0" />
                       </div>
 
                       {(homePercent > 0 || awayPercent > 0) && (
-                        <div className="mt-3 pt-3 border-t border-zinc-800/50">
-                          <div className="flex items-center gap-3">
-                            <div className="flex-1">
-                              <div className="h-1 w-full bg-zinc-800 rounded-full overflow-hidden">
-                                <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${homePercent}%` }} />
-                              </div>
-                            </div>
-                            <span className="text-[10px] text-zinc-500 w-16 text-center">{homePercent}% - {awayPercent}%</span>
-                            <div className="flex-1">
-                              <div className="h-1 w-full bg-zinc-800 rounded-full overflow-hidden">
-                                <div className="h-full bg-zinc-400 rounded-full float-right" style={{ width: `${awayPercent}%` }} />
-                              </div>
-                            </div>
+                        <div className="mt-3 flex items-center gap-2">
+                          <span className="text-[10px] text-emerald-400 font-medium w-8">{homePercent}%</span>
+                          <div className="flex-1 h-1 bg-zinc-800 rounded-full overflow-hidden flex">
+                            <div className="bg-emerald-500 rounded-l-full" style={{ width: `${homePercent}%` }} />
+                            <div className="flex-1" />
+                            <div className="bg-zinc-400 rounded-r-full" style={{ width: `${awayPercent}%` }} />
                           </div>
+                          <span className="text-[10px] text-zinc-400 font-medium w-8 text-right">{awayPercent}%</span>
                         </div>
                       )}
 
                       {match.api_winner_name && (
-                        <div className="mt-3 text-xs text-emerald-400">
+                        <div className="mt-2 text-[11px] text-emerald-400">
                           Tahmin: {match.api_winner_name} kazanır
                         </div>
                       )}
@@ -176,9 +168,9 @@ export default function HomePage() {
           )}
         </div>
 
-        <div className="text-[10px] text-zinc-600 leading-relaxed px-1">
+        <p className="text-[10px] text-zinc-600 leading-relaxed">
           Bu platform yatırım garantisi vermez. Bahis oynamak risk içerir. 18 yaş altı kullanımı yasaktır.
-        </div>
+        </p>
       </div>
     </MobileLayout>
   );

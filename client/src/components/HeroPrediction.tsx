@@ -97,46 +97,46 @@ export function HeroPrediction() {
         )}
       </div>
 
-      <div className="p-5">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4 flex-1">
-            <div className="w-14 h-14 rounded-xl bg-zinc-800 p-2 flex items-center justify-center">
+      <div className="p-4">
+        <div className="grid grid-cols-3 gap-2 items-center">
+          <div className="flex flex-col items-center text-center">
+            <div className="w-14 h-14 rounded-xl bg-zinc-800 p-2 mb-2">
               {match.home_logo ? (
                 <img src={match.home_logo} alt="" className="w-full h-full object-contain" />
               ) : (
-                <span className="text-lg font-bold text-white">{match.home_team.substring(0, 2)}</span>
+                <div className="w-full h-full flex items-center justify-center text-lg font-bold text-white">
+                  {match.home_team.substring(0, 2)}
+                </div>
               )}
             </div>
-            <div>
-              <p className="text-white font-bold">{match.home_team}</p>
-              <p className="text-[11px] text-zinc-600">Ev sahibi</p>
-            </div>
+            <p className="text-white font-bold text-sm leading-tight">{match.home_team}</p>
+            <p className="text-[10px] text-zinc-600 mt-0.5">Ev sahibi</p>
           </div>
 
-          <div className="px-6 text-center">
+          <div className="text-center">
             <p className="text-2xl font-black text-white">{match.match_time}</p>
             <p className="text-[10px] text-zinc-600 mt-1">
               {new Date(match.match_date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
             </p>
           </div>
 
-          <div className="flex items-center gap-4 flex-1 justify-end">
-            <div className="text-right">
-              <p className="text-white font-bold">{match.away_team}</p>
-              <p className="text-[11px] text-zinc-600">Deplasman</p>
-            </div>
-            <div className="w-14 h-14 rounded-xl bg-zinc-800 p-2 flex items-center justify-center">
+          <div className="flex flex-col items-center text-center">
+            <div className="w-14 h-14 rounded-xl bg-zinc-800 p-2 mb-2">
               {match.away_logo ? (
                 <img src={match.away_logo} alt="" className="w-full h-full object-contain" />
               ) : (
-                <span className="text-lg font-bold text-white">{match.away_team.substring(0, 2)}</span>
+                <div className="w-full h-full flex items-center justify-center text-lg font-bold text-white">
+                  {match.away_team.substring(0, 2)}
+                </div>
               )}
             </div>
+            <p className="text-white font-bold text-sm leading-tight">{match.away_team}</p>
+            <p className="text-[10px] text-zinc-600 mt-0.5">Deplasman</p>
           </div>
         </div>
 
         {(homePercent > 0 || awayPercent > 0) && (
-          <div className="mt-5 pt-4 border-t border-zinc-800">
+          <div className="mt-4 pt-4 border-t border-zinc-800">
             <div className="flex items-center justify-between text-xs mb-2">
               <span className="text-emerald-400 font-bold">{homePercent}%</span>
               <span className="text-zinc-600">{drawPercent}%</span>
