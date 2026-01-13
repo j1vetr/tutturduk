@@ -278,6 +278,11 @@ export const apiFootball = {
       season: season.toString()
     });
     return response.response;
+  },
+
+  async getLineups(fixtureId: number) {
+    const response = await apiRequest<any>('/fixtures/lineups', { fixture: fixtureId.toString() });
+    return response.response;
   }
 };
 

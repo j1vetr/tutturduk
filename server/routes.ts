@@ -756,6 +756,21 @@ export async function registerRoutes(
     }
   });
 
+  app.get('/api/matches/:id/lineups', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const match = await storage.getPublishedMatchById(id);
+      if (!match) {
+        return res.status(404).json({ message: 'Maç bulunamadı' });
+      }
+      const lineups = await apiFootball.getLineups(match.fixture_id);
+      res.json(lineups || []);
+    } catch (error: any) {
+      console.error('Lineups fetch error:', error);
+      res.json([]);
+    }
+  });
+
   // Admin: publish a match
   app.post('/api/admin/matches/publish', async (req, res) => {
     if (!req.session.userId) {
@@ -806,9 +821,14 @@ export async function registerRoutes(
         away_team: fixture.teams?.away?.name,
         home_logo: fixture.teams?.home?.logo,
         away_logo: fixture.teams?.away?.logo,
+        home_team_id: fixture.teams?.home?.id,
+        away_team_id: fixture.teams?.away?.id,
         league_id: fixture.league?.id,
         league_name: fixture.league?.name,
         league_logo: fixture.league?.logo,
+        venue_name: (fixture as any).fixture?.venue?.name,
+        venue_city: (fixture as any).fixture?.venue?.city,
+        referee: fixture.fixture?.referee,
         match_date: isoDate,
         match_time: localTime,
         timestamp: fixture.fixture?.timestamp,
