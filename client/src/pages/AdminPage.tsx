@@ -11,8 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { 
   LayoutDashboard, Users, Trophy, LogOut, Plus, Trash2, RefreshCcw, 
   CheckCircle, XCircle, Clock, Star, Ticket, Calendar, Loader2,
-  TrendingUp, Target, Zap, Eye, ChevronRight, Search, Filter,
-  BarChart3, Award, Sparkles, ArrowUpRight, ArrowDownRight
+  TrendingUp, Target, Zap, Eye, ChevronRight, ChevronDown, Search, Filter,
+  BarChart3, Award, Sparkles, ArrowUpRight, ArrowDownRight, Goal, Lock, Flame
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -117,6 +117,16 @@ export default function AdminPage() {
   const [loadingApiPrediction, setLoadingApiPrediction] = useState(false);
   const [matchFilter, setMatchFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [expandedDays, setExpandedDays] = useState<Set<string>>(new Set());
+  const [quickFilters, setQuickFilters] = useState({
+    over25: false,
+    under25: false,
+    kilit: false,
+    published: false,
+    unpublished: false,
+  });
+  const [matchPredictions, setMatchPredictions] = useState<Map<number, ApiPrediction>>(new Map());
+  const [loadingPredictions, setLoadingPredictions] = useState(false);
   
   // Coupon states
   const [coupons, setCoupons] = useState<Coupon[]>([]);
@@ -519,6 +529,117 @@ export default function AdminPage() {
     return Array.from(leaguesMap.values());
   };
 
+  const getMatchSignals = (fixtureId: number) => {
+    const pred = matchPredictions.get(fixtureId);
+    if (!pred) return { over25: false, under25: false, btts: false, kilit: false };
+    
+    const homeGoals = parseFloat(pred.goals?.home || '0');
+    const awayGoals = parseFloat(pred.goals?.away || '0');
+    const totalGoals = homeGoals + awayGoals;
+    
+    const homePercent = parseInt(pred.percent?.home?.replace('%', '') || '0');
+    const awayPercent = parseInt(pred.percent?.away?.replace('%', '') || '0');
+    const drawPercent = parseInt(pred.percent?.draw?.replace('%', '') || '0');
+    
+    const over25 = totalGoals >= 2.5;
+    const under25 = totalGoals < 2.0;
+    const btts = homeGoals >= 0.8 && awayGoals >= 0.8;
+    const kilit = drawPercent >= 25 && Math.abs(homePercent - awayPercent) < 20;
+    
+    return { over25, under25, btts, kilit };
+  };
+
+  const groupMatchesByDate = (matches: UpcomingMatch[]) => {
+    const groups: { [key: string]: UpcomingMatch[] } = {};
+    matches.forEach(match => {
+      const dateKey = match.date.split('T')[0];
+      if (!groups[dateKey]) groups[dateKey] = [];
+      groups[dateKey].push(match);
+    });
+    return Object.entries(groups)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, matches]) => ({
+        date,
+        displayDate: new Date(date).toLocaleDateString('tr-TR', { 
+          weekday: 'long', 
+          day: 'numeric', 
+          month: 'long', 
+          year: 'numeric' 
+        }).toUpperCase(),
+        matches: matches.sort((a, b) => a.timestamp - b.timestamp)
+      }));
+  };
+
+  const getDaySummary = (matches: UpcomingMatch[]) => {
+    let over25Count = 0, under25Count = 0, kilitCount = 0, publishedCount = 0;
+    matches.forEach(m => {
+      const signals = getMatchSignals(m.id);
+      if (signals.over25) over25Count++;
+      if (signals.under25) under25Count++;
+      if (signals.kilit) kilitCount++;
+      if (isMatchPublished(m.id)) publishedCount++;
+    });
+    return { total: matches.length, over25Count, under25Count, kilitCount, publishedCount };
+  };
+
+  const getAdvancedFilteredMatches = () => {
+    let filtered = getFilteredMatches();
+    
+    if (quickFilters.over25) {
+      filtered = filtered.filter(m => getMatchSignals(m.id).over25);
+    }
+    if (quickFilters.under25) {
+      filtered = filtered.filter(m => getMatchSignals(m.id).under25);
+    }
+    if (quickFilters.kilit) {
+      filtered = filtered.filter(m => getMatchSignals(m.id).kilit);
+    }
+    if (quickFilters.published) {
+      filtered = filtered.filter(m => isMatchPublished(m.id));
+    }
+    if (quickFilters.unpublished) {
+      filtered = filtered.filter(m => !isMatchPublished(m.id));
+    }
+    
+    return filtered;
+  };
+
+  const toggleDay = (date: string) => {
+    const newExpanded = new Set(expandedDays);
+    if (newExpanded.has(date)) {
+      newExpanded.delete(date);
+    } else {
+      newExpanded.add(date);
+    }
+    setExpandedDays(newExpanded);
+  };
+
+  const loadAllPredictions = async () => {
+    if (upcomingMatches.length === 0) return;
+    setLoadingPredictions(true);
+    const newPreds = new Map<number, ApiPrediction>();
+    
+    const batchSize = 5;
+    for (let i = 0; i < upcomingMatches.length; i += batchSize) {
+      const batch = upcomingMatches.slice(i, i + batchSize);
+      await Promise.all(batch.map(async (match) => {
+        try {
+          const res = await fetch(`/api/football/predictions/${match.id}`);
+          if (res.ok) {
+            const data = await res.json();
+            newPreds.set(match.id, data);
+          }
+        } catch (e) {}
+      }));
+    }
+    
+    setMatchPredictions(newPreds);
+    setLoadingPredictions(false);
+    
+    const today = new Date().toISOString().split('T')[0];
+    setExpandedDays(new Set([today]));
+  };
+
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return "-";
     return new Date(dateStr).toLocaleDateString('tr-TR');
@@ -892,16 +1013,35 @@ export default function AdminPage() {
                 </div>
               )}
 
-              {/* Match Selection - Premium Design */}
+              {/* Match Selection - Premium Design with Day Grouping */}
               <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-1 h-6 bg-blue-500 rounded-full" />
-                  <h3 className="text-lg font-bold text-white">Yaklaşan maçlar</h3>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-1 h-6 bg-blue-500 rounded-full" />
+                    <h3 className="text-lg font-bold text-white">Tüm Maçlar</h3>
+                    {matchPredictions.size > 0 && (
+                      <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+                        {matchPredictions.size} tahmin yüklendi
+                      </Badge>
+                    )}
+                  </div>
+                  <Button 
+                    onClick={loadAllPredictions} 
+                    disabled={loadingPredictions || upcomingMatches.length === 0}
+                    variant="outline" 
+                    className="border-blue-500/30 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400"
+                  >
+                    {loadingPredictions ? (
+                      <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Yükleniyor...</>
+                    ) : (
+                      <><BarChart3 className="w-4 h-4 mr-2" /> Tahminleri yükle</>
+                    )}
+                  </Button>
                 </div>
 
                 <div className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl border border-zinc-800 overflow-hidden">
                   {/* Search & Filter Bar */}
-                  <div className="p-4 border-b border-zinc-800 bg-zinc-900">
+                  <div className="p-4 border-b border-zinc-800 bg-zinc-900 space-y-3">
                     <div className="flex flex-wrap gap-3">
                       <div className="relative flex-1 min-w-[200px]">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
@@ -930,10 +1070,65 @@ export default function AdminPage() {
                         </SelectContent>
                       </Select>
                     </div>
+                    
+                    {/* Quick Filters */}
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        onClick={() => setQuickFilters(f => ({ ...f, over25: !f.over25 }))}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                          quickFilters.over25 
+                            ? 'bg-emerald-500 text-black' 
+                            : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                        }`}
+                      >
+                        <Goal className="w-3 h-3 inline mr-1" /> 2.5 ÜST
+                      </button>
+                      <button
+                        onClick={() => setQuickFilters(f => ({ ...f, under25: !f.under25 }))}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                          quickFilters.under25 
+                            ? 'bg-blue-500 text-white' 
+                            : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                        }`}
+                      >
+                        2.5 ALT
+                      </button>
+                      <button
+                        onClick={() => setQuickFilters(f => ({ ...f, kilit: !f.kilit }))}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                          quickFilters.kilit 
+                            ? 'bg-amber-500 text-black' 
+                            : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                        }`}
+                      >
+                        <Lock className="w-3 h-3 inline mr-1" /> Kilit Maç
+                      </button>
+                      <div className="w-px h-6 bg-zinc-700 mx-1" />
+                      <button
+                        onClick={() => setQuickFilters(f => ({ ...f, published: !f.published, unpublished: false }))}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                          quickFilters.published 
+                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
+                            : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                        }`}
+                      >
+                        Yayında
+                      </button>
+                      <button
+                        onClick={() => setQuickFilters(f => ({ ...f, unpublished: !f.unpublished, published: false }))}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                          quickFilters.unpublished 
+                            ? 'bg-zinc-600 text-white' 
+                            : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                        }`}
+                      >
+                        Yayınlanmamış
+                      </button>
+                    </div>
                   </div>
 
-                  {/* Match List */}
-                  <div className="max-h-[600px] overflow-y-auto">
+                  {/* Day-Grouped Match List */}
+                  <div className="max-h-[800px] overflow-y-auto">
                     {loadingMatches ? (
                       <div className="text-center py-16">
                         <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-emerald-500/20 flex items-center justify-center">
@@ -941,7 +1136,7 @@ export default function AdminPage() {
                         </div>
                         <p className="text-zinc-500">Maçlar yükleniyor...</p>
                       </div>
-                    ) : getFilteredMatches().length === 0 ? (
+                    ) : getAdvancedFilteredMatches().length === 0 ? (
                       <div className="text-center py-16">
                         <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-zinc-800 flex items-center justify-center">
                           <Calendar className="w-8 h-8 text-zinc-600" />
@@ -954,64 +1149,177 @@ export default function AdminPage() {
                         <p className="text-xs text-zinc-600 mt-1">Yukarıdan maçları getir butonuna tıklayın</p>
                       </div>
                     ) : (
-                      <div className="divide-y divide-zinc-800/50">
-                        {getFilteredMatches().map(match => {
-                          const published = isMatchPublished(match.id);
+                      <div>
+                        {groupMatchesByDate(getAdvancedFilteredMatches()).map(({ date, displayDate, matches }) => {
+                          const summary = getDaySummary(matches);
+                          const isExpanded = expandedDays.has(date);
+                          const isToday = date === new Date().toISOString().split('T')[0];
+                          
                           return (
-                            <div
-                              key={match.id}
-                              className={`p-4 transition-all hover:bg-white/[0.02] ${published ? 'bg-emerald-500/5' : ''}`}
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-5">
-                                  {/* Time */}
-                                  <div className="min-w-[70px] text-center">
-                                    <p className="text-[10px] text-zinc-600 uppercase">{match.localDate}</p>
-                                    <p className="text-lg font-black text-emerald-400">{match.localTime}</p>
-                                  </div>
-                                  
-                                  {/* League */}
-                                  <div className="w-8 h-8 rounded-lg bg-zinc-800 p-1.5">
-                                    <img src={match.league.logo} alt="" className="w-full h-full object-contain" />
-                                  </div>
-
-                                  {/* Teams */}
-                                  <div className="flex items-center gap-4">
-                                    <div className="flex items-center gap-2">
-                                      <img src={match.homeTeam.logo} alt="" className="w-8 h-8 object-contain" />
-                                      <span className="text-white font-semibold">{match.homeTeam.name}</span>
-                                    </div>
-                                    <span className="text-zinc-700 text-sm font-bold">vs</span>
-                                    <div className="flex items-center gap-2">
-                                      <img src={match.awayTeam.logo} alt="" className="w-8 h-8 object-contain" />
-                                      <span className="text-white font-semibold">{match.awayTeam.name}</span>
-                                    </div>
-                                  </div>
-                                </div>
-                                
-                                {/* Action */}
-                                <div>
-                                  {published ? (
-                                    <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 px-4 py-2 rounded-xl">
-                                      <CheckCircle className="w-4 h-4 mr-2" /> Yayında
-                                    </Badge>
+                            <div key={date} className="border-b border-zinc-800 last:border-b-0">
+                              {/* Day Header */}
+                              <button
+                                onClick={() => toggleDay(date)}
+                                className={`w-full px-4 py-3 flex items-center justify-between transition-all ${
+                                  isToday ? 'bg-emerald-500/10' : 'bg-zinc-900/50 hover:bg-zinc-800/50'
+                                }`}
+                              >
+                                <div className="flex items-center gap-3">
+                                  {isExpanded ? (
+                                    <ChevronDown className="w-5 h-5 text-zinc-500" />
                                   ) : (
-                                    <Button 
-                                      onClick={() => publishMatch(match)}
-                                      disabled={publishingId === match.id}
-                                      className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-black font-bold hover:from-emerald-400 hover:to-emerald-500 rounded-xl px-5"
-                                    >
-                                      {publishingId === match.id ? (
-                                        <Loader2 className="w-4 h-4 animate-spin" />
-                                      ) : (
-                                        <>
-                                          <Zap className="w-4 h-4 mr-2" /> Yayınla
-                                        </>
-                                      )}
-                                    </Button>
+                                    <ChevronRight className="w-5 h-5 text-zinc-500" />
+                                  )}
+                                  <span className={`font-bold ${isToday ? 'text-emerald-400' : 'text-white'}`}>
+                                    {isToday ? '📅 BUGÜN - ' : ''}{displayDate}
+                                  </span>
+                                  <Badge variant="outline" className="text-[10px] border-zinc-700 text-zinc-400">
+                                    {summary.total} maç
+                                  </Badge>
+                                </div>
+                                <div className="flex items-center gap-2 text-[10px]">
+                                  {summary.over25Count > 0 && (
+                                    <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400">
+                                      {summary.over25Count} ÜST
+                                    </span>
+                                  )}
+                                  {summary.under25Count > 0 && (
+                                    <span className="px-2 py-0.5 rounded bg-blue-500/20 text-blue-400">
+                                      {summary.under25Count} ALT
+                                    </span>
+                                  )}
+                                  {summary.kilitCount > 0 && (
+                                    <span className="px-2 py-0.5 rounded bg-amber-500/20 text-amber-400">
+                                      {summary.kilitCount} Kilit
+                                    </span>
+                                  )}
+                                  {summary.publishedCount > 0 && (
+                                    <span className="px-2 py-0.5 rounded bg-zinc-700 text-zinc-300">
+                                      {summary.publishedCount} yayında
+                                    </span>
                                   )}
                                 </div>
-                              </div>
+                              </button>
+                              
+                              {/* Day Matches */}
+                              {isExpanded && (
+                                <div className="divide-y divide-zinc-800/50">
+                                  {matches.map(match => {
+                                    const published = isMatchPublished(match.id);
+                                    const signals = getMatchSignals(match.id);
+                                    const hasPrediction = matchPredictions.has(match.id);
+                                    
+                                    return (
+                                      <div
+                                        key={match.id}
+                                        className={`p-4 transition-all hover:bg-white/[0.02] ${published ? 'bg-emerald-500/5' : ''}`}
+                                      >
+                                        <div className="flex items-center justify-between">
+                                          <div className="flex items-center gap-4">
+                                            {/* Time */}
+                                            <div className="min-w-[60px] text-center">
+                                              <p className="text-lg font-black text-emerald-400">{match.localTime}</p>
+                                            </div>
+                                            
+                                            {/* League */}
+                                            <div className="w-7 h-7 rounded-lg bg-zinc-800 p-1">
+                                              <img src={match.league.logo} alt="" className="w-full h-full object-contain" />
+                                            </div>
+
+                                            {/* Teams */}
+                                            <div className="flex items-center gap-3">
+                                              <div className="flex items-center gap-2">
+                                                <img src={match.homeTeam.logo} alt="" className="w-6 h-6 object-contain" />
+                                                <span className="text-white font-medium text-sm">{match.homeTeam.name}</span>
+                                              </div>
+                                              <span className="text-zinc-700 text-xs font-bold">vs</span>
+                                              <div className="flex items-center gap-2">
+                                                <img src={match.awayTeam.logo} alt="" className="w-6 h-6 object-contain" />
+                                                <span className="text-white font-medium text-sm">{match.awayTeam.name}</span>
+                                              </div>
+                                            </div>
+                                            
+                                            {/* Signal Badges */}
+                                            <div className="flex items-center gap-1 ml-2">
+                                              {signals.over25 && (
+                                                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                                  2.5Ü
+                                                </span>
+                                              )}
+                                              {signals.under25 && (
+                                                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">
+                                                  2.5A
+                                                </span>
+                                              )}
+                                              {signals.btts && (
+                                                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                                                  KG
+                                                </span>
+                                              )}
+                                              {signals.kilit && (
+                                                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                                                  <Lock className="w-2.5 h-2.5 inline" />
+                                                </span>
+                                              )}
+                                              {!hasPrediction && matchPredictions.size > 0 && (
+                                                <span className="px-1.5 py-0.5 rounded text-[9px] bg-zinc-700 text-zinc-500">
+                                                  Veri yok
+                                                </span>
+                                              )}
+                                            </div>
+                                          </div>
+                                          
+                                          {/* Status & Actions */}
+                                          <div className="flex items-center gap-2">
+                                            {published ? (
+                                              <>
+                                                <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px]">
+                                                  Yayında
+                                                </Badge>
+                                                <Button 
+                                                  variant="ghost" 
+                                                  size="sm"
+                                                  onClick={() => {
+                                                    const pm = publishedMatches.find(p => p.fixture_id === match.id);
+                                                    if (pm) unpublishMatch(pm.id);
+                                                  }}
+                                                  className="h-8 px-2 text-red-400 hover:bg-red-500/10"
+                                                >
+                                                  <Trash2 className="w-3.5 h-3.5" />
+                                                </Button>
+                                              </>
+                                            ) : (
+                                              <>
+                                                {hasPrediction ? (
+                                                  <Badge variant="outline" className="border-zinc-600 text-zinc-400 text-[10px]">
+                                                    Hazır
+                                                  </Badge>
+                                                ) : matchPredictions.size > 0 ? (
+                                                  <Badge variant="outline" className="border-red-500/30 text-red-400 text-[10px]">
+                                                    Eksik
+                                                  </Badge>
+                                                ) : null}
+                                                <Button 
+                                                  onClick={() => publishMatch(match)}
+                                                  disabled={publishingId === match.id}
+                                                  size="sm"
+                                                  className="h-8 bg-emerald-500 text-black font-bold hover:bg-emerald-400 text-xs"
+                                                >
+                                                  {publishingId === match.id ? (
+                                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                                  ) : (
+                                                    'Yayınla'
+                                                  )}
+                                                </Button>
+                                              </>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
                             </div>
                           );
                         })}

@@ -1,0 +1,119 @@
+We want to upgrade our ADMIN PANEL to give full control and visibility over daily match predictions.
+
+CURRENT ADMIN BEHAVIOR:
+- Admin panel fetches upcoming matches
+- Admin selects a match
+- Selected match appears in the prediction section (published)
+
+PROBLEMS TO SOLVE:
+1) Matches are not grouped by day
+2) Admin cannot clearly see which matches have Over 2.5 / Under 2.5 signals
+3) Only a few matches are shown — we want ALL matches with predictions for the selected day
+
+GLOBAL RULES:
+- Keep DARK admin UI style
+- No live data
+- Use existing API-Football data & prediction logic
+- This panel is for INTERNAL use only (can be more data-heavy)
+
+------------------------------------------------
+FEATURE 1) DAY-BASED MATCH GROUPING (VERY IMPORTANT)
+------------------------------------------------
+In the Admin Panel match list:
+
+- Group matches by DATE
+Example layout:
+
+=== 13 OCAK 2026 ===
+• 17:30 Stuttgart vs Frankfurt
+• 19:30 Dortmund vs Bremen
+
+=== 14 OCAK 2026 ===
+• 20:30 Napoli vs Parma
+• 22:30 Wolfsburg vs St. Pauli
+
+- Each day should be collapsible (accordion style)
+- Default: today expanded, future days collapsed
+
+------------------------------------------------
+FEATURE 2) SHOW OVER / UNDER 2.5 SIGNALS CLEARLY
+------------------------------------------------
+For each match row in admin list:
+
+ADD signal badges:
+- “2.5 ÜST”
+- “2.5 ALT”
+- “BTTS”
+- “Kilit Maç” (if applicable)
+
+Logic:
+- Use predictions data:
+  - If Over 2.5 probability >= threshold → show “2.5 ÜST”
+  - If Under 2.5 probability >= threshold → show “2.5 ALT”
+- If both are weak → show nothing (no forced label)
+
+Badges should be:
+- Color coded
+- Small
+- Visible at first glance
+
+------------------------------------------------
+FEATURE 3) SHOW ALL MATCHES WITH PREDICTIONS (NO LIMIT)
+------------------------------------------------
+Currently, admin panel shows only a limited number of matches.
+
+CHANGE THIS:
+- For the selected date range (today + upcoming days), show ALL matches that:
+  - Have prediction data
+  - Are not finished
+- Remove artificial limits (pagination is OK, but no hard cap)
+
+Admin must be able to see:
+- Every match with a prediction
+- Even if admin does not publish it
+
+------------------------------------------------
+FEATURE 4) QUICK FILTERS (ADMIN ONLY)
+------------------------------------------------
+Add quick filters at the top of the admin list:
+
+- [ ] Sadece 2.5 ÜST olanlar
+- [ ] Sadece 2.5 ALT olanlar
+- [ ] Sadece Kilit Maçlar
+- [ ] Sadece Yayınlananlar
+- [ ] Henüz Yayınlanmamışlar
+
+These filters should work instantly (client-side filtering is fine).
+
+------------------------------------------------
+FEATURE 5) MATCH STATUS & PUBLISH CONTROL
+------------------------------------------------
+For each match row, clearly show status:
+
+- “Yayında” (published)
+- “Hazır” (prediction exists but not published)
+- “Eksik Veri” (prediction missing or weak)
+
+Publishing:
+- Keep existing “Yayınla” button
+- Also allow:
+  - “Yayından Kaldır”
+  - Bulk publish per day (optional)
+
+------------------------------------------------
+FEATURE 6) DAILY SUMMARY (ADMIN INSIGHT)
+------------------------------------------------
+At the top of each date group, show a small summary line:
+
+Example:
+“Bu gün: 12 maç | 5 adet 2.5 ÜST | 4 adet ALT | 3 adet Kilit Maç”
+
+This helps admin decide what to publish quickly.
+
+------------------------------------------------
+FEATURE 7) PERFORMANCE & UX
+------------------------------------------------
+- Add search: team name / league
+- Add league filter (already exists, keep it)
+- Skeleton loaders while fetching
+- Smooth expand/collapse animations for day gr
