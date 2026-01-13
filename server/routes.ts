@@ -516,29 +516,24 @@ export async function registerRoutes(
 
   app.get('/api/football/fixtures', async (req, res) => {
     try {
-      const { league, date, from, to } = req.query;
+      const { league } = req.query;
       const leagueId = league ? parseInt(league as string) : undefined;
-      const cacheKey = `fixtures_${leagueId || 'all'}_${date || from || 'upcoming'}`;
+      const cacheKey = `fixtures_${leagueId || 'all'}_next`;
       
       const fixtures = await getCachedData(cacheKey, async () => {
         if (leagueId) {
           return apiFootball.getFixtures({
             league: leagueId,
-            season: CURRENT_SEASON,
-            date: date as string,
-            from: from as string,
-            to: to as string
+            next: 10
           });
         } else {
           const allFixtures: any[] = [];
           for (const lg of SUPPORTED_LEAGUES.slice(0, 5)) {
-            const fixtures = await apiFootball.getFixtures({
+            const lgFixtures = await apiFootball.getFixtures({
               league: lg.id,
-              season: CURRENT_SEASON,
-              from: from as string || new Date().toISOString().split('T')[0],
-              to: to as string || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+              next: 5
             });
-            allFixtures.push(...fixtures);
+            allFixtures.push(...lgFixtures);
           }
           return allFixtures.sort((a, b) => 
             new Date(a.fixture.date).getTime() - new Date(b.fixture.date).getTime()
