@@ -85,6 +85,7 @@ export interface IStorage {
   
   // Prediction methods
   getHeroPrediction(): Promise<Prediction | undefined>;
+  getPredictionById(id: number): Promise<Prediction | undefined>;
   getAllPredictions(): Promise<Prediction[]>;
   getPendingPredictions(): Promise<Prediction[]>;
   getWonPredictions(): Promise<Prediction[]>;
@@ -170,6 +171,11 @@ export class PostgresStorage implements IStorage {
   // Prediction methods
   async getHeroPrediction(): Promise<Prediction | undefined> {
     const result = await pool.query('SELECT * FROM predictions WHERE is_hero = TRUE AND result = \'pending\' ORDER BY created_at DESC LIMIT 1');
+    return result.rows[0];
+  }
+
+  async getPredictionById(id: number): Promise<Prediction | undefined> {
+    const result = await pool.query('SELECT * FROM predictions WHERE id = $1', [id]);
     return result.rows[0];
   }
 

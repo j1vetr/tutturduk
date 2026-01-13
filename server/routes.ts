@@ -262,6 +262,18 @@ export async function registerRoutes(
     res.json(predictions);
   });
 
+  app.get('/api/predictions/:id', async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: 'Geçersiz ID' });
+    }
+    const prediction = await storage.getPredictionById(id);
+    if (!prediction) {
+      return res.status(404).json({ message: 'Tahmin bulunamadı' });
+    }
+    res.json(prediction);
+  });
+
   // Admin prediction routes
   app.post('/api/admin/predictions', async (req, res) => {
     if (!req.session.userId) {
