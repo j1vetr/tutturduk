@@ -328,32 +328,7 @@ export default function MatchDetailPage() {
           </div>
         </div>
 
-        <div className="px-4 -mt-4 mb-4">
-          <div className="bg-zinc-900 rounded-2xl border border-zinc-800 overflow-hidden">
-            <div className="p-4">
-              <div className="text-[10px] text-emerald-500 uppercase tracking-widest font-semibold mb-3">Uzman tahminleri</div>
-              <div className="space-y-2">
-                                {underOver && (
-                  <div className="flex items-center justify-between py-2 border-b border-zinc-800">
-                    <span className="text-sm text-zinc-400">Gol tahmini</span>
-                    <span className="text-sm font-bold text-white">{underOver.text}</span>
-                  </div>
-                )}
-                {!match.api_winner_name && !underOver && match.api_advice && (
-                  <div className="flex items-center justify-between py-2 border-b border-zinc-800">
-                    <span className="text-sm text-zinc-400">Tavsiye</span>
-                    <span className="text-sm font-bold text-white">{match.api_advice}</span>
-                  </div>
-                )}
-              </div>
-              {match.api_winner_comment && (
-                <p className="text-xs text-zinc-500 italic mt-3">"{match.api_winner_comment}"</p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="px-4">
+        <div className="px-4 pt-2">
           <Tabs defaultValue="analysis" className="w-full">
             <TabsList className="w-full bg-zinc-900 border border-zinc-800 p-1 rounded-xl h-auto grid grid-cols-5 gap-1">
               <TabsTrigger value="analysis" className="text-[9px] py-2.5 rounded-lg data-[state=active]:bg-emerald-500 data-[state=active]:text-white">Analiz</TabsTrigger>
