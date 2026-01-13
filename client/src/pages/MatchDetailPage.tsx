@@ -218,44 +218,32 @@ export default function MatchDetailPage() {
 
         <div className="px-4 -mt-4 mb-4">
           <div className="bg-zinc-900 rounded-2xl border border-zinc-800 overflow-hidden">
-            <div className="p-4 border-b border-zinc-800">
-              <div className="text-[10px] text-emerald-500 uppercase tracking-widest font-semibold mb-2">Uzman Tahminleri</div>
-              <div className="space-y-3">
+            <div className="p-4">
+              <div className="text-[10px] text-emerald-500 uppercase tracking-widest font-semibold mb-3">Uzman Tahminleri</div>
+              <div className="space-y-2">
                 {match.api_winner_name && (
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-                        <span className="text-lg">🏆</span>
-                      </div>
-                      <div>
-                        <div className="text-xs text-zinc-500">Maç Sonucu</div>
-                        <div className="text-white font-semibold">{match.api_winner_name} Kazanır</div>
-                      </div>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-zinc-600" />
+                  <div className="flex items-center justify-between py-2 border-b border-zinc-800">
+                    <span className="text-sm text-zinc-400">Maç Sonucu</span>
+                    <span className="text-sm font-bold text-white">{match.api_winner_name} Kazanır</span>
                   </div>
                 )}
                 {underOver && (
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
-                        <span className="text-lg">{underOver.isOver ? '⬆️' : '⬇️'}</span>
-                      </div>
-                      <div>
-                        <div className="text-xs text-zinc-500">Gol Sayısı</div>
-                        <div className="text-white font-semibold">{underOver.text}</div>
-                      </div>
-                    </div>
-                    <ChevronRight className="w-4 h-4 text-zinc-600" />
+                  <div className="flex items-center justify-between py-2 border-b border-zinc-800">
+                    <span className="text-sm text-zinc-400">Gol Tahmini</span>
+                    <span className="text-sm font-bold text-white">{underOver.text}</span>
+                  </div>
+                )}
+                {!match.api_winner_name && !underOver && match.api_advice && (
+                  <div className="flex items-center justify-between py-2 border-b border-zinc-800">
+                    <span className="text-sm text-zinc-400">Tavsiye</span>
+                    <span className="text-sm font-bold text-white">{match.api_advice}</span>
                   </div>
                 )}
               </div>
+              {match.api_winner_comment && (
+                <p className="text-xs text-zinc-500 italic mt-3">"{match.api_winner_comment}"</p>
+              )}
             </div>
-            {match.api_winner_comment && (
-              <div className="px-4 py-3 bg-zinc-950/50">
-                <p className="text-xs text-zinc-500 italic">"{match.api_winner_comment}"</p>
-              </div>
-            )}
           </div>
         </div>
 
@@ -297,22 +285,6 @@ export default function MatchDetailPage() {
                 </div>
               </div>
 
-              {match.api_goals_home && match.api_goals_away && (
-                <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-                  <div className="text-xs text-zinc-500 uppercase tracking-wide mb-3">Beklenen Skor</div>
-                  <div className="flex items-center justify-center gap-4">
-                    <div className="text-center">
-                      <div className="text-3xl font-bold text-emerald-500">{match.api_goals_home?.replace('-', '')}</div>
-                      <div className="text-[10px] text-zinc-500">{match.home_team}</div>
-                    </div>
-                    <div className="text-xl text-zinc-700">-</div>
-                    <div className="text-center">
-                      <div className="text-3xl font-bold text-white">{match.api_goals_away?.replace('-', '')}</div>
-                      <div className="text-[10px] text-zinc-500">{match.away_team}</div>
-                    </div>
-                  </div>
-                </div>
-              )}
 
               {Object.keys(comparison).length > 0 && (
                 <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
