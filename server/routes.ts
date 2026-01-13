@@ -523,32 +523,49 @@ export async function registerRoutes(
     try {
       const { league } = req.query;
       const leagueId = league ? parseInt(league as string) : undefined;
-      const cacheKey = `fixtures_${leagueId || 'all'}_next`;
+      
+      // Tarih aralığı hesapla - bugünden 14 gün sonrasına
+      const today = new Date();
+      const fromDate = today.toISOString().split('T')[0];
+      const toDate = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      
+      const cacheKey = `fixtures_${leagueId || 'all'}_${fromDate}`;
       
       const fixtures = await getCachedData(cacheKey, async () => {
         if (leagueId) {
           return apiFootball.getFixtures({
             league: leagueId,
-            next: 10
+            from: fromDate,
+            to: toDate
           });
         } else {
           const allFixtures: any[] = [];
-          for (const lg of SUPPORTED_LEAGUES) {
+          const leagueIds = SUPPORTED_LEAGUES.map(l => l.id);
+          
+          // Paralel olarak tüm ligler için maç çek
+          const promises = leagueIds.map(async (lgId) => {
             try {
-              const lgFixtures = await apiFootball.getFixtures({
-                league: lg.id,
-                next: 30
+              return await apiFootball.getFixtures({
+                league: lgId,
+                from: fromDate,
+                to: toDate
               });
-              allFixtures.push(...lgFixtures);
             } catch (e) {
-              console.log(`Lig ${lg.name} için maç alınamadı`);
+              console.log(`Lig ${lgId} için maç alınamadı`);
+              return [];
             }
-          }
+          });
+          
+          const results = await Promise.all(promises);
+          results.forEach(lgFixtures => allFixtures.push(...lgFixtures));
+          
+          console.log(`[Fixtures] Toplam ${allFixtures.length} maç bulundu (${fromDate} - ${toDate})`);
+          
           return allFixtures.sort((a, b) => 
             new Date(a.fixture.date).getTime() - new Date(b.fixture.date).getTime()
           );
         }
-      }, 60);
+      }, 120);
 
       const formatted = fixtures.map((f: any) => ({
         id: f.fixture.id,
