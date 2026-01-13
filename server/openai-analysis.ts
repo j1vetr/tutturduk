@@ -202,7 +202,7 @@ ${matchData.injuries?.home?.length ? `${matchData.homeTeam}: ${matchData.injurie
 ${matchData.injuries?.away?.length ? `${matchData.awayTeam}: ${matchData.injuries.away.map(i => `${i.player} (${i.reason})`).join(', ')}` : ''}` : ''}
 
 --------------------------------
-ANALİZ YAKLAŞIMI
+ANALİZ YAKLAŞIMI (DETAYLI)
 --------------------------------
 
 1️⃣ ANALİZE GİRİŞ
@@ -213,24 +213,44 @@ ANALİZ YAKLAŞIMI
   • Savunma dengesi
   • İki takım arasındaki güç farkı
   • Sürpriz / belirsizlik ihtimali
-  • H2H geçmişi
+  • H2H geçmişi veya ilk karşılaşma durumu
+  • Lig seviyesi ve rekabet düzeyi
 ❌ "Bu maçta…", "Bu karşılaşmada…" ile BAŞLAMA.
 
-2️⃣ ANA ANALİZ
-- Verileri tek tek sayma, aralarındaki ilişkiyi anlat.
-- "Bu yüzden", "bunun sonucunda", "bu durum" gibi bağlaçlar kullan.
-- 3-4 kısa cümleyi geçme.
+2️⃣ ANA ANALİZ (5-6 CÜMLE - ÇOK ÖNEMLİ)
+Analizde şu konuları MUTLAKA değerlendir:
+• LİG SEVİYESİ: Hangi lig? Üst düzey mi, orta seviye mi? Ligin genel karakteri (defansif/ofansif)?
+• TAKIM KALİTESİ: Takımların lig içindeki konumu, bütçe farkı, kadro kalitesi
+• H2H DURUMU: Eğer daha önce hiç karşılaşmadılarsa BU DURUMU MUTLAKA BELIRT ve belirsizlik faktörü olarak değerlendir
+• FORM KARŞILAŞTIRMASI: Son performanslar, galibiyet/mağlubiyet serileri
+• İÇ SAHA / DEPLASMAN FAKTÖRÜ: Ev sahibi avantajı veya deplasman zorluğu
+• KRITIK FAKTÖRLER: Sakatlıklar, motivasyon, derbi atmosferi varsa
 
-3️⃣ ALT SENARYOLAR
-Her tahmin için NEDEN olduğunu anlat, yüzdeyi gerekçelendir.
+- Verileri tek tek sayma, aralarındaki ilişkiyi anlat.
+- "Bu yüzden", "bunun sonucunda", "bu durum", "dikkate alındığında" gibi bağlaçlar kullan.
+- EN AZ 5-6 CÜMLE YAZ, yüzeysel olma.
+
+3️⃣ ALT SENARYOLAR (2.5 Gol, KG Var, Kazanan)
+Her tahmin için:
+• NEDEN bu sonucu bekliyorsun?
+• Hangi istatistikler destekliyor?
+• Karşı argüman nedir?
+• Güven yüzdesini gerekçelendir
 
 4️⃣ SKOR BEKLENTİSİ
 - Kesin skor verme, 2-3 olası skor veya gol aralığı belirt.
 - "En olası", "öne çıkan", "diğer ihtimaller" gibi ifadeler kullan.
+- Neden bu skorları öngördüğünü kısaca açıkla.
 
 5️⃣ RİSK DEĞERLENDİRMESİ
-- Risk seviyesini 1 cümleyle açıkla.
+- Risk seviyesini 1-2 cümleyle açıkla.
 - Neden düşük/orta/yüksek olduğunu belirt.
+- Sürpriz olasılığından bahset.
+
+6️⃣ ÖZEL DURUMLAR
+- Eğer takımlar İLK KEZ karşılaşıyorsa: "İlk kez karşı karşıya gelen iki takım" ifadesini kullan ve belirsizlik faktörü olarak değerlendir.
+- Eğer lig farkı varsa (ör: şampiyon adayı vs düşme hattı): Bu durumu vurgula.
+- Eğer form farkı çok belirginse: Bunu öne çıkar.
 
 --------------------------------
 GENEL KURALLAR
@@ -239,33 +259,34 @@ GENEL KURALLAR
 - "Olası", "öne çıkıyor", "bekleniyor", "işaret ediyor" gibi ifadeler kullan.
 - Aynı kalıplarla başlayan cümleleri TEKRARLAMA.
 - Bir yorumcu gibi değil, bir analizci gibi konuş.
-- Türkçe yaz, kısa ve mobilde okunabilir olsun.
+- Türkçe yaz, mobilde okunabilir olsun.
+- YÜZEYSEL OLMA, DERİNLEMESİNE ANALİZ YAP.
 
 --------------------------------
 JSON ÇIKTI FORMATI (ZORUNLU)
 --------------------------------
 {
-  "matchAnalysis": "3-4 cümlelik, akıcı ve insani maç analizi",
+  "matchAnalysis": "5-6 cümlelik, detaylı ve insani maç analizi. Lig seviyesi, takım kaliteleri, H2H durumu (ilk karşılaşma dahil), form karşılaştırması, iç saha/deplasman faktörü değerlendirilmeli.",
   "over25": {
     "prediction": true/false,
     "confidence": 0-100,
-    "reasoning": "İnsan gibi yazılmış kısa gerekçe"
+    "reasoning": "2-3 cümlelik detaylı gerekçe"
   },
   "btts": {
     "prediction": true/false,
     "confidence": 0-100,
-    "reasoning": "İnsan gibi yazılmış kısa gerekçe"
+    "reasoning": "2-3 cümlelik detaylı gerekçe"
   },
   "winner": {
     "prediction": "Ev Sahibi" veya "Beraberlik" veya "Deplasman",
     "confidence": 0-100,
-    "reasoning": "İnsan gibi yazılmış kısa gerekçe"
+    "reasoning": "2-3 cümlelik detaylı gerekçe"
   },
   "scorePredictions": ["2-1", "1-1", "3-1"],
   "expectedGoalRange": "2-4 gol",
   "riskLevel": "düşük" veya "orta" veya "yüksek",
-  "riskReason": "Bu risk seviyesinin kısa açıklaması",
-  "primaryInsight": "Maçın en güçlü sinyali (bahis dili kullanma)"
+  "riskReason": "1-2 cümlelik risk açıklaması, sürpriz olasılığı dahil",
+  "primaryInsight": "Maçın en kritik faktörü ve ana çıkarım (bahis dili kullanma)"
 }`;
 
   try {
@@ -274,7 +295,7 @@ JSON ÇIKTI FORMATI (ZORUNLU)
       messages: [
         {
           role: "system",
-          content: "Sen deneyimli bir futbol analisti ve veri yorumcususun. Amacın sayıları tekrar etmek değil, verilerden anlam çıkarıp bunu insani ve akıcı bir dille anlatmaktır. Bir yorumcu gibi değil, bir analizci gibi konuş. Kesin ifadeler kullanma. 'Olası', 'öne çıkıyor', 'bekleniyor', 'işaret ediyor' gibi ifadeler kullan. Aynı kalıplarla başlayan cümleleri TEKRARLAMA. Sadece JSON formatında yanıt ver."
+          content: "Sen 20 yıllık deneyime sahip profesyonel bir futbol analisti ve veri yorumcususun. Avrupa'nın en iyi liglerinden alt liglere kadar tüm seviyeleri iyi tanıyorsun. Amacın sayıları tekrar etmek değil, verilerden derin anlam çıkarıp bunu insani ve akıcı bir dille anlatmaktır. Lig seviyelerini, takım kalitelerini, H2H geçmişini (ilk karşılaşma dahil), form durumlarını ve iç saha/deplasman faktörlerini mutlaka değerlendir. YÜZEYSEL OLMA, DERİNLEMESİNE ANALİZ YAP. Bir yorumcu gibi değil, bir analizci gibi konuş. Kesin ifadeler kullanma. 'Olası', 'öne çıkıyor', 'bekleniyor', 'işaret ediyor' gibi ifadeler kullan. Aynı kalıplarla başlayan cümleleri TEKRARLAMA. matchAnalysis alanında EN AZ 5-6 CÜMLE yaz. Sadece JSON formatında yanıt ver."
         },
         {
           role: "user",
@@ -282,7 +303,7 @@ JSON ÇIKTI FORMATI (ZORUNLU)
         }
       ],
       temperature: 0.7,
-      max_tokens: 1000,
+      max_tokens: 1500,
       response_format: { type: "json_object" }
     });
 
