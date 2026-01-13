@@ -332,13 +332,7 @@ export default function MatchDetailPage() {
             <div className="p-4">
               <div className="text-[10px] text-emerald-500 uppercase tracking-widest font-semibold mb-3">Uzman tahminleri</div>
               <div className="space-y-2">
-                {match.api_winner_name && (
-                  <div className="flex items-center justify-between py-2 border-b border-zinc-800">
-                    <span className="text-sm text-zinc-400">Maç sonucu</span>
-                    <span className="text-sm font-bold text-white">{match.api_winner_name} kazanır</span>
-                  </div>
-                )}
-                {underOver && (
+                                {underOver && (
                   <div className="flex items-center justify-between py-2 border-b border-zinc-800">
                     <span className="text-sm text-zinc-400">Gol tahmini</span>
                     <span className="text-sm font-bold text-white">{underOver.text}</span>
@@ -360,13 +354,12 @@ export default function MatchDetailPage() {
 
         <div className="px-4">
           <Tabs defaultValue="analysis" className="w-full">
-            <TabsList className="w-full bg-zinc-900 border border-zinc-800 p-1 rounded-xl h-auto grid grid-cols-6 gap-1">
+            <TabsList className="w-full bg-zinc-900 border border-zinc-800 p-1 rounded-xl h-auto grid grid-cols-5 gap-1">
               <TabsTrigger value="analysis" className="text-[9px] py-2.5 rounded-lg data-[state=active]:bg-emerald-500 data-[state=active]:text-white">Analiz</TabsTrigger>
               <TabsTrigger value="odds" className="text-[9px] py-2.5 rounded-lg data-[state=active]:bg-emerald-500 data-[state=active]:text-white">Oranlar</TabsTrigger>
               <TabsTrigger value="stats" className="text-[9px] py-2.5 rounded-lg data-[state=active]:bg-emerald-500 data-[state=active]:text-white">İstatistik</TabsTrigger>
               <TabsTrigger value="goals" className="text-[9px] py-2.5 rounded-lg data-[state=active]:bg-emerald-500 data-[state=active]:text-white">Goller</TabsTrigger>
               <TabsTrigger value="h2h" className="text-[9px] py-2.5 rounded-lg data-[state=active]:bg-emerald-500 data-[state=active]:text-white">H2H</TabsTrigger>
-              <TabsTrigger value="lineups" className="text-[9px] py-2.5 rounded-lg data-[state=active]:bg-emerald-500 data-[state=active]:text-white">Kadro</TabsTrigger>
             </TabsList>
 
             <TabsContent value="analysis" className="mt-4 space-y-4">
@@ -662,63 +655,6 @@ export default function MatchDetailPage() {
                 <div className="bg-zinc-900 rounded-xl p-8 border border-zinc-800 text-center">
                   <Users className="w-12 h-12 mx-auto mb-3 text-zinc-700" />
                   <p className="text-sm text-zinc-500">Karşılaşma geçmişi bulunamadı</p>
-                </div>
-              )}
-            </TabsContent>
-
-            <TabsContent value="lineups" className="mt-4 space-y-4">
-              {lineups.length > 0 ? (
-                <>
-                  <LineupImpact 
-                    homeFormation={lineups[0]?.formation}
-                    awayFormation={lineups[1]?.formation}
-                    homeTeam={match.home_team}
-                    awayTeam={match.away_team}
-                  />
-                  {lineups.map((lineup, idx) => (
-                  <div key={idx} className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
-                    <div className="p-4 border-b border-zinc-800 flex items-center gap-3">
-                      <img src={lineup.team.logo} className="w-8 h-8" />
-                      <div>
-                        <div className="text-sm font-semibold text-white">{lineup.team.name}</div>
-                        <div className="text-xs text-zinc-500">Diziliş: {lineup.formation}</div>
-                      </div>
-                    </div>
-                    <div className="p-4">
-                      <div className="text-[10px] text-emerald-500 uppercase tracking-wide mb-2">İlk 11</div>
-                      <div className="grid grid-cols-2 gap-1 mb-4">
-                        {lineup.startXI?.map((p, i) => (
-                          <div key={i} className="flex items-center gap-2 bg-zinc-800 rounded-lg px-3 py-2">
-                            <span className="text-xs font-bold text-emerald-500 w-5">{p.player.number}</span>
-                            <span className="text-xs text-white truncate flex-1">{p.player.name}</span>
-                            <span className="text-[10px] text-zinc-600">{p.player.pos}</span>
-                          </div>
-                        ))}
-                      </div>
-                      {lineup.substitutes?.length > 0 && (
-                        <>
-                          <div className="text-[10px] text-zinc-500 uppercase tracking-wide mb-2">Yedekler</div>
-                          <div className="grid grid-cols-2 gap-1">
-                            {lineup.substitutes?.slice(0, 6).map((p, i) => (
-                              <div key={i} className="flex items-center gap-2 bg-zinc-800/50 rounded-lg px-3 py-2">
-                                <span className="text-xs font-bold text-zinc-500 w-5">{p.player.number}</span>
-                                <span className="text-xs text-zinc-400 truncate flex-1">{p.player.name}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                ))}
-                </>
-              ) : (
-                <div className="bg-zinc-900 rounded-xl p-8 border border-zinc-800 text-center">
-                  <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-zinc-800 flex items-center justify-center">
-                    <span className="text-2xl">👕</span>
-                  </div>
-                  <p className="text-sm text-zinc-500">Kadro bilgisi henüz açıklanmadı</p>
-                  <p className="text-xs text-zinc-600 mt-1">Maçtan kısa süre önce güncellenecektir</p>
                 </div>
               )}
             </TabsContent>
