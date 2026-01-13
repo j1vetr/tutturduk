@@ -187,7 +187,7 @@ function PublishedMatchDetail({ match, onBack }: { match: PublishedMatch; onBack
                   <Clock className="w-3 h-3" />
                   {match.match_time}
                 </div>
-                <span className="text-xs text-white/40">{match.match_date}</span>
+                <span className="text-xs text-white/40">{new Date(match.match_date).toLocaleDateString('tr-TR')}</span>
               </div>
 
               <div className="flex flex-col items-center gap-4 animate-in slide-in-from-right-8 duration-700">
@@ -353,7 +353,7 @@ function PublishedMatchDetail({ match, onBack }: { match: PublishedMatch; onBack
               </div>
               <div className="flex justify-between items-center py-2 border-b border-white/5">
                 <span className="text-sm text-zinc-400">Tarih</span>
-                <span className="text-sm font-medium text-white">{match.match_date}</span>
+                <span className="text-sm font-medium text-white">{new Date(match.match_date).toLocaleDateString('tr-TR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</span>
               </div>
               <div className="flex justify-between items-center py-2">
                 <span className="text-sm text-zinc-400">Saat</span>

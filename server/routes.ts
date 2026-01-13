@@ -796,7 +796,8 @@ export async function registerRoutes(
       }
 
       const matchDate = new Date(fixture.fixture?.date);
-      const localDate = matchDate.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      const isoDate = matchDate.toISOString().split('T')[0]; // YYYY-MM-DD format for database
+      const displayDate = matchDate.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
       const localTime = matchDate.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', hour12: false });
 
       const published = await storage.publishMatch({
@@ -808,7 +809,7 @@ export async function registerRoutes(
         league_id: fixture.league?.id,
         league_name: fixture.league?.name,
         league_logo: fixture.league?.logo,
-        match_date: localDate,
+        match_date: isoDate,
         match_time: localTime,
         timestamp: fixture.fixture?.timestamp,
         api_advice: apiPrediction?.predictions?.advice,

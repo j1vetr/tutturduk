@@ -198,7 +198,7 @@ export default function HomePage() {
                         {match.league_logo && <img src={match.league_logo} alt="" className="w-4 h-4" />}
                         <span className="text-xs text-zinc-500">{match.league_name}</span>
                       </div>
-                      <span className="text-xs text-primary font-medium">{match.match_date} • {match.match_time}</span>
+                      <span className="text-xs text-primary font-medium">{new Date(match.match_date).toLocaleDateString('tr-TR')} • {match.match_time}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-6">
