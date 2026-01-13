@@ -3,7 +3,6 @@ import { Home, Trophy, User, CalendarDays, Radio } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import logoIcon from "@assets/generated_images/minimalist_sports_betting_logo_icon.png";
-import { LiveScoreTicker } from "./LiveScoreTicker";
 
 interface MobileLayoutProps {
   children: React.ReactNode;
@@ -44,12 +43,10 @@ export function MobileLayout({ children, activeTab }: MobileLayoutProps) {
           </button>
         </div>
         
-        {/* Live Ticker */}
-        <LiveScoreTicker />
       </header>
 
       {/* Main Content */}
-      <main className="pt-32 px-4 pb-32 animate-in fade-in slide-in-from-bottom-2 duration-500">
+      <main className="pt-24 px-4 pb-32 animate-in fade-in slide-in-from-bottom-2 duration-500">
         {children}
       </main>
 
