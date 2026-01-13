@@ -1,0 +1,182 @@
+We already have a football match detail app with the following structure:
+
+Match Detail Page includes:
+- Top section: teams, league, date/time, stadium, last 5 form
+- Tabs:
+  1) Analiz
+  2) Oranlar
+  3) İstatistik
+  4) Goller
+  5) H2H
+  6) Kadro
+
+We have implemented the “Pre-Match Scenario” component inside the **Analiz** tab.
+Now we want to extend the app with the following NEW FEATURES, fully aligned with the current structure and UI.
+
+GLOBAL RULES:
+- NO live / in-play features
+- DARK UI only (same style as current cards)
+- Mobile-first, iOS safe
+- No betting CTA, no “guaranteed” language
+- Use ONLY existing API-Football v3 data we already fetch:
+  /fixtures, /predictions, /odds, /fixtures/lineups
+
+--------------------------------
+FEATURE 1) “Scenario Map” on MATCH LIST (Highest priority)
+--------------------------------
+On the **matches list page** (today’s matches / fixtures list):
+
+For each match card:
+- Add a compact “Scenario Row” under team names:
+  Badges (max 2 visible):
+  - Kilit Maç
+  - Gollü Maç
+  - Dengeli
+  - Tek Taraflı
+  - Sürprize Açık
+- Add a small circular **Chaos mini-ring (0–100)** next to the badges.
+
+Data source:
+- Reuse the SAME scenario engine logic already built for match detail.
+- Do NOT recalculate differently.
+
+UX:
+- Very compact
+- If data is still loading, show skeleton placeholders.
+- Clicking the match opens Match Detail as usual.
+
+--------------------------------
+FEATURE 2) “Confidence Skoru” inside PRE-MATCH SCENARIO (High priority)
+--------------------------------
+Inside the **Analiz tab → Pre-Match Scenario card**:
+
+Add a new label near the scenario title:
+- “Güven: Yüksek / Orta / Düşük”
+
+Confidence logic:
+- Base score = 60
+- +20 if Dominance Index (DI) and Strength Gap (SG) point in same direction
+- +10 if abs(DI) >= 0.25
+- -15 if Chaos >= 67
+Clamp 0–100
+
+Label:
+- 0–39: Düşük
+- 40–69: Orta
+- 70–100: Yüksek
+
+This is NOT chaos. This is scenario reliability.
+
+--------------------------------
+FEATURE 3) “What-if Senaryoları” (Analiz tab)
+--------------------------------
+Inside **Pre-Match Scenario card**, under the timeline:
+
+Add 2–3 small toggle buttons:
+- “Ev Sahibi Erken Gol Atarsa”
+- “Deplasman Erken Gol Atarsa”
+- “İlk Yarı 0-0 Biterse”
+
+Behavior:
+- No API call
+- Recalculate scenario locally using simple offsets:
+  - Home early goal: EARLY +0.12, BAL -0.05
+  - Away early goal: EARLY +0.10, BAL -0.05
+  - HT 0-0: GI -0.08, increase 60–90 segment by +0.10
+
+UI:
+- Smooth animation when toggled
+- Clearly show “Simülasyon” state (small label)
+
+--------------------------------
+FEATURE 4) “Form Trend Mini Grafik” (İstatistik tab)
+--------------------------------
+In **İstatistik** tab:
+- Under season stats, add a small sparkline for each team:
+  - Last 10 matches form trend
+
+Data:
+- Fetch last 10 fixtures for each team using /fixtures (team + last=10)
+- Compute points per match (W=3, D=1, L=0) OR goal difference
+
+UI:
+- Tiny sparkline line chart
+- One color for home, muted color for away
+- Animated draw-in
+
+--------------------------------
+FEATURE 5) “Kadro Etki Özeti” (Kadro tab)
+--------------------------------
+Inside **Kadro** tab, ABOVE the lineup list:
+
+Add a small summary card:
+- “Kadro Etki Analizi”
+
+Logic:
+- Use formation from /fixtures/lineups
+- 5-back formations → defensive / tempo düşürücü
+- 4-3-3 / 3-4-3 → attacking / tempo artırıcı
+
+Show 1 short sentence:
+- “Temkinli diziliş düşük tempoyu destekliyor”
+OR
+- “Ofansif diziliş gollü senaryoyu destekliyor”
+
+--------------------------------
+FEATURE 6) “Model vs Oran Uyumsuzluğu” (Analiz tab – High impact)
+--------------------------------
+Inside **Analiz** tab, BELOW Pre-Match Scenario:
+
+Add a new card:
+- Title: “Model & Oran Karşılaştırması”
+
+Logic:
+- Model favorite: highest of P_home or P_away from /predictions
+- Market favorite: lowest odds between 1 and 2 from /odds
+- If they differ OR implied odds probability differs strongly from model:
+  show a warning-style insight
+
+Text example:
+- “Model ev sahibini öne çıkarırken, oranlar deplasmanı favori gösteriyor.”
+
+No CTA, no betting suggestion.
+
+--------------------------------
+FEATURE 7) “Akıllı H2H Özeti” (H2H tab)
+--------------------------------
+At the TOP of **H2H** tab:
+Add a compact summary card:
+- Last 5 H2H results distribution
+- Average goals
+- Gollü / kilit eğilimi (if possible)
+
+--------------------------------
+FEATURE 8) “Paylaşılabilir Tek Satır Analiz”
+--------------------------------
+On Match Detail page (top right or inside Analiz tab):
+Add a “Paylaş” button (copy to clipboard).
+
+Generated text (Turkish):
+“{Home} – {Away}: {ScenarioTitle} | Kaos {X}/100 | {TopBadge}”
+
+--------------------------------
+FEATURE 9) Premium Loading UX (Mandatory polish)
+--------------------------------
+- Skeleton loaders for:
+  - Scenario card
+  - Timeline
+  - Charts
+  - Match list scenario row
+- Smooth fade-in once data loads
+- Ensure tab switching does not cause layout jump
+
+--------------------------------
+IMPLEMENTATION ORDER (IMPORTANT):
+1) Feature 1 (Scenario Map on match list)
+2) Feature 2 (Confidence Score)
+3) Feature 6 (Model vs Odds)
+4) Feature 3 (What-if)
+5) Feature 4 & 7
+6) Feature 8 & UX polish
+
+All features must reuse the existing scenario logic and match the current dark UI exactly.

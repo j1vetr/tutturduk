@@ -1,10 +1,16 @@
 import { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
 import { MobileLayout } from "@/components/MobileLayout";
-import { ArrowLeft, Clock, Loader2, MapPin, Users } from "lucide-react";
+import { ArrowLeft, Clock, Loader2, MapPin, Users, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PreMatchScenario } from "@/components/PreMatchScenario";
+import { ModelOddsComparison } from "@/components/ModelOddsComparison";
+import { H2HSummary } from "@/components/H2HSummary";
+import { LineupImpact } from "@/components/LineupImpact";
+import { FormTrendGraph } from "@/components/FormTrendGraph";
+import { calculateScenario } from "@/lib/scenarioEngine";
+import { useToast } from "@/hooks/use-toast";
 
 interface TeamStats {
   id: number;
@@ -99,6 +105,7 @@ export default function MatchDetailPage() {
   const [lineups, setLineups] = useState<Lineup[]>([]);
   const [odds, setOdds] = useState<OddsData[]>([]);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (id) loadMatch();
@@ -182,6 +189,25 @@ export default function MatchDetailPage() {
   const matchWinnerOdds = getOddsForMarket('Match Winner');
   const overUnderOdds = getOddsForMarket('Goals Over/Under');
 
+  const getMatchOdds = () => {
+    if (!matchWinnerOdds) return undefined;
+    const home = matchWinnerOdds.values.find(v => v.value === 'Home')?.odd;
+    const draw = matchWinnerOdds.values.find(v => v.value === 'Draw')?.odd;
+    const away = matchWinnerOdds.values.find(v => v.value === 'Away')?.odd;
+    return { home, draw, away };
+  };
+
+  const handleShare = () => {
+    const scenario = calculateScenario({
+      homePercent, drawPercent, awayPercent,
+      homeTeam: match.home_team, awayTeam: match.away_team,
+      comparison, expectedGoalsHome: match.api_goals_home, expectedGoalsAway: match.api_goals_away
+    });
+    const text = `${match.home_team} – ${match.away_team}: ${scenario.scenarioTitle} | Kaos ${scenario.chaos}/100 | ${scenario.badges[0] || 'Analiz'}`;
+    navigator.clipboard.writeText(text);
+    toast({ title: "Kopyalandı!", description: "Analiz özeti panoya kopyalandı" });
+  };
+
   return (
     <MobileLayout>
       <div className="pb-6 -mx-4 -mt-20">
@@ -194,7 +220,9 @@ export default function MatchDetailPage() {
               {match.league_logo && <img src={match.league_logo} className="w-4 h-4" />}
               <span className="text-xs text-white/70">{match.league_name}</span>
             </div>
-            <div className="w-10" />
+            <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full bg-white/5 text-white hover:bg-white/10" onClick={handleShare}>
+              <Share2 className="w-5 h-5" />
+            </Button>
           </div>
 
           <div className="flex items-start justify-between">
@@ -306,6 +334,15 @@ export default function MatchDetailPage() {
                 awayFormation={lineups[1]?.formation}
               />
 
+              <ModelOddsComparison 
+                homePercent={homePercent}
+                drawPercent={drawPercent}
+                awayPercent={awayPercent}
+                homeTeam={match.home_team}
+                awayTeam={match.away_team}
+                odds={getMatchOdds()}
+              />
+
               <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
                 <div className="text-xs text-zinc-500 uppercase tracking-wide mb-4">Kazanma olasılığı</div>
                 <div className="flex justify-between items-end mb-4">
@@ -395,6 +432,12 @@ export default function MatchDetailPage() {
             <TabsContent value="stats" className="mt-4 space-y-4">
               {homeTeam?.league && awayTeam?.league && (
                 <>
+                  <FormTrendGraph 
+                    homeTeam={match.home_team}
+                    awayTeam={match.away_team}
+                    homeForm={homeTeam?.league?.form}
+                    awayForm={awayTeam?.league?.form}
+                  />
                   <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
                     <div className="text-xs text-zinc-500 uppercase tracking-wide mb-4">Sezon performansı</div>
                     <div className="grid grid-cols-[1fr_auto_auto] gap-x-4 gap-y-0 items-center mb-2">
@@ -513,6 +556,7 @@ export default function MatchDetailPage() {
             <TabsContent value="h2h" className="mt-4 space-y-4">
               {h2h.length > 0 ? (
                 <>
+                  <H2HSummary h2h={h2h} homeTeam={match.home_team} awayTeam={match.away_team} />
                   <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
                     <div className="p-4 border-b border-zinc-800">
                       <div className="text-xs text-zinc-500 uppercase tracking-wide">Son karşılaşmalar</div>
@@ -567,7 +611,14 @@ export default function MatchDetailPage() {
 
             <TabsContent value="lineups" className="mt-4 space-y-4">
               {lineups.length > 0 ? (
-                lineups.map((lineup, idx) => (
+                <>
+                  <LineupImpact 
+                    homeFormation={lineups[0]?.formation}
+                    awayFormation={lineups[1]?.formation}
+                    homeTeam={match.home_team}
+                    awayTeam={match.away_team}
+                  />
+                  {lineups.map((lineup, idx) => (
                   <div key={idx} className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
                     <div className="p-4 border-b border-zinc-800 flex items-center gap-3">
                       <img src={lineup.team.logo} className="w-8 h-8" />
@@ -602,7 +653,8 @@ export default function MatchDetailPage() {
                       )}
                     </div>
                   </div>
-                ))
+                ))}
+                </>
               ) : (
                 <div className="bg-zinc-900 rounded-xl p-8 border border-zinc-800 text-center">
                   <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-zinc-800 flex items-center justify-center">
