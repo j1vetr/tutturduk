@@ -5,6 +5,35 @@ import session from 'express-session';
 import connectPgSimple from 'connect-pg-simple';
 import { pool } from './db';
 
+const FOOTBALL_DATA_API_KEY = process.env.FOOTBALL_DATA_API_KEY;
+const FOOTBALL_DATA_BASE_URL = 'https://api.football-data.org/v4';
+
+const LEAGUE_CODES: Record<string, string> = {
+  pl: 'PL',        // Premier League
+  laliga: 'PD',    // La Liga (Primera División)
+  bundesliga: 'BL1', // Bundesliga
+  seriea: 'SA',    // Serie A
+  ligue1: 'FL1',   // Ligue 1
+};
+
+async function fetchFromFootballData(endpoint: string) {
+  if (!FOOTBALL_DATA_API_KEY) {
+    throw new Error('Football Data API key not configured');
+  }
+  
+  const response = await fetch(`${FOOTBALL_DATA_BASE_URL}${endpoint}`, {
+    headers: {
+      'X-Auth-Token': FOOTBALL_DATA_API_KEY,
+    },
+  });
+  
+  if (!response.ok) {
+    throw new Error(`Football Data API error: ${response.status}`);
+  }
+  
+  return response.json();
+}
+
 const PgSession = connectPgSimple(session);
 
 declare module 'express-session' {
@@ -343,6 +372,131 @@ export async function registerRoutes(
     });
 
     res.json(heroPrediction);
+  });
+
+  // Football Data API routes
+  app.get('/api/football/leagues', async (req, res) => {
+    try {
+      const data = await fetchFromFootballData('/competitions');
+      const supportedLeagues = ['PL', 'PD', 'BL1', 'SA', 'FL1'];
+      const leagues = data.competitions
+        .filter((c: any) => supportedLeagues.includes(c.code))
+        .map((c: any) => ({
+          id: c.code.toLowerCase(),
+          code: c.code,
+          name: c.name,
+          logo: c.emblem,
+          country: c.area?.name,
+        }));
+      res.json(leagues);
+    } catch (error: any) {
+      console.error('Football API error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get('/api/football/teams/:leagueId', async (req, res) => {
+    try {
+      const { leagueId } = req.params;
+      const code = LEAGUE_CODES[leagueId];
+      
+      if (!code) {
+        return res.status(400).json({ message: 'Geçersiz lig kodu' });
+      }
+      
+      const data = await fetchFromFootballData(`/competitions/${code}/teams`);
+      const teams = data.teams.map((t: any) => ({
+        id: t.id,
+        name: t.name,
+        shortName: t.shortName,
+        tla: t.tla,
+        logo: t.crest,
+        leagueId: leagueId,
+      }));
+      res.json(teams);
+    } catch (error: any) {
+      console.error('Football API error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get('/api/football/matches/:leagueId', async (req, res) => {
+    try {
+      const { leagueId } = req.params;
+      const code = LEAGUE_CODES[leagueId];
+      
+      if (!code) {
+        return res.status(400).json({ message: 'Geçersiz lig kodu' });
+      }
+      
+      const data = await fetchFromFootballData(`/competitions/${code}/matches?status=SCHEDULED`);
+      const matches = data.matches.slice(0, 20).map((m: any) => ({
+        id: m.id,
+        homeTeam: {
+          id: m.homeTeam.id,
+          name: m.homeTeam.name,
+          shortName: m.homeTeam.shortName,
+          logo: m.homeTeam.crest,
+        },
+        awayTeam: {
+          id: m.awayTeam.id,
+          name: m.awayTeam.name,
+          shortName: m.awayTeam.shortName,
+          logo: m.awayTeam.crest,
+        },
+        utcDate: m.utcDate,
+        matchday: m.matchday,
+        status: m.status,
+      }));
+      res.json(matches);
+    } catch (error: any) {
+      console.error('Football API error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Sync teams from Football Data API to local teamsData
+  app.post('/api/admin/sync-teams', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Yetkisiz erişim' });
+    }
+
+    try {
+      const allTeams: any[] = [];
+      const leagues = ['PL', 'PD', 'BL1', 'SA', 'FL1'];
+      const leagueIdMap: Record<string, string> = {
+        'PL': 'pl',
+        'PD': 'laliga',
+        'BL1': 'bundesliga',
+        'SA': 'seriea',
+        'FL1': 'ligue1',
+      };
+
+      for (const code of leagues) {
+        const data = await fetchFromFootballData(`/competitions/${code}/teams`);
+        const teams = data.teams.map((t: any) => ({
+          id: t.tla?.toLowerCase() || t.id.toString(),
+          name: t.shortName || t.name,
+          logo: t.crest,
+          leagueId: leagueIdMap[code],
+        }));
+        allTeams.push(...teams);
+      }
+
+      res.json({
+        message: 'Takımlar başarıyla senkronize edildi',
+        totalTeams: allTeams.length,
+        teams: allTeams,
+      });
+    } catch (error: any) {
+      console.error('Sync error:', error);
+      res.status(500).json({ message: error.message });
+    }
   });
 
   return httpServer;

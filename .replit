@@ -41,3 +41,8 @@ waitForPort = 5000
 
 [agent]
 mockupState = "FULLSTACK"
+
+[userenv]
+
+[userenv.shared]
+FOOTBALL_DATA_API_KEY = "d736e1efb8ba40abaf0ed7a0ad863f9a"

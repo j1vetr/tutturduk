@@ -24,11 +24,21 @@ import {
   Edit,
   Star,
   Ticket,
-  Calendar
+  Calendar,
+  Loader2
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
-import { teams, leagues, getTeamsByLeague, getLeague } from "@/lib/teamsData";
+import { teams as staticTeams, leagues, getTeamsByLeague as getStaticTeamsByLeague, getLeague } from "@/lib/teamsData";
+
+interface ApiTeam {
+  id: number;
+  name: string;
+  shortName: string;
+  tla: string;
+  logo: string;
+  leagueId: string;
+}
 
 interface InvitationCode {
   id: number;
@@ -74,6 +84,8 @@ export default function AdminPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [predictions, setPredictions] = useState<Prediction[]>([]);
   const [wonPredictions, setWonPredictions] = useState<Prediction[]>([]);
+  const [apiTeamsCache, setApiTeamsCache] = useState<Record<string, ApiTeam[]>>({});
+  const [loadingTeams, setLoadingTeams] = useState(false);
   
   // Form states
   const [newCode, setNewCode] = useState({ code: "", type: "standard", maxUses: 1 });
@@ -99,11 +111,52 @@ export default function AdminPage() {
     loadAllData();
   }, [user, setLocation]);
 
+  // Load teams when predictions tab is active
+  useEffect(() => {
+    if (activeTab === "predictions" && newPrediction.leagueId !== 'superlig') {
+      loadTeamsFromApi(newPrediction.leagueId);
+    }
+  }, [activeTab]);
+
   const loadAllData = () => {
     loadInvitationCodes();
     loadUsers();
     loadPredictions();
     loadWonPredictions();
+  };
+
+  const loadTeamsFromApi = async (leagueId: string) => {
+    if (leagueId === 'superlig') return;
+    if (apiTeamsCache[leagueId]) return;
+    
+    setLoadingTeams(true);
+    try {
+      const res = await fetch(`/api/football/teams/${leagueId}`);
+      if (res.ok) {
+        const teams = await res.json();
+        setApiTeamsCache(prev => ({ ...prev, [leagueId]: teams }));
+      }
+    } catch (error) {
+      console.error('Failed to load teams from API:', error);
+    } finally {
+      setLoadingTeams(false);
+    }
+  };
+
+  const getTeamsByLeague = (leagueId: string) => {
+    if (leagueId === 'superlig') {
+      return getStaticTeamsByLeague(leagueId);
+    }
+    const apiTeams = apiTeamsCache[leagueId];
+    if (apiTeams) {
+      return apiTeams.map(t => ({
+        id: t.tla?.toLowerCase() || t.id.toString(),
+        name: t.shortName || t.name,
+        logo: t.logo,
+        leagueId: t.leagueId,
+      }));
+    }
+    return getStaticTeamsByLeague(leagueId);
   };
 
   const loadInvitationCodes = async () => {
@@ -386,7 +439,7 @@ export default function AdminPage() {
                 {/* League Selection */}
                 <div className="space-y-2">
                   <Label className="text-zinc-400">Lig</Label>
-                  <Select value={newPrediction.leagueId} onValueChange={(val) => setNewPrediction({...newPrediction, leagueId: val, home: "", away: ""})}>
+                  <Select value={newPrediction.leagueId} onValueChange={(val) => { loadTeamsFromApi(val); setNewPrediction({...newPrediction, leagueId: val, home: "", away: ""}); }}>
                     <SelectTrigger className="bg-black border-white/10 text-white">
                       <SelectValue placeholder="Lig Seçiniz" />
                     </SelectTrigger>
@@ -405,17 +458,17 @@ export default function AdminPage() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-zinc-400">Ev Sahibi</Label>
-                    <Select value={newPrediction.home} onValueChange={(val) => setNewPrediction({...newPrediction, home: val})}>
+                    <Label className="text-zinc-400">Ev Sahibi {loadingTeams && <Loader2 className="inline w-3 h-3 animate-spin ml-1" />}</Label>
+                    <Select value={newPrediction.home} onValueChange={(val) => setNewPrediction({...newPrediction, home: val})} disabled={loadingTeams}>
                       <SelectTrigger className="bg-black border-white/10 text-white">
-                        <SelectValue placeholder="Ev Sahibi Seç" />
+                        <SelectValue placeholder={loadingTeams ? "Yükleniyor..." : "Ev Sahibi Seç"} />
                       </SelectTrigger>
-                      <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                      <SelectContent className="bg-zinc-900 border-white/10 text-white max-h-[300px]">
                         <SelectGroup>
                           {getTeamsByLeague(newPrediction.leagueId).map(team => (
                             <SelectItem key={team.id} value={team.name}>
                               <div className="flex items-center gap-2">
-                                <img src={team.logo} alt={team.name} className="w-4 h-4 object-contain bg-white/10 rounded-sm" />
+                                <img src={team.logo} alt={team.name} className="w-5 h-5 object-contain bg-white/10 rounded-sm" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                                 {team.name}
                               </div>
                             </SelectItem>
@@ -425,17 +478,17 @@ export default function AdminPage() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-zinc-400">Deplasman</Label>
-                    <Select value={newPrediction.away} onValueChange={(val) => setNewPrediction({...newPrediction, away: val})}>
+                    <Label className="text-zinc-400">Deplasman {loadingTeams && <Loader2 className="inline w-3 h-3 animate-spin ml-1" />}</Label>
+                    <Select value={newPrediction.away} onValueChange={(val) => setNewPrediction({...newPrediction, away: val})} disabled={loadingTeams}>
                       <SelectTrigger className="bg-black border-white/10 text-white">
-                        <SelectValue placeholder="Deplasman Seç" />
+                        <SelectValue placeholder={loadingTeams ? "Yükleniyor..." : "Deplasman Seç"} />
                       </SelectTrigger>
-                      <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                      <SelectContent className="bg-zinc-900 border-white/10 text-white max-h-[300px]">
                         <SelectGroup>
                           {getTeamsByLeague(newPrediction.leagueId).map(team => (
                             <SelectItem key={team.id} value={team.name}>
                               <div className="flex items-center gap-2">
-                                <img src={team.logo} alt={team.name} className="w-4 h-4 object-contain bg-white/10 rounded-sm" />
+                                <img src={team.logo} alt={team.name} className="w-5 h-5 object-contain bg-white/10 rounded-sm" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
                                 {team.name}
                               </div>
                             </SelectItem>
