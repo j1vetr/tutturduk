@@ -44,8 +44,8 @@ export default function LiveMatchesPage() {
     }
   };
 
-  const today = new Date().toLocaleDateString('tr-TR');
-  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toLocaleDateString('tr-TR');
+  const today = new Date().toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' });
+  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' });
 
   const filteredMatches = matches.filter(m => {
     const matchesSearch = m.homeTeam.name.toLowerCase().includes(search.toLowerCase()) ||

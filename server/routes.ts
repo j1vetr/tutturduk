@@ -582,8 +582,8 @@ export async function registerRoutes(
           round: f.league.round,
         },
         goals: f.goals,
-        localDate: new Date(f.fixture.date).toLocaleDateString('tr-TR'),
-        localTime: new Date(f.fixture.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
+        localDate: new Date(f.fixture.date).toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' }),
+        localTime: new Date(f.fixture.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Istanbul' }),
       }));
 
       res.json(formatted);
@@ -766,8 +766,8 @@ export async function registerRoutes(
       const formatted = fixtures.map((f: any) => ({
         id: f.fixture.id,
         date: f.fixture.date,
-        localDate: new Date(f.fixture.date).toLocaleDateString('tr-TR'),
-        localTime: new Date(f.fixture.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
+        localDate: new Date(f.fixture.date).toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' }),
+        localTime: new Date(f.fixture.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Istanbul' }),
         homeTeam: {
           id: f.teams.home.id,
           name: f.teams.home.name,
@@ -844,8 +844,8 @@ export async function registerRoutes(
         return matchesWithPredictions.map(({ fixture, prediction }) => ({
           id: fixture.fixture.id,
           date: fixture.fixture.date,
-          localDate: new Date(fixture.fixture.date).toLocaleDateString('tr-TR'),
-          localTime: new Date(fixture.fixture.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
+          localDate: new Date(fixture.fixture.date).toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' }),
+          localTime: new Date(fixture.fixture.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Istanbul' }),
           homeTeam: {
             id: fixture.teams.home.id,
             name: fixture.teams.home.name,
@@ -984,8 +984,8 @@ export async function registerRoutes(
 
       const matchDate = new Date(fixture.fixture?.date);
       const isoDate = matchDate.toISOString().split('T')[0]; // YYYY-MM-DD format for database
-      const displayDate = matchDate.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-      const localTime = matchDate.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', hour12: false });
+      const displayDate = matchDate.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Europe/Istanbul' });
+      const localTime = matchDate.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Europe/Istanbul' });
 
       const published = await storage.publishMatch({
         fixture_id: fixtureId,

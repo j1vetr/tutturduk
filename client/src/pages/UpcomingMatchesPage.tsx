@@ -64,8 +64,8 @@ export default function UpcomingMatchesPage() {
     return acc;
   }, {} as Record<string, UpcomingMatch[]>);
 
-  const todayStr = today.toLocaleDateString('tr-TR');
-  const tomorrowStr = new Date(today.getTime() + 24 * 60 * 60 * 1000).toLocaleDateString('tr-TR');
+  const todayStr = today.toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' });
+  const tomorrowStr = new Date(today.getTime() + 24 * 60 * 60 * 1000).toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' });
 
   return (
     <MobileLayout activeTab="upcoming">
