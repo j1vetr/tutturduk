@@ -251,6 +251,11 @@ export async function registerRoutes(
     res.json(predictions);
   });
 
+  app.get('/api/predictions/lost', async (req, res) => {
+    const predictions = await storage.getLostPredictions();
+    res.json(predictions);
+  });
+
   app.get('/api/predictions/:id', async (req, res) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {

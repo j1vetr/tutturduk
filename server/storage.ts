@@ -89,6 +89,7 @@ export interface IStorage {
   getAllPredictions(): Promise<Prediction[]>;
   getPendingPredictions(): Promise<Prediction[]>;
   getWonPredictions(): Promise<Prediction[]>;
+  getLostPredictions(): Promise<Prediction[]>;
   getPredictionsByDate(date: string): Promise<Prediction[]>;
   createPrediction(prediction: Partial<Prediction>): Promise<Prediction>;
   updatePrediction(id: number, prediction: Partial<Prediction>): Promise<Prediction | null>;
@@ -191,6 +192,11 @@ export class PostgresStorage implements IStorage {
 
   async getWonPredictions(): Promise<Prediction[]> {
     const result = await pool.query('SELECT * FROM predictions WHERE result = \'won\' ORDER BY match_date DESC, created_at DESC');
+    return result.rows;
+  }
+
+  async getLostPredictions(): Promise<Prediction[]> {
+    const result = await pool.query('SELECT * FROM predictions WHERE result = \'lost\' ORDER BY match_date DESC, created_at DESC');
     return result.rows;
   }
 
