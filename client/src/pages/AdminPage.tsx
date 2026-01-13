@@ -765,8 +765,9 @@ export default function AdminPage() {
                   <CardContent>
                     <div className="space-y-2">
                       {publishedMatches.map(pm => (
-                        <div key={pm.id} className="flex items-center justify-between p-3 rounded-lg bg-black/30">
+                        <div key={pm.id} className={`flex items-center justify-between p-3 rounded-lg ${pm.is_featured ? 'bg-primary/20 border border-primary/30' : 'bg-black/30'}`}>
                           <div className="flex items-center gap-3">
+                            {pm.is_featured && <Star className="w-4 h-4 text-primary" />}
                             <div className="flex items-center gap-2">
                               {pm.home_logo && <img src={pm.home_logo} alt="" className="w-5 h-5" />}
                               <span className="text-white text-sm">{pm.home_team}</span>
@@ -779,6 +780,29 @@ export default function AdminPage() {
                           </div>
                           <div className="flex items-center gap-2">
                             <span className="text-xs text-zinc-500">{pm.match_date} {pm.match_time}</span>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={async () => {
+                                try {
+                                  const res = await fetch(`/api/admin/matches/${pm.id}`, {
+                                    method: 'PATCH',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ is_featured: !pm.is_featured })
+                                  });
+                                  if (res.ok) {
+                                    toast({ title: pm.is_featured ? 'Öne çıkarma kaldırıldı' : 'Maç öne çıkarıldı' });
+                                    loadPublishedMatches();
+                                  }
+                                } catch (e) {
+                                  toast({ title: 'Hata', description: 'İşlem başarısız', variant: 'destructive' });
+                                }
+                              }}
+                              className={pm.is_featured ? 'text-primary hover:text-primary/80 hover:bg-primary/10' : 'text-zinc-400 hover:text-primary hover:bg-primary/10'}
+                              title={pm.is_featured ? 'Öne çıkarmayı kaldır' : 'Öne çıkar'}
+                            >
+                              <Star className={`w-4 h-4 ${pm.is_featured ? 'fill-current' : ''}`} />
+                            </Button>
                             <Button 
                               variant="ghost" 
                               size="sm" 
