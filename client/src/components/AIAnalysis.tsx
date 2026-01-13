@@ -18,26 +18,49 @@ interface AIAnalysisProps {
   awayTeam: string;
 }
 
+const ANALYSIS_STEPS = [
+  { text: 'Takım istatistikleri analiz ediliyor...', duration: 600 },
+  { text: 'Karşılaşma geçmişi inceleniyor...', duration: 500 },
+  { text: 'Bahis oranları değerlendiriliyor...', duration: 400 },
+  { text: 'Yapay zeka modeli çalıştırılıyor...', duration: 700 },
+  { text: 'Tahmin oluşturuluyor...', duration: 400 },
+];
+
 export function AIAnalysis({ matchId, homeTeam, awayTeam }: AIAnalysisProps) {
   const [analysis, setAnalysis] = useState<AIAnalysisResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [revealed, setRevealed] = useState(false);
+  const [animationStep, setAnimationStep] = useState(0);
+  const [showingAnimation, setShowingAnimation] = useState(true);
 
   useEffect(() => {
     loadAnalysis();
   }, [matchId]);
 
   useEffect(() => {
-    if (analysis) {
+    if (analysis && !showingAnimation) {
       setTimeout(() => setRevealed(true), 100);
     }
-  }, [analysis]);
+  }, [analysis, showingAnimation]);
+
+  useEffect(() => {
+    if (showingAnimation && animationStep < ANALYSIS_STEPS.length) {
+      const timer = setTimeout(() => {
+        setAnimationStep(prev => prev + 1);
+      }, ANALYSIS_STEPS[animationStep].duration);
+      return () => clearTimeout(timer);
+    } else if (showingAnimation && animationStep >= ANALYSIS_STEPS.length) {
+      setTimeout(() => setShowingAnimation(false), 300);
+    }
+  }, [showingAnimation, animationStep]);
 
   const loadAnalysis = async () => {
     setLoading(true);
     setError(null);
     setRevealed(false);
+    setAnimationStep(0);
+    setShowingAnimation(true);
     try {
       const res = await fetch(`/api/matches/${matchId}/ai-analysis`);
       if (res.ok) {
@@ -46,15 +69,20 @@ export function AIAnalysis({ matchId, homeTeam, awayTeam }: AIAnalysisProps) {
       } else {
         const err = await res.json();
         setError(err.message || 'Analiz yüklenemedi');
+        setShowingAnimation(false);
       }
     } catch (e) {
       setError('Bağlantı hatası');
+      setShowingAnimation(false);
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading) {
+  if (loading || showingAnimation) {
+    const currentStep = ANALYSIS_STEPS[Math.min(animationStep, ANALYSIS_STEPS.length - 1)];
+    const progress = ((animationStep + 1) / ANALYSIS_STEPS.length) * 100;
+    
     return (
       <div className="relative overflow-hidden rounded-2xl">
         <div className="absolute inset-0 bg-gradient-to-br from-emerald-950 via-zinc-950 to-zinc-900" />
@@ -63,16 +91,42 @@ export function AIAnalysis({ matchId, homeTeam, awayTeam }: AIAnalysisProps) {
           <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-emerald-400/10 rounded-full blur-2xl animate-pulse delay-700" />
         </div>
         <div className="relative p-8">
-          <div className="flex flex-col items-center justify-center py-12">
-            <div className="relative">
+          <div className="flex flex-col items-center justify-center py-8">
+            <div className="relative mb-6">
               <div className="absolute inset-0 bg-emerald-500/20 rounded-full blur-xl animate-pulse" />
-              <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center">
-                <Loader2 className="w-8 h-8 text-white animate-spin" />
+              <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center">
+                <Loader2 className="w-10 h-10 text-white animate-spin" />
               </div>
             </div>
-            <div className="mt-6 text-center">
-              <div className="text-sm font-medium text-white">Yapay Zeka Analiz Ediyor</div>
-              <div className="text-xs text-emerald-400/60 mt-1">Veriler işleniyor...</div>
+            
+            <div className="text-center mb-6">
+              <div className="text-lg font-bold text-white mb-2">TUTTURDUK AI</div>
+              <div className="text-sm text-emerald-400 font-medium animate-pulse min-h-[20px]">
+                {currentStep?.text || 'Analiz tamamlanıyor...'}
+              </div>
+            </div>
+            
+            <div className="w-full max-w-xs">
+              <div className="h-2 rounded-full bg-zinc-800 overflow-hidden">
+                <div 
+                  className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-emerald-400 transition-all duration-500"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <div className="flex justify-between mt-2 text-[10px] text-zinc-500">
+                <span>Adım {Math.min(animationStep + 1, ANALYSIS_STEPS.length)}/{ANALYSIS_STEPS.length}</span>
+                <span>{Math.round(progress)}%</span>
+              </div>
+            </div>
+            
+            <div className="mt-6 space-y-1">
+              {ANALYSIS_STEPS.map((step, i) => (
+                <div key={i} className={`flex items-center gap-2 text-xs transition-all duration-300 ${i <= animationStep ? 'text-emerald-400' : 'text-zinc-600'}`}>
+                  <div className={`w-1.5 h-1.5 rounded-full ${i < animationStep ? 'bg-emerald-400' : i === animationStep ? 'bg-emerald-400 animate-pulse' : 'bg-zinc-700'}`} />
+                  <span className={i === animationStep ? 'font-medium' : ''}>{step.text.replace('...', '')}</span>
+                  {i < animationStep && <span className="text-emerald-500">✓</span>}
+                </div>
+              ))}
             </div>
           </div>
         </div>

@@ -1409,6 +1409,96 @@ export async function registerRoutes(
       });
 
       res.json(published);
+      
+      // Trigger AI analysis in background (don't wait)
+      (async () => {
+        try {
+          const cacheKey = `ai_analysis_v2_${fixtureId}`;
+          await getCachedData(cacheKey, async () => {
+            const homeTeam = apiPrediction?.teams?.home;
+            const awayTeam = apiPrediction?.teams?.away;
+            const h2h = apiPrediction?.h2h || [];
+            const comparison = apiPrediction?.comparison;
+            
+            let oddsData: any = null;
+            let homeTeamStats: any = null;
+            let awayTeamStats: any = null;
+            
+            try {
+              const homeTeamId = homeTeam?.id;
+              const awayTeamId = awayTeam?.id;
+              const leagueId = fixture.league?.id;
+              
+              const [oddsRes, homeStatsRes, awayStatsRes] = await Promise.all([
+                apiFootball.getOdds(fixtureId).catch(() => []),
+                (homeTeamId && leagueId) ? apiFootball.getTeamStatistics(homeTeamId, leagueId, CURRENT_SEASON).catch(() => null) : null,
+                (awayTeamId && leagueId) ? apiFootball.getTeamStatistics(awayTeamId, leagueId, CURRENT_SEASON).catch(() => null) : null,
+              ]);
+              
+              const homeStats = homeStatsRes as any;
+              const awayStats = awayStatsRes as any;
+              
+              if (oddsRes && (oddsRes as any)[0]?.bookmakers?.[0]?.bets) {
+                const bets = (oddsRes as any)[0].bookmakers[0].bets;
+                const matchWinner = bets.find((b: any) => b.name === 'Match Winner');
+                const overUnder = bets.find((b: any) => b.name === 'Goals Over/Under');
+                if (matchWinner?.values) {
+                  oddsData = {
+                    home: parseFloat(matchWinner.values.find((v: any) => v.value === 'Home')?.odd || 0),
+                    draw: parseFloat(matchWinner.values.find((v: any) => v.value === 'Draw')?.odd || 0),
+                    away: parseFloat(matchWinner.values.find((v: any) => v.value === 'Away')?.odd || 0),
+                  };
+                }
+                if (overUnder?.values) {
+                  oddsData = { ...oddsData, over25: parseFloat(overUnder.values.find((v: any) => v.value === 'Over 2.5')?.odd || 0), under25: parseFloat(overUnder.values.find((v: any) => v.value === 'Under 2.5')?.odd || 0) };
+                }
+              }
+              
+              if (homeStats) {
+                homeTeamStats = { cleanSheets: homeStats.clean_sheet?.total || 0, failedToScore: homeStats.failed_to_score?.total || 0, avgGoalsHome: homeStats.goals?.for?.average?.home ? parseFloat(homeStats.goals.for.average.home) : undefined, avgGoalsAway: homeStats.goals?.for?.average?.away ? parseFloat(homeStats.goals.for.average.away) : undefined };
+              }
+              if (awayStats) {
+                awayTeamStats = { cleanSheets: awayStats.clean_sheet?.total || 0, failedToScore: awayStats.failed_to_score?.total || 0, avgGoalsHome: awayStats.goals?.for?.average?.home ? parseFloat(awayStats.goals.for.average.home) : undefined, avgGoalsAway: awayStats.goals?.for?.average?.away ? parseFloat(awayStats.goals.for.average.away) : undefined };
+              }
+            } catch (e) { console.log('Error fetching additional stats:', e); }
+            
+            return generateMatchAnalysis({
+              homeTeam: fixture.teams?.home?.name || '',
+              awayTeam: fixture.teams?.away?.name || '',
+              league: fixture.league?.name || '',
+              homeForm: homeTeam?.league?.form,
+              awayForm: awayTeam?.league?.form,
+              homeGoalsFor: homeTeam?.league?.goals?.for?.total,
+              homeGoalsAgainst: homeTeam?.league?.goals?.against?.total,
+              awayGoalsFor: awayTeam?.league?.goals?.for?.total,
+              awayGoalsAgainst: awayTeam?.league?.goals?.against?.total,
+              homeWins: homeTeam?.league?.fixtures?.wins?.total,
+              homeDraws: homeTeam?.league?.fixtures?.draws?.total,
+              homeLosses: homeTeam?.league?.fixtures?.loses?.total,
+              awayWins: awayTeam?.league?.fixtures?.wins?.total,
+              awayDraws: awayTeam?.league?.fixtures?.draws?.total,
+              awayLosses: awayTeam?.league?.fixtures?.loses?.total,
+              h2hResults: h2h.slice(0, 5).map((m: any) => ({ homeGoals: m.goals?.home || 0, awayGoals: m.goals?.away || 0 })),
+              comparison,
+              apiPrediction: apiPrediction?.predictions ? {
+                winner: apiPrediction.predictions.winner,
+                winOrDraw: apiPrediction.predictions.win_or_draw,
+                underOver: apiPrediction.predictions.under_over,
+                goalsHome: apiPrediction.predictions.goals?.home,
+                goalsAway: apiPrediction.predictions.goals?.away,
+                advice: apiPrediction.predictions.advice,
+                percent: apiPrediction.predictions.percent,
+              } : undefined,
+              homeTeamStats,
+              awayTeamStats,
+              odds: oddsData,
+            });
+          }, 1440);
+          console.log(`[AI] Pre-generated analysis for fixture ${fixtureId}`);
+        } catch (e) {
+          console.log(`[AI] Failed to pre-generate analysis for fixture ${fixtureId}:`, e);
+        }
+      })();
     } catch (error: any) {
       console.error('Publish match error:', error);
       res.status(500).json({ message: error.message });
