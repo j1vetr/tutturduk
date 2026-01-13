@@ -65,6 +65,39 @@ export interface CouponPrediction {
   created_at: Date;
 }
 
+export interface PublishedMatch {
+  id: number;
+  fixture_id: number;
+  home_team: string;
+  away_team: string;
+  home_logo?: string;
+  away_logo?: string;
+  league_id?: number;
+  league_name?: string;
+  league_logo?: string;
+  match_date?: string;
+  match_time?: string;
+  timestamp?: number;
+  api_advice?: string;
+  api_winner_name?: string;
+  api_winner_comment?: string;
+  api_percent_home?: string;
+  api_percent_draw?: string;
+  api_percent_away?: string;
+  api_under_over?: string;
+  api_goals_home?: string;
+  api_goals_away?: string;
+  api_comparison?: any;
+  api_h2h?: any[];
+  api_teams?: any;
+  status: string;
+  result?: string;
+  final_score_home?: number;
+  final_score_away?: number;
+  is_featured: boolean;
+  created_at: Date;
+}
+
 function hashPassword(password: string): string {
   return crypto.createHash('sha256').update(password).digest('hex');
 }
@@ -106,6 +139,15 @@ export interface IStorage {
   updateCouponOdds(couponId: number): Promise<Coupon>;
   updateCouponResult(couponId: number, result: string): Promise<Coupon>;
   deleteCoupon(id: number): Promise<boolean>;
+  
+  // Published match methods
+  getPublishedMatches(): Promise<PublishedMatch[]>;
+  getPublishedMatchById(id: number): Promise<PublishedMatch | undefined>;
+  getPublishedMatchByFixtureId(fixtureId: number): Promise<PublishedMatch | undefined>;
+  publishMatch(match: Partial<PublishedMatch>): Promise<PublishedMatch>;
+  unpublishMatch(id: number): Promise<boolean>;
+  updatePublishedMatch(id: number, data: Partial<PublishedMatch>): Promise<PublishedMatch | null>;
+  getFeaturedMatch(): Promise<PublishedMatch | undefined>;
 }
 
 export class PostgresStorage implements IStorage {
@@ -392,6 +434,129 @@ export class PostgresStorage implements IStorage {
   async deleteCoupon(id: number): Promise<boolean> {
     const result = await pool.query('DELETE FROM coupons WHERE id = $1', [id]);
     return result.rowCount! > 0;
+  }
+
+  // Published match methods
+  async getPublishedMatches(): Promise<PublishedMatch[]> {
+    const result = await pool.query(
+      'SELECT * FROM published_matches WHERE status != $1 ORDER BY timestamp ASC, created_at DESC',
+      ['finished']
+    );
+    return result.rows;
+  }
+
+  async getPublishedMatchById(id: number): Promise<PublishedMatch | undefined> {
+    const result = await pool.query('SELECT * FROM published_matches WHERE id = $1', [id]);
+    return result.rows[0];
+  }
+
+  async getPublishedMatchByFixtureId(fixtureId: number): Promise<PublishedMatch | undefined> {
+    const result = await pool.query('SELECT * FROM published_matches WHERE fixture_id = $1', [fixtureId]);
+    return result.rows[0];
+  }
+
+  async publishMatch(match: Partial<PublishedMatch>): Promise<PublishedMatch> {
+    const result = await pool.query(
+      `INSERT INTO published_matches (
+        fixture_id, home_team, away_team, home_logo, away_logo, 
+        league_id, league_name, league_logo, match_date, match_time, timestamp,
+        api_advice, api_winner_name, api_winner_comment, 
+        api_percent_home, api_percent_draw, api_percent_away,
+        api_under_over, api_goals_home, api_goals_away,
+        api_comparison, api_h2h, api_teams, status, is_featured
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25) 
+      ON CONFLICT (fixture_id) DO UPDATE SET
+        api_advice = EXCLUDED.api_advice,
+        api_winner_name = EXCLUDED.api_winner_name,
+        api_winner_comment = EXCLUDED.api_winner_comment,
+        api_percent_home = EXCLUDED.api_percent_home,
+        api_percent_draw = EXCLUDED.api_percent_draw,
+        api_percent_away = EXCLUDED.api_percent_away,
+        api_under_over = EXCLUDED.api_under_over,
+        api_goals_home = EXCLUDED.api_goals_home,
+        api_goals_away = EXCLUDED.api_goals_away,
+        api_comparison = EXCLUDED.api_comparison,
+        api_h2h = EXCLUDED.api_h2h,
+        api_teams = EXCLUDED.api_teams
+      RETURNING *`,
+      [
+        match.fixture_id,
+        match.home_team,
+        match.away_team,
+        match.home_logo,
+        match.away_logo,
+        match.league_id,
+        match.league_name,
+        match.league_logo,
+        match.match_date,
+        match.match_time,
+        match.timestamp,
+        match.api_advice,
+        match.api_winner_name,
+        match.api_winner_comment,
+        match.api_percent_home,
+        match.api_percent_draw,
+        match.api_percent_away,
+        match.api_under_over,
+        match.api_goals_home,
+        match.api_goals_away,
+        JSON.stringify(match.api_comparison),
+        JSON.stringify(match.api_h2h),
+        JSON.stringify(match.api_teams),
+        match.status || 'pending',
+        match.is_featured || false
+      ]
+    );
+    return result.rows[0];
+  }
+
+  async unpublishMatch(id: number): Promise<boolean> {
+    const result = await pool.query('DELETE FROM published_matches WHERE id = $1', [id]);
+    return result.rowCount! > 0;
+  }
+
+  async updatePublishedMatch(id: number, data: Partial<PublishedMatch>): Promise<PublishedMatch | null> {
+    const fields: string[] = [];
+    const values: any[] = [];
+    let paramCount = 1;
+
+    if (data.status !== undefined) {
+      fields.push(`status = $${paramCount++}`);
+      values.push(data.status);
+    }
+    if (data.result !== undefined) {
+      fields.push(`result = $${paramCount++}`);
+      values.push(data.result);
+    }
+    if (data.final_score_home !== undefined) {
+      fields.push(`final_score_home = $${paramCount++}`);
+      values.push(data.final_score_home);
+    }
+    if (data.final_score_away !== undefined) {
+      fields.push(`final_score_away = $${paramCount++}`);
+      values.push(data.final_score_away);
+    }
+    if (data.is_featured !== undefined) {
+      fields.push(`is_featured = $${paramCount++}`);
+      values.push(data.is_featured);
+    }
+
+    if (fields.length === 0) return null;
+
+    values.push(id);
+    const result = await pool.query(
+      `UPDATE published_matches SET ${fields.join(', ')} WHERE id = $${paramCount} RETURNING *`,
+      values
+    );
+    return result.rows[0] || null;
+  }
+
+  async getFeaturedMatch(): Promise<PublishedMatch | undefined> {
+    const result = await pool.query(
+      'SELECT * FROM published_matches WHERE is_featured = TRUE AND status = $1 ORDER BY created_at DESC LIMIT 1',
+      ['pending']
+    );
+    return result.rows[0];
   }
 }
 

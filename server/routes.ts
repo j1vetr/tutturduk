@@ -724,5 +724,175 @@ export async function registerRoutes(
     }
   });
 
+  // Published matches endpoints (public)
+  app.get('/api/matches', async (req, res) => {
+    try {
+      const matches = await storage.getPublishedMatches();
+      res.json(matches);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get('/api/matches/featured', async (req, res) => {
+    try {
+      const match = await storage.getFeaturedMatch();
+      res.json(match || null);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get('/api/matches/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const match = await storage.getPublishedMatchById(id);
+      if (!match) {
+        return res.status(404).json({ message: 'Maç bulunamadı' });
+      }
+      res.json(match);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Admin: publish a match
+  app.post('/api/admin/matches/publish', async (req, res) => {
+    const user = req.session?.user as any;
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Yetkiniz yok' });
+    }
+    try {
+      const { fixtureId, isFeatured } = req.body;
+      
+      // Check if already published
+      const existing = await storage.getPublishedMatchByFixtureId(fixtureId);
+      if (existing) {
+        return res.status(400).json({ message: 'Bu maç zaten yayınlanmış' });
+      }
+
+      // Get fixture details
+      const cacheKey = `fixture_${fixtureId}`;
+      const fixture = await getCachedData(cacheKey, async () => {
+        return apiFootball.getFixtureById(fixtureId);
+      }, 60);
+
+      if (!fixture) {
+        return res.status(404).json({ message: 'Maç bulunamadı' });
+      }
+
+      // Get API prediction
+      const predCacheKey = `predictions_${fixtureId}`;
+      let apiPrediction: any = null;
+      try {
+        apiPrediction = await getCachedData(predCacheKey, async () => {
+          return apiFootball.getPrediction(fixtureId);
+        }, 120);
+      } catch (e) {
+        console.log('No prediction available for fixture', fixtureId);
+      }
+
+      const matchDate = new Date(fixture.fixture?.date);
+      const localDate = matchDate.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      const localTime = matchDate.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', hour12: false });
+
+      const published = await storage.publishMatch({
+        fixture_id: fixtureId,
+        home_team: fixture.teams?.home?.name,
+        away_team: fixture.teams?.away?.name,
+        home_logo: fixture.teams?.home?.logo,
+        away_logo: fixture.teams?.away?.logo,
+        league_id: fixture.league?.id,
+        league_name: fixture.league?.name,
+        league_logo: fixture.league?.logo,
+        match_date: localDate,
+        match_time: localTime,
+        timestamp: fixture.fixture?.timestamp,
+        api_advice: apiPrediction?.predictions?.advice,
+        api_winner_name: apiPrediction?.predictions?.winner?.name,
+        api_winner_comment: apiPrediction?.predictions?.winner?.comment,
+        api_percent_home: apiPrediction?.predictions?.percent?.home,
+        api_percent_draw: apiPrediction?.predictions?.percent?.draw,
+        api_percent_away: apiPrediction?.predictions?.percent?.away,
+        api_under_over: apiPrediction?.predictions?.under_over,
+        api_goals_home: apiPrediction?.predictions?.goals?.home,
+        api_goals_away: apiPrediction?.predictions?.goals?.away,
+        api_comparison: apiPrediction?.comparison,
+        api_h2h: apiPrediction?.h2h?.slice(0, 5).map((h: any) => ({
+          date: h.fixture?.date,
+          homeTeam: h.teams?.home?.name,
+          awayTeam: h.teams?.away?.name,
+          homeGoals: h.goals?.home,
+          awayGoals: h.goals?.away,
+        })),
+        api_teams: apiPrediction?.teams,
+        status: 'pending',
+        is_featured: isFeatured || false,
+      });
+
+      res.json(published);
+    } catch (error: any) {
+      console.error('Publish match error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Admin: unpublish a match
+  app.delete('/api/admin/matches/:id', async (req, res) => {
+    const user = req.session?.user as any;
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Yetkiniz yok' });
+    }
+    try {
+      const id = parseInt(req.params.id);
+      await storage.unpublishMatch(id);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Admin: update match status
+  app.patch('/api/admin/matches/:id', async (req, res) => {
+    const user = req.session?.user as any;
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Yetkiniz yok' });
+    }
+    try {
+      const id = parseInt(req.params.id);
+      const { status, result, is_featured, final_score_home, final_score_away } = req.body;
+      
+      // If setting as featured, unset others first
+      if (is_featured) {
+        await pool.query('UPDATE published_matches SET is_featured = FALSE');
+      }
+      
+      const updated = await storage.updatePublishedMatch(id, {
+        status,
+        result,
+        is_featured,
+        final_score_home,
+        final_score_away
+      });
+      res.json(updated);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Admin: get all published matches (including finished)
+  app.get('/api/admin/matches', async (req, res) => {
+    const user = req.session?.user as any;
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Yetkiniz yok' });
+    }
+    try {
+      const result = await pool.query('SELECT * FROM published_matches ORDER BY created_at DESC');
+      res.json(result.rows);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   return httpServer;
 }
