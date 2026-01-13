@@ -37,60 +37,86 @@ export interface AIAnalysisResult {
   over25: { prediction: boolean; confidence: number; reasoning: string };
   btts: { prediction: boolean; confidence: number; reasoning: string };
   winner: { prediction: string; confidence: number; reasoning: string };
-  scorePrediction: string;
+  scorePredictions: string[];
+  expectedGoalRange: string;
   riskLevel: 'düşük' | 'orta' | 'yüksek';
   bestBet: string;
 }
 
-export async function generateMatchAnalysis(matchData: MatchData): Promise<AIAnalysisResult> {
-  const h2hSummary = matchData.h2hResults?.length 
-    ? `Son ${matchData.h2hResults.length} karşılaşmada toplam ${matchData.h2hResults.reduce((sum, m) => sum + m.homeGoals + m.awayGoals, 0)} gol atıldı. Ortalama: ${(matchData.h2hResults.reduce((sum, m) => sum + m.homeGoals + m.awayGoals, 0) / matchData.h2hResults.length).toFixed(1)} gol/maç.`
-    : 'H2H verisi yok.';
+function formatForm(form?: string): string {
+  if (!form) return 'Veri yok';
+  return form.split('').join(' ');
+}
 
-  const prompt = `Sen profesyonel bir futbol analisti ve bahis uzmanısın. Aşağıdaki maç verilerini analiz et ve Türkçe olarak detaylı tahmin yap.
+export async function generateMatchAnalysis(matchData: MatchData): Promise<AIAnalysisResult> {
+  const h2hTotal = matchData.h2hResults?.reduce((sum, m) => sum + m.homeGoals + m.awayGoals, 0) || 0;
+  const h2hCount = matchData.h2hResults?.length || 0;
+  const h2hAvg = h2hCount > 0 ? (h2hTotal / h2hCount).toFixed(1) : '0';
+  
+  const h2hSummary = h2hCount > 0 
+    ? `Son ${h2hCount} karşılaşmada toplam ${h2hTotal} gol atıldı.\nMaç başına gol ortalaması: ${h2hAvg}`
+    : 'H2H verisi mevcut değil.';
+
+  const prompt = `Aşağıdaki veriler, maç öncesi istatistiklere ve model karşılaştırmalarına dayalıdır.
+Kesinlik içermez, olasılık ve senaryo analizi yapılmalıdır.
 
 MAÇ BİLGİLERİ:
 - Lig: ${matchData.league}
-- Ev Sahibi: ${matchData.homeTeam} ${matchData.homeRank ? `(Sıralama: ${matchData.homeRank}. - ${matchData.homePoints} puan)` : ''}
-- Deplasman: ${matchData.awayTeam} ${matchData.awayRank ? `(Sıralama: ${matchData.awayRank}. - ${matchData.awayPoints} puan)` : ''}
+- Ev Sahibi: ${matchData.homeTeam}${matchData.homeRank ? ` (Sıralama: ${matchData.homeRank}. - ${matchData.homePoints} puan)` : ''}
+- Deplasman: ${matchData.awayTeam}${matchData.awayRank ? ` (Sıralama: ${matchData.awayRank}. - ${matchData.awayPoints} puan)` : ''}
 
 FORM DURUMU:
-- ${matchData.homeTeam} son 5 maç: ${matchData.homeForm || 'Veri yok'}
-- ${matchData.awayTeam} son 5 maç: ${matchData.awayForm || 'Veri yok'}
+- ${matchData.homeTeam} son 5 maç: ${formatForm(matchData.homeForm)}
+- ${matchData.awayTeam} son 5 maç: ${formatForm(matchData.awayForm)}
 
-İSTATİSTİKLER:
-- ${matchData.homeTeam}: ${matchData.homeWins || 0}G ${matchData.homeDraws || 0}B ${matchData.homeLosses || 0}M | Attığı: ${matchData.homeGoalsFor || 0} Yediği: ${matchData.homeGoalsAgainst || 0}
-- ${matchData.awayTeam}: ${matchData.awayWins || 0}G ${matchData.awayDraws || 0}B ${matchData.awayLosses || 0}M | Attığı: ${matchData.awayGoalsFor || 0} Yediği: ${matchData.awayGoalsAgainst || 0}
+SEZON İSTATİSTİKLERİ:
+- ${matchData.homeTeam}: ${matchData.homeWins || 0}G ${matchData.homeDraws || 0}B ${matchData.homeLosses || 0}M | Attığı: ${matchData.homeGoalsFor || 0} | Yediği: ${matchData.homeGoalsAgainst || 0}
+- ${matchData.awayTeam}: ${matchData.awayWins || 0}G ${matchData.awayDraws || 0}B ${matchData.awayLosses || 0}M | Attığı: ${matchData.awayGoalsFor || 0} | Yediği: ${matchData.awayGoalsAgainst || 0}
 
 H2H (KAFA KAFAYA):
 ${h2hSummary}
 
-KARŞILAŞTIRMA:
+KARŞILAŞTIRMA GÖSTERGELERİ:
+(Bu yüzdeler göreceli güç karşılaştırmasını temsil eder, kesinlik içermez)
 - Form: Ev ${matchData.comparison?.form?.home || '-'} vs Dep ${matchData.comparison?.form?.away || '-'}
 - Atak Gücü: Ev ${matchData.comparison?.att?.home || '-'} vs Dep ${matchData.comparison?.att?.away || '-'}
 - Defans Gücü: Ev ${matchData.comparison?.def?.home || '-'} vs Dep ${matchData.comparison?.def?.away || '-'}
 
+GÖREVİN:
+- Maçı genel senaryo açısından değerlendir.
+- Aşırı iddialı veya kesin ifadeler kullanma.
+- "Olası", "beklenen", "öne çıkıyor" gibi analiz dili kullan.
+- Tek bir kesin skor vermek yerine 2-3 olası skor aralığı belirt.
+- Toplam gol beklentisi aralığı ver.
+
+ÇIKTI KURALLARI:
+- Türkçe yaz.
+- Kısa, net ve mobilde okunabilir olsun.
+- Yüzdelik güven ifadelerini "model güveni" olarak ele al.
+- Tahminler kesin değil, olasılık temelli olmalıdır.
+
 Lütfen aşağıdaki formatta JSON yanıt ver:
 {
-  "matchAnalysis": "2-3 cümlelik genel maç analizi ve beklentiler",
+  "matchAnalysis": "2-3 cümlelik senaryo analizi. Kesin ifadeler yerine 'olası', 'beklenen', 'öne çıkıyor' gibi ifadeler kullan.",
   "over25": {
-    "prediction": true/false (2.5 üst mü?),
-    "confidence": 0-100 arası güven yüzdesi,
-    "reasoning": "Neden bu tahmini yaptın kısa açıklama"
+    "prediction": true/false,
+    "confidence": 0-100 (model güveni),
+    "reasoning": "Kısa açıklama"
   },
   "btts": {
-    "prediction": true/false (KG var mı?),
-    "confidence": 0-100 arası güven yüzdesi,
-    "reasoning": "Neden bu tahmini yaptın kısa açıklama"
+    "prediction": true/false,
+    "confidence": 0-100 (model güveni),
+    "reasoning": "Kısa açıklama"
   },
   "winner": {
-    "prediction": "1" veya "X" veya "2" (1=ev sahibi, X=beraberlik, 2=deplasman),
-    "confidence": 0-100 arası güven yüzdesi,
-    "reasoning": "Neden bu tahmini yaptın kısa açıklama"
+    "prediction": "1" veya "X" veya "2",
+    "confidence": 0-100 (model güveni),
+    "reasoning": "Kısa açıklama"
   },
-  "scorePrediction": "Örn: 2-1",
+  "scorePredictions": ["2-1", "1-1", "2-0"],
+  "expectedGoalRange": "2-3 gol arası",
   "riskLevel": "düşük" veya "orta" veya "yüksek",
-  "bestBet": "En güvenli bahis önerisi (örn: '2.5 Üst' veya 'KG Var' veya 'Ev Sahibi Kazanır')"
+  "bestBet": "En olası bahis önerisi"
 }`;
 
   try {
@@ -99,7 +125,7 @@ Lütfen aşağıdaki formatta JSON yanıt ver:
       messages: [
         {
           role: "system",
-          content: "Sen profesyonel bir futbol analisti ve bahis uzmanısın. Sadece JSON formatında yanıt ver, başka bir şey yazma."
+          content: "Sen profesyonel bir futbol analisti ve bahis uzmanısın. Kesin ifadeler yerine olasılık temelli analiz dili kullanırsın. Sadece JSON formatında yanıt ver."
         },
         {
           role: "user",

@@ -6,7 +6,8 @@ interface AIAnalysisResult {
   over25: { prediction: boolean; confidence: number; reasoning: string };
   btts: { prediction: boolean; confidence: number; reasoning: string };
   winner: { prediction: string; confidence: number; reasoning: string };
-  scorePrediction: string;
+  scorePredictions: string[];
+  expectedGoalRange: string;
   riskLevel: 'düşük' | 'orta' | 'yüksek';
   bestBet: string;
 }
@@ -146,8 +147,14 @@ export function AIAnalysis({ matchId, homeTeam, awayTeam }: AIAnalysisProps) {
               <p className="text-[10px] text-zinc-600 mt-1">{analysis.winner.reasoning}</p>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-black text-emerald-500">{analysis.scorePrediction}</div>
-              <div className="text-[10px] text-zinc-600">Tahmini skor</div>
+              <div className="flex gap-1.5 justify-end">
+                {analysis.scorePredictions?.map((score, i) => (
+                  <span key={i} className="text-sm font-bold text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded">
+                    {score}
+                  </span>
+                ))}
+              </div>
+              <div className="text-[10px] text-zinc-600 mt-1">Olası skorlar</div>
             </div>
           </div>
           <div className="flex items-center gap-2 mt-3">
@@ -156,6 +163,14 @@ export function AIAnalysis({ matchId, homeTeam, awayTeam }: AIAnalysisProps) {
             </div>
             <span className="text-[10px] text-zinc-500">{analysis.winner.confidence}%</span>
           </div>
+          {analysis.expectedGoalRange && (
+            <div className="mt-3 pt-3 border-t border-zinc-700">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-zinc-500">Beklenen gol aralığı</span>
+                <span className="text-sm font-semibold text-white">{analysis.expectedGoalRange}</span>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="bg-emerald-500/10 rounded-lg p-4 border border-emerald-500/20">
