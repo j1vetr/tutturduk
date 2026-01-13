@@ -923,134 +923,69 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              {/* Published Matches - Premium Cards */}
+              {/* Published Matches - Compact Collapsible */}
               {publishedMatches.length > 0 && (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-1 h-6 bg-emerald-500 rounded-full" />
-                    <h3 className="text-lg font-bold text-white">Yayındaki maçlar</h3>
-                    <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">{publishedMatches.length} maç</Badge>
-                  </div>
-                  <div className="grid gap-4">
-                    {publishedMatches.map(pm => {
-                      const matchDate = new Date(pm.match_date + 'T' + pm.match_time);
-                      const now = new Date();
-                      const diff = matchDate.getTime() - now.getTime();
-                      const hours = Math.max(0, Math.floor(diff / (1000 * 60 * 60)));
-                      const minutes = Math.max(0, Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)));
-                      const isLive = diff < 0 && diff > -2 * 60 * 60 * 1000;
-                      const isPast = diff < -2 * 60 * 60 * 1000;
-                      
-                      return (
-                        <div 
-                          key={pm.id} 
-                          className={`relative overflow-hidden rounded-2xl border transition-all ${
-                            pm.is_featured 
-                              ? 'bg-gradient-to-r from-amber-500/10 via-zinc-900 to-zinc-900 border-amber-500/30' 
-                              : 'bg-gradient-to-r from-zinc-900 via-zinc-900 to-zinc-800 border-zinc-800 hover:border-emerald-500/30'
-                          }`}
-                        >
-                          {pm.is_featured && (
-                            <div className="absolute top-0 left-0 px-3 py-1 bg-amber-500 text-black text-[10px] font-black uppercase tracking-wider rounded-br-xl">
-                              Öne çıkan
+                <div className="rounded-xl border border-emerald-500/20 bg-zinc-900/50 overflow-hidden">
+                  <button 
+                    onClick={() => setExpandedDays(prev => {
+                      const newSet = new Set(prev);
+                      if (newSet.has('published')) newSet.delete('published');
+                      else newSet.add('published');
+                      return newSet;
+                    })}
+                    className="w-full flex items-center justify-between p-3 hover:bg-zinc-800/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-1 h-5 bg-emerald-500 rounded-full" />
+                      <span className="text-sm font-bold text-white">Yayındaki maçlar</span>
+                      <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px]">{publishedMatches.length}</Badge>
+                    </div>
+                    <ChevronDown className={`w-4 h-4 text-zinc-500 transition-transform ${expandedDays.has('published') ? 'rotate-180' : ''}`} />
+                  </button>
+                  {expandedDays.has('published') && (
+                    <div className="border-t border-zinc-800 divide-y divide-zinc-800/50 max-h-[300px] overflow-y-auto">
+                      {publishedMatches.map(pm => (
+                        <div key={pm.id} className="flex items-center justify-between p-2 px-3 hover:bg-zinc-800/30">
+                          <div className="flex items-center gap-2 flex-1 min-w-0">
+                            <span className="text-xs font-mono text-emerald-400 w-10">{pm.match_time}</span>
+                            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                              <img src={pm.home_logo} alt="" className="w-4 h-4 object-contain flex-shrink-0" />
+                              <span className="text-xs text-white truncate">{pm.home_team}</span>
+                              <span className="text-[10px] text-zinc-600">vs</span>
+                              <span className="text-xs text-white truncate">{pm.away_team}</span>
+                              <img src={pm.away_logo} alt="" className="w-4 h-4 object-contain flex-shrink-0" />
                             </div>
-                          )}
-                          <div className="p-5">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-5">
-                                {/* Time Badge */}
-                                <div className={`min-w-[80px] text-center p-3 rounded-xl ${
-                                  isLive ? 'bg-red-500/20 border border-red-500/30' : 
-                                  isPast ? 'bg-zinc-800 border border-zinc-700' :
-                                  'bg-emerald-500/10 border border-emerald-500/20'
-                                }`}>
-                                  {isLive ? (
-                                    <>
-                                      <div className="flex items-center justify-center gap-1 text-red-400 mb-1">
-                                        <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                                        <span className="text-[10px] font-bold uppercase">Canlı</span>
-                                      </div>
-                                      <span className="text-lg font-black text-red-400">{pm.match_time}</span>
-                                    </>
-                                  ) : isPast ? (
-                                    <>
-                                      <span className="text-[10px] text-zinc-500 uppercase">Bitti</span>
-                                      <span className="text-lg font-black text-zinc-500 block">{pm.match_time}</span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <span className="text-lg font-black text-white">{pm.match_time}</span>
-                                      <div className="text-[10px] text-emerald-400 font-medium">
-                                        {hours > 0 ? `${hours}s ${minutes}dk` : `${minutes}dk`}
-                                      </div>
-                                    </>
-                                  )}
-                                </div>
-
-                                {/* Teams */}
-                                <div className="flex items-center gap-4">
-                                  <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 rounded-xl bg-white/5 p-2 border border-white/10">
-                                      {pm.home_logo && <img src={pm.home_logo} alt="" className="w-full h-full object-contain" />}
-                                    </div>
-                                    <span className="text-white font-bold">{pm.home_team}</span>
-                                  </div>
-                                  <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
-                                    <span className="text-xs font-bold text-zinc-500">VS</span>
-                                  </div>
-                                  <div className="flex items-center gap-3">
-                                    <div className="w-12 h-12 rounded-xl bg-white/5 p-2 border border-white/10">
-                                      {pm.away_logo && <img src={pm.away_logo} alt="" className="w-full h-full object-contain" />}
-                                    </div>
-                                    <span className="text-white font-bold">{pm.away_team}</span>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* Actions */}
-                              <div className="flex items-center gap-2">
-                                <div className="text-right mr-4">
-                                  <p className="text-[10px] text-zinc-500 uppercase">Tarih</p>
-                                  <p className="text-sm text-white font-medium">{new Date(pm.match_date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}</p>
-                                </div>
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon"
-                                  onClick={async () => {
-                                    try {
-                                      const res = await fetch(`/api/admin/matches/${pm.id}`, {
-                                        method: 'PATCH',
-                                        headers: { 'Content-Type': 'application/json' },
-                                        body: JSON.stringify({ is_featured: !pm.is_featured })
-                                      });
-                                      if (res.ok) {
-                                        toast({ title: pm.is_featured ? 'Öne çıkarma kaldırıldı' : 'Maç öne çıkarıldı' });
-                                        loadPublishedMatches();
-                                      }
-                                    } catch (e) {
-                                      toast({ title: 'Hata', description: 'İşlem başarısız', variant: 'destructive' });
-                                    }
-                                  }}
-                                  className={`h-10 w-10 rounded-xl ${pm.is_featured ? 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-amber-400'}`}
-                                  title={pm.is_featured ? 'Öne çıkarmayı kaldır' : 'Öne çıkar'}
-                                >
-                                  <Star className={`w-5 h-5 ${pm.is_featured ? 'fill-current' : ''}`} />
-                                </Button>
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon"
-                                  onClick={() => unpublishMatch(pm.id)}
-                                  className="h-10 w-10 rounded-xl bg-red-500/10 text-red-400 hover:bg-red-500/20"
-                                >
-                                  <Trash2 className="w-5 h-5" />
-                                </Button>
-                              </div>
-                            </div>
+                            {pm.is_featured && <Star className="w-3 h-3 text-amber-400 fill-current flex-shrink-0" />}
+                          </div>
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={async () => {
+                                const res = await fetch(`/api/admin/matches/${pm.id}`, {
+                                  method: 'PATCH',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ is_featured: !pm.is_featured })
+                                });
+                                if (res.ok) loadPublishedMatches();
+                              }}
+                              className="h-6 w-6 rounded bg-zinc-800 text-zinc-400 hover:text-amber-400"
+                            >
+                              <Star className="w-3 h-3" />
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={() => unpublishMatch(pm.id)}
+                              className="h-6 w-6 rounded bg-red-500/10 text-red-400 hover:bg-red-500/20"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </Button>
                           </div>
                         </div>
-                      );
-                    })}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
