@@ -1,0 +1,56 @@
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 3.99s
+building server...
+▲ [WARNING] Duplicate member "updateCouponOdds" in class body [duplicate-class-member]
+
+    server/storage.ts:703:8:
+      703 │   async updateCouponOdds(couponId: number): Promise<void> {
+          ╵         ~~~~~~~~~~~~~~~~
+
+  The original member "updateCouponOdds" is here:
+
+    server/storage.ts:456:8:
+      456 │   async updateCouponOdds(couponId: number): Promise<Coupon> {
+          ╵         ~~~~~~~~~~~~~~~~
+
+1 warning
+
+  dist/index.cjs  1.1mb ⚠️
+
+⚡ Done in 70ms
+root@162-55-4-35:/var/www/tutturduk# npx drizzle-kit push --force
+No config path provided, using default 'drizzle.config.ts'
+Reading config file '/var/www/tutturduk/drizzle.config.ts'
+Using 'pg' driver for database querying
+[✓] Pulling schema from database...
+· You're about to add invitation_codes_code_unique unique constraint to the table, which contains 2 items. If this statement fails, you will receive an error from the database. Do you want to truncate invitation_codes table?
+
+error: must be owner of table best_bets
+    at /var/www/tutturduk/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Object.query (/var/www/tutturduk/node_modules/drizzle-kit/bin.cjs:80601:26)
+    at async pgPush (/var/www/tutturduk/node_modules/drizzle-kit/bin.cjs:84411:13)
+    at async Object.handler (/var/www/tutturduk/node_modules/drizzle-kit/bin.cjs:93813:9)
+    at async run (/var/www/tutturduk/node_modules/drizzle-kit/bin.cjs:93059:7) {
+  length: 92,
+  severity: 'ERROR',
+  code: '42501',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'aclchk.c',
+  line: '3588',
+  routine: 'aclcheck_error'
+}
+root@162-55-4-35:/var/www/tutturduk#
