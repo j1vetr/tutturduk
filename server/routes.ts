@@ -986,6 +986,144 @@ export async function registerRoutes(
     }
   });
 
+  // Best Bets endpoints
+  app.get('/api/best-bets', async (req, res) => {
+    try {
+      const bets = await storage.getTodaysBestBets();
+      res.json(bets);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get('/api/best-bets/:date', async (req, res) => {
+    try {
+      const bets = await storage.getBestBetsForDate(req.params.date);
+      res.json(bets);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Admin: generate best bets for today
+  app.post('/api/admin/best-bets/generate', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Yetkiniz yok' });
+    }
+    
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const matches = await storage.getPublishedMatches();
+      
+      const todayMatches = matches.filter(m => m.match_date === today);
+      
+      if (todayMatches.length === 0) {
+        return res.status(400).json({ message: 'Bugün için yayınlanmış maç yok' });
+      }
+
+      const bestBets = [];
+      
+      for (const match of todayMatches.slice(0, 10)) {
+        try {
+          const cacheKey = `ai_analysis_${match.fixture_id}`;
+          const analysis = await getCachedData(cacheKey, async () => {
+            const homeTeam = match.api_teams?.home;
+            const awayTeam = match.api_teams?.away;
+            const h2h = match.api_h2h || [];
+            
+            return generateMatchAnalysis({
+              homeTeam: match.home_team,
+              awayTeam: match.away_team,
+              league: match.league_name,
+              homeForm: homeTeam?.league?.form,
+              awayForm: awayTeam?.league?.form,
+              homeGoalsFor: homeTeam?.league?.goals?.for?.total,
+              homeGoalsAgainst: homeTeam?.league?.goals?.against?.total,
+              awayGoalsFor: awayTeam?.league?.goals?.for?.total,
+              awayGoalsAgainst: awayTeam?.league?.goals?.against?.total,
+              homeWins: homeTeam?.league?.fixtures?.wins?.total,
+              homeDraws: homeTeam?.league?.fixtures?.draws?.total,
+              homeLosses: homeTeam?.league?.fixtures?.loses?.total,
+              awayWins: awayTeam?.league?.fixtures?.wins?.total,
+              awayDraws: awayTeam?.league?.fixtures?.draws?.total,
+              awayLosses: awayTeam?.league?.fixtures?.loses?.total,
+              h2hResults: h2h.map((m: any) => ({ homeGoals: m.homeGoals, awayGoals: m.awayGoals })),
+              comparison: match.api_comparison,
+            });
+          }, 1440);
+
+          const maxConfidence = Math.max(
+            analysis.over25?.confidence || 0,
+            analysis.btts?.confidence || 0,
+            analysis.winner?.confidence || 0
+          );
+          
+          let betType = '';
+          let betDescription = '';
+          let confidence = 0;
+          let reasoning = '';
+          
+          if (analysis.over25?.confidence >= analysis.btts?.confidence && 
+              analysis.over25?.confidence >= analysis.winner?.confidence) {
+            betType = analysis.over25.prediction ? '2.5 ÜST' : '2.5 ALT';
+            betDescription = analysis.over25.prediction ? 'Maçta 3+ gol bekleniyor' : 'Maçta 2 veya daha az gol bekleniyor';
+            confidence = analysis.over25.confidence;
+            reasoning = analysis.over25.reasoning;
+          } else if (analysis.btts?.confidence >= analysis.winner?.confidence) {
+            betType = analysis.btts.prediction ? 'KG VAR' : 'KG YOK';
+            betDescription = analysis.btts.prediction ? 'Her iki takım da gol atar' : 'En az bir takım gol atamaz';
+            confidence = analysis.btts.confidence;
+            reasoning = analysis.btts.reasoning;
+          } else {
+            const winnerLabel = analysis.winner.prediction === '1' ? match.home_team : 
+                               analysis.winner.prediction === '2' ? match.away_team : 'Beraberlik';
+            betType = `MS ${analysis.winner.prediction}`;
+            betDescription = `${winnerLabel} kazanır`;
+            confidence = analysis.winner.confidence;
+            reasoning = analysis.winner.reasoning;
+          }
+
+          const bet = await storage.createBestBet({
+            match_id: match.id,
+            fixture_id: match.fixture_id,
+            home_team: match.home_team,
+            away_team: match.away_team,
+            home_logo: match.home_logo,
+            away_logo: match.away_logo,
+            league_name: match.league_name,
+            league_logo: match.league_logo,
+            match_date: match.match_date!,
+            match_time: match.match_time!,
+            bet_type: betType,
+            bet_description: betDescription,
+            confidence: confidence,
+            risk_level: analysis.riskLevel,
+            reasoning: reasoning,
+            date_for: today
+          });
+          
+          bestBets.push(bet);
+        } catch (err) {
+          console.error(`Error generating best bet for match ${match.id}:`, err);
+        }
+      }
+
+      bestBets.sort((a, b) => b.confidence - a.confidence);
+      
+      res.json({ 
+        message: `${bestBets.length} günün en iyi bahsi oluşturuldu`,
+        bets: bestBets.slice(0, 5)
+      });
+    } catch (error: any) {
+      console.error('Generate best bets error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // Admin: publish a match
   app.post('/api/admin/matches/publish', async (req, res) => {
     if (!req.session.userId) {

@@ -890,6 +890,28 @@ export default function AdminPage() {
                     <Button onClick={loadPublishedMatches} variant="outline" className="border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400">
                       <RefreshCcw className="w-4 h-4 mr-2" /> Yenile
                     </Button>
+                    <Button 
+                      onClick={async () => {
+                        try {
+                          const res = await fetch('/api/admin/best-bets/generate', {
+                            method: 'POST',
+                            credentials: 'include'
+                          });
+                          const data = await res.json();
+                          if (res.ok) {
+                            toast({ title: 'Başarılı', description: data.message, className: 'bg-amber-500 text-black border-none' });
+                          } else {
+                            toast({ variant: 'destructive', description: data.message });
+                          }
+                        } catch (e) {
+                          toast({ variant: 'destructive', description: 'İşlem başarısız' });
+                        }
+                      }}
+                      variant="outline" 
+                      className="border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400"
+                    >
+                      <Sparkles className="w-4 h-4 mr-2" /> En İyi Bahisleri Oluştur
+                    </Button>
                     <Button onClick={loadUpcomingMatches} disabled={loadingMatches} className="bg-emerald-500 text-black font-bold hover:bg-emerald-400">
                       {loadingMatches ? (
                         <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Yükleniyor...</>

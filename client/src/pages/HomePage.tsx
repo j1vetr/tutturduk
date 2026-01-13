@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { MobileLayout } from "@/components/MobileLayout";
 import { HeroPrediction } from "@/components/HeroPrediction";
+import BestBets from "@/components/BestBets";
 import { Loader2, Clock, Filter, ChevronDown, ChevronUp } from "lucide-react";
 import { useLocation } from "wouter";
 import { calculateScenario, getChaosColor } from "@/lib/scenarioEngine";
@@ -252,6 +253,8 @@ export default function HomePage() {
     <MobileLayout activeTab="home">
       <div className="space-y-6 pb-6">
         <HeroPrediction />
+        
+        <BestBets />
 
         <div>
           <div className="flex items-center justify-between mb-4">

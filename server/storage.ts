@@ -65,6 +65,27 @@ export interface CouponPrediction {
   created_at: Date;
 }
 
+export interface BestBet {
+  id: number;
+  match_id: number;
+  fixture_id: number;
+  home_team: string;
+  away_team: string;
+  home_logo?: string;
+  away_logo?: string;
+  league_name?: string;
+  league_logo?: string;
+  match_date: string;
+  match_time: string;
+  bet_type: string;
+  bet_description: string;
+  confidence: number;
+  risk_level: string;
+  reasoning?: string;
+  created_at: Date;
+  date_for: string;
+}
+
 export interface PublishedMatch {
   id: number;
   fixture_id: number;
@@ -557,6 +578,48 @@ export class PostgresStorage implements IStorage {
       ['pending']
     );
     return result.rows[0];
+  }
+
+  // Best Bets methods
+  async getBestBetsForDate(date: string): Promise<BestBet[]> {
+    const result = await pool.query(
+      `SELECT * FROM best_bets WHERE date_for = $1 ORDER BY confidence DESC LIMIT 5`,
+      [date]
+    );
+    return result.rows;
+  }
+
+  async getTodaysBestBets(): Promise<BestBet[]> {
+    const today = new Date().toISOString().split('T')[0];
+    return this.getBestBetsForDate(today);
+  }
+
+  async createBestBet(bet: Omit<BestBet, 'id' | 'created_at'>): Promise<BestBet> {
+    const result = await pool.query(
+      `INSERT INTO best_bets (
+        match_id, fixture_id, home_team, away_team, home_logo, away_logo,
+        league_name, league_logo, match_date, match_time, bet_type, 
+        bet_description, confidence, risk_level, reasoning, date_for
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+      ON CONFLICT (fixture_id, date_for) DO UPDATE SET
+        bet_type = EXCLUDED.bet_type,
+        bet_description = EXCLUDED.bet_description,
+        confidence = EXCLUDED.confidence,
+        risk_level = EXCLUDED.risk_level,
+        reasoning = EXCLUDED.reasoning
+      RETURNING *`,
+      [
+        bet.match_id, bet.fixture_id, bet.home_team, bet.away_team,
+        bet.home_logo, bet.away_logo, bet.league_name, bet.league_logo,
+        bet.match_date, bet.match_time, bet.bet_type, bet.bet_description,
+        bet.confidence, bet.risk_level, bet.reasoning, bet.date_for
+      ]
+    );
+    return result.rows[0];
+  }
+
+  async clearBestBetsForDate(date: string): Promise<void> {
+    await pool.query('DELETE FROM best_bets WHERE date_for = $1', [date]);
   }
 }
 
