@@ -8,14 +8,7 @@ export function LiveScoreTicker() {
   const { data: matches, isLoading, error } = useLiveMatches();
 
   if (error) {
-     return (
-        <div className="w-full bg-red-950/50 border-b border-red-500/20 py-2 flex justify-center">
-           <div className="flex items-center gap-2 text-[10px] text-red-400">
-              <AlertTriangle className="w-3 h-3" />
-              <span>Canlı veri bağlantı hatası</span>
-           </div>
-        </div>
-     );
+     return null;
   }
 
   if (isLoading) {
