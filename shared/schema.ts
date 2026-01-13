@@ -106,7 +106,7 @@ export const couponPredictions = pgTable("coupon_predictions", {
 
 export const bestBets = pgTable("best_bets", {
   id: serial("id").primaryKey(),
-  date_for: text("date_for").notNull(),
+  match_id: integer("match_id"),
   fixture_id: integer("fixture_id").notNull(),
   home_team: text("home_team").notNull(),
   away_team: text("away_team").notNull(),
@@ -114,11 +114,14 @@ export const bestBets = pgTable("best_bets", {
   away_logo: text("away_logo"),
   league_name: text("league_name"),
   league_logo: text("league_logo"),
+  match_date: text("match_date"),
   match_time: text("match_time"),
-  best_bet: text("best_bet").notNull(),
+  bet_type: text("bet_type").notNull(),
+  bet_description: text("bet_description"),
   confidence: integer("confidence").default(70),
+  risk_level: text("risk_level").default("orta"),
   reasoning: text("reasoning"),
-  odds: decimal("odds", { precision: 5, scale: 2 }),
+  date_for: text("date_for").notNull(),
   created_at: timestamp("created_at").defaultNow(),
 });
 
@@ -135,14 +138,16 @@ export const userCoupons = pgTable("user_coupons", {
 export const userCouponItems = pgTable("user_coupon_items", {
   id: serial("id").primaryKey(),
   coupon_id: integer("coupon_id").notNull(),
+  match_id: integer("match_id"),
   fixture_id: integer("fixture_id").notNull(),
   home_team: text("home_team").notNull(),
   away_team: text("away_team").notNull(),
   home_logo: text("home_logo"),
   away_logo: text("away_logo"),
   league_name: text("league_name"),
+  match_date: text("match_date"),
+  match_time: text("match_time"),
   bet_type: text("bet_type").notNull(),
-  bet_pick: text("bet_pick").notNull(),
   odds: decimal("odds", { precision: 5, scale: 2 }).notNull(),
   status: text("status").default("pending"),
   created_at: timestamp("created_at").defaultNow(),
@@ -160,3 +165,5 @@ export type PublishedMatch = typeof publishedMatches.$inferSelect;
 export type Coupon = typeof coupons.$inferSelect;
 export type Prediction = typeof predictions.$inferSelect;
 export type BestBet = typeof bestBets.$inferSelect;
+export type UserCoupon = typeof userCoupons.$inferSelect & { items?: UserCouponItem[] };
+export type UserCouponItem = typeof userCouponItems.$inferSelect;
