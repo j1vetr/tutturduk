@@ -132,7 +132,6 @@ export default function AdminPage() {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
   const [newCouponName, setNewCouponName] = useState("");
-  const [newCouponDate, setNewCouponDate] = useState("");
   
   // Published matches
   const [publishedMatches, setPublishedMatches] = useState<any[]>([]);
@@ -555,21 +554,21 @@ export default function AdminPage() {
   };
 
   const handleCreateCoupon = async () => {
-    if (!newCouponName || !newCouponDate) {
-      toast({ variant: "destructive", description: "Kupon adı ve tarih gerekli." });
+    if (!newCouponName) {
+      toast({ variant: "destructive", description: "Kupon adı gerekli." });
       return;
     }
     try {
+      const today = new Date().toISOString().split('T')[0];
       const res = await fetch('/api/admin/coupons', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newCouponName, date: newCouponDate }),
+        body: JSON.stringify({ name: newCouponName, date: today }),
         credentials: 'include'
       });
       if (res.ok) {
         toast({ description: "Kupon oluşturuldu!", className: "bg-green-500 text-white border-none" });
         setNewCouponName("");
-        setNewCouponDate("");
         loadCoupons();
       }
     } catch (error) {
@@ -1468,6 +1467,7 @@ export default function AdminPage() {
               <Card className="bg-zinc-900/50 border-white/5">
                 <CardHeader>
                   <CardTitle className="text-white">Yeni Kupon Oluştur</CardTitle>
+                  <p className="text-sm text-zinc-500">Bugün için yeni kupon oluşturun ve yayınlanan maçlardan ekleyin</p>
                 </CardHeader>
                 <CardContent>
                   <div className="flex gap-4 items-end">
@@ -1477,15 +1477,6 @@ export default function AdminPage() {
                         value={newCouponName}
                         onChange={e => setNewCouponName(e.target.value)}
                         placeholder="Günün Kuponu"
-                        className="bg-black/50 border-white/10 text-white mt-1"
-                      />
-                    </div>
-                    <div className="w-48">
-                      <Label className="text-zinc-400">Tarih</Label>
-                      <Input 
-                        type="date"
-                        value={newCouponDate}
-                        onChange={e => setNewCouponDate(e.target.value)}
                         className="bg-black/50 border-white/10 text-white mt-1"
                       />
                     </div>

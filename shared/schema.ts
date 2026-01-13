@@ -59,10 +59,9 @@ export const coupons = pgTable("coupons", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   coupon_date: text("coupon_date").notNull(),
-  matches: jsonb("matches").notNull(),
-  total_odds: decimal("total_odds", { precision: 10, scale: 2 }),
+  combined_odds: decimal("combined_odds", { precision: 10, scale: 2 }).default("1.00"),
   status: text("status").default("pending"),
-  result: text("result"),
+  result: text("result").default("pending"),
   created_at: timestamp("created_at").defaultNow(),
 });
 
