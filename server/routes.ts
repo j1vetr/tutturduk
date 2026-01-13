@@ -986,6 +986,88 @@ export async function registerRoutes(
     }
   });
 
+  // User Coupons endpoints
+  app.get('/api/user/coupons', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+    try {
+      const coupons = await storage.getUserCoupons(req.session.userId);
+      res.json(coupons);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post('/api/user/coupons', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+    try {
+      const { name } = req.body;
+      const coupon = await storage.createUserCoupon(req.session.userId, name || 'Yeni Kupon');
+      res.json(coupon);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post('/api/user/coupons/ai', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+    try {
+      const { riskLevel } = req.body;
+      const coupon = await storage.createAICoupon(req.session.userId, riskLevel || 'medium');
+      res.json(coupon);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post('/api/user/coupons/:couponId/items', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+    try {
+      const couponId = parseInt(req.params.couponId);
+      const item = await storage.addCouponItem({
+        coupon_id: couponId,
+        ...req.body
+      });
+      res.json(item);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.delete('/api/user/coupons/:couponId/items/:itemId', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+    try {
+      const couponId = parseInt(req.params.couponId);
+      const itemId = parseInt(req.params.itemId);
+      await storage.removeCouponItem(itemId, couponId);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.delete('/api/user/coupons/:couponId', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+    try {
+      const couponId = parseInt(req.params.couponId);
+      await storage.deleteUserCoupon(couponId);
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // Best Bets endpoints
   app.get('/api/best-bets', async (req, res) => {
     try {

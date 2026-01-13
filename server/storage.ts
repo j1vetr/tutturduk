@@ -65,6 +65,35 @@ export interface CouponPrediction {
   created_at: Date;
 }
 
+export interface UserCoupon {
+  id: number;
+  user_id: number;
+  name: string;
+  coupon_type: string;
+  total_odds: number;
+  status: string;
+  created_at: Date;
+  items?: UserCouponItem[];
+}
+
+export interface UserCouponItem {
+  id: number;
+  coupon_id: number;
+  match_id: number;
+  fixture_id: number;
+  home_team: string;
+  away_team: string;
+  home_logo?: string;
+  away_logo?: string;
+  league_name?: string;
+  match_date: string;
+  match_time: string;
+  bet_type: string;
+  odds: number;
+  result: string;
+  created_at: Date;
+}
+
 export interface BestBet {
   id: number;
   match_id: number;
@@ -620,6 +649,108 @@ export class PostgresStorage implements IStorage {
 
   async clearBestBetsForDate(date: string): Promise<void> {
     await pool.query('DELETE FROM best_bets WHERE date_for = $1', [date]);
+  }
+
+  // User Coupons methods
+  async getUserCoupons(userId: number): Promise<UserCoupon[]> {
+    const result = await pool.query(
+      'SELECT * FROM user_coupons WHERE user_id = $1 ORDER BY created_at DESC',
+      [userId]
+    );
+    
+    const coupons = result.rows;
+    for (const coupon of coupons) {
+      const items = await pool.query(
+        'SELECT * FROM user_coupon_items WHERE coupon_id = $1 ORDER BY created_at ASC',
+        [coupon.id]
+      );
+      coupon.items = items.rows;
+    }
+    return coupons;
+  }
+
+  async createUserCoupon(userId: number, name: string, couponType: string = 'custom'): Promise<UserCoupon> {
+    const result = await pool.query(
+      'INSERT INTO user_coupons (user_id, name, coupon_type) VALUES ($1, $2, $3) RETURNING *',
+      [userId, name, couponType]
+    );
+    return { ...result.rows[0], items: [] };
+  }
+
+  async addCouponItem(item: Omit<UserCouponItem, 'id' | 'created_at'>): Promise<UserCouponItem> {
+    const result = await pool.query(
+      `INSERT INTO user_coupon_items (
+        coupon_id, match_id, fixture_id, home_team, away_team, 
+        home_logo, away_logo, league_name, match_date, match_time, bet_type, odds
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
+      [
+        item.coupon_id, item.match_id, item.fixture_id, item.home_team, item.away_team,
+        item.home_logo, item.away_logo, item.league_name, item.match_date, item.match_time,
+        item.bet_type, item.odds
+      ]
+    );
+    
+    await this.updateCouponOdds(item.coupon_id);
+    return result.rows[0];
+  }
+
+  async removeCouponItem(itemId: number, couponId: number): Promise<boolean> {
+    const result = await pool.query('DELETE FROM user_coupon_items WHERE id = $1', [itemId]);
+    await this.updateCouponOdds(couponId);
+    return result.rowCount! > 0;
+  }
+
+  async updateCouponOdds(couponId: number): Promise<void> {
+    const result = await pool.query(
+      'SELECT COALESCE(EXP(SUM(LN(odds))), 1) as total_odds FROM user_coupon_items WHERE coupon_id = $1',
+      [couponId]
+    );
+    const totalOdds = parseFloat(result.rows[0]?.total_odds || 1).toFixed(2);
+    await pool.query('UPDATE user_coupons SET total_odds = $1 WHERE id = $2', [totalOdds, couponId]);
+  }
+
+  async deleteUserCoupon(couponId: number): Promise<boolean> {
+    const result = await pool.query('DELETE FROM user_coupons WHERE id = $1', [couponId]);
+    return result.rowCount! > 0;
+  }
+
+  async createAICoupon(userId: number, riskLevel: string): Promise<UserCoupon> {
+    const today = new Date().toISOString().split('T')[0];
+    const bestBets = await this.getBestBetsForDate(today);
+    
+    let filteredBets = bestBets;
+    if (riskLevel === 'low') {
+      filteredBets = bestBets.filter(b => b.risk_level === 'düşük').slice(0, 3);
+    } else if (riskLevel === 'medium') {
+      filteredBets = bestBets.filter(b => b.risk_level !== 'yüksek').slice(0, 4);
+    } else {
+      filteredBets = bestBets.slice(0, 5);
+    }
+
+    const couponName = riskLevel === 'low' ? 'Güvenli Kupon' : 
+                       riskLevel === 'medium' ? 'Dengeli Kupon' : 'Yüksek Kazanç Kuponu';
+    
+    const coupon = await this.createUserCoupon(userId, couponName, 'ai-generated');
+    
+    for (const bet of filteredBets) {
+      await this.addCouponItem({
+        coupon_id: coupon.id,
+        match_id: bet.match_id,
+        fixture_id: bet.fixture_id,
+        home_team: bet.home_team,
+        away_team: bet.away_team,
+        home_logo: bet.home_logo,
+        away_logo: bet.away_logo,
+        league_name: bet.league_name,
+        match_date: bet.match_date,
+        match_time: bet.match_time,
+        bet_type: bet.bet_type,
+        odds: 1.50,
+        result: 'pending'
+      });
+    }
+
+    return this.getUserCoupons(userId).then(coupons => coupons.find(c => c.id === coupon.id)!);
   }
 }
 

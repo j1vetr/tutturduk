@@ -1,12 +1,12 @@
 import { useLocation } from "wouter";
-import { Home, Trophy, User, CalendarDays, CheckCircle } from "lucide-react";
+import { Home, Trophy, User, CalendarDays, CheckCircle, Ticket } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import logoIcon from "@assets/generated_images/minimalist_sports_betting_logo_icon.png";
 
 interface MobileLayoutProps {
   children: React.ReactNode;
-  activeTab?: "home" | "winners" | "profile" | "admin" | "live" | "upcoming";
+  activeTab?: "home" | "winners" | "profile" | "admin" | "live" | "upcoming" | "coupons";
 }
 
 export function MobileLayout({ children, activeTab }: MobileLayoutProps) {
@@ -86,15 +86,15 @@ export function MobileLayout({ children, activeTab }: MobileLayoutProps) {
           <div className="w-[1px] h-8 bg-white/5" />
 
           <button 
-            onClick={() => setLocation("/upcoming")}
+            onClick={() => setLocation("/coupons")}
             className={cn(
               "flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all duration-300 relative group overflow-hidden",
-              activeTab === "upcoming" ? "text-blue-500 bg-white/5" : "text-zinc-500 hover:text-white hover:bg-white/5"
+              activeTab === "coupons" ? "text-amber-500 bg-white/5" : "text-zinc-500 hover:text-white hover:bg-white/5"
             )}
           >
-            <div className={cn("absolute inset-0 bg-blue-500/10 blur-xl opacity-0 transition-opacity", activeTab === "upcoming" && "opacity-100")} />
-            <CalendarDays className={cn("w-5 h-5 transition-transform relative z-10", activeTab === "upcoming" ? "scale-110 drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]" : "group-active:scale-90")} />
-            <span className={cn("text-[9px] font-bold tracking-wide relative z-10", activeTab === "upcoming" && "text-white")}>Bülten</span>
+            <div className={cn("absolute inset-0 bg-amber-500/10 blur-xl opacity-0 transition-opacity", activeTab === "coupons" && "opacity-100")} />
+            <Ticket className={cn("w-5 h-5 transition-transform relative z-10", activeTab === "coupons" ? "scale-110 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]" : "group-active:scale-90")} />
+            <span className={cn("text-[9px] font-bold tracking-wide relative z-10", activeTab === "coupons" && "text-white")}>Kuponlar</span>
           </button>
           
           <div className="w-[1px] h-8 bg-white/5" />
