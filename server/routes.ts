@@ -963,16 +963,105 @@ export async function registerRoutes(
         return res.status(404).json({ message: 'Maç bulunamadı' });
       }
 
-      const cacheKey = `ai_analysis_${match.fixture_id}`;
+      const cacheKey = `ai_analysis_v2_${match.fixture_id}`;
       const analysis = await getCachedData(cacheKey, async () => {
-        const homeTeam = match.api_teams?.home;
-        const awayTeam = match.api_teams?.away;
-        const h2h = match.api_h2h || [];
+        const homeTeam = (match as any).api_teams?.home;
+        const awayTeam = (match as any).api_teams?.away;
+        const h2h = (match as any).api_h2h || [];
+        const apiPred = (match as any).api_predictions;
+        const comparison = (match as any).api_comparison;
+        
+        let oddsData: any = null;
+        let homeTeamStats: any = null;
+        let awayTeamStats: any = null;
+        
+        try {
+          const homeTeamId = homeTeam?.id;
+          const awayTeamId = awayTeam?.id;
+          
+          const [oddsRes, homeStatsRes, awayStatsRes] = await Promise.all([
+            apiFootball.getOdds(match.fixture_id).catch(() => []),
+            (homeTeamId && match.league_id) ? apiFootball.getTeamStatistics(homeTeamId, match.league_id, CURRENT_SEASON).catch(() => null) : Promise.resolve(null),
+            (awayTeamId && match.league_id) ? apiFootball.getTeamStatistics(awayTeamId, match.league_id, CURRENT_SEASON).catch(() => null) : Promise.resolve(null),
+          ]);
+          
+          const homeStats = homeStatsRes as any;
+          const awayStats = awayStatsRes as any;
+          
+          if (oddsRes && (oddsRes as any)[0]?.bookmakers?.[0]?.bets) {
+            const bets = (oddsRes as any)[0].bookmakers[0].bets;
+            const matchWinner = bets.find((b: any) => b.name === 'Match Winner');
+            const overUnder = bets.find((b: any) => b.name === 'Goals Over/Under');
+            
+            if (matchWinner?.values) {
+              oddsData = {
+                home: parseFloat(matchWinner.values.find((v: any) => v.value === 'Home')?.odd || 0),
+                draw: parseFloat(matchWinner.values.find((v: any) => v.value === 'Draw')?.odd || 0),
+                away: parseFloat(matchWinner.values.find((v: any) => v.value === 'Away')?.odd || 0),
+              };
+            }
+            if (overUnder?.values) {
+              oddsData = {
+                ...oddsData,
+                over25: parseFloat(overUnder.values.find((v: any) => v.value === 'Over 2.5')?.odd || 0),
+                under25: parseFloat(overUnder.values.find((v: any) => v.value === 'Under 2.5')?.odd || 0),
+              };
+            }
+          }
+          
+          if (homeStats) {
+            homeTeamStats = {
+              cleanSheets: homeStats.clean_sheet?.total || 0,
+              failedToScore: homeStats.failed_to_score?.total || 0,
+              avgGoalsHome: homeStats.goals?.for?.average?.home ? parseFloat(homeStats.goals.for.average.home) : undefined,
+              avgGoalsAway: homeStats.goals?.for?.average?.away ? parseFloat(homeStats.goals.for.average.away) : undefined,
+              avgGoalsConcededHome: homeStats.goals?.against?.average?.home ? parseFloat(homeStats.goals.against.average.home) : undefined,
+              avgGoalsConcededAway: homeStats.goals?.against?.average?.away ? parseFloat(homeStats.goals.against.average.away) : undefined,
+              biggestWinStreak: homeStats.biggest?.streak?.wins || 0,
+              biggestLoseStreak: homeStats.biggest?.streak?.loses || 0,
+              penaltyScored: homeStats.penalty?.scored?.total || 0,
+              penaltyMissed: homeStats.penalty?.missed?.total || 0,
+              goalsMinutes: homeStats.goals?.for?.minute ? {
+                '0-15': homeStats.goals.for.minute['0-15']?.total || 0,
+                '16-30': homeStats.goals.for.minute['16-30']?.total || 0,
+                '31-45': homeStats.goals.for.minute['31-45']?.total || 0,
+                '46-60': homeStats.goals.for.minute['46-60']?.total || 0,
+                '61-75': homeStats.goals.for.minute['61-75']?.total || 0,
+                '76-90': homeStats.goals.for.minute['76-90']?.total || 0,
+              } : undefined,
+            };
+          }
+          
+          if (awayStats) {
+            awayTeamStats = {
+              cleanSheets: awayStats.clean_sheet?.total || 0,
+              failedToScore: awayStats.failed_to_score?.total || 0,
+              avgGoalsHome: awayStats.goals?.for?.average?.home ? parseFloat(awayStats.goals.for.average.home) : undefined,
+              avgGoalsAway: awayStats.goals?.for?.average?.away ? parseFloat(awayStats.goals.for.average.away) : undefined,
+              avgGoalsConcededHome: awayStats.goals?.against?.average?.home ? parseFloat(awayStats.goals.against.average.home) : undefined,
+              avgGoalsConcededAway: awayStats.goals?.against?.average?.away ? parseFloat(awayStats.goals.against.average.away) : undefined,
+              biggestWinStreak: awayStats.biggest?.streak?.wins || 0,
+              biggestLoseStreak: awayStats.biggest?.streak?.loses || 0,
+              penaltyScored: awayStats.penalty?.scored?.total || 0,
+              penaltyMissed: awayStats.penalty?.missed?.total || 0,
+              goalsMinutes: awayStats.goals?.for?.minute ? {
+                '0-15': awayStats.goals.for.minute['0-15']?.total || 0,
+                '16-30': awayStats.goals.for.minute['16-30']?.total || 0,
+                '31-45': awayStats.goals.for.minute['31-45']?.total || 0,
+                '46-60': awayStats.goals.for.minute['46-60']?.total || 0,
+                '61-75': awayStats.goals.for.minute['61-75']?.total || 0,
+                '76-90': awayStats.goals.for.minute['76-90']?.total || 0,
+              } : undefined,
+            };
+          }
+        } catch (e) {
+          console.log('Error fetching additional stats:', e);
+        }
         
         return generateMatchAnalysis({
           homeTeam: match.home_team,
           awayTeam: match.away_team,
-          league: match.league_name,
+          league: match.league_name || '',
           homeForm: homeTeam?.league?.form,
           awayForm: awayTeam?.league?.form,
           homeGoalsFor: homeTeam?.league?.goals?.for?.total,
@@ -986,7 +1075,19 @@ export async function registerRoutes(
           awayDraws: awayTeam?.league?.fixtures?.draws?.total,
           awayLosses: awayTeam?.league?.fixtures?.loses?.total,
           h2hResults: h2h.map((m: any) => ({ homeGoals: m.homeGoals, awayGoals: m.awayGoals })),
-          comparison: match.api_comparison,
+          comparison: comparison,
+          apiPrediction: apiPred ? {
+            winner: apiPred.winner,
+            winOrDraw: apiPred.win_or_draw,
+            underOver: apiPred.under_over,
+            goalsHome: apiPred.goals?.home,
+            goalsAway: apiPred.goals?.away,
+            advice: apiPred.advice,
+            percent: apiPred.percent,
+          } : undefined,
+          homeTeamStats,
+          awayTeamStats,
+          odds: oddsData,
         });
       }, 1440);
 
@@ -1131,7 +1232,7 @@ export async function registerRoutes(
             return generateMatchAnalysis({
               homeTeam: match.home_team,
               awayTeam: match.away_team,
-              league: match.league_name,
+              league: match.league_name || '',
               homeForm: homeTeam?.league?.form,
               awayForm: awayTeam?.league?.form,
               homeGoalsFor: homeTeam?.league?.goals?.for?.total,
@@ -1145,7 +1246,7 @@ export async function registerRoutes(
               awayDraws: awayTeam?.league?.fixtures?.draws?.total,
               awayLosses: awayTeam?.league?.fixtures?.loses?.total,
               h2hResults: h2h.map((m: any) => ({ homeGoals: m.homeGoals, awayGoals: m.awayGoals })),
-              comparison: match.api_comparison,
+              comparison: (match as any).api_comparison,
             });
           }, 1440);
 
@@ -1279,14 +1380,9 @@ export async function registerRoutes(
         away_team: fixture.teams?.away?.name,
         home_logo: fixture.teams?.home?.logo,
         away_logo: fixture.teams?.away?.logo,
-        home_team_id: fixture.teams?.home?.id,
-        away_team_id: fixture.teams?.away?.id,
         league_id: fixture.league?.id,
         league_name: fixture.league?.name,
         league_logo: fixture.league?.logo,
-        venue_name: (fixture as any).fixture?.venue?.name,
-        venue_city: (fixture as any).fixture?.venue?.city,
-        referee: fixture.fixture?.referee,
         match_date: isoDate,
         match_time: localTime,
         timestamp: fixture.fixture?.timestamp,
