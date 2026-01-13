@@ -817,8 +817,8 @@ export default function AdminPage() {
                                     </>
                                   ) : (
                                     <>
-                                      <span className="text-[10px] text-emerald-400 uppercase font-bold">Başlamak üzere</span>
-                                      <div className="text-lg font-black text-white">
+                                      <span className="text-lg font-black text-white">{pm.match_time}</span>
+                                      <div className="text-[10px] text-emerald-400 font-medium">
                                         {hours > 0 ? `${hours}s ${minutes}dk` : `${minutes}dk`}
                                       </div>
                                     </>
