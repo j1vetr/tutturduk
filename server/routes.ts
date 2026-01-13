@@ -771,6 +771,21 @@ export async function registerRoutes(
     }
   });
 
+  app.get('/api/matches/:id/odds', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const match = await storage.getPublishedMatchById(id);
+      if (!match) {
+        return res.status(404).json({ message: 'Maç bulunamadı' });
+      }
+      const odds = await apiFootball.getOdds(match.fixture_id);
+      res.json(odds || []);
+    } catch (error: any) {
+      console.error('Odds fetch error:', error);
+      res.json([]);
+    }
+  });
+
   // Admin: publish a match
   app.post('/api/admin/matches/publish', async (req, res) => {
     if (!req.session.userId) {

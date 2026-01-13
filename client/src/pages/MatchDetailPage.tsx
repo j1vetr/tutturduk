@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
 import { MobileLayout } from "@/components/MobileLayout";
-import { ArrowLeft, Clock, Loader2, MapPin, Users, ChevronRight } from "lucide-react";
+import { ArrowLeft, Clock, Loader2, MapPin, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -77,11 +77,26 @@ interface Lineup {
   coach: { id: number; name: string; photo: string };
 }
 
+interface OddsData {
+  league: { id: number; name: string };
+  fixture: { id: number };
+  bookmakers: {
+    id: number;
+    name: string;
+    bets: {
+      id: number;
+      name: string;
+      values: { value: string; odd: string }[];
+    }[];
+  }[];
+}
+
 export default function MatchDetailPage() {
   const { id } = useParams();
   const [, setLocation] = useLocation();
   const [match, setMatch] = useState<PublishedMatch | null>(null);
   const [lineups, setLineups] = useState<Lineup[]>([]);
+  const [odds, setOdds] = useState<OddsData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -96,6 +111,7 @@ export default function MatchDetailPage() {
         const data = await res.json();
         setMatch(data);
         fetch(`/api/matches/${id}/lineups`).then(r => r.json()).then(setLineups).catch(() => {});
+        fetch(`/api/matches/${id}/odds`).then(r => r.json()).then(setOdds).catch(() => {});
       }
     } catch (error) {
       console.error('Failed to load match:', error);
@@ -118,9 +134,9 @@ export default function MatchDetailPage() {
     return (
       <MobileLayout>
         <div className="text-center py-12">
-          <p className="text-zinc-500">Maç bulunamadı.</p>
+          <p className="text-zinc-500">Maç bulunamadı</p>
           <Button variant="ghost" className="mt-4" onClick={() => setLocation('/')}>
-            <ArrowLeft className="w-4 h-4 mr-2" /> Geri Dön
+            <ArrowLeft className="w-4 h-4 mr-2" /> Geri dön
           </Button>
         </div>
       </MobileLayout>
@@ -143,10 +159,27 @@ export default function MatchDetailPage() {
     if (!match.api_under_over) return null;
     const isOver = match.api_under_over.toLowerCase().includes('over');
     const value = match.api_under_over.match(/[\d.]+/)?.[0] || '2.5';
-    return { isOver, value, text: isOver ? `${value} ÜST` : `${value} ALT` };
+    return { isOver, value, text: isOver ? `${value} üst` : `${value} alt` };
   };
 
   const underOver = getUnderOver();
+
+  const getOddsForMarket = (marketName: string) => {
+    if (!odds.length) return null;
+    for (const o of odds) {
+      for (const bm of o.bookmakers || []) {
+        for (const bet of bm.bets || []) {
+          if (bet.name === marketName) {
+            return { bookmaker: bm.name, values: bet.values };
+          }
+        }
+      }
+    }
+    return null;
+  };
+
+  const matchWinnerOdds = getOddsForMarket('Match Winner');
+  const overUnderOdds = getOddsForMarket('Goals Over/Under');
 
   return (
     <MobileLayout>
@@ -219,17 +252,17 @@ export default function MatchDetailPage() {
         <div className="px-4 -mt-4 mb-4">
           <div className="bg-zinc-900 rounded-2xl border border-zinc-800 overflow-hidden">
             <div className="p-4">
-              <div className="text-[10px] text-emerald-500 uppercase tracking-widest font-semibold mb-3">Uzman Tahminleri</div>
+              <div className="text-[10px] text-emerald-500 uppercase tracking-widest font-semibold mb-3">Uzman tahminleri</div>
               <div className="space-y-2">
                 {match.api_winner_name && (
                   <div className="flex items-center justify-between py-2 border-b border-zinc-800">
-                    <span className="text-sm text-zinc-400">Maç Sonucu</span>
-                    <span className="text-sm font-bold text-white">{match.api_winner_name} Kazanır</span>
+                    <span className="text-sm text-zinc-400">Maç sonucu</span>
+                    <span className="text-sm font-bold text-white">{match.api_winner_name} kazanır</span>
                   </div>
                 )}
                 {underOver && (
                   <div className="flex items-center justify-between py-2 border-b border-zinc-800">
-                    <span className="text-sm text-zinc-400">Gol Tahmini</span>
+                    <span className="text-sm text-zinc-400">Gol tahmini</span>
                     <span className="text-sm font-bold text-white">{underOver.text}</span>
                   </div>
                 )}
@@ -249,21 +282,22 @@ export default function MatchDetailPage() {
 
         <div className="px-4">
           <Tabs defaultValue="analysis" className="w-full">
-            <TabsList className="w-full bg-zinc-900 border border-zinc-800 p-1 rounded-xl h-auto grid grid-cols-5 gap-1">
-              <TabsTrigger value="analysis" className="text-[10px] py-2.5 rounded-lg data-[state=active]:bg-emerald-500 data-[state=active]:text-white">Analiz</TabsTrigger>
-              <TabsTrigger value="stats" className="text-[10px] py-2.5 rounded-lg data-[state=active]:bg-emerald-500 data-[state=active]:text-white">İstatistik</TabsTrigger>
-              <TabsTrigger value="goals" className="text-[10px] py-2.5 rounded-lg data-[state=active]:bg-emerald-500 data-[state=active]:text-white">Goller</TabsTrigger>
-              <TabsTrigger value="h2h" className="text-[10px] py-2.5 rounded-lg data-[state=active]:bg-emerald-500 data-[state=active]:text-white">H2H</TabsTrigger>
-              <TabsTrigger value="lineups" className="text-[10px] py-2.5 rounded-lg data-[state=active]:bg-emerald-500 data-[state=active]:text-white">Kadro</TabsTrigger>
+            <TabsList className="w-full bg-zinc-900 border border-zinc-800 p-1 rounded-xl h-auto grid grid-cols-6 gap-1">
+              <TabsTrigger value="analysis" className="text-[9px] py-2.5 rounded-lg data-[state=active]:bg-emerald-500 data-[state=active]:text-white">Analiz</TabsTrigger>
+              <TabsTrigger value="odds" className="text-[9px] py-2.5 rounded-lg data-[state=active]:bg-emerald-500 data-[state=active]:text-white">Oranlar</TabsTrigger>
+              <TabsTrigger value="stats" className="text-[9px] py-2.5 rounded-lg data-[state=active]:bg-emerald-500 data-[state=active]:text-white">İstatistik</TabsTrigger>
+              <TabsTrigger value="goals" className="text-[9px] py-2.5 rounded-lg data-[state=active]:bg-emerald-500 data-[state=active]:text-white">Goller</TabsTrigger>
+              <TabsTrigger value="h2h" className="text-[9px] py-2.5 rounded-lg data-[state=active]:bg-emerald-500 data-[state=active]:text-white">H2H</TabsTrigger>
+              <TabsTrigger value="lineups" className="text-[9px] py-2.5 rounded-lg data-[state=active]:bg-emerald-500 data-[state=active]:text-white">Kadro</TabsTrigger>
             </TabsList>
 
             <TabsContent value="analysis" className="mt-4 space-y-4">
               <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-                <div className="text-xs text-zinc-500 uppercase tracking-wide mb-4">Kazanma Olasılığı</div>
+                <div className="text-xs text-zinc-500 uppercase tracking-wide mb-4">Kazanma olasılığı</div>
                 <div className="flex justify-between items-end mb-4">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-white">{match.api_percent_home || '-'}</div>
-                    <div className="text-[10px] text-zinc-500 mt-1">Ev Sahibi</div>
+                    <div className="text-[10px] text-zinc-500 mt-1">Ev sahibi</div>
                   </div>
                   <div className="text-center">
                     <div className="text-xl font-bold text-zinc-600">{match.api_percent_draw || '-'}</div>
@@ -285,17 +319,61 @@ export default function MatchDetailPage() {
                 </div>
               </div>
 
-
               {Object.keys(comparison).length > 0 && (
                 <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-                  <div className="text-xs text-zinc-500 uppercase tracking-wide mb-4">Takım Karşılaştırması</div>
+                  <div className="text-xs text-zinc-500 uppercase tracking-wide mb-4">Takım karşılaştırması</div>
                   <div className="space-y-4">
                     {comparison.form && <CompBar label="Form" home={comparison.form.home} away={comparison.form.away} />}
-                    {comparison.att && <CompBar label="Atak Gücü" home={comparison.att.home} away={comparison.att.away} />}
-                    {comparison.def && <CompBar label="Defans Gücü" home={comparison.def.home} away={comparison.def.away} />}
-                    {comparison.goals && <CompBar label="Gol Gücü" home={comparison.goals.home} away={comparison.goals.away} />}
-                    {comparison.h2h && <CompBar label="H2H Avantajı" home={comparison.h2h.home} away={comparison.h2h.away} />}
+                    {comparison.att && <CompBar label="Atak gücü" home={comparison.att.home} away={comparison.att.away} />}
+                    {comparison.def && <CompBar label="Defans gücü" home={comparison.def.home} away={comparison.def.away} />}
+                    {comparison.goals && <CompBar label="Gol gücü" home={comparison.goals.home} away={comparison.goals.away} />}
+                    {comparison.h2h && <CompBar label="H2H avantajı" home={comparison.h2h.home} away={comparison.h2h.away} />}
                   </div>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="odds" className="mt-4 space-y-4">
+              {matchWinnerOdds ? (
+                <>
+                  <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="text-xs text-zinc-500 uppercase tracking-wide">Maç sonucu oranları</div>
+                      <span className="text-[10px] text-zinc-600">{matchWinnerOdds.bookmaker}</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      {matchWinnerOdds.values.map((v, i) => (
+                        <div key={i} className="bg-zinc-800 rounded-lg p-3 text-center">
+                          <div className="text-lg font-bold text-white">{v.odd}</div>
+                          <div className="text-[10px] text-zinc-500 mt-1">
+                            {v.value === 'Home' ? match.home_team : v.value === 'Draw' ? 'Beraberlik' : match.away_team}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {overUnderOdds && (
+                    <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="text-xs text-zinc-500 uppercase tracking-wide">Alt/üst oranları</div>
+                        <span className="text-[10px] text-zinc-600">{overUnderOdds.bookmaker}</span>
+                      </div>
+                      <div className="space-y-2">
+                        {overUnderOdds.values.slice(0, 6).map((v, i) => (
+                          <div key={i} className="flex justify-between bg-zinc-800 rounded-lg px-3 py-2">
+                            <span className="text-sm text-zinc-400">{v.value}</span>
+                            <span className="text-sm font-bold text-white">{v.odd}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="bg-zinc-900 rounded-xl p-8 border border-zinc-800 text-center">
+                  <p className="text-sm text-zinc-500">Oran bilgisi bulunamadı</p>
+                  <p className="text-xs text-zinc-600 mt-1">Oranlar maç yaklaştıkça güncellenecektir</p>
                 </div>
               )}
             </TabsContent>
@@ -304,36 +382,36 @@ export default function MatchDetailPage() {
               {homeTeam?.league && awayTeam?.league && (
                 <>
                   <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-                    <div className="text-xs text-zinc-500 uppercase tracking-wide mb-4">Sezon Performansı</div>
-                    <div className="grid grid-cols-3 gap-2 text-center mb-4">
+                    <div className="text-xs text-zinc-500 uppercase tracking-wide mb-4">Sezon performansı</div>
+                    <div className="grid grid-cols-[1fr_auto_auto] gap-x-4 gap-y-0 items-center mb-2">
                       <div></div>
-                      <div className="flex items-center justify-center gap-2">
+                      <div className="flex items-center gap-1 justify-center w-12">
                         <img src={match.home_logo} className="w-5 h-5" />
                       </div>
-                      <div className="flex items-center justify-center gap-2">
+                      <div className="flex items-center gap-1 justify-center w-12">
                         <img src={match.away_logo} className="w-5 h-5" />
                       </div>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       <StatCompRow label="Maç" home={homeTeam.league.fixtures.played.total} away={awayTeam.league.fixtures.played.total} />
                       <StatCompRow label="Galibiyet" home={homeTeam.league.fixtures.wins.total} away={awayTeam.league.fixtures.wins.total} highlight="high" />
                       <StatCompRow label="Beraberlik" home={homeTeam.league.fixtures.draws.total} away={awayTeam.league.fixtures.draws.total} />
                       <StatCompRow label="Mağlubiyet" home={homeTeam.league.fixtures.loses.total} away={awayTeam.league.fixtures.loses.total} highlight="low" />
-                      <StatCompRow label="Atılan Gol" home={homeTeam.league.goals.for.total.total} away={awayTeam.league.goals.for.total.total} highlight="high" />
-                      <StatCompRow label="Yenilen Gol" home={homeTeam.league.goals.against.total.total} away={awayTeam.league.goals.against.total.total} highlight="low" />
-                      <StatCompRow label="Temiz Kale" home={homeTeam.league.clean_sheet.total} away={awayTeam.league.clean_sheet.total} highlight="high" />
+                      <StatCompRow label="Atılan gol" home={homeTeam.league.goals.for.total.total} away={awayTeam.league.goals.for.total.total} highlight="high" />
+                      <StatCompRow label="Yenilen gol" home={homeTeam.league.goals.against.total.total} away={awayTeam.league.goals.against.total.total} highlight="low" />
+                      <StatCompRow label="Temiz kale" home={homeTeam.league.clean_sheet.total} away={awayTeam.league.clean_sheet.total} highlight="high" />
                     </div>
                   </div>
 
                   <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-                    <div className="text-xs text-zinc-500 uppercase tracking-wide mb-4">Favori Diziliş</div>
+                    <div className="text-xs text-zinc-500 uppercase tracking-wide mb-4">Favori diziliş</div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <div className="text-[10px] text-zinc-600 mb-2">{match.home_team}</div>
                         {homeTeam.league.lineups?.slice(0, 2).map((l, i) => (
                           <div key={i} className="flex justify-between text-sm bg-zinc-800 rounded-lg px-3 py-2 mb-1">
                             <span className="font-mono text-white">{l.formation}</span>
-                            <span className="text-zinc-500">{l.played}x</span>
+                            <span className="text-zinc-500">{l.played} kez</span>
                           </div>
                         ))}
                       </div>
@@ -342,7 +420,7 @@ export default function MatchDetailPage() {
                         {awayTeam.league.lineups?.slice(0, 2).map((l, i) => (
                           <div key={i} className="flex justify-between text-sm bg-zinc-800 rounded-lg px-3 py-2 mb-1">
                             <span className="font-mono text-white">{l.formation}</span>
-                            <span className="text-zinc-500">{l.played}x</span>
+                            <span className="text-zinc-500">{l.played} kez</span>
                           </div>
                         ))}
                       </div>
@@ -356,10 +434,10 @@ export default function MatchDetailPage() {
               {homeTeam?.league && awayTeam?.league && (
                 <>
                   <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-                    <div className="text-xs text-zinc-500 uppercase tracking-wide mb-4">Ev / Deplasman Gol Verisi</div>
+                    <div className="text-xs text-zinc-500 uppercase tracking-wide mb-4">Ev/deplasman gol verisi</div>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <div className="text-[10px] text-zinc-600 mb-3">{match.home_team} (Evinde)</div>
+                        <div className="text-[10px] text-zinc-600 mb-3">{match.home_team} (evinde)</div>
                         <div className="space-y-2">
                           <div className="flex justify-between bg-zinc-800 rounded-lg px-3 py-2">
                             <span className="text-xs text-zinc-400">Atılan</span>
@@ -376,7 +454,7 @@ export default function MatchDetailPage() {
                         </div>
                       </div>
                       <div>
-                        <div className="text-[10px] text-zinc-600 mb-3">{match.away_team} (Deplasmanda)</div>
+                        <div className="text-[10px] text-zinc-600 mb-3">{match.away_team} (deplasmanda)</div>
                         <div className="space-y-2">
                           <div className="flex justify-between bg-zinc-800 rounded-lg px-3 py-2">
                             <span className="text-xs text-zinc-400">Atılan</span>
@@ -396,21 +474,21 @@ export default function MatchDetailPage() {
                   </div>
 
                   <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-                    <div className="text-xs text-zinc-500 uppercase tracking-wide mb-4">Bu Maç İçin Hesaplama</div>
+                    <div className="text-xs text-zinc-500 uppercase tracking-wide mb-4">Bu maç için hesaplama</div>
                     <div className="grid grid-cols-3 gap-3">
                       <div className="bg-zinc-800 rounded-xl p-4 text-center">
                         <div className="text-2xl font-bold text-emerald-500">{homeTeam.league.goals.for.average.home}</div>
-                        <div className="text-[10px] text-zinc-500 mt-1">{match.home_team} Atar</div>
+                        <div className="text-[10px] text-zinc-500 mt-1">{match.home_team} atar</div>
                       </div>
                       <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 text-center">
                         <div className="text-2xl font-bold text-emerald-400">
                           {(parseFloat(homeTeam.league.goals.for.average.home) + parseFloat(awayTeam.league.goals.for.average.away)).toFixed(1)}
                         </div>
-                        <div className="text-[10px] text-emerald-500/70 mt-1">Toplam Beklenen</div>
+                        <div className="text-[10px] text-emerald-500/70 mt-1">Toplam beklenen</div>
                       </div>
                       <div className="bg-zinc-800 rounded-xl p-4 text-center">
                         <div className="text-2xl font-bold text-white">{awayTeam.league.goals.for.average.away}</div>
-                        <div className="text-[10px] text-zinc-500 mt-1">{match.away_team} Atar</div>
+                        <div className="text-[10px] text-zinc-500 mt-1">{match.away_team} atar</div>
                       </div>
                     </div>
                   </div>
@@ -423,7 +501,7 @@ export default function MatchDetailPage() {
                 <>
                   <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
                     <div className="p-4 border-b border-zinc-800">
-                      <div className="text-xs text-zinc-500 uppercase tracking-wide">Son Karşılaşmalar</div>
+                      <div className="text-xs text-zinc-500 uppercase tracking-wide">Son karşılaşmalar</div>
                     </div>
                     <div className="divide-y divide-zinc-800">
                       {h2h.map((game, i) => {
@@ -444,11 +522,11 @@ export default function MatchDetailPage() {
                   </div>
 
                   <div className="bg-zinc-900 rounded-xl p-4 border border-zinc-800">
-                    <div className="text-xs text-zinc-500 uppercase tracking-wide mb-4">H2H Özeti</div>
+                    <div className="text-xs text-zinc-500 uppercase tracking-wide mb-4">H2H özeti</div>
                     <div className="grid grid-cols-4 gap-2">
                       <div className="bg-zinc-800 rounded-xl p-3 text-center">
                         <div className="text-xl font-bold text-emerald-500">{h2h.filter(g => g.homeGoals > g.awayGoals).length}</div>
-                        <div className="text-[10px] text-zinc-500 mt-1">Ev Gal.</div>
+                        <div className="text-[10px] text-zinc-500 mt-1">Ev gal.</div>
                       </div>
                       <div className="bg-zinc-800 rounded-xl p-3 text-center">
                         <div className="text-xl font-bold text-zinc-400">{h2h.filter(g => g.homeGoals === g.awayGoals).length}</div>
@@ -456,11 +534,11 @@ export default function MatchDetailPage() {
                       </div>
                       <div className="bg-zinc-800 rounded-xl p-3 text-center">
                         <div className="text-xl font-bold text-white">{h2h.filter(g => g.awayGoals > g.homeGoals).length}</div>
-                        <div className="text-[10px] text-zinc-500 mt-1">Dep Gal.</div>
+                        <div className="text-[10px] text-zinc-500 mt-1">Dep. gal.</div>
                       </div>
                       <div className="bg-zinc-800 rounded-xl p-3 text-center">
                         <div className="text-xl font-bold text-emerald-400">{(h2h.reduce((sum, g) => sum + g.homeGoals + g.awayGoals, 0) / h2h.length).toFixed(1)}</div>
-                        <div className="text-[10px] text-zinc-500 mt-1">Ort. Gol</div>
+                        <div className="text-[10px] text-zinc-500 mt-1">Ort. gol</div>
                       </div>
                     </div>
                   </div>
@@ -552,10 +630,10 @@ function StatCompRow({ label, home, away, highlight }: { label: string; home: nu
   const awayWins = highlight === 'high' ? away > home : highlight === 'low' ? away < home : false;
   
   return (
-    <div className="grid grid-cols-3 gap-2 text-center py-2 border-b border-zinc-800 last:border-0">
-      <div className={`text-sm font-semibold ${homeWins ? 'text-emerald-500' : 'text-white'}`}>{home}</div>
+    <div className="grid grid-cols-[1fr_auto_auto] gap-x-4 py-2 border-b border-zinc-800 last:border-0 items-center">
       <div className="text-xs text-zinc-500">{label}</div>
-      <div className={`text-sm font-semibold ${awayWins ? 'text-emerald-500' : 'text-white'}`}>{away}</div>
+      <div className={`text-sm font-semibold w-12 text-center ${homeWins ? 'text-emerald-500' : 'text-white'}`}>{home}</div>
+      <div className={`text-sm font-semibold w-12 text-center ${awayWins ? 'text-emerald-500' : 'text-white'}`}>{away}</div>
     </div>
   );
 }

@@ -283,6 +283,11 @@ export const apiFootball = {
   async getLineups(fixtureId: number) {
     const response = await apiRequest<any>('/fixtures/lineups', { fixture: fixtureId.toString() });
     return response.response;
+  },
+
+  async getOdds(fixtureId: number) {
+    const response = await apiRequest<any>('/odds', { fixture: fixtureId.toString() });
+    return response.response;
   }
 };
 
