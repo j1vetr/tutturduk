@@ -1,139 +1,162 @@
+import { useState, useEffect } from "react";
 import { MobileLayout } from "@/components/MobileLayout";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, Filter, ArrowRight, Loader2, Radio } from "lucide-react";
+import { Search, Filter, Loader2, CheckCircle } from "lucide-react";
+
+interface FinishedMatch {
+  id: number;
+  date: string;
+  localDate: string;
+  localTime: string;
+  homeTeam: { id: number; name: string; logo: string };
+  awayTeam: { id: number; name: string; logo: string };
+  league: { id: number; name: string; logo: string; country: string };
+  score: { home: number; away: number };
+  status: string;
+}
 
 export default function LiveMatchesPage() {
-  // Mock Data for Design Simulation
-  const mockMatches = [
-    {
-      id: 1,
-      league: { country: "İngiltere", name: "Premier League" },
-      time: "34'",
-      home: { name: "Arsenal", score: 2, logo: "https://media.api-sports.io/football/teams/42.png" },
-      away: { name: "Liverpool", score: 1, logo: "https://media.api-sports.io/football/teams/40.png" },
-      event: "Gol! Arsenal (Saka 34')"
-    },
-    {
-      id: 2,
-      league: { country: "İtalya", name: "Serie A" },
-      time: "67'",
-      home: { name: "Juventus", score: 0, logo: "https://media.api-sports.io/football/teams/496.png" },
-      away: { name: "Milan", score: 0, logo: "https://media.api-sports.io/football/teams/489.png" },
-      event: "Sarı Kart (Hernandez 65')"
-    },
-    {
-      id: 3,
-      league: { country: "Türkiye", name: "Süper Lig" },
-      time: "12'",
-      home: { name: "Galatasaray", score: 1, logo: "https://media.api-sports.io/football/teams/614.png" },
-      away: { name: "Fenerbahçe", score: 0, logo: "https://media.api-sports.io/football/teams/611.png" },
-      event: "Gol! Galatasaray (Icardi 11')"
-    },
-    {
-      id: 4,
-      league: { country: "Almanya", name: "Bundesliga" },
-      time: "45+2'",
-      home: { name: "Bayern", score: 3, logo: "https://media.api-sports.io/football/teams/157.png" },
-      away: { name: "Dortmund", score: 1, logo: "https://media.api-sports.io/football/teams/165.png" },
-      event: "Devre Arası"
+  const [matches, setMatches] = useState<FinishedMatch[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    loadFinishedMatches();
+  }, []);
+
+  const loadFinishedMatches = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/football/finished');
+      if (res.ok) {
+        const data = await res.json();
+        setMatches(data);
+      }
+    } catch (error) {
+      console.error('Failed to load finished matches:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  const filteredMatches = matches.filter(m => 
+    m.homeTeam.name.toLowerCase().includes(search.toLowerCase()) ||
+    m.awayTeam.name.toLowerCase().includes(search.toLowerCase()) ||
+    m.league.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const groupedByDate = filteredMatches.reduce((acc, match) => {
+    const date = match.localDate;
+    if (!acc[date]) acc[date] = [];
+    acc[date].push(match);
+    return acc;
+  }, {} as Record<string, FinishedMatch[]>);
 
   return (
     <MobileLayout activeTab="live">
-       <div className="space-y-6 pb-20">
-          {/* Header */}
-          <div className="space-y-2">
-             <div className="flex items-center gap-2">
-                <Radio className="w-6 h-6 text-red-500 animate-pulse" />
-                <h2 className="text-2xl font-display font-black text-white tracking-tight">CANLI SKORLAR</h2>
-             </div>
-             <p className="text-xs text-zinc-400 font-medium">Anlık veri akışı simülasyonu.</p>
+      <div className="space-y-6 pb-20">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <CheckCircle className="w-6 h-6 text-emerald-500" />
+            <h2 className="text-2xl font-display font-black text-white tracking-tight">BİTEN MAÇLAR</h2>
           </div>
+          <p className="text-xs text-zinc-400 font-medium">Dün ve bugün oynanan maçların sonuçları</p>
+        </div>
 
-          {/* Search/Filter */}
-          <div className="flex gap-3">
-             <div className="relative flex-1 group">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-zinc-700 to-zinc-800 rounded-xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
-                <div className="relative flex items-center bg-black rounded-xl border border-white/10 px-3 h-11">
-                    <Search className="w-4 h-4 text-zinc-500 mr-2" />
-                    <Input placeholder="Takım veya lig ara..." className="bg-transparent border-none h-full text-xs placeholder:text-zinc-600 focus-visible:ring-0 p-0" />
+        <div className="flex gap-3">
+          <div className="relative flex-1 group">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-zinc-700 to-zinc-800 rounded-xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
+            <div className="relative flex items-center bg-black rounded-xl border border-white/10 px-3 h-11">
+              <Search className="w-4 h-4 text-zinc-500 mr-2" />
+              <Input 
+                placeholder="Takım veya lig ara..." 
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="bg-transparent border-none h-full text-xs placeholder:text-zinc-600 focus-visible:ring-0 p-0" 
+              />
+            </div>
+          </div>
+          <button 
+            onClick={loadFinishedMatches}
+            className="w-11 h-11 bg-black border border-white/10 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:border-emerald-500/30 transition-all shadow-lg active:scale-95"
+          >
+            <Filter className="w-4 h-4" />
+          </button>
+        </div>
+
+        {loading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+          </div>
+        ) : filteredMatches.length === 0 ? (
+          <div className="text-center py-20">
+            <p className="text-zinc-500">Bitmiş maç bulunamadı</p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {Object.entries(groupedByDate).map(([date, dateMatches]) => (
+              <div key={date} className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-1 h-4 bg-emerald-500 rounded-full" />
+                  <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">{date}</span>
+                  <Badge className="bg-zinc-800 text-zinc-400 border-zinc-700 text-[10px]">{dateMatches.length} maç</Badge>
                 </div>
-             </div>
-             <button className="w-11 h-11 bg-black border border-white/10 rounded-xl flex items-center justify-center text-zinc-400 hover:text-white hover:border-primary/30 transition-all shadow-lg active:scale-95">
-                <Filter className="w-4 h-4" />
-             </button>
-          </div>
-
-          {/* Live Matches List */}
-          <div className="space-y-4">
-             {mockMatches.map((match) => (
-                <Card key={match.id} className="bg-zinc-900/40 border-white/5 overflow-hidden relative group hover:bg-zinc-900/60 transition-all duration-300">
-                   {/* Live Indicator Bar */}
-                   <div className="absolute top-0 left-0 bottom-0 w-1 bg-gradient-to-b from-red-500 to-red-600 shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
-                   
-                   <div className="p-5">
-                      {/* League Header */}
-                      <div className="flex items-center justify-between mb-5">
-                         <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest flex items-center gap-1.5">
-                               <span className="w-1.5 h-1.5 rounded-full bg-zinc-600" />
-                               {match.league.country} <span className="text-zinc-600">/</span> {match.league.name}
-                            </span>
-                         </div>
-                         <Badge variant="destructive" className="h-5 px-2.5 text-[9px] font-bold animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.4)] tracking-wider">
-                            {match.time}
-                         </Badge>
+                
+                {dateMatches.map((match) => (
+                  <Card key={match.id} className="bg-zinc-900/40 border-white/5 overflow-hidden relative group hover:bg-zinc-900/60 transition-all duration-300">
+                    <div className="absolute top-0 left-0 bottom-0 w-1 bg-gradient-to-b from-emerald-500 to-emerald-600" />
+                    
+                    <div className="p-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                          <img src={match.league.logo} alt="" className="w-4 h-4 object-contain" />
+                          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+                            {match.league.country} / {match.league.name}
+                          </span>
+                        </div>
+                        <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px]">
+                          {match.localTime}
+                        </Badge>
                       </div>
 
-                      {/* Scoreboard */}
                       <div className="flex items-center justify-between gap-4 relative">
-                         {/* Background VS */}
-                         <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-4xl font-display font-black text-white/[0.03] italic">VS</span>
+                        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-3xl font-display font-black text-white/[0.03]">VS</span>
 
-                         {/* Home */}
-                         <div className="flex-1 flex flex-col items-center gap-3 text-center z-10">
-                            <div className="relative w-12 h-12">
-                                <div className="absolute inset-0 bg-white/5 rounded-full blur-md" />
-                                <img src={match.home.logo} className="w-full h-full object-contain relative" alt={match.home.name} />
-                            </div>
-                            <span className="text-xs font-bold text-white leading-tight tracking-wide">{match.home.name}</span>
-                         </div>
+                        <div className="flex-1 flex flex-col items-center gap-2 text-center z-10">
+                          <div className="relative w-10 h-10">
+                            <div className="absolute inset-0 bg-white/5 rounded-full blur-md" />
+                            <img src={match.homeTeam.logo} className="w-full h-full object-contain relative" alt={match.homeTeam.name} />
+                          </div>
+                          <span className="text-[10px] font-bold text-white leading-tight">{match.homeTeam.name}</span>
+                        </div>
 
-                         {/* Score */}
-                         <div className="flex flex-col items-center justify-center w-24 shrink-0 z-10">
-                            <div className="flex items-center justify-center gap-1">
-                                <span className="text-3xl font-display font-black text-white">{match.home.score}</span>
-                                <span className="text-lg font-bold text-zinc-600">-</span>
-                                <span className="text-3xl font-display font-black text-white">{match.away.score}</span>
-                            </div>
-                         </div>
+                        <div className="flex flex-col items-center justify-center w-20 shrink-0 z-10">
+                          <div className="flex items-center justify-center gap-1 bg-zinc-800/50 px-3 py-1 rounded-lg">
+                            <span className="text-2xl font-display font-black text-white">{match.score.home}</span>
+                            <span className="text-lg font-bold text-zinc-600">-</span>
+                            <span className="text-2xl font-display font-black text-white">{match.score.away}</span>
+                          </div>
+                          <span className="text-[9px] text-emerald-400 font-medium mt-1">MS</span>
+                        </div>
 
-                         {/* Away */}
-                         <div className="flex-1 flex flex-col items-center gap-3 text-center z-10">
-                            <div className="relative w-12 h-12">
-                                <div className="absolute inset-0 bg-white/5 rounded-full blur-md" />
-                                <img src={match.away.logo} className="w-full h-full object-contain relative" alt={match.away.name} />
-                            </div>
-                            <span className="text-xs font-bold text-white leading-tight tracking-wide">{match.away.name}</span>
-                         </div>
+                        <div className="flex-1 flex flex-col items-center gap-2 text-center z-10">
+                          <div className="relative w-10 h-10">
+                            <div className="absolute inset-0 bg-white/5 rounded-full blur-md" />
+                            <img src={match.awayTeam.logo} className="w-full h-full object-contain relative" alt={match.awayTeam.name} />
+                          </div>
+                          <span className="text-[10px] font-bold text-white leading-tight">{match.awayTeam.name}</span>
+                        </div>
                       </div>
-
-                      {/* Event Snippet */}
-                      <div className="mt-5 pt-3 border-t border-white/5 flex items-center justify-between group-hover:border-white/10 transition-colors">
-                         <p className="text-[10px] text-zinc-400 flex items-center gap-2 font-medium">
-                            <span className="w-1.5 h-1.5 bg-green-500 rounded-full inline-block shadow-[0_0_5px_rgba(34,197,94,0.5)]" />
-                            {match.event}
-                         </p>
-                         <ArrowRight className="w-3.5 h-3.5 text-zinc-600 group-hover:text-primary transition-colors" />
-                      </div>
-                   </div>
-                </Card>
-             ))}
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            ))}
           </div>
-       </div>
+        )}
+      </div>
     </MobileLayout>
   );
 }

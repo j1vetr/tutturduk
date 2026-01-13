@@ -737,6 +737,67 @@ export async function registerRoutes(
     }
   });
 
+  // Bitmiş maçları getir (dün ve bugün)
+  app.get('/api/football/finished', async (req, res) => {
+    try {
+      const today = new Date();
+      const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+      const todayStr = today.toISOString().split('T')[0];
+      const yesterdayStr = yesterday.toISOString().split('T')[0];
+      
+      const cacheKey = `finished_${todayStr}`;
+      
+      const fixtures = await getCachedData(cacheKey, async () => {
+        console.log(`[Finished] ${yesterdayStr} ve ${todayStr} için bitmiş maçlar çekiliyor...`);
+        
+        const [yesterdayFixtures, todayFixtures] = await Promise.all([
+          apiFootball.getFixtures({ date: yesterdayStr, status: 'FT' }),
+          apiFootball.getFixtures({ date: todayStr, status: 'FT' })
+        ]);
+        
+        const allFinished = [...todayFixtures, ...yesterdayFixtures];
+        console.log(`[Finished] Toplam ${allFinished.length} bitmiş maç bulundu`);
+        
+        return allFinished.sort((a, b) => 
+          new Date(b.fixture.date).getTime() - new Date(a.fixture.date).getTime()
+        );
+      }, 120);
+      
+      const formatted = fixtures.map((f: any) => ({
+        id: f.fixture.id,
+        date: f.fixture.date,
+        localDate: new Date(f.fixture.date).toLocaleDateString('tr-TR'),
+        localTime: new Date(f.fixture.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }),
+        homeTeam: {
+          id: f.teams.home.id,
+          name: f.teams.home.name,
+          logo: f.teams.home.logo,
+        },
+        awayTeam: {
+          id: f.teams.away.id,
+          name: f.teams.away.name,
+          logo: f.teams.away.logo,
+        },
+        league: {
+          id: f.league.id,
+          name: f.league.name,
+          logo: f.league.logo,
+          country: f.league.country,
+        },
+        score: {
+          home: f.goals.home,
+          away: f.goals.away,
+        },
+        status: f.fixture.status.short,
+      }));
+      
+      res.json(formatted);
+    } catch (error: any) {
+      console.error('Finished matches error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // Bugün ve yarının TÜM maçlarını tahminleriyle birlikte getir
   app.get('/api/football/all-predictions', async (req, res) => {
     try {

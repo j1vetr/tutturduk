@@ -1,5 +1,5 @@
 import { useLocation } from "wouter";
-import { Home, Trophy, User, CalendarDays, Radio } from "lucide-react";
+import { Home, Trophy, User, CalendarDays, CheckCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import logoIcon from "@assets/generated_images/minimalist_sports_betting_logo_icon.png";
@@ -75,12 +75,12 @@ export function MobileLayout({ children, activeTab }: MobileLayoutProps) {
             onClick={() => setLocation("/live")}
             className={cn(
               "flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all duration-300 relative group overflow-hidden",
-              activeTab === "live" ? "text-red-500 bg-white/5" : "text-zinc-500 hover:text-white hover:bg-white/5"
+              activeTab === "live" ? "text-emerald-500 bg-white/5" : "text-zinc-500 hover:text-white hover:bg-white/5"
             )}
           >
-            <div className={cn("absolute inset-0 bg-red-500/10 blur-xl opacity-0 transition-opacity", activeTab === "live" && "opacity-100")} />
-            <Radio className={cn("w-5 h-5 transition-transform relative z-10", activeTab === "live" ? "scale-110 drop-shadow-[0_0_8px_rgba(239,68,68,0.5)] animate-pulse" : "group-active:scale-90")} />
-            <span className={cn("text-[9px] font-bold tracking-wide relative z-10", activeTab === "live" && "text-white")}>Canlı</span>
+            <div className={cn("absolute inset-0 bg-emerald-500/10 blur-xl opacity-0 transition-opacity", activeTab === "live" && "opacity-100")} />
+            <CheckCircle className={cn("w-5 h-5 transition-transform relative z-10", activeTab === "live" ? "scale-110 drop-shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "group-active:scale-90")} />
+            <span className={cn("text-[9px] font-bold tracking-wide relative z-10", activeTab === "live" && "text-white")}>Bitenler</span>
           </button>
           
           <div className="w-[1px] h-8 bg-white/5" />
