@@ -15,27 +15,52 @@ export const leagues: League[] = [
   { 
     id: "pl", 
     name: "Premier League", 
-    logo: "https://upload.wikimedia.org/wikipedia/en/f/f2/Premier_League_Logo.svg" 
+    logo: "https://crests.football-data.org/PL.png" 
   },
   { 
     id: "laliga", 
     name: "La Liga", 
-    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/LaLiga_logo_2023.svg/1200px-LaLiga_logo_2023.svg.png" 
+    logo: "https://crests.football-data.org/PD.png" 
   },
   { 
     id: "bundesliga", 
     name: "Bundesliga", 
-    logo: "https://upload.wikimedia.org/wikipedia/en/d/df/Bundesliga_logo_%282017%29.svg" 
+    logo: "https://crests.football-data.org/BL1.png" 
   },
   { 
     id: "seriea", 
     name: "Serie A", 
-    logo: "https://upload.wikimedia.org/wikipedia/commons/e/e9/Serie_A_logo_2019.svg" 
+    logo: "https://crests.football-data.org/SA.png" 
+  },
+  { 
+    id: "ligue1", 
+    name: "Ligue 1", 
+    logo: "https://crests.football-data.org/FL1.png" 
+  },
+  { 
+    id: "eredivisie", 
+    name: "Eredivisie", 
+    logo: "https://crests.football-data.org/DED.png" 
+  },
+  { 
+    id: "primeiraligia", 
+    name: "Primeira Liga", 
+    logo: "https://crests.football-data.org/PPL.png" 
+  },
+  { 
+    id: "championship", 
+    name: "Championship", 
+    logo: "https://crests.football-data.org/ELC.png" 
+  },
+  { 
+    id: "championsleague", 
+    name: "UEFA Champions League", 
+    logo: "https://crests.football-data.org/CL.png" 
   },
   { 
     id: "superlig", 
     name: "Süper Lig", 
-    logo: "https://upload.wikimedia.org/wikipedia/tr/1/11/Süper_Lig_logo.png" 
+    logo: "https://ssl.gstatic.com/onebox/media/sports/logos/wT-5vLfaWCEELKJx-IycDg_96x96.png" 
   }
 ];
 

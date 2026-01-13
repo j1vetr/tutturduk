@@ -9,11 +9,16 @@ const FOOTBALL_DATA_API_KEY = process.env.FOOTBALL_DATA_API_KEY;
 const FOOTBALL_DATA_BASE_URL = 'https://api.football-data.org/v4';
 
 const LEAGUE_CODES: Record<string, string> = {
-  pl: 'PL',        // Premier League
-  laliga: 'PD',    // La Liga (Primera División)
-  bundesliga: 'BL1', // Bundesliga
-  seriea: 'SA',    // Serie A
-  ligue1: 'FL1',   // Ligue 1
+  pl: 'PL',           // Premier League
+  laliga: 'PD',       // La Liga (Primera División)
+  bundesliga: 'BL1',  // Bundesliga
+  seriea: 'SA',       // Serie A
+  ligue1: 'FL1',      // Ligue 1
+  eredivisie: 'DED',  // Eredivisie (Hollanda)
+  primeiraligia: 'PPL', // Primeira Liga (Portekiz)
+  championship: 'ELC', // Championship (İngiltere 2. Lig)
+  championsleague: 'CL', // UEFA Champions League
+  brasilseriea: 'BSA', // Brezilya Serie A
 };
 
 async function fetchFromFootballData(endpoint: string) {
