@@ -70,17 +70,19 @@ interface UpcomingMatch {
 }
 
 interface ApiPrediction {
-  predictions: {
-    winner: { id: number; name: string; comment: string };
-    win_or_draw: boolean;
-    under_over: string;
-    goals: { home: string; away: string };
-    advice: string;
-    percent: { home: string; draw: string; away: string };
+  winner: { id: number; name: string; comment: string } | null;
+  advice: string;
+  percent: { home: string; draw: string; away: string };
+  underOver: string | null;
+  goals: { home: string; away: string };
+  comparison: {
+    form: { home: string; away: string };
+    att: { home: string; away: string };
+    def: { home: string; away: string };
+    total: { home: string; away: string };
   };
   teams: { home: any; away: any };
-  comparison: any;
-  h2h: any[];
+  h2h: { date: string; homeTeam: string; awayTeam: string; homeGoals: number; awayGoals: number }[];
 }
 
 interface Coupon {
@@ -741,27 +743,41 @@ export default function AdminPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                           <div>
                             <p className="text-zinc-400 mb-1">Tavsiye:</p>
-                            <p className="text-white font-medium">{apiPrediction.predictions.advice || "Bilgi yok"}</p>
+                            <p className="text-white font-medium">{apiPrediction.advice || "Bilgi yok"}</p>
                           </div>
                           <div>
                             <p className="text-zinc-400 mb-1">Alt/Üst:</p>
-                            <p className="text-white font-medium">{apiPrediction.predictions.under_over || "Bilgi yok"}</p>
+                            <p className="text-white font-medium">{apiPrediction.underOver || "Bilgi yok"}</p>
                           </div>
                           <div>
                             <p className="text-zinc-400 mb-1">Olasılıklar:</p>
                             <div className="flex gap-2">
-                              <Badge variant="outline" className="text-green-400 border-green-400/30">Ev: {apiPrediction.predictions.percent.home}</Badge>
-                              <Badge variant="outline" className="text-yellow-400 border-yellow-400/30">X: {apiPrediction.predictions.percent.draw}</Badge>
-                              <Badge variant="outline" className="text-blue-400 border-blue-400/30">Dep: {apiPrediction.predictions.percent.away}</Badge>
+                              <Badge variant="outline" className="text-green-400 border-green-400/30">Ev: {apiPrediction.percent.home}</Badge>
+                              <Badge variant="outline" className="text-yellow-400 border-yellow-400/30">X: {apiPrediction.percent.draw}</Badge>
+                              <Badge variant="outline" className="text-blue-400 border-blue-400/30">Dep: {apiPrediction.percent.away}</Badge>
                             </div>
                           </div>
-                          {apiPrediction.predictions.winner && (
+                          {apiPrediction.winner && (
                             <div>
                               <p className="text-zinc-400 mb-1">Kazanan:</p>
-                              <p className="text-white font-medium">{apiPrediction.predictions.winner.name}</p>
+                              <p className="text-white font-medium">{apiPrediction.winner.name}</p>
                             </div>
                           )}
                         </div>
+                        {/* H2H */}
+                        {apiPrediction.h2h && apiPrediction.h2h.length > 0 && (
+                          <div className="mt-4 pt-4 border-t border-blue-500/20">
+                            <p className="text-zinc-400 mb-2 text-sm">Son Karşılaşmalar:</p>
+                            <div className="space-y-1">
+                              {apiPrediction.h2h.slice(0, 3).map((match, i) => (
+                                <div key={i} className="flex items-center justify-between text-xs bg-black/20 rounded p-2">
+                                  <span className="text-zinc-500">{new Date(match.date).toLocaleDateString('tr-TR')}</span>
+                                  <span className="text-white">{match.homeTeam} {match.homeGoals} - {match.awayGoals} {match.awayTeam}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <div className="bg-zinc-800/50 rounded-xl p-4 text-center text-zinc-500">
