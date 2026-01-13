@@ -1,0 +1,34 @@
+root@162-55-4-35:/var/www/tutturduk# ls -la /var/www/tutturduk/dist/
+total 1104
+drwxr-xr-x  3 root root    4096 Jan 13 11:57 .
+drwxr-xr-x 10 root root    4096 Jan 13 12:01 ..
+-rw-r--r--  1 root root 1115862 Jan 13 11:57 index.cjs
+drwxr-xr-x  3 root root    4096 Jan 13 11:57 public
+root@162-55-4-35:/var/www/tutturduk# find /var/www/tutturduk -name "*.js" -path "*/dist/*" | head -20
+/var/www/tutturduk/dist/public/assets/index-CSJcv6QV.js
+/var/www/tutturduk/node_modules/framer-motion/dist/size-rollup-dom-animation-assets.js
+/var/www/tutturduk/node_modules/framer-motion/dist/mini.js
+/var/www/tutturduk/node_modules/framer-motion/dist/size-rollup-m.js
+/var/www/tutturduk/node_modules/framer-motion/dist/size-rollup-dom-animation-m.js
+/var/www/tutturduk/node_modules/framer-motion/dist/size-rollup-dom-max.js
+/var/www/tutturduk/node_modules/framer-motion/dist/size-rollup-dom-animation.js
+/var/www/tutturduk/node_modules/framer-motion/dist/dom-mini.js
+/var/www/tutturduk/node_modules/framer-motion/dist/size-rollup-animate.js
+/var/www/tutturduk/node_modules/framer-motion/dist/framer-motion.js
+/var/www/tutturduk/node_modules/framer-motion/dist/size-rollup-motion.js
+/var/www/tutturduk/node_modules/framer-motion/dist/framer-motion.dev.js
+/var/www/tutturduk/node_modules/framer-motion/dist/dom.js
+/var/www/tutturduk/node_modules/framer-motion/dist/cjs/mini.js
+/var/www/tutturduk/node_modules/framer-motion/dist/cjs/m.js
+/var/www/tutturduk/node_modules/framer-motion/dist/cjs/dom-mini.js
+/var/www/tutturduk/node_modules/framer-motion/dist/cjs/index.js
+/var/www/tutturduk/node_modules/framer-motion/dist/cjs/debug.js
+/var/www/tutturduk/node_modules/framer-motion/dist/cjs/dom.js
+/var/www/tutturduk/node_modules/framer-motion/dist/cjs/client.js
+root@162-55-4-35:/var/www/tutturduk# ls -la dist/
+total 1104
+drwxr-xr-x  3 root root    4096 Jan 13 11:57 .
+drwxr-xr-x 10 root root    4096 Jan 13 12:01 ..
+-rw-r--r--  1 root root 1115862 Jan 13 11:57 index.cjs
+drwxr-xr-x  3 root root    4096 Jan 13 11:57 public
+root@162-55-4-35:/var/www/tutturduk#
