@@ -14,6 +14,7 @@ import MatchDetailPage from "@/pages/MatchDetailPage";
 import LiveMatchesPage from "@/pages/LiveMatchesPage";
 import UpcomingMatchesPage from "@/pages/UpcomingMatchesPage";
 import AdminLoginPage from "@/pages/AdminLoginPage";
+import CouponDetailPage from "@/pages/CouponDetailPage";
 import { useEffect } from "react";
 
 function ProtectedRoute({ component: Component, ...rest }: any) {
@@ -58,6 +59,9 @@ function Router() {
       </Route>
       <Route path="/upcoming">
         {() => <ProtectedRoute component={UpcomingMatchesPage} />}
+      </Route>
+      <Route path="/coupon/:id">
+        {() => <ProtectedRoute component={CouponDetailPage} />}
       </Route>
       <Route path="/admin">
         {() => <ProtectedRoute component={AdminPage} />}
