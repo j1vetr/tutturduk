@@ -124,6 +124,10 @@ export default function AdminPage() {
   const [newCouponName, setNewCouponName] = useState("");
   const [newCouponDate, setNewCouponDate] = useState("");
   
+  // Published matches
+  const [publishedMatches, setPublishedMatches] = useState<any[]>([]);
+  const [publishingId, setPublishingId] = useState<number | null>(null);
+  
   // Form states
   const [newCode, setNewCode] = useState({ code: "", type: "standard", maxUses: 1 });
   const [newPrediction, setNewPrediction] = useState({
@@ -154,6 +158,58 @@ export default function AdminPage() {
     loadWonPredictions();
     loadLostPredictions();
     loadCoupons();
+    loadPublishedMatches();
+  };
+
+  const loadPublishedMatches = async () => {
+    try {
+      const res = await fetch('/api/admin/matches', { credentials: 'include' });
+      if (res.ok) setPublishedMatches(await res.json());
+    } catch (error) {
+      console.error('Failed to load published matches:', error);
+    }
+  };
+
+  const publishMatch = async (match: UpcomingMatch, isFeatured = false) => {
+    setPublishingId(match.id);
+    try {
+      const res = await fetch('/api/admin/matches/publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ fixtureId: match.id, isFeatured })
+      });
+      if (res.ok) {
+        toast({ title: "Maç yayınlandı!", description: `${match.homeTeam.name} vs ${match.awayTeam.name}` });
+        loadPublishedMatches();
+      } else {
+        const err = await res.json();
+        toast({ title: "Hata", description: err.message, variant: "destructive" });
+      }
+    } catch (error) {
+      toast({ title: "Hata", description: "Maç yayınlanamadı", variant: "destructive" });
+    } finally {
+      setPublishingId(null);
+    }
+  };
+
+  const unpublishMatch = async (id: number) => {
+    try {
+      const res = await fetch(`/api/admin/matches/${id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      if (res.ok) {
+        toast({ title: "Maç kaldırıldı" });
+        loadPublishedMatches();
+      }
+    } catch (error) {
+      toast({ title: "Hata", description: "Maç kaldırılamadı", variant: "destructive" });
+    }
+  };
+
+  const isMatchPublished = (fixtureId: number) => {
+    return publishedMatches.some(m => m.fixture_id === fixtureId);
   };
 
   const loadUpcomingMatches = async () => {
@@ -687,181 +743,59 @@ export default function AdminPage() {
           {activeTab === "predictions" && (
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-display font-bold text-white">Tahmin Yönetimi</h2>
-                <Button onClick={loadUpcomingMatches} variant="outline" size="sm" className="border-white/10">
-                  <RefreshCcw className="w-4 h-4 mr-2" /> Maçları Yenile
-                </Button>
+                <h2 className="text-2xl font-display font-bold text-white">Maç Yayınlama</h2>
+                <div className="flex gap-2">
+                  <Button onClick={loadPublishedMatches} variant="outline" size="sm" className="border-white/10">
+                    <RefreshCcw className="w-4 h-4 mr-2" /> Yenile
+                  </Button>
+                  <Button onClick={loadUpcomingMatches} variant="outline" size="sm" className="border-white/10">
+                    <Calendar className="w-4 h-4 mr-2" /> Maçları Getir
+                  </Button>
+                </div>
               </div>
 
-              {/* Selected Match - Prediction Form */}
-              {selectedMatch ? (
-                <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-                  <CardHeader className="pb-4">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-white flex items-center gap-2">
-                        <Sparkles className="w-5 h-5 text-primary" /> Tahmin Oluştur
-                      </CardTitle>
-                      <Button variant="ghost" size="sm" onClick={handleCancelSelection} className="text-zinc-400">
-                        İptal
-                      </Button>
-                    </div>
+              {/* Published Matches */}
+              {publishedMatches.length > 0 && (
+                <Card className="bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-500/20">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-white flex items-center gap-2">
+                      <CheckCircle className="w-5 h-5 text-green-500" /> Yayındaki Maçlar ({publishedMatches.length})
+                    </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-6">
-                    {/* Match Info */}
-                    <div className="bg-black/30 rounded-xl p-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2">
-                          <img src={selectedMatch.league.logo} alt="" className="w-6 h-6 object-contain" />
-                          <span className="text-sm text-zinc-400">{selectedMatch.league.name}</span>
-                        </div>
-                        <span className="text-sm text-primary">{selectedMatch.localDate} - {selectedMatch.localTime}</span>
-                      </div>
-                      <div className="flex items-center justify-center gap-6">
-                        <div className="text-center">
-                          <img src={selectedMatch.homeTeam.logo} alt="" className="w-16 h-16 mx-auto mb-2 object-contain" />
-                          <p className="font-bold text-white">{selectedMatch.homeTeam.name}</p>
-                        </div>
-                        <div className="text-3xl font-bold text-primary">VS</div>
-                        <div className="text-center">
-                          <img src={selectedMatch.awayTeam.logo} alt="" className="w-16 h-16 mx-auto mb-2 object-contain" />
-                          <p className="font-bold text-white">{selectedMatch.awayTeam.name}</p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* API Prediction */}
-                    {loadingApiPrediction ? (
-                      <div className="text-center py-4">
-                        <Loader2 className="w-6 h-6 animate-spin text-primary mx-auto" />
-                        <p className="text-sm text-zinc-500 mt-2">API tahmin yükleniyor...</p>
-                      </div>
-                    ) : apiPrediction ? (
-                      <div className="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4">
-                        <h4 className="font-semibold text-blue-400 mb-3 flex items-center gap-2">
-                          <Zap className="w-4 h-4" /> API-Football Tahmin Analizi
-                        </h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <p className="text-zinc-400 mb-1">Tavsiye:</p>
-                            <p className="text-white font-medium">{apiPrediction.advice || "Bilgi yok"}</p>
-                          </div>
-                          <div>
-                            <p className="text-zinc-400 mb-1">Alt/Üst:</p>
-                            <p className="text-white font-medium">{apiPrediction.underOver || "Bilgi yok"}</p>
-                          </div>
-                          <div>
-                            <p className="text-zinc-400 mb-1">Olasılıklar:</p>
-                            <div className="flex gap-2">
-                              <Badge variant="outline" className="text-green-400 border-green-400/30">Ev: {apiPrediction.percent.home}</Badge>
-                              <Badge variant="outline" className="text-yellow-400 border-yellow-400/30">X: {apiPrediction.percent.draw}</Badge>
-                              <Badge variant="outline" className="text-blue-400 border-blue-400/30">Dep: {apiPrediction.percent.away}</Badge>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {publishedMatches.map(pm => (
+                        <div key={pm.id} className="flex items-center justify-between p-3 rounded-lg bg-black/30">
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2">
+                              {pm.home_logo && <img src={pm.home_logo} alt="" className="w-5 h-5" />}
+                              <span className="text-white text-sm">{pm.home_team}</span>
+                            </div>
+                            <span className="text-zinc-500 text-xs">vs</span>
+                            <div className="flex items-center gap-2">
+                              {pm.away_logo && <img src={pm.away_logo} alt="" className="w-5 h-5" />}
+                              <span className="text-white text-sm">{pm.away_team}</span>
                             </div>
                           </div>
-                          {apiPrediction.winner && (
-                            <div>
-                              <p className="text-zinc-400 mb-1">Kazanan:</p>
-                              <p className="text-white font-medium">{apiPrediction.winner.name}</p>
-                            </div>
-                          )}
-                        </div>
-                        {/* H2H */}
-                        {apiPrediction.h2h && apiPrediction.h2h.length > 0 && (
-                          <div className="mt-4 pt-4 border-t border-blue-500/20">
-                            <p className="text-zinc-400 mb-2 text-sm">Son Karşılaşmalar:</p>
-                            <div className="space-y-1">
-                              {apiPrediction.h2h.slice(0, 3).map((match, i) => (
-                                <div key={i} className="flex items-center justify-between text-xs bg-black/20 rounded p-2">
-                                  <span className="text-zinc-500">{new Date(match.date).toLocaleDateString('tr-TR')}</span>
-                                  <span className="text-white">{match.homeTeam} {match.homeGoals} - {match.awayGoals} {match.awayTeam}</span>
-                                </div>
-                              ))}
-                            </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-zinc-500">{pm.match_date} {pm.match_time}</span>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={() => unpublishMatch(pm.id)}
+                              className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
                           </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="bg-zinc-800/50 rounded-xl p-4 text-center text-zinc-500">
-                        API tahmin verisi bulunamadı. Ücretli üyelik gerekebilir.
-                      </div>
-                    )}
-
-                    {/* Prediction Form */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label className="text-zinc-400 mb-2 block">Tahmin</Label>
-                        <Select value={newPrediction.prediction} onValueChange={v => setNewPrediction({...newPrediction, prediction: v})}>
-                          <SelectTrigger className="bg-black/50 border-white/10 text-white">
-                            <SelectValue placeholder="Tahmin seçin" />
-                          </SelectTrigger>
-                          <SelectContent className="bg-zinc-900 border-white/10">
-                            <SelectItem value="MS 1">MS 1 (Ev Sahibi)</SelectItem>
-                            <SelectItem value="MS X">MS X (Beraberlik)</SelectItem>
-                            <SelectItem value="MS 2">MS 2 (Deplasman)</SelectItem>
-                            <SelectItem value="1X">1X (Çifte Şans)</SelectItem>
-                            <SelectItem value="X2">X2 (Çifte Şans)</SelectItem>
-                            <SelectItem value="12">12 (Çifte Şans)</SelectItem>
-                            <SelectItem value="KG VAR">KG VAR</SelectItem>
-                            <SelectItem value="KG YOK">KG YOK</SelectItem>
-                            <SelectItem value="2.5 ÜST">2.5 ÜST</SelectItem>
-                            <SelectItem value="2.5 ALT">2.5 ALT</SelectItem>
-                            <SelectItem value="3.5 ÜST">3.5 ÜST</SelectItem>
-                            <SelectItem value="3.5 ALT">3.5 ALT</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label className="text-zinc-400 mb-2 block">Oran</Label>
-                        <Input 
-                          type="number" 
-                          step="0.01"
-                          value={newPrediction.odds} 
-                          onChange={e => setNewPrediction({...newPrediction, odds: e.target.value})}
-                          placeholder="1.85"
-                          className="bg-black/50 border-white/10 text-white"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <Label className="text-zinc-400 mb-2 block">Analiz</Label>
-                      <Textarea 
-                        value={newPrediction.analysis}
-                        onChange={e => setNewPrediction({...newPrediction, analysis: e.target.value})}
-                        placeholder="Maç analizi ve tahmin gerekçenizi yazın..."
-                        className="bg-black/50 border-white/10 text-white min-h-[100px]"
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <Select value={newPrediction.confidence} onValueChange={v => setNewPrediction({...newPrediction, confidence: v})}>
-                          <SelectTrigger className="w-32 bg-black/50 border-white/10 text-white">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent className="bg-zinc-900 border-white/10">
-                            <SelectItem value="low">Düşük</SelectItem>
-                            <SelectItem value="medium">Orta</SelectItem>
-                            <SelectItem value="high">Yüksek</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <div className="flex items-center gap-2">
-                          <Switch 
-                            checked={newPrediction.isHero}
-                            onCheckedChange={v => setNewPrediction({...newPrediction, isHero: v})}
-                          />
-                          <Label className="text-zinc-400 flex items-center gap-1">
-                            <Star className="w-4 h-4 text-primary" /> Günün Tahmini
-                          </Label>
                         </div>
-                      </div>
-                      <Button onClick={handleCreatePrediction} className="bg-primary text-black font-bold hover:bg-white">
-                        <Plus className="w-4 h-4 mr-2" /> Tahmin Yayınla
-                      </Button>
+                      ))}
                     </div>
                   </CardContent>
                 </Card>
-              ) : (
-                /* Match Selection */
+              )}
+
+              {/* Match Selection */}
                 <Card className="bg-zinc-900/50 border-white/5">
                   <CardHeader className="pb-4">
                     <CardTitle className="text-white flex items-center gap-2">
@@ -917,42 +851,64 @@ export default function AdminPage() {
                       </div>
                     ) : (
                       <div className="grid gap-3 max-h-[500px] overflow-y-auto pr-2">
-                        {getFilteredMatches().map(match => (
-                          <div
-                            key={match.id}
-                            onClick={() => handleSelectMatch(match)}
-                            className="p-4 rounded-xl bg-white/5 hover:bg-white/10 transition-all cursor-pointer border border-transparent hover:border-primary/30 group"
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-4">
-                                <div className="text-center min-w-[60px]">
-                                  <p className="text-xs text-zinc-500">{match.localDate}</p>
-                                  <p className="text-sm font-bold text-primary">{match.localTime}</p>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                  <img src={match.league.logo} alt="" className="w-5 h-5 object-contain" />
+                        {getFilteredMatches().map(match => {
+                          const published = isMatchPublished(match.id);
+                          return (
+                            <div
+                              key={match.id}
+                              className={`p-4 rounded-xl transition-all border ${published ? 'bg-green-500/10 border-green-500/30' : 'bg-white/5 border-transparent hover:border-primary/30'}`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                  <div className="text-center min-w-[60px]">
+                                    <p className="text-xs text-zinc-500">{match.localDate}</p>
+                                    <p className="text-sm font-bold text-primary">{match.localTime}</p>
+                                  </div>
                                   <div className="flex items-center gap-3">
-                                    <div className="flex items-center gap-2">
-                                      <img src={match.homeTeam.logo} alt="" className="w-6 h-6 object-contain" />
-                                      <span className="text-white font-medium">{match.homeTeam.name}</span>
-                                    </div>
-                                    <span className="text-zinc-600 text-sm">vs</span>
-                                    <div className="flex items-center gap-2">
-                                      <img src={match.awayTeam.logo} alt="" className="w-6 h-6 object-contain" />
-                                      <span className="text-white font-medium">{match.awayTeam.name}</span>
+                                    <img src={match.league.logo} alt="" className="w-5 h-5 object-contain" />
+                                    <div className="flex items-center gap-3">
+                                      <div className="flex items-center gap-2">
+                                        <img src={match.homeTeam.logo} alt="" className="w-6 h-6 object-contain" />
+                                        <span className="text-white font-medium text-sm">{match.homeTeam.name}</span>
+                                      </div>
+                                      <span className="text-zinc-600 text-sm">vs</span>
+                                      <div className="flex items-center gap-2">
+                                        <img src={match.awayTeam.logo} alt="" className="w-6 h-6 object-contain" />
+                                        <span className="text-white font-medium text-sm">{match.awayTeam.name}</span>
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
+                                <div className="flex items-center gap-2">
+                                  {published ? (
+                                    <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                                      <CheckCircle className="w-3 h-3 mr-1" /> Yayında
+                                    </Badge>
+                                  ) : (
+                                    <Button 
+                                      size="sm" 
+                                      onClick={() => publishMatch(match)}
+                                      disabled={publishingId === match.id}
+                                      className="bg-primary text-black hover:bg-white font-semibold"
+                                    >
+                                      {publishingId === match.id ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                      ) : (
+                                        <>
+                                          <Plus className="w-4 h-4 mr-1" /> Yayınla
+                                        </>
+                                      )}
+                                    </Button>
+                                  )}
+                                </div>
                               </div>
-                              <ChevronRight className="w-5 h-5 text-zinc-600 group-hover:text-primary transition-colors" />
                             </div>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
                   </CardContent>
                 </Card>
-              )}
 
               {/* Active Predictions */}
               <Card className="bg-zinc-900/50 border-white/5">
