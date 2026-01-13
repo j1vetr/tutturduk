@@ -533,10 +533,10 @@ export async function registerRoutes(
           });
         } else {
           const allFixtures: any[] = [];
-          for (const lg of SUPPORTED_LEAGUES.slice(0, 5)) {
+          for (const lg of SUPPORTED_LEAGUES) {
             const lgFixtures = await apiFootball.getFixtures({
               league: lg.id,
-              next: 5
+              next: 15
             });
             allFixtures.push(...lgFixtures);
           }
