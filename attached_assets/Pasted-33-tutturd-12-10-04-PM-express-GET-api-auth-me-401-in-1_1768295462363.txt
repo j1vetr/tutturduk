@@ -1,0 +1,37 @@
+33|tutturd | 12:10:04 PM [express] GET /api/auth/me 401 in 1ms :: {"message":"Oturum açılmamış"}
+33|tutturd | 12:10:05 PM [express] GET /api/auth/me 401 in 1ms :: {"message":"Oturum açılmamış"}
+33|tutturd | 12:10:06 PM [express] serving on port 9991
+33|tutturd | 12:10:10 PM [express] POST /api/auth/login 200 in 19ms :: {"id":"fc3c796b-d33b-4d4a-b05b-03ca8030d4a6","username":"Toov","role":"admin"}
+33|tutturd | 12:10:11 PM [express] GET /api/admin/invitations 401 in 1ms :: {"message":"Oturum açılmamış"}
+33|tutturd | 12:10:11 PM [express] GET /api/admin/users 401 in 1ms :: {"message":"Oturum açılmamış"}
+33|tutturd | 12:10:11 PM [express] GET /api/admin/coupons 401 in 1ms :: {"message":"Oturum açılmamış"}
+33|tutturd | 12:10:11 PM [express] GET /api/admin/matches 401 in 1ms :: {"message":"Oturum açılmamış"}
+33|tutturd | 12:10:14 PM [express] GET /api/football/all-predictions 500 in 9ms :: {"message":"relation \"api_cache\" does not exist"}
+33|tutturd | 12:10:22 PM [express] POST /api/admin/invitations 401 in 1ms :: {"message":"Oturum açılmamış"}
+33|tutturd | 12:10:25 PM [express] POST /api/admin/invitations 401 in 1ms :: {"message":"Oturum açılmamış"}
+33|tutturd | 12:10:31 PM [express] POST /api/admin/invitations 401 in 1ms :: {"message":"Oturum açılmamış"}
+33|tutturd | 12:10:31 PM [express] POST /api/admin/invitations 401 in 1ms :: {"message":"Oturum açılmamış"}
+33|tutturd | 12:10:32 PM [express] POST /api/admin/invitations 401 in 1ms :: {"message":"Oturum açılmamış"}
+33|tutturd | 12:10:34 PM [express] GET /api/football/all-predictions 500 in 12ms :: {"message":"relation \"api_cache\" does not exist"}
+
+/root/.pm2/logs/tutturduk-error.log last 15 lines:
+33|tutturd |   detail: undefined,
+33|tutturd |   hint: undefined,
+33|tutturd |   position: '18',
+33|tutturd |   internalPosition: undefined,
+33|tutturd |   internalQuery: undefined,
+33|tutturd |   where: undefined,
+33|tutturd |   schema: undefined,
+33|tutturd |   table: undefined,
+33|tutturd |   column: undefined,
+33|tutturd |   dataType: undefined,
+33|tutturd |   constraint: undefined,
+33|tutturd |   file: 'parse_relation.c',
+33|tutturd |   line: '1381',
+33|tutturd |   routine: 'parserOpenTable'
+33|tutturd | }
+
+33|tutturduk  | 12:10:48 PM [express] POST /api/admin/invitations 401 in 1ms :: {"message":"Oturum açılmamış"}
+33|tutturduk  | 12:10:48 PM [express] POST /api/admin/invitations 401 in 1ms :: {"message":"Oturum açılmamış"}
+33|tutturduk  | 12:10:49 PM [express] POST /api/admin/invitations 401 in 2ms :: {"message":"Oturum açılmamış"}
+
