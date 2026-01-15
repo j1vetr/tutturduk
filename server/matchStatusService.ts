@@ -13,8 +13,19 @@ export async function checkAndUpdateMatchStatuses() {
   console.log('[MatchStatus] Starting match status check...');
   
   try {
+    // First, auto-mark very old matches (>4 hours) as finished
+    const fourHoursAgo = Math.floor(Date.now() / 1000) - (4 * 60 * 60);
+    await pool.query(
+      `UPDATE published_matches 
+       SET status = 'finished' 
+       WHERE status IN ('pending', 'in_progress') 
+       AND timestamp IS NOT NULL 
+       AND timestamp < $1`,
+      [fourHoursAgo]
+    );
+    
     const result = await pool.query(
-      `SELECT id, fixture_id, home_team, away_team, match_date, match_time, status 
+      `SELECT id, fixture_id, home_team, away_team, match_date, match_time, status, timestamp 
        FROM published_matches 
        WHERE status IN ('pending', 'in_progress')
        ORDER BY timestamp ASC`

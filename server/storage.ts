@@ -550,9 +550,14 @@ export class PostgresStorage implements IStorage {
 
   // Published match methods
   async getPublishedMatches(): Promise<PublishedMatch[]> {
+    // Filter out finished matches AND matches that started more than 3 hours ago
+    const threeHoursAgo = Math.floor(Date.now() / 1000) - (3 * 60 * 60);
     const result = await pool.query(
-      'SELECT * FROM published_matches WHERE status != $1 ORDER BY timestamp ASC, created_at DESC',
-      ['finished']
+      `SELECT * FROM published_matches 
+       WHERE status != $1 
+       AND (timestamp IS NULL OR timestamp > $2)
+       ORDER BY timestamp ASC, created_at DESC`,
+      ['finished', threeHoursAgo]
     );
     return result.rows;
   }
