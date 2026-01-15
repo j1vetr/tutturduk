@@ -185,7 +185,9 @@ export interface IStorage {
   getCouponWithPredictions(id: number): Promise<Coupon | undefined>;
   createCoupon(name: string, date: string): Promise<Coupon>;
   addPredictionToCoupon(couponId: number, predictionId: number): Promise<void>;
+  addBestBetToCoupon(couponId: number, bestBetId: number): Promise<void>;
   removePredictionFromCoupon(couponId: number, predictionId: number): Promise<void>;
+  removeBestBetFromCoupon(couponId: number, bestBetId: number): Promise<void>;
   updateCouponOdds(couponId: number): Promise<Coupon>;
   updateCouponResult(couponId: number, result: string): Promise<Coupon>;
   deleteCoupon(id: number): Promise<boolean>;
@@ -418,14 +420,31 @@ export class PostgresStorage implements IStorage {
     if (couponResult.rows.length === 0) return undefined;
     
     const coupon = couponResult.rows[0];
-    const predictionsResult = await pool.query(
-      `SELECT p.* FROM predictions p 
-       INNER JOIN coupon_predictions cp ON p.id = cp.prediction_id 
+    // First try best_bets (AI predictions)
+    const bestBetsResult = await pool.query(
+      `SELECT bb.id, bb.home_team, bb.away_team, bb.home_logo, bb.away_logo, 
+              bb.league_name, bb.match_date, bb.match_time, 
+              bb.bet_type as prediction, bb.confidence as odds, bb.result
+       FROM best_bets bb 
+       INNER JOIN coupon_predictions cp ON bb.id = cp.best_bet_id 
        WHERE cp.coupon_id = $1 
-       ORDER BY p.match_time ASC`,
+       ORDER BY bb.match_time ASC`,
       [id]
     );
-    coupon.predictions = predictionsResult.rows;
+    
+    // Fallback to old predictions table if no best_bets found
+    if (bestBetsResult.rows.length === 0) {
+      const predictionsResult = await pool.query(
+        `SELECT p.* FROM predictions p 
+         INNER JOIN coupon_predictions cp ON p.id = cp.prediction_id 
+         WHERE cp.coupon_id = $1 
+         ORDER BY p.match_time ASC`,
+        [id]
+      );
+      coupon.predictions = predictionsResult.rows;
+    } else {
+      coupon.predictions = bestBetsResult.rows;
+    }
     return coupon;
   }
 
@@ -445,6 +464,14 @@ export class PostgresStorage implements IStorage {
     await this.updateCouponOdds(couponId);
   }
 
+  async addBestBetToCoupon(couponId: number, bestBetId: number): Promise<void> {
+    await pool.query(
+      'INSERT INTO coupon_predictions (coupon_id, best_bet_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+      [couponId, bestBetId]
+    );
+    await this.updateCouponOdds(couponId);
+  }
+
   async removePredictionFromCoupon(couponId: number, predictionId: number): Promise<void> {
     await pool.query(
       'DELETE FROM coupon_predictions WHERE coupon_id = $1 AND prediction_id = $2',
@@ -453,18 +480,53 @@ export class PostgresStorage implements IStorage {
     await this.updateCouponOdds(couponId);
   }
 
+  async removeBestBetFromCoupon(couponId: number, bestBetId: number): Promise<void> {
+    await pool.query(
+      'DELETE FROM coupon_predictions WHERE coupon_id = $1 AND best_bet_id = $2',
+      [couponId, bestBetId]
+    );
+    await this.updateCouponOdds(couponId);
+  }
+
   async updateCouponOdds(couponId: number): Promise<Coupon> {
-    const result = await pool.query(
-      `SELECT COALESCE(
-        (SELECT EXP(SUM(LN(CAST(p.odds AS DECIMAL)))) 
-         FROM predictions p 
-         INNER JOIN coupon_predictions cp ON p.id = cp.prediction_id 
-         WHERE cp.coupon_id = $1),
-        1.00
-      ) as combined_odds`,
+    // Calculate combined odds from best_bets (using confidence as odds placeholder)
+    // Note: best_bets.confidence is 0-100, we use a fixed odds value for now
+    const countResult = await pool.query(
+      'SELECT COUNT(*) as cnt FROM coupon_predictions WHERE coupon_id = $1 AND best_bet_id IS NOT NULL',
       [couponId]
     );
-    const combinedOdds = parseFloat(result.rows[0].combined_odds).toFixed(2);
+    const bestBetCount = parseInt(countResult.rows[0].cnt);
+    
+    let combinedOdds = '1.00';
+    if (bestBetCount > 0) {
+      // Use approximate odds based on risk level (stored in best_bets)
+      const oddsResult = await pool.query(
+        `SELECT bb.risk_level FROM best_bets bb 
+         INNER JOIN coupon_predictions cp ON bb.id = cp.best_bet_id 
+         WHERE cp.coupon_id = $1`,
+        [couponId]
+      );
+      let totalOdds = 1;
+      for (const row of oddsResult.rows) {
+        if (row.risk_level === 'düşük') totalOdds *= 1.5;
+        else if (row.risk_level === 'orta') totalOdds *= 2.0;
+        else totalOdds *= 3.5;
+      }
+      combinedOdds = totalOdds.toFixed(2);
+    } else {
+      // Fallback to old predictions table
+      const result = await pool.query(
+        `SELECT COALESCE(
+          (SELECT EXP(SUM(LN(CAST(p.odds AS DECIMAL)))) 
+           FROM predictions p 
+           INNER JOIN coupon_predictions cp ON p.id = cp.prediction_id 
+           WHERE cp.coupon_id = $1),
+          1.00
+        ) as combined_odds`,
+        [couponId]
+      );
+      combinedOdds = parseFloat(result.rows[0].combined_odds).toFixed(2);
+    }
     
     const updateResult = await pool.query(
       'UPDATE coupons SET combined_odds = $1 WHERE id = $2 RETURNING *',

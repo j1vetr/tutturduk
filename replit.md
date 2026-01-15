@@ -96,6 +96,27 @@ Key entities include:
 - `API_FOOTBALL_KEY`: API-Football (RapidAPI) key for match data
 - `OPENAI_API_KEY`: OpenAI API key for AI analysis
 
+## Coupon System
+
+### How Coupons Work
+- Admin creates coupons via Admin Panel > Kuponlar tab
+- Best bets (AI predictions) are added to coupons from the `best_bets` table
+- Coupon odds are calculated based on risk levels (düşük=1.5x, orta=2.0x, yüksek=3.5x)
+- Coupons store references in `coupon_predictions` table (links to `best_bet_id`)
+
+### Match Status Automation
+- `matchStatusService.ts` runs every 15 minutes via setInterval
+- Checks pending/in_progress matches against API-Football for live scores
+- When match finishes: updates `published_matches` with final score and status
+- Evaluates `best_bets` predictions (won/lost) based on actual scores
+- Auto-evaluates coupon results when all predictions are evaluated
+
+### Prediction Evaluation Logic
+- **2.5/3.5/4.5 Üst/Alt**: Compares total goals against threshold
+- **KG Var/Yok**: Checks if both teams scored
+- **Ev/Beraberlik/Deplasman**: Match winner evaluation
+- Results stored in `best_bets.result` column (pending/won/lost)
+
 ## Recent Changes
 
 ### January 2026
@@ -104,3 +125,7 @@ Key entities include:
 - Added statistics validation before match publishing
 - Created AI-powered Coupon Creator feature
 - Added "Kuponlar" tab in bottom navigation
+- Implemented automatic match status tracking (15-min cron job)
+- Added prediction result evaluation based on API-Football scores
+- Enhanced coupon system to work with best_bets instead of predictions table
+- Added admin routes for managing best bets in coupons

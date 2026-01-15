@@ -93,7 +93,302 @@ interface Coupon {
   status: string;
   result: string;
   created_at: string;
-  predictions?: Prediction[];
+  predictions?: CouponPrediction[];
+}
+
+interface CouponPrediction {
+  id: number;
+  home_team: string;
+  away_team: string;
+  home_logo?: string;
+  away_logo?: string;
+  league_name?: string;
+  match_date?: string;
+  match_time?: string;
+  prediction: string;
+  odds?: string;
+  result?: string;
+}
+
+interface BestBet {
+  id: number;
+  match_id?: number;
+  fixture_id?: number;
+  home_team: string;
+  away_team: string;
+  home_logo?: string;
+  away_logo?: string;
+  league_name?: string;
+  match_date?: string;
+  match_time?: string;
+  bet_type: string;
+  confidence: number;
+  risk_level: string;
+  reasoning?: string;
+  result?: string;
+}
+
+function CouponManagementTab({ 
+  coupons, 
+  newCouponName, 
+  setNewCouponName, 
+  handleCreateCoupon, 
+  loadCoupons, 
+  formatDate, 
+  toast 
+}: {
+  coupons: Coupon[];
+  newCouponName: string;
+  setNewCouponName: (v: string) => void;
+  handleCreateCoupon: () => void;
+  loadCoupons: () => void;
+  formatDate: (d: string) => string;
+  toast: any;
+}) {
+  const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
+  const [availableBestBets, setAvailableBestBets] = useState<BestBet[]>([]);
+  const [loadingBestBets, setLoadingBestBets] = useState(false);
+  const [couponDetails, setCouponDetails] = useState<Coupon | null>(null);
+
+  const loadCouponDetails = async (couponId: number) => {
+    try {
+      const res = await fetch(`/api/admin/coupons/${couponId}`, { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        setCouponDetails(data);
+      }
+    } catch (error) {
+      console.error('Failed to load coupon details:', error);
+    }
+  };
+
+  const loadAvailableBestBets = async () => {
+    setLoadingBestBets(true);
+    try {
+      const res = await fetch('/api/admin/best-bets/all', { credentials: 'include' });
+      if (res.ok) {
+        setAvailableBestBets(await res.json());
+      }
+    } catch (error) {
+      console.error('Failed to load best bets:', error);
+    } finally {
+      setLoadingBestBets(false);
+    }
+  };
+
+  const handleSelectCoupon = async (coupon: Coupon) => {
+    setSelectedCoupon(coupon);
+    await loadCouponDetails(coupon.id);
+    await loadAvailableBestBets();
+  };
+
+  const handleAddBestBetToCoupon = async (bestBetId: number) => {
+    if (!selectedCoupon) return;
+    try {
+      const res = await fetch(`/api/admin/coupons/${selectedCoupon.id}/best-bets`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ bestBetId })
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setCouponDetails(updated);
+        loadCoupons();
+        toast({ description: "Tahmin kupona eklendi!", className: "bg-green-500 text-white border-none" });
+      }
+    } catch (error) {
+      toast({ variant: "destructive", description: "Tahmin eklenemedi." });
+    }
+  };
+
+  const handleRemoveBestBetFromCoupon = async (bestBetId: number) => {
+    if (!selectedCoupon) return;
+    try {
+      const res = await fetch(`/api/admin/coupons/${selectedCoupon.id}/best-bets/${bestBetId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setCouponDetails(updated);
+        loadCoupons();
+        toast({ description: "Tahmin kupondan çıkarıldı.", className: "bg-amber-500 text-white border-none" });
+      }
+    } catch (error) {
+      toast({ variant: "destructive", description: "Tahmin çıkarılamadı." });
+    }
+  };
+
+  const handleDeleteCoupon = async (couponId: number) => {
+    try {
+      const res = await fetch(`/api/admin/coupons/${couponId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      if (res.ok) {
+        loadCoupons();
+        setSelectedCoupon(null);
+        setCouponDetails(null);
+        toast({ description: "Kupon silindi.", className: "bg-red-500 text-white border-none" });
+      }
+    } catch (error) {
+      toast({ variant: "destructive", description: "Kupon silinemedi." });
+    }
+  };
+
+  const getRiskColor = (risk: string) => {
+    if (risk === 'düşük') return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+    if (risk === 'orta') return 'bg-amber-500/20 text-amber-400 border-amber-500/30';
+    return 'bg-red-500/20 text-red-400 border-red-500/30';
+  };
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-display font-bold text-white">Kupon Yönetimi</h2>
+      
+      <Card className="bg-zinc-900/50 border-white/5">
+        <CardHeader>
+          <CardTitle className="text-white">Yeni Kupon Oluştur</CardTitle>
+          <p className="text-sm text-zinc-500">Bugün için yeni kupon oluşturun ve AI tahminlerinden ekleyin</p>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-4 items-end">
+            <div className="flex-1">
+              <Label className="text-zinc-400">Kupon Adı</Label>
+              <Input 
+                value={newCouponName}
+                onChange={e => setNewCouponName(e.target.value)}
+                placeholder="Günün Kuponu"
+                className="bg-black/50 border-white/10 text-white mt-1"
+              />
+            </div>
+            <Button onClick={handleCreateCoupon} className="bg-primary text-black font-bold">
+              <Plus className="w-4 h-4 mr-2" /> Oluştur
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="space-y-4">
+          <h3 className="text-lg font-bold text-white">Mevcut Kuponlar</h3>
+          {coupons.map(coupon => (
+            <Card 
+              key={coupon.id} 
+              className={`bg-zinc-900/50 border-white/5 cursor-pointer transition-all hover:border-primary/50 ${selectedCoupon?.id === coupon.id ? 'border-primary ring-1 ring-primary/30' : ''}`}
+              onClick={() => handleSelectCoupon(coupon)}
+            >
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-bold text-white">{coupon.name}</h3>
+                    <p className="text-sm text-zinc-500">{formatDate(coupon.coupon_date)} • {Number(coupon.combined_odds || 1).toFixed(2)}x kombine</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Badge className={
+                      coupon.result === 'won' ? 'bg-green-500/20 text-green-400' :
+                      coupon.result === 'lost' ? 'bg-red-500/20 text-red-400' :
+                      'bg-yellow-500/20 text-yellow-400'
+                    }>
+                      {coupon.result === 'won' ? 'Kazandı' : coupon.result === 'lost' ? 'Kaybetti' : 'Bekliyor'}
+                    </Badge>
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      onClick={(e) => { e.stopPropagation(); handleDeleteCoupon(coupon.id); }}
+                      className="h-8 w-8 text-red-400 hover:bg-red-500/20"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+          {coupons.length === 0 && (
+            <p className="text-zinc-500 text-center py-8">Henüz kupon oluşturulmamış</p>
+          )}
+        </div>
+
+        {selectedCoupon && (
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold text-white">{selectedCoupon.name} - Tahminler</h3>
+            
+            {couponDetails?.predictions && couponDetails.predictions.length > 0 && (
+              <Card className="bg-zinc-900/50 border-white/5">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-zinc-400">Kupona Eklenen Tahminler</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {couponDetails.predictions.map(pred => (
+                    <div key={pred.id} className="flex items-center justify-between p-3 bg-black/30 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        {pred.home_logo && <img src={pred.home_logo} className="w-5 h-5" alt="" />}
+                        <span className="text-sm text-white">{pred.home_team}</span>
+                        <span className="text-zinc-600">vs</span>
+                        <span className="text-sm text-white">{pred.away_team}</span>
+                        {pred.away_logo && <img src={pred.away_logo} className="w-5 h-5" alt="" />}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs">{pred.prediction}</Badge>
+                        <Button 
+                          size="icon" 
+                          variant="ghost" 
+                          onClick={() => handleRemoveBestBetFromCoupon(pred.id)}
+                          className="h-6 w-6 text-red-400 hover:bg-red-500/20"
+                        >
+                          <XCircle className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
+
+            <Card className="bg-zinc-900/50 border-white/5">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm text-zinc-400">Mevcut AI Tahminleri</CardTitle>
+                <p className="text-xs text-zinc-600">Kupona eklemek için tıklayın</p>
+              </CardHeader>
+              <CardContent className="space-y-2 max-h-80 overflow-y-auto">
+                {loadingBestBets ? (
+                  <div className="flex justify-center py-4">
+                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                  </div>
+                ) : availableBestBets.length > 0 ? (
+                  availableBestBets.map(bet => (
+                    <div 
+                      key={bet.id} 
+                      className="flex items-center justify-between p-3 bg-black/30 rounded-lg cursor-pointer hover:bg-black/50 transition-colors"
+                      onClick={() => handleAddBestBetToCoupon(bet.id)}
+                    >
+                      <div className="flex items-center gap-3">
+                        {bet.home_logo && <img src={bet.home_logo} className="w-5 h-5" alt="" />}
+                        <span className="text-sm text-white">{bet.home_team}</span>
+                        <span className="text-zinc-600">vs</span>
+                        <span className="text-sm text-white">{bet.away_team}</span>
+                        {bet.away_logo && <img src={bet.away_logo} className="w-5 h-5" alt="" />}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge className={getRiskColor(bet.risk_level)}>{bet.bet_type}</Badge>
+                        <Plus className="w-4 h-4 text-emerald-400" />
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-zinc-500 text-center py-4 text-sm">
+                    Henüz AI tahmini yok. Maç yayınlayın ve AI analizi yapın.
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default function AdminPage() {
@@ -251,7 +546,7 @@ export default function AdminPage() {
     let successCount = 0;
     let failCount = 0;
     
-    for (const matchId of selectedMatchIds) {
+    for (const matchId of Array.from(selectedMatchIds)) {
       const match = upcomingMatches.find(m => m.id === matchId);
       if (!match || isMatchPublished(matchId)) continue;
       
@@ -1461,57 +1756,15 @@ export default function AdminPage() {
 
           {/* Coupons Tab */}
           {activeTab === "coupons" && (
-            <div className="space-y-6">
-              <h2 className="text-2xl font-display font-bold text-white">Kupon Yönetimi</h2>
-              
-              <Card className="bg-zinc-900/50 border-white/5">
-                <CardHeader>
-                  <CardTitle className="text-white">Yeni Kupon Oluştur</CardTitle>
-                  <p className="text-sm text-zinc-500">Bugün için yeni kupon oluşturun ve yayınlanan maçlardan ekleyin</p>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex gap-4 items-end">
-                    <div className="flex-1">
-                      <Label className="text-zinc-400">Kupon Adı</Label>
-                      <Input 
-                        value={newCouponName}
-                        onChange={e => setNewCouponName(e.target.value)}
-                        placeholder="Günün Kuponu"
-                        className="bg-black/50 border-white/10 text-white mt-1"
-                      />
-                    </div>
-                    <Button onClick={handleCreateCoupon} className="bg-primary text-black font-bold">
-                      <Plus className="w-4 h-4 mr-2" /> Oluştur
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <div className="grid gap-4">
-                {coupons.map(coupon => (
-                  <Card key={coupon.id} className="bg-zinc-900/50 border-white/5">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-bold text-white">{coupon.name}</h3>
-                          <p className="text-sm text-zinc-500">{formatDate(coupon.coupon_date)} • {coupon.combined_odds}x kombine</p>
-                        </div>
-                        <Badge className={
-                          coupon.result === 'won' ? 'bg-green-500/20 text-green-400' :
-                          coupon.result === 'lost' ? 'bg-red-500/20 text-red-400' :
-                          'bg-yellow-500/20 text-yellow-400'
-                        }>
-                          {coupon.result === 'won' ? 'Kazandı' : coupon.result === 'lost' ? 'Kaybetti' : 'Bekliyor'}
-                        </Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-                {coupons.length === 0 && (
-                  <p className="text-zinc-500 text-center py-8">Henüz kupon oluşturulmamış</p>
-                )}
-              </div>
-            </div>
+            <CouponManagementTab 
+              coupons={coupons}
+              newCouponName={newCouponName}
+              setNewCouponName={setNewCouponName}
+              handleCreateCoupon={handleCreateCoupon}
+              loadCoupons={loadCoupons}
+              formatDate={formatDate}
+              toast={toast}
+            />
           )}
 
           {/* Users Tab */}

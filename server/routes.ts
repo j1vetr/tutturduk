@@ -460,6 +460,54 @@ export async function registerRoutes(
     res.json(coupon);
   });
 
+  // Add best bet to coupon
+  app.post('/api/admin/coupons/:id/best-bets', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Yetkisiz erişim' });
+    }
+    const { bestBetId } = req.body;
+    await storage.addBestBetToCoupon(parseInt(req.params.id), bestBetId);
+    const coupon = await storage.getCouponWithPredictions(parseInt(req.params.id));
+    res.json(coupon);
+  });
+
+  // Remove best bet from coupon
+  app.delete('/api/admin/coupons/:id/best-bets/:bestBetId', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Yetkisiz erişim' });
+    }
+    await storage.removeBestBetFromCoupon(parseInt(req.params.id), parseInt(req.params.bestBetId));
+    const coupon = await storage.getCouponWithPredictions(parseInt(req.params.id));
+    res.json(coupon);
+  });
+
+  // Get all best bets for coupon selection
+  app.get('/api/admin/best-bets/all', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Yetkisiz erişim' });
+    }
+    try {
+      const result = await pool.query(
+        `SELECT * FROM best_bets WHERE result = 'pending' ORDER BY match_date ASC, match_time ASC`
+      );
+      res.json(result.rows);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   app.put('/api/admin/coupons/:id/result', async (req, res) => {
     if (!req.session.userId) {
       return res.status(401).json({ message: 'Oturum açılmamış' });
