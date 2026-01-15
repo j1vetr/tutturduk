@@ -1,4 +1,4 @@
-import { pool } from './storage';
+import { pool } from './db';
 import { apiFootball } from './apiFootball';
 
 interface MatchResult {

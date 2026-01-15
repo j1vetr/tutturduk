@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import { startMatchStatusService } from "./matchStatusService";
 
 const app = express();
 app.set('trust proxy', 1);
@@ -94,6 +95,9 @@ app.use((req, res, next) => {
     },
     () => {
       log(`serving on port ${port}`);
+      
+      startMatchStatusService(15);
+      log('Match status service started (15 min interval)');
     },
   );
 })();

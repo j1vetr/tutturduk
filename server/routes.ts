@@ -7,6 +7,7 @@ import { pool } from './db';
 import { apiFootball, SUPPORTED_LEAGUES, CURRENT_SEASON } from './apiFootball';
 import { generateMatchAnalysis } from './openai-analysis';
 import { filterMatches, hasValidStatistics, getStatisticsScore } from './matchFilter';
+import { checkAndUpdateMatchStatuses } from './matchStatusService';
 
 const PgSession = connectPgSimple(session);
 
@@ -1605,6 +1606,95 @@ export async function registerRoutes(
       const result = await pool.query('SELECT * FROM published_matches ORDER BY created_at DESC');
       res.json(result.rows);
     } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Admin: manually trigger match status check
+  app.post('/api/admin/check-match-status', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Yetkiniz yok' });
+    }
+    try {
+      const result = await checkAndUpdateMatchStatuses();
+      res.json({ success: true, ...result });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Winners API - Get all completed predictions with results
+  app.get('/api/winners', async (req, res) => {
+    try {
+      // Get finished matches with scores
+      const finishedMatches = await pool.query(
+        `SELECT * FROM published_matches 
+         WHERE status = 'finished' AND final_score_home IS NOT NULL
+         ORDER BY match_date DESC, match_time DESC
+         LIMIT 50`
+      );
+
+      // Get won best bets
+      const wonBestBets = await pool.query(
+        `SELECT * FROM best_bets 
+         WHERE result = 'won'
+         ORDER BY created_at DESC
+         LIMIT 30`
+      );
+
+      // Get won predictions
+      const wonPredictions = await pool.query(
+        `SELECT * FROM predictions 
+         WHERE result = 'won'
+         ORDER BY created_at DESC
+         LIMIT 30`
+      );
+
+      // Get won coupons with predictions
+      const wonCoupons = await pool.query(
+        `SELECT c.*, 
+         (SELECT COUNT(*) FROM coupon_predictions WHERE coupon_id = c.id) as match_count
+         FROM coupons c 
+         WHERE c.result = 'won'
+         ORDER BY c.created_at DESC
+         LIMIT 10`
+      );
+
+      // Calculate stats
+      const statsResult = await pool.query(`
+        SELECT 
+          (SELECT COUNT(*) FROM best_bets WHERE result != 'pending') as total_evaluated,
+          (SELECT COUNT(*) FROM best_bets WHERE result = 'won') as total_won,
+          (SELECT COUNT(*) FROM best_bets WHERE result = 'lost') as total_lost,
+          (SELECT COUNT(*) FROM coupons WHERE result != 'pending') as coupons_evaluated,
+          (SELECT COUNT(*) FROM coupons WHERE result = 'won') as coupons_won
+      `);
+
+      const stats = statsResult.rows[0];
+      const winRate = stats.total_evaluated > 0 
+        ? Math.round((parseInt(stats.total_won) / parseInt(stats.total_evaluated)) * 100) 
+        : 0;
+
+      res.json({
+        finishedMatches: finishedMatches.rows,
+        wonBestBets: wonBestBets.rows,
+        wonPredictions: wonPredictions.rows,
+        wonCoupons: wonCoupons.rows,
+        stats: {
+          totalEvaluated: parseInt(stats.total_evaluated) || 0,
+          totalWon: parseInt(stats.total_won) || 0,
+          totalLost: parseInt(stats.total_lost) || 0,
+          winRate,
+          couponsEvaluated: parseInt(stats.coupons_evaluated) || 0,
+          couponsWon: parseInt(stats.coupons_won) || 0
+        }
+      });
+    } catch (error: any) {
+      console.error('Winners API error:', error);
       res.status(500).json({ message: error.message });
     }
   });

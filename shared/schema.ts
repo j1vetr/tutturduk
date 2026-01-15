@@ -120,6 +120,7 @@ export const bestBets = pgTable("best_bets", {
   confidence: integer("confidence").default(70),
   risk_level: text("risk_level").default("orta"),
   reasoning: text("reasoning"),
+  result: text("result").default("pending"),
   date_for: text("date_for").notNull(),
   created_at: timestamp("created_at").defaultNow(),
 }, (table) => [
