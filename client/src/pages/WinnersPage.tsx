@@ -28,6 +28,14 @@ interface WonCoupon {
   match_count: number;
 }
 
+interface MatchPrediction {
+  id: number;
+  bet_type: string;
+  risk_level: string;
+  result: string;
+  confidence: number;
+}
+
 interface FinishedMatch {
   id: number;
   home_team: string;
@@ -36,8 +44,10 @@ interface FinishedMatch {
   away_logo?: string;
   league_name?: string;
   match_date?: string;
+  match_time?: string;
   final_score_home: number;
   final_score_away: number;
+  predictions?: MatchPrediction[];
 }
 
 interface WinnersData {
@@ -258,30 +268,70 @@ export default function WinnersPage() {
                   <h3 className="text-sm font-bold text-white uppercase tracking-wide">Biten Maçlar</h3>
                 </div>
                 
-                <div className="space-y-2">
-                  {data.finishedMatches.slice(0, 10).map(match => (
-                    <div 
-                      key={match.id}
-                      className="relative overflow-hidden rounded-xl bg-zinc-900/50 border border-white/5 p-3"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 flex-1">
-                          {match.home_logo && <img src={match.home_logo} className="w-5 h-5" alt="" />}
-                          <span className="text-sm text-white">{match.home_team}</span>
+                <div className="space-y-3">
+                  {data.finishedMatches.slice(0, 15).map(match => {
+                    const totalGoals = match.final_score_home + match.final_score_away;
+                    const hasPredictions = match.predictions && match.predictions.length > 0;
+                    
+                    return (
+                      <div 
+                        key={match.id}
+                        className="relative overflow-hidden rounded-xl bg-zinc-900/80 border border-white/5"
+                      >
+                        <div className="p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2 flex-1">
+                              {match.home_logo && <img src={match.home_logo} className="w-6 h-6" alt="" />}
+                              <span className="text-sm text-white font-medium">{match.home_team}</span>
+                            </div>
+                            <div className="px-4 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 mx-2">
+                              <span className="text-xl font-black text-white">
+                                {match.final_score_home} - {match.final_score_away}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 flex-1 justify-end">
+                              <span className="text-sm text-white font-medium">{match.away_team}</span>
+                              {match.away_logo && <img src={match.away_logo} className="w-6 h-6" alt="" />}
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center justify-between">
+                            <p className="text-[10px] text-zinc-500">{match.league_name}</p>
+                            <p className="text-[10px] text-zinc-600">Toplam: {totalGoals} gol</p>
+                          </div>
                         </div>
-                        <div className="px-3 py-1 rounded-lg bg-zinc-800 border border-zinc-700">
-                          <span className="text-lg font-bold text-white">
-                            {match.final_score_home} - {match.final_score_away}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 flex-1 justify-end">
-                          <span className="text-sm text-white">{match.away_team}</span>
-                          {match.away_logo && <img src={match.away_logo} className="w-5 h-5" alt="" />}
-                        </div>
+                        
+                        {hasPredictions && (
+                          <div className="border-t border-white/5 bg-black/20 px-3 py-2">
+                            <div className="flex flex-wrap gap-2">
+                              {match.predictions!.map((pred, idx) => {
+                                const isWon = pred.result === 'won';
+                                const isLost = pred.result === 'lost';
+                                
+                                return (
+                                  <div 
+                                    key={idx}
+                                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-medium ${
+                                      isWon 
+                                        ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400' 
+                                        : isLost 
+                                          ? 'bg-red-500/20 border-red-500/40 text-red-400'
+                                          : 'bg-zinc-700/50 border-zinc-600 text-zinc-300'
+                                    }`}
+                                  >
+                                    {isWon && <CheckCircle className="w-3 h-3" />}
+                                    {isLost && <XCircle className="w-3 h-3" />}
+                                    {getRiskIcon(pred.risk_level)}
+                                    <span>{pred.bet_type}</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                      <p className="text-[10px] text-zinc-600 text-center mt-2">{match.league_name}</p>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}

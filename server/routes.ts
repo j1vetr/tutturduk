@@ -1678,11 +1678,19 @@ export async function registerRoutes(
   // Winners API - Get all completed predictions with results
   app.get('/api/winners', async (req, res) => {
     try {
-      // Get finished matches with scores
+      // Get finished matches with scores and their predictions
       const finishedMatches = await pool.query(
-        `SELECT * FROM published_matches 
-         WHERE status = 'finished' AND final_score_home IS NOT NULL
-         ORDER BY match_date DESC, match_time DESC
+        `SELECT pm.*, 
+         (SELECT json_agg(json_build_object(
+           'id', bb.id,
+           'bet_type', bb.bet_type,
+           'risk_level', bb.risk_level,
+           'result', bb.result,
+           'confidence', bb.confidence
+         )) FROM best_bets bb WHERE bb.fixture_id = pm.fixture_id) as predictions
+         FROM published_matches pm
+         WHERE pm.status = 'finished' AND pm.final_score_home IS NOT NULL
+         ORDER BY pm.match_date DESC, pm.match_time DESC
          LIMIT 50`
       );
 
