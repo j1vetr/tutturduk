@@ -3,6 +3,7 @@ import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 import { startMatchStatusService } from "./matchStatusService";
+import { startAutoPublishService } from "./autoPublishService";
 
 const app = express();
 app.set('trust proxy', 1);
@@ -98,6 +99,9 @@ app.use((req, res, next) => {
       
       startMatchStatusService(15);
       log('Match status service started (15 min interval)');
+      
+      startAutoPublishService(20); // Run at 20:00 daily
+      log('Auto-publish service started (daily at 20:00)');
     },
   );
 })();

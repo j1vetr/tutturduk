@@ -8,6 +8,7 @@ import { apiFootball, SUPPORTED_LEAGUES, CURRENT_SEASON } from './apiFootball';
 import { generateMatchAnalysis } from './openai-analysis';
 import { filterMatches, hasValidStatistics, getStatisticsScore } from './matchFilter';
 import { checkAndUpdateMatchStatuses } from './matchStatusService';
+import { autoPublishTomorrowMatches } from './autoPublishService';
 
 const PgSession = connectPgSimple(session);
 
@@ -1670,6 +1671,28 @@ export async function registerRoutes(
     try {
       const result = await checkAndUpdateMatchStatuses();
       res.json({ success: true, ...result });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Admin: auto-publish tomorrow's matches
+  app.post('/api/admin/auto-publish', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Yetkiniz yok' });
+    }
+    try {
+      const { count = 25 } = req.body;
+      const result = await autoPublishTomorrowMatches(count);
+      res.json({ 
+        success: true, 
+        message: `${result.published} maç yayınlandı (${result.date} için)`,
+        ...result 
+      });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
