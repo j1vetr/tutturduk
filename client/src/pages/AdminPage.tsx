@@ -1265,6 +1265,31 @@ export default function AdminPage() {
                     >
                       <Sparkles className="w-4 h-4 mr-2" /> En İyi Bahisleri Oluştur
                     </Button>
+                    <Button 
+                      onClick={async () => {
+                        try {
+                          const res = await fetch('/api/admin/auto-publish', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            credentials: 'include',
+                            body: JSON.stringify({ count: 25 })
+                          });
+                          const data = await res.json();
+                          if (res.ok) {
+                            toast({ title: 'Otomatik Yayın', description: data.message, className: 'bg-blue-500 text-white border-none' });
+                            loadPublishedMatches();
+                          } else {
+                            toast({ variant: 'destructive', description: data.message });
+                          }
+                        } catch (e) {
+                          toast({ variant: 'destructive', description: 'İşlem başarısız' });
+                        }
+                      }}
+                      variant="outline" 
+                      className="border-blue-500/30 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400"
+                    >
+                      <Zap className="w-4 h-4 mr-2" /> Yarını Otomatik Yayınla
+                    </Button>
                     <Button onClick={loadUpcomingMatches} disabled={loadingMatches} className="bg-emerald-500 text-black font-bold hover:bg-emerald-400">
                       {loadingMatches ? (
                         <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Yükleniyor...</>
