@@ -84,7 +84,6 @@ export default function MatchDetailPage() {
   const [loading, setLoading] = useState(true);
   const [loadingAI, setLoadingAI] = useState(false);
   const [showAvoidBets, setShowAvoidBets] = useState(false);
-  const [showSimulation, setShowSimulation] = useState(false);
   const [showAnalysis, setShowAnalysis] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
 
@@ -334,6 +333,51 @@ export default function MatchDetailPage() {
               })}
             </div>
 
+            {/* SIMULATION - Always Visible After Bets */}
+            {aiAnalysis.predictions[0]?.consistentScores?.[0] && (
+              <div className="rounded-2xl bg-white shadow-lg border border-gray-100 overflow-hidden">
+                <div className="p-4 border-b border-gray-100">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center">
+                      <span className="text-lg">⚽</span>
+                    </div>
+                    <span className="text-sm font-semibold text-gray-800">Canlı Simülasyon</span>
+                  </div>
+                </div>
+                <div className="p-4">
+                  <MatchSimulation
+                    homeTeam={match.home_team}
+                    awayTeam={match.away_team}
+                    homeLogo={match.home_logo}
+                    awayLogo={match.away_logo}
+                    predictedScore={(() => {
+                      const score = aiAnalysis.predictions[0].consistentScores[0];
+                      const [home, away] = score.split('-').map(s => parseInt(s.trim()) || 0);
+                      return { home, away };
+                    })()}
+                    scenario={(() => {
+                      const bestBet = aiAnalysis.predictions[0]?.bet?.toLowerCase() || '';
+                      const score = aiAnalysis.predictions[0]?.consistentScores?.[0] || '1-1';
+                      const [home, away] = score.split('-').map(s => parseInt(s.trim()) || 0);
+                      const totalGoals = home + away;
+                      
+                      if (bestBet.includes('üst') || totalGoals >= 3) return 'high_scoring';
+                      if (bestBet.includes('alt') || totalGoals <= 1) return 'low_scoring';
+                      if (bestBet.includes('kg var') || (home > 0 && away > 0)) return 'btts';
+                      if (bestBet.includes('ev') || home >= away + 2) return 'one_sided_home';
+                      if (bestBet.includes('deplasman') || away >= home + 2) return 'one_sided_away';
+                      return 'balanced';
+                    })()}
+                    expectedGoals={(() => {
+                      const range = aiAnalysis.expectedGoalRange || '2-3';
+                      const parts = range.split('-').map(s => parseFloat(s.trim()) || 0);
+                      return (parts[0] + (parts[1] || parts[0])) / 2;
+                    })()}
+                  />
+                </div>
+              </div>
+            )}
+
             {/* EXPERT TIP */}
             {aiAnalysis.expertTip && (
               <div className="rounded-2xl bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 p-4">
@@ -418,61 +462,6 @@ export default function MatchDetailPage() {
               </div>
             )}
 
-            {/* SIMULATION */}
-            {aiAnalysis.predictions[0]?.consistentScores?.[0] && (
-              <div className="rounded-2xl bg-white shadow-lg border border-gray-100 overflow-hidden">
-                <button 
-                  onClick={() => setShowSimulation(!showSimulation)}
-                  className="w-full flex items-center justify-between p-4"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center">
-                      <span className="text-lg">⚽</span>
-                    </div>
-                    <span className="text-sm font-semibold text-gray-800">Canlı Simülasyon</span>
-                  </div>
-                  {showSimulation ? (
-                    <ChevronUp className="w-5 h-5 text-gray-400" />
-                  ) : (
-                    <ChevronDown className="w-5 h-5 text-gray-400" />
-                  )}
-                </button>
-                
-                <div className={`overflow-hidden transition-all duration-300 ${showSimulation ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
-                  <div className="px-4 pb-4">
-                    <MatchSimulation
-                      homeTeam={match.home_team}
-                      awayTeam={match.away_team}
-                      homeLogo={match.home_logo}
-                      awayLogo={match.away_logo}
-                      predictedScore={(() => {
-                        const score = aiAnalysis.predictions[0].consistentScores[0];
-                        const [home, away] = score.split('-').map(s => parseInt(s.trim()) || 0);
-                        return { home, away };
-                      })()}
-                      scenario={(() => {
-                        const bestBet = aiAnalysis.predictions[0]?.bet?.toLowerCase() || '';
-                        const score = aiAnalysis.predictions[0]?.consistentScores?.[0] || '1-1';
-                        const [home, away] = score.split('-').map(s => parseInt(s.trim()) || 0);
-                        const totalGoals = home + away;
-                        
-                        if (bestBet.includes('üst') || totalGoals >= 3) return 'high_scoring';
-                        if (bestBet.includes('alt') || totalGoals <= 1) return 'low_scoring';
-                        if (bestBet.includes('kg var') || (home > 0 && away > 0)) return 'btts';
-                        if (bestBet.includes('ev') || home >= away + 2) return 'one_sided_home';
-                        if (bestBet.includes('deplasman') || away >= home + 2) return 'one_sided_away';
-                        return 'balanced';
-                      })()}
-                      expectedGoals={(() => {
-                        const range = aiAnalysis.expectedGoalRange || '2-3';
-                        const parts = range.split('-').map(s => parseFloat(s.trim()) || 0);
-                        return (parts[0] + (parts[1] || parts[0])) / 2;
-                      })()}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         ) : (
           <div className="mt-8 rounded-2xl bg-white shadow-lg border border-gray-100 p-8 text-center">
