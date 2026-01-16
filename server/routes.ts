@@ -966,7 +966,7 @@ export async function registerRoutes(
       const badges: Record<number, { bestBet?: string; riskLevel?: string; over25?: boolean; btts?: boolean; winner?: string }> = {};
       
       for (const match of matches) {
-        const cacheKey = `ai_analysis_v2_${match.fixture_id}`;
+        const cacheKey = `ai_analysis_v3_${match.fixture_id}`;
         const cachedResult = await pool.query(
           'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
           [cacheKey]
@@ -1051,7 +1051,7 @@ export async function registerRoutes(
         return res.status(404).json({ message: 'Maç bulunamadı' });
       }
 
-      const cacheKey = `ai_analysis_v2_${match.fixture_id}`;
+      const cacheKey = `ai_analysis_v3_${match.fixture_id}`;
       const analysis = await getCachedData(cacheKey, async () => {
         const homeTeam = (match as any).api_teams?.home;
         const awayTeam = (match as any).api_teams?.away;
