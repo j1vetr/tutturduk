@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { MobileLayout } from "@/components/MobileLayout";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, TrendingUp, Target, CheckCircle, XCircle, Loader2, ChevronRight, Flame, Shield, Award, Zap } from "lucide-react";
 import { useLocation } from "wouter";
@@ -88,258 +87,217 @@ export default function WinnersPage() {
     }
   };
 
-  const getRiskIcon = (riskLevel: string) => {
-    if (riskLevel === 'düşük') return <Shield className="w-3.5 h-3.5 text-emerald-400" />;
-    if (riskLevel === 'orta') return <Target className="w-3.5 h-3.5 text-amber-400" />;
-    return <Flame className="w-3.5 h-3.5 text-red-400" />;
+  const getMainPrediction = (predictions?: MatchPrediction[]) => {
+    if (!predictions || predictions.length === 0) return null;
+    return predictions.find(p => p.risk_level === 'düşük') || predictions[0];
   };
 
-  const getRiskColor = (riskLevel: string) => {
-    if (riskLevel === 'düşük') return 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
-    if (riskLevel === 'orta') return 'bg-amber-500/20 text-amber-400 border-amber-500/30';
-    return 'bg-red-500/20 text-red-400 border-red-500/30';
+  const getOtherPredictions = (predictions?: MatchPrediction[]) => {
+    if (!predictions || predictions.length === 0) return [];
+    return predictions.filter(p => p.risk_level !== 'düşük');
   };
 
   return (
     <MobileLayout activeTab="winners">
-      <div className="space-y-6">
-        <div className="relative overflow-hidden rounded-2xl">
-          <div className="absolute inset-0 bg-gradient-to-br from-yellow-900/30 via-amber-900/20 to-zinc-950" />
-          <div className="absolute inset-0 opacity-50">
-            <div className="absolute top-0 right-0 w-40 h-40 bg-yellow-500/20 rounded-full blur-3xl" />
-            <div className="absolute bottom-0 left-0 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl" />
+      <div className="space-y-5 pb-6">
+        
+        {/* Header - Minimal */}
+        <div className="flex items-center gap-3 px-1">
+          <div className="w-10 h-10 rounded-xl bg-zinc-800 flex items-center justify-center">
+            <Trophy className="w-5 h-5 text-white" />
           </div>
-          <div className="relative px-5 py-6">
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-500 to-amber-600 flex items-center justify-center shadow-lg shadow-yellow-500/20">
-                <Trophy className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-white">Kazananlar</h1>
-                <p className="text-xs text-zinc-400">Tutturulan tahminler ve istatistikler</p>
-              </div>
-            </div>
+          <div>
+            <h1 className="text-lg font-bold text-white">Kazananlar</h1>
+            <p className="text-xs text-zinc-500">Tutturulan tahminler</p>
           </div>
         </div>
 
         {loading ? (
           <div className="flex justify-center py-12">
-            <div className="flex flex-col items-center gap-3">
-              <Loader2 className="w-8 h-8 animate-spin text-yellow-500" />
-              <span className="text-sm text-zinc-500">Yükleniyor...</span>
-            </div>
+            <Loader2 className="w-6 h-6 animate-spin text-zinc-500" />
           </div>
         ) : data ? (
           <>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-emerald-900/40 to-emerald-800/20 border border-emerald-500/20 p-4">
-                <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-500/10 rounded-full blur-xl" />
-                <div className="relative">
-                  <div className="flex items-center gap-2 mb-2">
-                    <TrendingUp className="w-4 h-4 text-emerald-400" />
-                    <span className="text-[10px] text-emerald-400 font-semibold uppercase tracking-wide">Başarı Oranı</span>
-                  </div>
-                  <p className="text-3xl font-black text-emerald-400">%{data.stats.winRate}</p>
-                  <p className="text-[10px] text-zinc-500 mt-1">{data.stats.totalWon}/{data.stats.totalEvaluated} tahmin</p>
-                </div>
+            {/* Stats - Minimal Grid */}
+            <div className="grid grid-cols-4 gap-2">
+              <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-3 text-center">
+                <p className="text-xl font-bold text-white">%{data.stats.winRate}</p>
+                <p className="text-[9px] text-zinc-500 mt-0.5">Başarı</p>
               </div>
-
-              <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-yellow-900/40 to-yellow-800/20 border border-yellow-500/20 p-4">
-                <div className="absolute top-0 right-0 w-16 h-16 bg-yellow-500/10 rounded-full blur-xl" />
-                <div className="relative">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Award className="w-4 h-4 text-yellow-400" />
-                    <span className="text-[10px] text-yellow-400 font-semibold uppercase tracking-wide">Kazanan Tahmin</span>
-                  </div>
-                  <p className="text-3xl font-black text-yellow-400">{data.stats.totalWon}</p>
-                  <p className="text-[10px] text-zinc-500 mt-1">toplam kazanan</p>
-                </div>
+              <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-3 text-center">
+                <p className="text-xl font-bold text-white">{data.stats.totalWon}</p>
+                <p className="text-[9px] text-zinc-500 mt-0.5">Kazanan</p>
               </div>
-
-              <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-blue-900/40 to-blue-800/20 border border-blue-500/20 p-4">
-                <div className="absolute top-0 right-0 w-16 h-16 bg-blue-500/10 rounded-full blur-xl" />
-                <div className="relative">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Zap className="w-4 h-4 text-blue-400" />
-                    <span className="text-[10px] text-blue-400 font-semibold uppercase tracking-wide">Kazanan Kupon</span>
-                  </div>
-                  <p className="text-3xl font-black text-blue-400">{data.stats.couponsWon}</p>
-                  <p className="text-[10px] text-zinc-500 mt-1">{data.stats.couponsEvaluated} kupon değerlendirildi</p>
-                </div>
+              <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-3 text-center">
+                <p className="text-xl font-bold text-white">{data.stats.totalLost}</p>
+                <p className="text-[9px] text-zinc-500 mt-0.5">Kaybeden</p>
               </div>
-
-              <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-red-900/40 to-red-800/20 border border-red-500/20 p-4">
-                <div className="absolute top-0 right-0 w-16 h-16 bg-red-500/10 rounded-full blur-xl" />
-                <div className="relative">
-                  <div className="flex items-center gap-2 mb-2">
-                    <XCircle className="w-4 h-4 text-red-400" />
-                    <span className="text-[10px] text-red-400 font-semibold uppercase tracking-wide">Kaybeden</span>
-                  </div>
-                  <p className="text-3xl font-black text-red-400">{data.stats.totalLost}</p>
-                  <p className="text-[10px] text-zinc-500 mt-1">kayıp tahmin</p>
-                </div>
+              <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-3 text-center">
+                <p className="text-xl font-bold text-white">{data.stats.couponsWon}</p>
+                <p className="text-[9px] text-zinc-500 mt-0.5">Kupon</p>
               </div>
             </div>
 
+            {/* Won Coupons */}
             {data.wonCoupons.length > 0 && (
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 px-1">
-                  <Trophy className="w-5 h-5 text-yellow-500" />
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wide">Kazanan Kuponlar</h3>
-                </div>
-                
-                <div className="space-y-2">
-                  {data.wonCoupons.map(coupon => (
-                    <div 
-                      key={coupon.id}
-                      className="relative overflow-hidden rounded-xl bg-gradient-to-r from-emerald-900/30 to-emerald-800/10 border border-emerald-500/20 p-4 cursor-pointer hover:border-emerald-500/40 transition-colors"
-                      onClick={() => setLocation(`/coupon/${coupon.id}`)}
-                    >
-                      <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-500/10 rounded-full blur-2xl" />
-                      <div className="relative flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                            <CheckCircle className="w-5 h-5 text-emerald-400" />
-                          </div>
-                          <div>
-                            <h4 className="font-bold text-white">{coupon.name}</h4>
-                            <p className="text-[10px] text-zinc-500">
-                              {new Date(coupon.coupon_date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long' })} • {coupon.match_count} maç
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge className="bg-emerald-500 text-black font-bold">{Number(coupon.combined_odds).toFixed(2)}x</Badge>
-                          <ChevronRight className="w-5 h-5 text-zinc-500" />
-                        </div>
+              <div className="space-y-2">
+                <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wide px-1">Kazanan Kuponlar</h3>
+                {data.wonCoupons.map(coupon => (
+                  <div 
+                    key={coupon.id}
+                    className="bg-zinc-900 rounded-xl border border-zinc-800 p-3 flex items-center justify-between cursor-pointer hover:bg-zinc-800/50 transition-colors"
+                    onClick={() => setLocation(`/coupon/${coupon.id}`)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-zinc-800 flex items-center justify-center">
+                        <CheckCircle className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-white text-sm">{coupon.name}</h4>
+                        <p className="text-[10px] text-zinc-500">
+                          {new Date(coupon.coupon_date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })} • {coupon.match_count} maç
+                        </p>
                       </div>
                     </div>
-                  ))}
-                </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-white">{Number(coupon.combined_odds).toFixed(2)}x</span>
+                      <ChevronRight className="w-4 h-4 text-zinc-600" />
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
 
-            {data.wonBestBets.length > 0 && (
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 px-1">
-                  <CheckCircle className="w-5 h-5 text-emerald-500" />
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wide">Tutturulan Tahminler</h3>
-                </div>
-                
-                <div className="space-y-2">
-                  {data.wonBestBets.map(bet => (
-                    <div 
-                      key={bet.id}
-                      className="relative overflow-hidden rounded-xl bg-zinc-900/80 border border-white/5 p-3"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                          <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                            <CheckCircle className="w-4 h-4 text-emerald-400" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              {bet.home_logo && <img src={bet.home_logo} className="w-4 h-4" alt="" />}
-                              <span className="text-sm text-white font-medium truncate">{bet.home_team}</span>
-                              <span className="text-zinc-600">vs</span>
-                              <span className="text-sm text-white font-medium truncate">{bet.away_team}</span>
-                              {bet.away_logo && <img src={bet.away_logo} className="w-4 h-4" alt="" />}
-                            </div>
-                            <p className="text-[10px] text-zinc-500 mt-0.5">{bet.league_name}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          <div className={`flex items-center gap-1 px-2 py-1 rounded-md border ${getRiskColor(bet.risk_level)}`}>
-                            {getRiskIcon(bet.risk_level)}
-                            <span className="text-[10px] font-medium">{bet.bet_type}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
+            {/* Finished Matches with Results */}
             {data.finishedMatches.length > 0 && (
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 px-1">
-                  <Target className="w-5 h-5 text-zinc-400" />
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wide">Biten Maçlar</h3>
-                </div>
+              <div className="space-y-2">
+                <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wide px-1">Biten Maçlar</h3>
                 
-                <div className="space-y-3">
-                  {data.finishedMatches.slice(0, 15).map(match => {
-                    const totalGoals = match.final_score_home + match.final_score_away;
-                    const hasPredictions = match.predictions && match.predictions.length > 0;
-                    
-                    return (
-                      <div 
-                        key={match.id}
-                        className="relative overflow-hidden rounded-xl bg-zinc-900/80 border border-white/5"
-                      >
-                        <div className="p-3">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2 flex-1">
-                              {match.home_logo && <img src={match.home_logo} className="w-6 h-6" alt="" />}
-                              <span className="text-sm text-white font-medium">{match.home_team}</span>
-                            </div>
-                            <div className="px-4 py-1.5 rounded-lg bg-zinc-800 border border-zinc-700 mx-2">
-                              <span className="text-xl font-black text-white">
-                                {match.final_score_home} - {match.final_score_away}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2 flex-1 justify-end">
-                              <span className="text-sm text-white font-medium">{match.away_team}</span>
-                              {match.away_logo && <img src={match.away_logo} className="w-6 h-6" alt="" />}
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center justify-between">
-                            <p className="text-[10px] text-zinc-500">{match.league_name}</p>
-                            <p className="text-[10px] text-zinc-600">Toplam: {totalGoals} gol</p>
-                          </div>
+                {data.finishedMatches.slice(0, 20).map(match => {
+                  const mainPred = getMainPrediction(match.predictions);
+                  const otherPreds = getOtherPredictions(match.predictions);
+                  const mainWon = mainPred?.result === 'won';
+                  const mainLost = mainPred?.result === 'lost';
+                  const otherWonPreds = otherPreds.filter(p => p.result === 'won');
+                  
+                  return (
+                    <div 
+                      key={match.id}
+                      className={`bg-zinc-900 rounded-xl border overflow-hidden ${
+                        mainWon ? 'border-l-4 border-l-white border-zinc-800' : 
+                        mainLost ? 'border-l-4 border-l-zinc-600 border-zinc-800' : 
+                        'border-zinc-800'
+                      }`}
+                    >
+                      {/* Match Info */}
+                      <div className="p-3">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-[10px] text-zinc-600">{match.league_name}</span>
                         </div>
                         
-                        {hasPredictions && (
-                          <div className="border-t border-white/5 bg-black/20 px-3 py-2">
-                            <div className="flex flex-wrap gap-2">
-                              {match.predictions!.map((pred, idx) => {
-                                const isWon = pred.result === 'won';
-                                const isLost = pred.result === 'lost';
-                                
-                                return (
-                                  <div 
-                                    key={idx}
-                                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-medium ${
-                                      isWon 
-                                        ? 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400' 
-                                        : isLost 
-                                          ? 'bg-red-500/20 border-red-500/40 text-red-400'
-                                          : 'bg-zinc-700/50 border-zinc-600 text-zinc-300'
-                                    }`}
-                                  >
-                                    {isWon && <CheckCircle className="w-3 h-3" />}
-                                    {isLost && <XCircle className="w-3 h-3" />}
-                                    {getRiskIcon(pred.risk_level)}
-                                    <span>{pred.bet_type}</span>
-                                  </div>
-                                );
-                              })}
-                            </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 flex-1">
+                            {match.home_logo && <img src={match.home_logo} className="w-6 h-6 object-contain" alt="" />}
+                            <span className="text-sm text-white font-medium truncate">{match.home_team}</span>
                           </div>
-                        )}
+                          
+                          <div className="px-3 py-1 rounded bg-zinc-800 mx-2">
+                            <span className="text-lg font-bold text-white">
+                              {match.final_score_home} - {match.final_score_away}
+                            </span>
+                          </div>
+                          
+                          <div className="flex items-center gap-2 flex-1 justify-end">
+                            <span className="text-sm text-white font-medium truncate">{match.away_team}</span>
+                            {match.away_logo && <img src={match.away_logo} className="w-6 h-6 object-contain" alt="" />}
+                          </div>
+                        </div>
                       </div>
-                    );
-                  })}
-                </div>
+                      
+                      {/* Main Prediction - Primary Focus */}
+                      {mainPred && (
+                        <div className={`px-3 py-3 border-t border-zinc-800 ${
+                          mainWon ? 'bg-zinc-800/50' : mainLost ? 'bg-zinc-900' : ''
+                        }`}>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              {mainWon ? (
+                                <CheckCircle className="w-5 h-5 text-white" />
+                              ) : mainLost ? (
+                                <XCircle className="w-5 h-5 text-zinc-500" />
+                              ) : (
+                                <Target className="w-5 h-5 text-zinc-600" />
+                              )}
+                              <div>
+                                <span className={`text-sm font-bold ${mainWon ? 'text-white' : 'text-zinc-400'}`}>
+                                  {mainPred.bet_type}
+                                </span>
+                                <span className="text-[10px] text-zinc-600 ml-2">Ana Tahmin</span>
+                              </div>
+                            </div>
+                            <span className={`text-xs font-bold px-2 py-1 rounded ${
+                              mainWon ? 'bg-white text-black' : 
+                              mainLost ? 'bg-zinc-700 text-zinc-400' : 
+                              'bg-zinc-800 text-zinc-500'
+                            }`}>
+                              {mainWon ? 'TUTTU' : mainLost ? 'TUTMADI' : 'BEKLENİYOR'}
+                            </span>
+                          </div>
+                          
+                          {/* Other predictions that won */}
+                          {otherWonPreds.length > 0 && (
+                            <div className="mt-2 pt-2 border-t border-zinc-700/50">
+                              <div className="flex flex-wrap gap-1.5">
+                                {otherWonPreds.map((pred, idx) => (
+                                  <span 
+                                    key={idx}
+                                    className="text-[10px] px-2 py-1 rounded bg-zinc-800 text-zinc-400 flex items-center gap-1"
+                                  >
+                                    <CheckCircle className="w-2.5 h-2.5" />
+                                    {pred.bet_type}
+                                    <span className="text-zinc-600">
+                                      ({pred.risk_level === 'orta' ? 'Orta' : 'Riskli'})
+                                    </span>
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Show lost other predictions only if main won (for context) */}
+                          {mainWon && otherPreds.filter(p => p.result === 'lost').length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-1.5">
+                              {otherPreds.filter(p => p.result === 'lost').map((pred, idx) => (
+                                <span 
+                                  key={idx}
+                                  className="text-[10px] px-2 py-1 rounded bg-zinc-900 text-zinc-600 flex items-center gap-1"
+                                >
+                                  <XCircle className="w-2.5 h-2.5" />
+                                  {pred.bet_type}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* No predictions case */}
+                      {!mainPred && (
+                        <div className="px-3 py-2 border-t border-zinc-800 bg-zinc-900">
+                          <span className="text-[10px] text-zinc-600">Tahmin bulunamadı</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
 
-            {data.wonBestBets.length === 0 && data.wonCoupons.length === 0 && data.finishedMatches.length === 0 && (
-              <div className="relative overflow-hidden rounded-xl bg-zinc-900/50 border border-white/5 p-8 text-center">
-                <Trophy className="w-12 h-12 mx-auto mb-3 text-zinc-700" />
-                <p className="text-sm text-zinc-500">Henüz tamamlanan tahmin veya maç yok.</p>
+            {/* Empty State */}
+            {data.finishedMatches.length === 0 && data.wonCoupons.length === 0 && (
+              <div className="bg-zinc-900 rounded-xl border border-zinc-800 p-8 text-center">
+                <Trophy className="w-10 h-10 mx-auto mb-3 text-zinc-700" />
+                <p className="text-sm text-zinc-500">Henüz tamamlanan maç yok.</p>
                 <p className="text-[10px] text-zinc-600 mt-1">Maçlar bittikten sonra sonuçlar burada görünecek.</p>
               </div>
             )}
