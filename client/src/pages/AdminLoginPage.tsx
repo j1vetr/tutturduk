@@ -27,7 +27,7 @@ export default function AdminLoginPage() {
          toast({
             title: "Giriş Başarılı",
             description: "Yönetici paneline yönlendiriliyorsunuz.",
-            className: "bg-green-500 text-white border-none",
+            className: "bg-emerald-500 text-white border-none",
          });
          setTimeout(() => setLocation("/admin"), 1000);
       } else {
@@ -45,60 +45,60 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center p-4">
       {/* Background Effects */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-         <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-[100px]" />
-         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-[100px]" />
+         <div className="absolute top-0 left-1/4 w-96 h-96 bg-emerald-100 rounded-full blur-[100px]" />
+         <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-blue-100 rounded-full blur-[100px]" />
       </div>
 
-      <Card className="w-full max-w-md bg-zinc-900/80 border-white/10 backdrop-blur-xl shadow-2xl relative z-10">
+      <Card className="w-full max-w-md bg-white border-gray-200 shadow-xl relative z-10">
         <CardHeader className="space-y-1 text-center">
-          <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-primary/20">
-             <ShieldAlert className="w-6 h-6 text-primary" />
+          <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4 border border-emerald-200">
+             <ShieldAlert className="w-6 h-6 text-emerald-600" />
           </div>
-          <CardTitle className="text-2xl font-display font-black text-white uppercase tracking-tight">
+          <CardTitle className="text-2xl font-display font-black text-gray-800 uppercase tracking-tight">
              Yönetici Girişi
           </CardTitle>
-          <CardDescription className="text-zinc-400">
+          <CardDescription className="text-gray-500">
              Sistem ayarlarına erişmek için giriş yapın
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="username" className="text-zinc-300">Kullanıcı Adı</Label>
+              <Label htmlFor="username" className="text-gray-700">Kullanıcı Adı</Label>
               <div className="relative">
                  <Input 
                    id="username"
                    type="text" 
                    value={username}
                    onChange={(e) => setUsername(e.target.value)}
-                   className="bg-black/50 border-white/10 text-white pl-10 focus-visible:ring-primary"
+                   className="bg-gray-50 border-gray-200 text-gray-800 pl-10 focus-visible:ring-emerald-500"
                    placeholder="admin"
                    required
                  />
-                 <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                 <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-zinc-300">Şifre</Label>
+              <Label htmlFor="password" className="text-gray-700">Şifre</Label>
               <div className="relative">
                  <Input 
                    id="password"
                    type="password" 
                    value={password}
                    onChange={(e) => setPassword(e.target.value)}
-                   className="bg-black/50 border-white/10 text-white pl-10 focus-visible:ring-primary"
+                   className="bg-gray-50 border-gray-200 text-gray-800 pl-10 focus-visible:ring-emerald-500"
                    placeholder="••••••••"
                    required
                  />
-                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               </div>
             </div>
             <Button 
               type="submit" 
-              className="w-full bg-primary text-black hover:bg-primary/90 font-bold"
+              className="w-full bg-emerald-500 text-white hover:bg-emerald-600 font-bold"
               disabled={isLoading}
             >
               {isLoading ? (
