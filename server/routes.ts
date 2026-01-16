@@ -966,7 +966,7 @@ export async function registerRoutes(
       const badges: Record<number, { bestBet?: string; riskLevel?: string; over25?: boolean; btts?: boolean; winner?: string }> = {};
       
       for (const match of matches) {
-        const cacheKey = `ai_analysis_v3_${match.fixture_id}`;
+        const cacheKey = `ai_analysis_v4_${match.fixture_id}`;
         const cachedResult = await pool.query(
           'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
           [cacheKey]
@@ -1051,7 +1051,7 @@ export async function registerRoutes(
         return res.status(404).json({ message: 'Maç bulunamadı' });
       }
 
-      const cacheKey = `ai_analysis_v3_${match.fixture_id}`;
+      const cacheKey = `ai_analysis_v4_${match.fixture_id}`;
       const analysis = await getCachedData(cacheKey, async () => {
         const homeTeam = (match as any).api_teams?.home;
         const awayTeam = (match as any).api_teams?.away;
@@ -1164,15 +1164,6 @@ export async function registerRoutes(
           awayLosses: awayTeam?.league?.fixtures?.loses?.total,
           h2hResults: h2h.map((m: any) => ({ homeGoals: m.homeGoals, awayGoals: m.awayGoals })),
           comparison: comparison,
-          apiPrediction: apiPred ? {
-            winner: apiPred.winner,
-            winOrDraw: apiPred.win_or_draw,
-            underOver: apiPred.under_over,
-            goalsHome: apiPred.goals?.home,
-            goalsAway: apiPred.goals?.away,
-            advice: apiPred.advice,
-            percent: apiPred.percent,
-          } : undefined,
           homeTeamStats,
           awayTeamStats,
           odds: oddsData,
@@ -1591,15 +1582,6 @@ export async function registerRoutes(
               awayLosses: awayTeam?.league?.fixtures?.loses?.total,
               h2hResults: h2h.slice(0, 5).map((m: any) => ({ homeGoals: m.goals?.home || 0, awayGoals: m.goals?.away || 0 })),
               comparison,
-              apiPrediction: apiPrediction?.predictions ? {
-                winner: apiPrediction.predictions.winner,
-                winOrDraw: apiPrediction.predictions.win_or_draw,
-                underOver: apiPrediction.predictions.under_over,
-                goalsHome: apiPrediction.predictions.goals?.home,
-                goalsAway: apiPrediction.predictions.goals?.away,
-                advice: apiPrediction.predictions.advice,
-                percent: apiPrediction.predictions.percent,
-              } : undefined,
               homeTeamStats,
               awayTeamStats,
               odds: oddsData,
