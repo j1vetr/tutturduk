@@ -1267,6 +1267,7 @@ export default function AdminPage() {
                     </Button>
                     <Button 
                       onClick={async () => {
+                        toast({ title: 'Yayınlanıyor...', description: 'Bu işlem birkaç dakika sürebilir, lütfen bekleyin.', className: 'bg-blue-500 text-white border-none' });
                         try {
                           const res = await fetch('/api/admin/auto-publish', {
                             method: 'POST',
@@ -1289,6 +1290,36 @@ export default function AdminPage() {
                       className="border-blue-500/30 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400"
                     >
                       <Zap className="w-4 h-4 mr-2" /> Yarını Otomatik Yayınla
+                    </Button>
+                    <Button 
+                      onClick={async () => {
+                        const confirmCode = prompt('Veritabanını sıfırlamak için "SIFIRLA" yazın:');
+                        if (confirmCode !== 'SIFIRLA') {
+                          toast({ variant: 'destructive', description: 'Onay kodu yanlış' });
+                          return;
+                        }
+                        try {
+                          const res = await fetch('/api/admin/reset-database', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            credentials: 'include',
+                            body: JSON.stringify({ confirmReset: 'SIFIRLA' })
+                          });
+                          const data = await res.json();
+                          if (res.ok) {
+                            toast({ title: 'Sıfırlandı', description: data.message, className: 'bg-red-500 text-white border-none' });
+                            loadPublishedMatches();
+                          } else {
+                            toast({ variant: 'destructive', description: data.message });
+                          }
+                        } catch (e) {
+                          toast({ variant: 'destructive', description: 'İşlem başarısız' });
+                        }
+                      }}
+                      variant="outline" 
+                      className="border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-400"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" /> Veritabanını Sıfırla
                     </Button>
                     <Button onClick={loadUpcomingMatches} disabled={loadingMatches} className="bg-emerald-500 text-black font-bold hover:bg-emerald-400">
                       {loadingMatches ? (

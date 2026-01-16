@@ -22,8 +22,13 @@ export async function autoPublishTomorrowMatches(targetCount: number = 25) {
     
     const allMatches: any[] = [];
     
-    for (const league of SUPPORTED_LEAGUES) {
+    console.log(`[AutoPublish] Fetching from ${SUPPORTED_LEAGUES.length} leagues (this may take several minutes)...`);
+    
+    for (let i = 0; i < SUPPORTED_LEAGUES.length; i++) {
+      const league = SUPPORTED_LEAGUES[i];
       try {
+        console.log(`[AutoPublish] [${i + 1}/${SUPPORTED_LEAGUES.length}] Checking ${league.name}...`);
+        
         const fixtures = await apiFootball.getFixtures({
           league: league.id,
           season: CURRENT_SEASON,
@@ -35,9 +40,12 @@ export async function autoPublishTomorrowMatches(targetCount: number = 25) {
           allMatches.push(...fixtures);
         }
         
-        await new Promise(resolve => setTimeout(resolve, 200));
-      } catch (error) {
-        console.log(`[AutoPublish] Error fetching ${league.name}:`, error);
+        // 2 second delay between league requests to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      } catch (error: any) {
+        console.log(`[AutoPublish] Error fetching ${league.name}:`, error?.message || error);
+        // Wait extra on error
+        await new Promise(resolve => setTimeout(resolve, 3000));
       }
     }
     
@@ -78,9 +86,11 @@ export async function autoPublishTomorrowMatches(targetCount: number = 25) {
           }
         }
         
-        await new Promise(resolve => setTimeout(resolve, 300));
-      } catch (error) {
-        console.log(`[AutoPublish] Error getting prediction for ${match.fixture.id}`);
+        // 2 second delay between prediction requests
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      } catch (error: any) {
+        console.log(`[AutoPublish] Error getting prediction for ${match.fixture.id}:`, error?.message || error);
+        await new Promise(resolve => setTimeout(resolve, 3000));
       }
     }
     

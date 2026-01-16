@@ -1733,6 +1733,70 @@ export async function registerRoutes(
     }
   });
 
+  // Admin: reset database (clear all match/prediction data)
+  app.post('/api/admin/reset-database', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Yetkiniz yok' });
+    }
+    
+    const { confirmReset } = req.body;
+    if (confirmReset !== 'SIFIRLA') {
+      return res.status(400).json({ message: 'Onay kodu yanlış. "SIFIRLA" yazın.' });
+    }
+    
+    try {
+      // Delete in correct order to respect foreign keys
+      // Start a transaction for safety
+      await pool.query('BEGIN');
+      
+      try {
+        // Coupon related tables
+        await pool.query('DELETE FROM coupon_predictions');
+        await pool.query('DELETE FROM user_coupon_items');
+        await pool.query('DELETE FROM user_coupons');
+        await pool.query('DELETE FROM coupons');
+        
+        // Predictions and bets
+        await pool.query('DELETE FROM best_bets');
+        await pool.query('DELETE FROM predictions');
+        
+        // Matches
+        await pool.query('DELETE FROM published_matches');
+        
+        // Cache
+        await pool.query('DELETE FROM api_cache');
+        
+        // Reset sequences for serial columns
+        await pool.query("SELECT setval(pg_get_serial_sequence('published_matches', 'id'), 1, false)");
+        await pool.query("SELECT setval(pg_get_serial_sequence('predictions', 'id'), 1, false)");
+        await pool.query("SELECT setval(pg_get_serial_sequence('best_bets', 'id'), 1, false)");
+        await pool.query("SELECT setval(pg_get_serial_sequence('coupons', 'id'), 1, false)");
+        await pool.query("SELECT setval(pg_get_serial_sequence('coupon_predictions', 'id'), 1, false)");
+        await pool.query("SELECT setval(pg_get_serial_sequence('user_coupons', 'id'), 1, false)");
+        await pool.query("SELECT setval(pg_get_serial_sequence('user_coupon_items', 'id'), 1, false)");
+        
+        await pool.query('COMMIT');
+      } catch (e) {
+        await pool.query('ROLLBACK');
+        throw e;
+      }
+      
+      console.log('[Admin] Database reset completed by admin:', user.username);
+      
+      res.json({ 
+        success: true, 
+        message: 'Veritabanı sıfırlandı. Tüm maçlar, tahminler ve kuponlar silindi. Kullanıcılar korundu.' 
+      });
+    } catch (error: any) {
+      console.error('[Admin] Database reset error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // Winners API - Get all completed predictions with results
   app.get('/api/winners', async (req, res) => {
     try {
