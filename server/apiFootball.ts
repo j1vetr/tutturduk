@@ -361,6 +361,11 @@ export const SUPPORTED_LEAGUES = [
   { id: 848, name: 'UEFA Conference League', country: 'World', flag: '🇪🇺' },
 ];
 
-export const CURRENT_SEASON = 2024;
+// Season is determined by the year the season started (e.g., 2025-2026 season = 2025)
+// Most leagues run from August to May, so after July use current year, before July use previous year
+const currentDate = new Date();
+const currentYear = currentDate.getFullYear();
+const currentMonth = currentDate.getMonth(); // 0-indexed (0 = January, 7 = August)
+export const CURRENT_SEASON = currentMonth >= 7 ? currentYear : currentYear - 1;
 
 export type { League, Team, Fixture, Standing, Prediction, HeadToHead };

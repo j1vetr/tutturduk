@@ -1,0 +1,82 @@
+
+33|tutturduk  | [AutoPublish] Starting automatic match publishing...
+33|tutturduk  | [AutoPublish] Fetching matches for 2026-01-17...
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '203', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '206', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '208', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '39', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '40', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '45', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '48', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '179', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '110', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '140', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '141', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '143', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '78', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '79', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '81', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '135', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '136', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '137', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '61', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '62', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '66', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '88', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '89', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '94', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '96', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '144', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '218', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '207', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '197', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '235', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '333', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '253', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '262', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '71', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '128', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '2', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '3', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { league: '848', season: '2024', date: '2026-01-17' }
+33|tutturduk  | [API-Football] Response: 0 results
+33|tutturduk  | [AutoPublish] Total matches found: 0
+33|tutturduk  | [AutoPublish] No matches found for tomorrow
+33|tutturduk  | 9:35:24 PM [express] POST /api/admin/auto-publish 200 in 8798ms :: {"success":true,"message":"0 maç yayınlandı (2026-01-17 için)","published":0,"total":0,"date":"2026-01-17"}
