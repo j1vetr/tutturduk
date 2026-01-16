@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { pool } from "./db";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -510,6 +511,184 @@ ${matchData.injuries?.away?.length ? `${matchData.awayTeam}: ${matchData.injurie
     console.error("OpenAI analysis error:", error);
     throw error;
   }
+}
+
+export async function generateAndSavePredictions(
+  matchId: number,
+  fixtureId: number,
+  homeTeam: string,
+  awayTeam: string,
+  homeLogo: string | null,
+  awayLogo: string | null,
+  leagueName: string | null,
+  leagueLogo: string | null,
+  matchDate: string,
+  matchTime: string,
+  matchData: MatchData
+): Promise<AIAnalysisResult | null> {
+  try {
+    console.log(`[AI+BestBets] Generating analysis for ${homeTeam} vs ${awayTeam}...`);
+    
+    const analysis = await generateMatchAnalysis(matchData);
+    
+    if (!analysis || !analysis.predictions || analysis.predictions.length === 0) {
+      console.log(`[AI+BestBets] No predictions generated for ${homeTeam} vs ${awayTeam}`);
+      return null;
+    }
+    
+    const riskToLevel: Record<string, string> = {
+      'expected': 'düşük',
+      'medium': 'orta',
+      'risky': 'yüksek'
+    };
+    
+    for (const pred of analysis.predictions) {
+      try {
+        await pool.query(
+          `INSERT INTO best_bets 
+           (match_id, fixture_id, home_team, away_team, home_logo, away_logo, 
+            league_name, league_logo, match_date, match_time,
+            bet_type, bet_description, confidence, risk_level, reasoning, result, date_for)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, 'pending', $16)
+           ON CONFLICT (fixture_id, date_for) DO NOTHING`,
+          [
+            matchId,
+            fixtureId,
+            homeTeam,
+            awayTeam,
+            homeLogo,
+            awayLogo,
+            leagueName,
+            leagueLogo,
+            matchDate,
+            matchTime,
+            pred.bet,
+            pred.consistentScores?.join(', ') || '',
+            pred.confidence,
+            riskToLevel[pred.type] || 'orta',
+            pred.reasoning,
+            matchDate
+          ]
+        );
+        
+        console.log(`[AI+BestBets] Saved prediction: ${pred.bet} (${pred.type}) for fixture ${fixtureId}`);
+      } catch (err: any) {
+        if (err.code !== '23505') {
+          console.error(`[AI+BestBets] Error saving prediction:`, err.message);
+        }
+      }
+    }
+    
+    const cacheKey = `ai_analysis_v4_${fixtureId}`;
+    try {
+      await pool.query(
+        `INSERT INTO api_cache (cache_key, data, created_at, expires_at)
+         VALUES ($1, $2, NOW(), NOW() + INTERVAL '24 hours')
+         ON CONFLICT (cache_key) DO UPDATE SET data = $2, created_at = NOW(), expires_at = NOW() + INTERVAL '24 hours'`,
+        [cacheKey, JSON.stringify(analysis)]
+      );
+      console.log(`[AI+BestBets] Cached analysis for fixture ${fixtureId}`);
+    } catch (err: any) {
+      console.error(`[AI+BestBets] Error caching analysis:`, err.message);
+    }
+    
+    console.log(`[AI+BestBets] Completed for ${homeTeam} vs ${awayTeam}: ${analysis.predictions.length} predictions saved`);
+    return analysis;
+    
+  } catch (error: any) {
+    console.error(`[AI+BestBets] Error generating analysis for ${homeTeam} vs ${awayTeam}:`, error.message);
+    return null;
+  }
+}
+
+export async function generatePredictionsForAllPendingMatches(): Promise<{ processed: number; success: number; failed: number }> {
+  console.log('[AI+BestBets] Starting batch prediction generation for all pending matches...');
+  
+  const result = await pool.query(
+    `SELECT pm.* FROM published_matches pm
+     LEFT JOIN best_bets bb ON pm.fixture_id = bb.fixture_id AND pm.match_date = bb.date_for
+     WHERE pm.status = 'pending' AND pm.match_date >= CURRENT_DATE AND bb.id IS NULL
+     ORDER BY pm.match_date, pm.match_time
+     LIMIT 50`
+  );
+  
+  const matches = result.rows;
+  console.log(`[AI+BestBets] Found ${matches.length} matches without predictions`);
+  
+  let processed = 0;
+  let success = 0;
+  let failed = 0;
+  
+  for (const match of matches) {
+    processed++;
+    console.log(`[AI+BestBets] Processing ${processed}/${matches.length}: ${match.home_team} vs ${match.away_team}`);
+    
+    const matchData: MatchData = {
+      homeTeam: match.home_team,
+      awayTeam: match.away_team,
+      league: match.league_name || '',
+      leagueId: match.league_id,
+      comparison: match.api_comparison ? (typeof match.api_comparison === 'string' ? JSON.parse(match.api_comparison) : match.api_comparison) : undefined,
+      homeForm: match.api_teams?.home?.league?.form,
+      awayForm: match.api_teams?.away?.league?.form,
+      h2hResults: match.api_h2h ? (typeof match.api_h2h === 'string' ? JSON.parse(match.api_h2h) : match.api_h2h)?.map((h: any) => ({
+        homeGoals: h.homeGoals || 0,
+        awayGoals: h.awayGoals || 0
+      })) : undefined,
+    };
+    
+    if (match.api_teams) {
+      const teams = typeof match.api_teams === 'string' ? JSON.parse(match.api_teams) : match.api_teams;
+      if (teams.home?.league) {
+        matchData.homeWins = teams.home.league.wins;
+        matchData.homeDraws = teams.home.league.draws;
+        matchData.homeLosses = teams.home.league.loses;
+        matchData.homeGoalsFor = teams.home.league.goals?.for?.total;
+        matchData.homeGoalsAgainst = teams.home.league.goals?.against?.total;
+        matchData.homeForm = teams.home.league.form;
+      }
+      if (teams.away?.league) {
+        matchData.awayWins = teams.away.league.wins;
+        matchData.awayDraws = teams.away.league.draws;
+        matchData.awayLosses = teams.away.league.loses;
+        matchData.awayGoalsFor = teams.away.league.goals?.for?.total;
+        matchData.awayGoalsAgainst = teams.away.league.goals?.against?.total;
+        matchData.awayForm = teams.away.league.form;
+      }
+    }
+    
+    try {
+      const analysis = await generateAndSavePredictions(
+        match.id,
+        match.fixture_id,
+        match.home_team,
+        match.away_team,
+        match.home_logo,
+        match.away_logo,
+        match.league_name,
+        match.league_logo,
+        match.match_date,
+        match.match_time,
+        matchData
+      );
+      
+      if (analysis) {
+        success++;
+      } else {
+        failed++;
+      }
+      
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+    } catch (error: any) {
+      console.error(`[AI+BestBets] Failed for ${match.home_team} vs ${match.away_team}:`, error.message);
+      failed++;
+      await new Promise(resolve => setTimeout(resolve, 5000));
+    }
+  }
+  
+  console.log(`[AI+BestBets] Batch complete: ${success} success, ${failed} failed out of ${processed} processed`);
+  return { processed, success, failed };
 }
 
 export type { MatchData };

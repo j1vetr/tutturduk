@@ -1,6 +1,8 @@
 import { pool } from './db';
 import { apiFootball, SUPPORTED_LEAGUES, CURRENT_SEASON } from './apiFootball';
 import { filterMatches, getStatisticsScore } from './matchFilter';
+import { generateAndSavePredictions } from './openai-analysis';
+import type { MatchData } from './openai-analysis';
 
 interface MatchWithScore {
   fixture: any;
@@ -180,12 +182,71 @@ export async function autoPublishTomorrowMatches(targetCount: number = 25) {
         publishedCount++;
         console.log(`[AutoPublish] Published: ${homeTeam} vs ${awayTeam} (score: ${match.statisticsScore})`);
         
+        // Get the newly inserted match ID
+        const insertedMatch = await pool.query(
+          'SELECT id FROM published_matches WHERE fixture_id = $1',
+          [match.fixture.id]
+        );
+        
+        if (insertedMatch.rows.length > 0) {
+          const matchId = insertedMatch.rows[0].id;
+          
+          // Prepare match data for AI analysis
+          const matchData: MatchData = {
+            homeTeam,
+            awayTeam,
+            league: leagueName,
+            leagueId: leagueId,
+            comparison: comparison || undefined,
+            homeForm: teams?.home?.league?.form,
+            awayForm: teams?.away?.league?.form,
+            h2hResults: h2h?.map((h: any) => ({
+              homeGoals: h.homeGoals || h.goals?.home || 0,
+              awayGoals: h.awayGoals || h.goals?.away || 0
+            })),
+            homeWins: teams?.home?.league?.wins,
+            homeDraws: teams?.home?.league?.draws,
+            homeLosses: teams?.home?.league?.loses,
+            homeGoalsFor: teams?.home?.league?.goals?.for?.total,
+            homeGoalsAgainst: teams?.home?.league?.goals?.against?.total,
+            awayWins: teams?.away?.league?.wins,
+            awayDraws: teams?.away?.league?.draws,
+            awayLosses: teams?.away?.league?.loses,
+            awayGoalsFor: teams?.away?.league?.goals?.for?.total,
+            awayGoalsAgainst: teams?.away?.league?.goals?.against?.total,
+          };
+          
+          // Generate AI analysis and save to best_bets
+          console.log(`[AutoPublish] Generating AI predictions for ${homeTeam} vs ${awayTeam}...`);
+          try {
+            await generateAndSavePredictions(
+              matchId,
+              match.fixture.id,
+              homeTeam,
+              awayTeam,
+              homeLogo,
+              awayLogo,
+              leagueName,
+              leagueLogo,
+              matchDate,
+              matchTime,
+              matchData
+            );
+            console.log(`[AutoPublish] AI predictions saved for ${homeTeam} vs ${awayTeam}`);
+          } catch (aiError: any) {
+            console.error(`[AutoPublish] AI generation failed for ${homeTeam} vs ${awayTeam}:`, aiError.message);
+          }
+          
+          // Wait between AI calls to avoid rate limiting
+          await new Promise(resolve => setTimeout(resolve, 3000));
+        }
+        
       } catch (error) {
         console.error(`[AutoPublish] Error publishing match ${match.fixture.id}:`, error);
       }
     }
     
-    console.log(`[AutoPublish] Completed! Published ${publishedCount} of ${matchesToPublish.length} matches`);
+    console.log(`[AutoPublish] Completed! Published ${publishedCount} of ${matchesToPublish.length} matches with AI predictions`);
     
     return { 
       published: publishedCount, 
