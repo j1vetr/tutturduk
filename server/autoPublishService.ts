@@ -1,10 +1,12 @@
 import { pool } from './db';
-import { apiFootball } from './apiFootball';
-import { filterMatches, hasValidStatistics, getStatisticsScore } from './matchFilter';
+import { apiFootball, SUPPORTED_LEAGUES, CURRENT_SEASON } from './apiFootball';
+import { filterMatches, getStatisticsScore } from './matchFilter';
 
 interface MatchWithScore {
   fixture: any;
   prediction: any;
+  league: any;
+  teams: any;
   statisticsScore: number;
 }
 
@@ -12,52 +14,78 @@ export async function autoPublishTomorrowMatches(targetCount: number = 25) {
   console.log('[AutoPublish] Starting automatic match publishing...');
   
   try {
-    // Get tomorrow's date
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const tomorrowStr = tomorrow.toISOString().split('T')[0];
     
     console.log(`[AutoPublish] Fetching matches for ${tomorrowStr}...`);
     
-    // Fetch all predictions for tomorrow (includes match data)
-    const allPredictions = await apiFootball.getAllPredictions();
+    const allMatches: any[] = [];
     
-    if (!allPredictions || allPredictions.length === 0) {
-      console.log('[AutoPublish] No predictions found');
-      return { published: 0, total: 0 };
+    for (const league of SUPPORTED_LEAGUES) {
+      try {
+        const fixtures = await apiFootball.getFixtures({
+          league: league.id,
+          season: CURRENT_SEASON,
+          date: tomorrowStr
+        });
+        
+        if (fixtures && fixtures.length > 0) {
+          console.log(`[AutoPublish] Found ${fixtures.length} matches in ${league.name}`);
+          allMatches.push(...fixtures);
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 200));
+      } catch (error) {
+        console.log(`[AutoPublish] Error fetching ${league.name}:`, error);
+      }
     }
     
-    // Filter to tomorrow's matches only
-    const tomorrowMatches = allPredictions.filter((pred: any) => {
-      const matchDate = pred.fixture?.date?.split('T')[0];
-      return matchDate === tomorrowStr;
-    });
+    console.log(`[AutoPublish] Total matches found: ${allMatches.length}`);
     
-    console.log(`[AutoPublish] Found ${tomorrowMatches.length} matches for tomorrow`);
+    if (allMatches.length === 0) {
+      console.log('[AutoPublish] No matches found for tomorrow');
+      return { published: 0, total: 0, date: tomorrowStr };
+    }
     
-    // Apply basic filters (no youth, women, reserve leagues)
-    const filteredMatches = filterMatches(tomorrowMatches);
+    const formattedMatches = allMatches.map(f => ({
+      fixture: f.fixture,
+      league: f.league,
+      teams: f.teams,
+      goals: f.goals
+    }));
+    
+    const filteredMatches = filterMatches(formattedMatches);
     console.log(`[AutoPublish] After filtering: ${filteredMatches.length} matches`);
     
-    // Score each match based on available statistics
     const scoredMatches: MatchWithScore[] = [];
     
-    for (const pred of filteredMatches) {
-      const statsScore = getStatisticsScore(pred);
-      
-      // Only consider matches with score >= 40 (has meaningful stats)
-      if (statsScore >= 40) {
-        scoredMatches.push({
-          fixture: pred.fixture,
-          prediction: pred,
-          statisticsScore: statsScore
-        });
+    for (const match of filteredMatches.slice(0, 50)) {
+      try {
+        const prediction = await apiFootball.getPrediction(match.fixture.id);
+        
+        if (prediction) {
+          const statsScore = getStatisticsScore(prediction);
+          
+          if (statsScore >= 30) {
+            scoredMatches.push({
+              fixture: match.fixture,
+              prediction: prediction,
+              league: match.league,
+              teams: match.teams,
+              statisticsScore: statsScore
+            });
+          }
+        }
+        
+        await new Promise(resolve => setTimeout(resolve, 300));
+      } catch (error) {
+        console.log(`[AutoPublish] Error getting prediction for ${match.fixture.id}`);
       }
     }
     
     console.log(`[AutoPublish] ${scoredMatches.length} matches have sufficient statistics`);
     
-    // Sort by statistics score (highest first) and take top matches
     scoredMatches.sort((a, b) => b.statisticsScore - a.statisticsScore);
     const matchesToPublish = scoredMatches.slice(0, targetCount);
     
@@ -67,7 +95,6 @@ export async function autoPublishTomorrowMatches(targetCount: number = 25) {
     
     for (const match of matchesToPublish) {
       try {
-        // Check if already published
         const existing = await pool.query(
           'SELECT id FROM published_matches WHERE fixture_id = $1',
           [match.fixture.id]
@@ -78,13 +105,13 @@ export async function autoPublishTomorrowMatches(targetCount: number = 25) {
           continue;
         }
         
-        // Extract match data
-        const homeTeam = match.prediction.teams?.home?.name || 'Unknown';
-        const awayTeam = match.prediction.teams?.away?.name || 'Unknown';
-        const homeLogo = match.prediction.teams?.home?.logo || '';
-        const awayLogo = match.prediction.teams?.away?.logo || '';
-        const leagueName = match.prediction.league?.name || '';
-        const leagueLogo = match.prediction.league?.logo || '';
+        const homeTeam = match.teams?.home?.name || 'Unknown';
+        const awayTeam = match.teams?.away?.name || 'Unknown';
+        const homeLogo = match.teams?.home?.logo || '';
+        const awayLogo = match.teams?.away?.logo || '';
+        const leagueName = match.league?.name || '';
+        const leagueLogo = match.league?.logo || '';
+        const leagueId = match.league?.id;
         
         const matchDate = match.fixture.date?.split('T')[0];
         const matchDateTime = new Date(match.fixture.date);
@@ -94,12 +121,19 @@ export async function autoPublishTomorrowMatches(targetCount: number = 25) {
           timeZone: 'Europe/Istanbul'
         });
         
-        // Insert into published_matches
+        const pred = match.prediction?.predictions;
+        const teams = match.prediction?.teams;
+        const comparison = match.prediction?.comparison;
+        const h2h = match.prediction?.h2h || [];
+        
         await pool.query(
           `INSERT INTO published_matches 
-           (fixture_id, home_team, away_team, home_logo, away_logo, league_name, league_logo, 
-            match_date, match_time, timestamp, status, is_featured)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, 'pending', FALSE)`,
+           (fixture_id, home_team, away_team, home_logo, away_logo, league_name, league_logo, league_id,
+            match_date, match_time, timestamp, status, is_featured,
+            api_advice, api_winner_name, api_winner_comment, api_percent_home, api_percent_draw, api_percent_away,
+            api_under_over, api_goals_home, api_goals_away, api_comparison, api_h2h, api_teams)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'pending', FALSE,
+                   $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)`,
           [
             match.fixture.id,
             homeTeam,
@@ -108,9 +142,28 @@ export async function autoPublishTomorrowMatches(targetCount: number = 25) {
             awayLogo,
             leagueName,
             leagueLogo,
+            leagueId,
             matchDate,
             matchTime,
-            match.fixture.timestamp
+            match.fixture.timestamp,
+            pred?.advice || null,
+            pred?.winner?.name || null,
+            pred?.winner?.comment || null,
+            pred?.percent?.home || null,
+            pred?.percent?.draw || null,
+            pred?.percent?.away || null,
+            pred?.under_over || null,
+            pred?.goals?.home || null,
+            pred?.goals?.away || null,
+            comparison ? JSON.stringify(comparison) : null,
+            h2h.length > 0 ? JSON.stringify(h2h.slice(0, 5).map((h: any) => ({
+              date: h.fixture?.date,
+              homeTeam: h.teams?.home?.name,
+              awayTeam: h.teams?.away?.name,
+              homeGoals: h.goals?.home,
+              awayGoals: h.goals?.away
+            }))) : null,
+            teams ? JSON.stringify(teams) : null
           ]
         );
         
@@ -136,7 +189,6 @@ export async function autoPublishTomorrowMatches(targetCount: number = 25) {
   }
 }
 
-// Schedule auto-publish to run daily at a specific time
 let autoPublishInterval: NodeJS.Timeout | null = null;
 
 export function startAutoPublishService(runAtHour: number = 20) {
@@ -147,7 +199,6 @@ export function startAutoPublishService(runAtHour: number = 20) {
     const currentHour = now.getHours();
     const currentMinute = now.getMinutes();
     
-    // Run at the specified hour, within the first 5 minutes
     if (currentHour === runAtHour && currentMinute < 5) {
       console.log('[AutoPublish] Scheduled run triggered');
       try {
@@ -158,11 +209,7 @@ export function startAutoPublishService(runAtHour: number = 20) {
     }
   };
   
-  // Check every 5 minutes
   autoPublishInterval = setInterval(checkAndRun, 5 * 60 * 1000);
-  
-  // Also run immediately on startup to check
-  checkAndRun();
 }
 
 export function stopAutoPublishService() {
