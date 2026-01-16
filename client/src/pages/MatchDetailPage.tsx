@@ -324,7 +324,7 @@ export default function MatchDetailPage() {
       <MobileLayout>
         <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
           <p className="text-zinc-400">Maç bulunamadı</p>
-          <Button variant="outline" onClick={() => setLocation('/predictions')}>
+          <Button variant="outline" onClick={() => setLocation('/')}>
             <ArrowLeft className="w-4 h-4 mr-2" /> Geri Dön
           </Button>
         </div>
@@ -336,7 +336,7 @@ export default function MatchDetailPage() {
     <MobileLayout>
       <div className={`space-y-4 pb-8 transition-all duration-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
         <button 
-          onClick={() => setLocation('/predictions')}
+          onClick={() => setLocation('/')}
           className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors mb-2"
           data-testid="button-back"
         >
@@ -440,6 +440,24 @@ export default function MatchDetailPage() {
                   const score = aiAnalysis.predictions[0].consistentScores[0];
                   const [home, away] = score.split('-').map(s => parseInt(s.trim()) || 0);
                   return { home, away };
+                })()}
+                scenario={(() => {
+                  const bestBet = aiAnalysis.predictions[0]?.bet?.toLowerCase() || '';
+                  const score = aiAnalysis.predictions[0]?.consistentScores?.[0] || '1-1';
+                  const [home, away] = score.split('-').map(s => parseInt(s.trim()) || 0);
+                  const totalGoals = home + away;
+                  
+                  if (bestBet.includes('üst') || totalGoals >= 3) return 'high_scoring';
+                  if (bestBet.includes('alt') || totalGoals <= 1) return 'low_scoring';
+                  if (bestBet.includes('kg var') || (home > 0 && away > 0)) return 'btts';
+                  if (bestBet.includes('ev') || home >= away + 2) return 'one_sided_home';
+                  if (bestBet.includes('deplasman') || away >= home + 2) return 'one_sided_away';
+                  return 'balanced';
+                })()}
+                expectedGoals={(() => {
+                  const range = aiAnalysis.expectedGoalRange || '2-3';
+                  const parts = range.split('-').map(s => parseFloat(s.trim()) || 0);
+                  return (parts[0] + (parts[1] || parts[0])) / 2;
                 })()}
               />
             )}
