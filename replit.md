@@ -136,4 +136,12 @@ Key entities include:
 - **Admin Panel Filtering**: Finished matches are now automatically hidden from admin "Yayınlanan Maçlar" section (keeps last 2 hours visible for review)
 - **WinnersPage Enhancement**: Finished matches now show all predictions with won/lost status using color-coded badges
 - **New AI Analysis Structure**: Uses 3-tier prediction format (expected/medium/risky) with score-goal consistency validation
-- **Cache Key Versioning**: AI analysis uses v3 cache keys for fresh generation
+- **Cache Key Versioning**: AI analysis uses v6 cache keys for fresh generation
+- **Global Consistency System**: Comprehensive two-layer enforcement to prevent contradictory predictions:
+  1. OpenAI prompt includes "GLOBAL TUTARLILIK" rule requiring all 3 predictions to share the same match scenario
+  2. TypeScript post-processing with scenario-aware replacement logic:
+     - Mutually exclusive scoring flags (isHighScoring/isLowScoring cannot both be true)
+     - Score-based scenario detection (avg goals determines high/low, not just keywords)
+     - Bet-specific score requirements enforced (2.5 Üst → 3+ goals, KG Var → both score)
+     - High-scoring clean sheet handling (Ev 1.5 Üst with 3-0, 4-0 instead of 2.5 Alt)
+     - All replacement scores meet the scenario's goal band requirement
