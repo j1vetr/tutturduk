@@ -606,8 +606,8 @@ export async function generatePredictionsForAllPendingMatches(): Promise<{ proce
   
   const result = await pool.query(
     `SELECT pm.* FROM published_matches pm
-     LEFT JOIN best_bets bb ON pm.fixture_id = bb.fixture_id AND pm.match_date = bb.date_for
-     WHERE pm.status = 'pending' AND pm.match_date >= CURRENT_DATE AND bb.id IS NULL
+     LEFT JOIN best_bets bb ON pm.fixture_id = bb.fixture_id AND pm.match_date::date = bb.date_for
+     WHERE pm.status = 'pending' AND pm.match_date::date >= CURRENT_DATE AND bb.id IS NULL
      ORDER BY pm.match_date, pm.match_time
      LIMIT 50`
   );
