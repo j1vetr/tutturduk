@@ -1,0 +1,66 @@
+33|tutturd |   detail: undefined,
+33|tutturd |   hint: 'No operator matches the given name and argument types. You might need to add explicit type casts.',
+33|tutturd |   position: '183',
+33|tutturd |   internalPosition: undefined,
+33|tutturd |   internalQuery: undefined,
+33|tutturd |   where: undefined,
+33|tutturd |   schema: undefined,
+33|tutturd |   table: undefined,
+33|tutturd |   column: undefined,
+33|tutturd |   dataType: undefined,
+33|tutturd |   constraint: undefined,
+33|tutturd |   file: 'parse_oper.c',
+33|tutturd |   line: '647',
+33|tutturd |   routine: 'op_error'
+33|tutturd | }
+
+/root/.pm2/logs/tutturduk-out.log last 15 lines:
+33|tutturd | [API-Football] Response: 1 results
+33|tutturd | [API-Football] Requesting: /fixtures { id: '1386864' }
+33|tutturd | [API-Football] Response: 1 results
+33|tutturd | [API-Football] Requesting: /fixtures { id: '1386873' }
+33|tutturd | [API-Football] Response: 1 results
+33|tutturd | [API-Football] Requesting: /fixtures { id: '1379183' }
+33|tutturd | [API-Football] Response: 1 results
+33|tutturd | [API-Football] Requesting: /fixtures { id: '1386867' }
+33|tutturd | [API-Football] Response: 1 results
+33|tutturd | [API-Football] Requesting: /fixtures { id: '1391015' }
+33|tutturd | [API-Football] Response: 1 results
+33|tutturd | [API-Football] Requesting: /fixtures { id: '1394589' }
+33|tutturd | [API-Football] Response: 1 results
+33|tutturd | [API-Football] Requesting: /fixtures { id: '1379185' }
+33|tutturd | [API-Football] Response: 1 results
+
+33|tutturduk  | [API-Football] Requesting: /fixtures { id: '1391016' }
+33|tutturduk  | [API-Football] Response: 1 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { id: '1386866' }
+33|tutturduk  | [API-Football] Response: 1 results
+33|tutturduk  | [API-Football] Requesting: /fixtures { id: '1391010' }
+33|tutturduk  | [API-Football] Response: 1 results
+33|tutturduk  | [MatchStatus] Completed: 0 matches updated, 0 predictions evaluated
+33|tutturduk  | [Admin] Starting batch prediction generation...
+33|tutturduk  | [AI+BestBets] Starting batch prediction generation for all pending matches...
+33|tutturduk  | [Admin] Batch prediction generation error: error: operator does not exist: date = text
+33|tutturduk  |     at /var/www/tutturduk/dist/index.cjs:64:13326
+33|tutturduk  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+33|tutturduk  |     at async Q1 (/var/www/tutturduk/dist/index.cjs:339:615)
+33|tutturduk  |     at async /var/www/tutturduk/dist/index.cjs:371:1381 {
+33|tutturduk  |   length: 197,
+33|tutturduk  |   severity: 'ERROR',
+33|tutturduk  |   code: '42883',
+33|tutturduk  |   detail: undefined,
+33|tutturduk  |   hint: 'No operator matches the given name and argument types. You might need to add explicit type casts.',
+33|tutturduk  |   position: '124',
+33|tutturduk  |   internalPosition: undefined,
+33|tutturduk  |   internalQuery: undefined,
+33|tutturduk  |   where: undefined,
+33|tutturduk  |   schema: undefined,
+33|tutturduk  |   table: undefined,
+33|tutturduk  |   column: undefined,
+33|tutturduk  |   dataType: undefined,
+33|tutturduk  |   constraint: undefined,
+33|tutturduk  |   file: 'parse_oper.c',
+33|tutturduk  |   line: '647',
+33|tutturduk  |   routine: 'op_error'
+33|tutturduk  | }
+33|tutturduk  | 1:15:43 AM [express] POST /api/admin/generate-predictions 500 in 19ms :: {"message":"operator does not exist: date = text"}
