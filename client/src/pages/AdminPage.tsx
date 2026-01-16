@@ -12,7 +12,7 @@ import {
   LayoutDashboard, Users, Trophy, LogOut, Plus, Trash2, RefreshCcw, 
   CheckCircle, XCircle, Clock, Star, Ticket, Calendar, Loader2,
   TrendingUp, Target, Zap, Eye, ChevronRight, ChevronDown, Search, Filter,
-  BarChart3, Award, Sparkles, ArrowUpRight, ArrowDownRight, Goal, Lock, Flame, Check
+  BarChart3, Award, Sparkles, ArrowUpRight, ArrowDownRight, Goal, Lock, Flame, Check, Brain
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -1290,6 +1290,30 @@ export default function AdminPage() {
                       className="border-blue-500/30 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400"
                     >
                       <Zap className="w-4 h-4 mr-2" /> Yarını Otomatik Yayınla
+                    </Button>
+                    <Button 
+                      onClick={async () => {
+                        toast({ title: 'AI Tahminleri Oluşturuluyor...', description: 'Bu işlem birkaç dakika sürebilir, lütfen bekleyin.', className: 'bg-purple-500 text-white border-none' });
+                        try {
+                          const res = await fetch('/api/admin/generate-predictions', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            credentials: 'include'
+                          });
+                          const data = await res.json();
+                          if (res.ok) {
+                            toast({ title: 'AI Tahminleri', description: data.message, className: 'bg-purple-500 text-white border-none' });
+                          } else {
+                            toast({ variant: 'destructive', description: data.message });
+                          }
+                        } catch (e) {
+                          toast({ variant: 'destructive', description: 'İşlem başarısız' });
+                        }
+                      }}
+                      variant="outline" 
+                      className="border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400"
+                    >
+                      <Brain className="w-4 h-4 mr-2" /> Tahminleri Üret (Mevcut Maçlar)
                     </Button>
                     <Button 
                       onClick={async () => {

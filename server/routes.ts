@@ -9,6 +9,7 @@ import { generateMatchAnalysis } from './openai-analysis';
 import { filterMatches, hasValidStatistics, getStatisticsScore } from './matchFilter';
 import { checkAndUpdateMatchStatuses } from './matchStatusService';
 import { autoPublishTomorrowMatches } from './autoPublishService';
+import { generatePredictionsForAllPendingMatches } from './openai-analysis';
 
 const PgSession = connectPgSimple(session);
 
@@ -1711,6 +1712,29 @@ export async function registerRoutes(
         ...result 
       });
     } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Admin: generate AI predictions for all pending matches without predictions
+  app.post('/api/admin/generate-predictions', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Yetkiniz yok' });
+    }
+    try {
+      console.log('[Admin] Starting batch prediction generation...');
+      const result = await generatePredictionsForAllPendingMatches();
+      res.json({ 
+        success: true, 
+        message: `${result.success} maç için AI tahmin oluşturuldu (${result.failed} hata)`,
+        ...result 
+      });
+    } catch (error: any) {
+      console.error('[Admin] Batch prediction generation error:', error);
       res.status(500).json({ message: error.message });
     }
   });
