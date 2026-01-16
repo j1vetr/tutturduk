@@ -61,30 +61,30 @@ function getTimeInfo(matchDate: string, matchTime: string) {
 
 function MatchCardSkeleton() {
   return (
-    <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden animate-pulse">
-      <div className="px-3 py-2 flex items-center justify-between border-b border-zinc-800/50">
+    <div className="bg-white rounded-xl border border-gray-200 overflow-hidden animate-pulse shadow-sm">
+      <div className="px-3 py-2 flex items-center justify-between border-b border-gray-100">
         <div className="flex items-center gap-2">
-          <div className="w-4 h-4 bg-zinc-800 rounded" />
-          <div className="w-20 h-3 bg-zinc-800 rounded" />
+          <div className="w-4 h-4 bg-gray-200 rounded" />
+          <div className="w-20 h-3 bg-gray-200 rounded" />
         </div>
-        <div className="w-12 h-3 bg-zinc-800 rounded" />
+        <div className="w-12 h-3 bg-gray-200 rounded" />
       </div>
       <div className="p-3">
         <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-zinc-800 rounded-lg" />
-            <div className="w-16 h-4 bg-zinc-800 rounded" />
+            <div className="w-8 h-8 bg-gray-200 rounded-lg" />
+            <div className="w-16 h-4 bg-gray-200 rounded" />
           </div>
-          <div className="w-10 h-5 bg-zinc-800 rounded" />
+          <div className="w-10 h-5 bg-gray-200 rounded" />
           <div className="flex items-center gap-2 justify-end">
-            <div className="w-16 h-4 bg-zinc-800 rounded" />
-            <div className="w-8 h-8 bg-zinc-800 rounded-lg" />
+            <div className="w-16 h-4 bg-gray-200 rounded" />
+            <div className="w-8 h-8 bg-gray-200 rounded-lg" />
           </div>
         </div>
         <div className="mt-3 flex items-center gap-2">
-          <div className="w-16 h-4 bg-zinc-800 rounded-full" />
-          <div className="w-16 h-4 bg-zinc-800 rounded-full" />
-          <div className="w-6 h-6 bg-zinc-800 rounded-full ml-auto" />
+          <div className="w-16 h-4 bg-gray-200 rounded-full" />
+          <div className="w-16 h-4 bg-gray-200 rounded-full" />
+          <div className="w-6 h-6 bg-gray-200 rounded-full ml-auto" />
         </div>
       </div>
     </div>
@@ -183,10 +183,10 @@ export default function HomePage() {
 
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-white">Günün maçları</h2>
+            <h2 className="text-lg font-bold text-gray-800">Günün maçları</h2>
             <button 
               onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center gap-1 text-xs text-zinc-400 hover:text-white transition-colors"
+              className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-800 transition-colors"
             >
               <Filter className="w-3.5 h-3.5" />
               Filtrele
@@ -195,9 +195,9 @@ export default function HomePage() {
           </div>
 
           {showFilters && (
-            <div className="mb-4 p-3 bg-zinc-900/50 rounded-xl border border-zinc-800 space-y-3">
+            <div className="mb-4 p-3 bg-white rounded-xl border border-gray-200 shadow-sm space-y-3">
               <div>
-                <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">Zaman</p>
+                <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-2">Zaman</p>
                 <div className="flex flex-wrap gap-2">
                   {(['all', 'soon', 'today', 'tomorrow'] as TimeFilter[]).map(f => (
                     <button
@@ -205,8 +205,8 @@ export default function HomePage() {
                       onClick={() => { setTimeFilter(f); setPage(1); }}
                       className={`text-[10px] px-3 py-1.5 rounded-lg border transition-colors ${
                         timeFilter === f 
-                          ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' 
-                          : 'bg-zinc-800 text-zinc-400 border-zinc-700 hover:border-zinc-600'
+                          ? 'bg-emerald-50 text-emerald-600 border-emerald-300' 
+                          : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-300'
                       }`}
                     >
                       {filterLabels[f]}
@@ -215,14 +215,14 @@ export default function HomePage() {
                 </div>
               </div>
               <div>
-                <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-2">Sıralama</p>
+                <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-2">Sıralama</p>
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => setSortBy('time-asc')}
                     className={`text-[10px] px-3 py-1.5 rounded-lg border transition-colors flex items-center gap-1 ${
                       sortBy === 'time-asc' 
-                        ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' 
-                        : 'bg-zinc-800 text-zinc-400 border-zinc-700 hover:border-zinc-600'
+                        ? 'bg-emerald-50 text-emerald-600 border-emerald-300' 
+                        : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-300'
                     }`}
                   >
                     <Clock className="w-3 h-3" /> Yakın
@@ -231,8 +231,8 @@ export default function HomePage() {
                     onClick={() => setSortBy('time-desc')}
                     className={`text-[10px] px-3 py-1.5 rounded-lg border transition-colors flex items-center gap-1 ${
                       sortBy === 'time-desc' 
-                        ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' 
-                        : 'bg-zinc-800 text-zinc-400 border-zinc-700 hover:border-zinc-600'
+                        ? 'bg-emerald-50 text-emerald-600 border-emerald-300' 
+                        : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-300'
                     }`}
                   >
                     <Clock className="w-3 h-3" /> Uzak
@@ -241,8 +241,8 @@ export default function HomePage() {
                     onClick={() => setSortBy('league')}
                     className={`text-[10px] px-3 py-1.5 rounded-lg border transition-colors ${
                       sortBy === 'league' 
-                        ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' 
-                        : 'bg-zinc-800 text-zinc-400 border-zinc-700 hover:border-zinc-600'
+                        ? 'bg-emerald-50 text-emerald-600 border-emerald-300' 
+                        : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-300'
                     }`}
                   >
                     Lige göre
@@ -254,11 +254,11 @@ export default function HomePage() {
 
           {filteredMatches.length > 0 && (
             <div className="flex items-center justify-between mb-3">
-              <Badge className="bg-zinc-800 text-zinc-400 border-zinc-700 text-[10px]">
+              <Badge className="bg-gray-100 text-gray-600 border-gray-200 text-[10px]">
                 {filteredMatches.length} maç
               </Badge>
               {totalPages > 1 && (
-                <span className="text-[10px] text-zinc-500">
+                <span className="text-[10px] text-gray-500">
                   Sayfa {page}/{totalPages}
                 </span>
               )}
@@ -272,7 +272,7 @@ export default function HomePage() {
               <MatchCardSkeleton />
             </div>
           ) : paginatedMatches.length === 0 ? (
-            <div className="text-center py-12 text-zinc-500">
+            <div className="text-center py-12 text-gray-400">
               <p>Henüz maç yok</p>
             </div>
           ) : (
@@ -283,24 +283,24 @@ export default function HomePage() {
                 return (
                   <div 
                     key={match.id} 
-                    className="relative bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-950 rounded-2xl border border-white/5 overflow-hidden cursor-pointer active:scale-[0.98] transition-all duration-200 group"
+                    className="relative bg-white rounded-2xl border border-gray-200 overflow-hidden cursor-pointer active:scale-[0.98] transition-all duration-200 group shadow-sm hover:shadow-md"
                     onClick={() => setLocation(`/match/${match.id}`)}
                     data-testid={`match-card-${match.id}`}
                   >
-                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 via-transparent to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-50/50 via-transparent to-blue-50/50 opacity-0 group-hover:opacity-100 transition-opacity" />
                     
                     <div className="relative p-4">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
                           {match.league_logo && <img src={match.league_logo} className="w-4 h-4" alt="" />}
-                          <span className="text-[11px] text-zinc-500 font-medium">{match.league_name}</span>
+                          <span className="text-[11px] text-gray-500 font-medium">{match.league_name}</span>
                         </div>
                         <div className="flex items-center gap-1.5">
                           {timeInfo.isLive && (
                             <span className="inline-block w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
                           )}
                           <span className={`text-xs font-semibold ${
-                            timeInfo.isLive ? 'text-red-400' : timeInfo.isPast ? 'text-zinc-600' : 'text-white'
+                            timeInfo.isLive ? 'text-red-500' : timeInfo.isPast ? 'text-gray-400' : 'text-gray-800'
                           }`}>
                             {match.match_time}
                           </span>
@@ -309,40 +309,40 @@ export default function HomePage() {
 
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex-1 flex flex-col items-center text-center">
-                          <div className="w-12 h-12 rounded-xl bg-zinc-800/50 p-1.5 mb-2">
+                          <div className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 p-1.5 mb-2">
                             {match.home_logo ? (
                               <img src={match.home_logo} alt="" className="w-full h-full object-contain" />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center text-xs font-bold text-zinc-400">
+                              <div className="w-full h-full flex items-center justify-center text-xs font-bold text-gray-400">
                                 {match.home_team.substring(0, 2)}
                               </div>
                             )}
                           </div>
-                          <span className="text-white font-semibold text-xs leading-tight line-clamp-2">{match.home_team}</span>
+                          <span className="text-gray-800 font-semibold text-xs leading-tight line-clamp-2">{match.home_team}</span>
                         </div>
 
                         <div className="flex-shrink-0 flex flex-col items-center">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-zinc-800 to-zinc-900 border border-white/10 flex items-center justify-center">
-                            <span className="text-sm font-black text-zinc-500">VS</span>
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 border border-gray-200 flex items-center justify-center">
+                            <span className="text-sm font-black text-gray-400">VS</span>
                           </div>
                         </div>
 
                         <div className="flex-1 flex flex-col items-center text-center">
-                          <div className="w-12 h-12 rounded-xl bg-zinc-800/50 p-1.5 mb-2">
+                          <div className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 p-1.5 mb-2">
                             {match.away_logo ? (
                               <img src={match.away_logo} alt="" className="w-full h-full object-contain" />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center text-xs font-bold text-zinc-400">
+                              <div className="w-full h-full flex items-center justify-center text-xs font-bold text-gray-400">
                                 {match.away_team.substring(0, 2)}
                               </div>
                             )}
                           </div>
-                          <span className="text-white font-semibold text-xs leading-tight line-clamp-2">{match.away_team}</span>
+                          <span className="text-gray-800 font-semibold text-xs leading-tight line-clamp-2">{match.away_team}</span>
                         </div>
                       </div>
 
-                      <div className="mt-4 pt-3 border-t border-white/5">
-                        <div className="flex items-center justify-center gap-2 text-emerald-400 group-hover:text-emerald-300 transition-colors">
+                      <div className="mt-4 pt-3 border-t border-gray-100">
+                        <div className="flex items-center justify-center gap-2 text-emerald-500 group-hover:text-emerald-600 transition-colors">
                           <span className="text-[11px] font-medium">Analiz için dokun</span>
                           <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                         </div>
@@ -359,7 +359,7 @@ export default function HomePage() {
               <button
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="px-3 py-1.5 text-xs bg-zinc-800 text-zinc-400 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-zinc-700 transition-colors"
+                className="px-3 py-1.5 text-xs bg-gray-100 text-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 transition-colors"
               >
                 Önceki
               </button>
@@ -381,8 +381,8 @@ export default function HomePage() {
                       onClick={() => setPage(pageNum)}
                       className={`w-8 h-8 text-xs rounded-lg transition-colors ${
                         page === pageNum 
-                          ? 'bg-emerald-500 text-black font-bold' 
-                          : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                          ? 'bg-emerald-500 text-white font-bold shadow-sm' 
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }`}
                     >
                       {pageNum}
@@ -393,7 +393,7 @@ export default function HomePage() {
               <button
                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="px-3 py-1.5 text-xs bg-zinc-800 text-zinc-400 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-zinc-700 transition-colors"
+                className="px-3 py-1.5 text-xs bg-gray-100 text-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 transition-colors"
               >
                 Sonraki
               </button>
@@ -401,7 +401,7 @@ export default function HomePage() {
           )}
         </div>
 
-        <p className="text-[10px] text-zinc-600 leading-relaxed">
+        <p className="text-[10px] text-gray-400 leading-relaxed">
           Bu platform yatırım garantisi vermez. Bahis oynamak risk içerir. 18 yaş altı kullanımı yasaktır.
         </p>
       </div>

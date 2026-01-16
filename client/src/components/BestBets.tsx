@@ -36,8 +36,8 @@ export default function BestBets() {
     return (
       <div className="px-4 py-6">
         <div className="animate-pulse space-y-4">
-          <div className="h-8 bg-zinc-800 rounded-lg w-48" />
-          <div className="h-32 bg-zinc-800 rounded-2xl" />
+          <div className="h-8 bg-gray-200 rounded-lg w-48" />
+          <div className="h-32 bg-gray-200 rounded-2xl" />
         </div>
       </div>
     );
@@ -49,10 +49,10 @@ export default function BestBets() {
 
   const getRiskColor = (risk: string) => {
     switch (risk) {
-      case 'düşük': return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
-      case 'orta': return 'text-amber-400 bg-amber-500/10 border-amber-500/20';
-      case 'yüksek': return 'text-red-400 bg-red-500/10 border-red-500/20';
-      default: return 'text-zinc-400 bg-zinc-800 border-zinc-700';
+      case 'düşük': return 'text-emerald-600 bg-emerald-50 border-emerald-200';
+      case 'orta': return 'text-amber-600 bg-amber-50 border-amber-200';
+      case 'yüksek': return 'text-red-600 bg-red-50 border-red-200';
+      default: return 'text-gray-600 bg-gray-100 border-gray-200';
     }
   };
 
@@ -66,12 +66,12 @@ export default function BestBets() {
     <section className="px-4 py-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-sm">
             <Sparkles className="w-4 h-4 text-white" />
           </div>
           <div>
-            <h2 className="text-lg font-display font-bold text-white">Günün En İyi Bahisleri</h2>
-            <p className="text-[10px] text-zinc-500 uppercase tracking-wider">AI Tarafından Seçildi</p>
+            <h2 className="text-lg font-display font-bold text-gray-800">Günün En İyi Bahisleri</h2>
+            <p className="text-[10px] text-gray-400 uppercase tracking-wider">AI Tarafından Seçildi</p>
           </div>
         </div>
       </div>
@@ -80,10 +80,10 @@ export default function BestBets() {
         {bets.slice(0, 3).map((bet, index) => (
           <Link href={`/match/${bet.match_id}`} key={bet.id}>
             <div 
-              className={`relative overflow-hidden rounded-2xl border transition-all active:scale-[0.98] ${
+              className={`relative overflow-hidden rounded-2xl border transition-all active:scale-[0.98] shadow-sm hover:shadow-md ${
                 index === 0 
-                  ? 'bg-gradient-to-br from-amber-500/10 via-zinc-900 to-zinc-900 border-amber-500/30' 
-                  : 'bg-zinc-900/80 border-zinc-800 hover:border-zinc-700'
+                  ? 'bg-gradient-to-br from-amber-50 via-white to-white border-amber-200' 
+                  : 'bg-white border-gray-200 hover:border-gray-300'
               }`}
               data-testid={`best-bet-${bet.id}`}
             >
@@ -93,8 +93,8 @@ export default function BestBets() {
                   {bet.league_logo && (
                     <img src={bet.league_logo} alt="" className="w-5 h-5 object-contain opacity-60" />
                   )}
-                  <span className="text-[10px] text-zinc-500 uppercase tracking-wider truncate">{bet.league_name}</span>
-                  <div className="ml-auto flex items-center gap-1 text-zinc-500">
+                  <span className="text-[10px] text-gray-400 uppercase tracking-wider truncate">{bet.league_name}</span>
+                  <div className="ml-auto flex items-center gap-1 text-gray-400">
                     <Clock className="w-3 h-3" />
                     <span className="text-[10px]">{bet.match_time}</span>
                   </div>
@@ -102,15 +102,15 @@ export default function BestBets() {
 
                 <div className="flex items-center gap-4 mb-4">
                   <div className="flex items-center gap-2 flex-1">
-                    <div className="w-8 h-8 rounded-lg bg-white/5 p-1.5 border border-white/10">
+                    <div className="w-8 h-8 rounded-lg bg-gray-50 p-1.5 border border-gray-100">
                       {bet.home_logo && <img src={bet.home_logo} alt="" className="w-full h-full object-contain" />}
                     </div>
-                    <span className="text-sm font-medium text-white truncate">{bet.home_team}</span>
+                    <span className="text-sm font-medium text-gray-800 truncate">{bet.home_team}</span>
                   </div>
-                  <span className="text-xs text-zinc-600 font-bold">VS</span>
+                  <span className="text-xs text-gray-300 font-bold">VS</span>
                   <div className="flex items-center gap-2 flex-1 justify-end">
-                    <span className="text-sm font-medium text-white truncate">{bet.away_team}</span>
-                    <div className="w-8 h-8 rounded-lg bg-white/5 p-1.5 border border-white/10">
+                    <span className="text-sm font-medium text-gray-800 truncate">{bet.away_team}</span>
+                    <div className="w-8 h-8 rounded-lg bg-gray-50 p-1.5 border border-gray-100">
                       {bet.away_logo && <img src={bet.away_logo} alt="" className="w-full h-full object-contain" />}
                     </div>
                   </div>
@@ -120,8 +120,8 @@ export default function BestBets() {
                   <div className="flex items-center gap-2">
                     <div className={`px-3 py-1.5 rounded-lg text-xs font-bold ${
                       index === 0 
-                        ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-black' 
-                        : 'bg-emerald-500/20 text-emerald-400'
+                        ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm' 
+                        : 'bg-emerald-50 text-emerald-600'
                     }`}>
                       <Target className="w-3 h-3 inline mr-1" />
                       {bet.bet_type}
@@ -133,17 +133,17 @@ export default function BestBets() {
                   
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-1">
-                      <TrendingUp className={`w-3 h-3 ${bet.confidence >= 70 ? 'text-emerald-400' : bet.confidence >= 50 ? 'text-amber-400' : 'text-red-400'}`} />
-                      <span className={`text-sm font-bold ${bet.confidence >= 70 ? 'text-emerald-400' : bet.confidence >= 50 ? 'text-amber-400' : 'text-red-400'}`}>
+                      <TrendingUp className={`w-3 h-3 ${bet.confidence >= 70 ? 'text-emerald-500' : bet.confidence >= 50 ? 'text-amber-500' : 'text-red-500'}`} />
+                      <span className={`text-sm font-bold ${bet.confidence >= 70 ? 'text-emerald-600' : bet.confidence >= 50 ? 'text-amber-600' : 'text-red-600'}`}>
                         %{bet.confidence}
                       </span>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-zinc-600" />
+                    <ChevronRight className="w-4 h-4 text-gray-300" />
                   </div>
                 </div>
 
                 {bet.reasoning && (
-                  <p className="mt-3 text-[11px] text-zinc-500 line-clamp-2">{bet.reasoning}</p>
+                  <p className="mt-3 text-[11px] text-gray-500 line-clamp-2">{bet.reasoning}</p>
                 )}
               </div>
             </div>

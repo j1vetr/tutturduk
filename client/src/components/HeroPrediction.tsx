@@ -63,7 +63,7 @@ export function HeroPrediction() {
 
   if (loading) {
     return (
-      <div className="w-full h-48 rounded-2xl bg-zinc-900 animate-pulse" />
+      <div className="w-full h-48 rounded-2xl bg-gray-100 animate-pulse" />
     );
   }
   
@@ -75,23 +75,23 @@ export function HeroPrediction() {
 
   return (
     <div 
-      className="w-full rounded-2xl overflow-hidden cursor-pointer bg-zinc-900 border border-zinc-800" 
+      className="w-full rounded-2xl overflow-hidden cursor-pointer bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow" 
       onClick={() => setLocation(`/match/${match.id}`)}
     >
-      <div className="px-4 py-3 flex items-center justify-between border-b border-zinc-800">
+      <div className="px-4 py-3 flex items-center justify-between border-b border-gray-100 bg-gradient-to-r from-emerald-50/50 to-white">
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Öne çıkan maç</span>
-          <span className="text-zinc-700">•</span>
+          <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Öne çıkan maç</span>
+          <span className="text-gray-300">•</span>
           {match.league_logo && <img src={match.league_logo} className="w-4 h-4" alt="" />}
-          <span className="text-xs text-zinc-500">{match.league_name}</span>
+          <span className="text-xs text-gray-500">{match.league_name}</span>
         </div>
         {timeLeft.isLive ? (
-          <div className="flex items-center gap-1.5 text-red-400">
+          <div className="flex items-center gap-1.5 text-red-500">
             <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
             <span className="text-xs font-bold">Canlı</span>
           </div>
         ) : (
-          <span className="text-xs text-zinc-500">
+          <span className="text-xs text-gray-500">
             {timeLeft.hours > 0 ? `${timeLeft.hours} saat ${timeLeft.minutes} dk` : `${timeLeft.minutes} dk`}
           </span>
         )}
@@ -100,59 +100,59 @@ export function HeroPrediction() {
       <div className="p-4">
         <div className="grid grid-cols-3 gap-2 items-center">
           <div className="flex flex-col items-center text-center">
-            <div className="w-14 h-14 rounded-xl bg-zinc-800 p-2 mb-2">
+            <div className="w-14 h-14 rounded-xl bg-gray-50 border border-gray-100 p-2 mb-2">
               {match.home_logo ? (
                 <img src={match.home_logo} alt="" className="w-full h-full object-contain" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-lg font-bold text-white">
+                <div className="w-full h-full flex items-center justify-center text-lg font-bold text-gray-600">
                   {match.home_team.substring(0, 2)}
                 </div>
               )}
             </div>
-            <p className="text-white font-bold text-sm leading-tight">{match.home_team}</p>
-            <p className="text-[10px] text-zinc-600 mt-0.5">Ev sahibi</p>
+            <p className="text-gray-800 font-bold text-sm leading-tight">{match.home_team}</p>
+            <p className="text-[10px] text-gray-400 mt-0.5">Ev sahibi</p>
           </div>
 
           <div className="text-center">
-            <p className="text-2xl font-black text-white">{match.match_time}</p>
-            <p className="text-[10px] text-zinc-600 mt-1">
+            <p className="text-2xl font-black text-gray-800">{match.match_time}</p>
+            <p className="text-[10px] text-gray-400 mt-1">
               {new Date(match.match_date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })}
             </p>
           </div>
 
           <div className="flex flex-col items-center text-center">
-            <div className="w-14 h-14 rounded-xl bg-zinc-800 p-2 mb-2">
+            <div className="w-14 h-14 rounded-xl bg-gray-50 border border-gray-100 p-2 mb-2">
               {match.away_logo ? (
                 <img src={match.away_logo} alt="" className="w-full h-full object-contain" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-lg font-bold text-white">
+                <div className="w-full h-full flex items-center justify-center text-lg font-bold text-gray-600">
                   {match.away_team.substring(0, 2)}
                 </div>
               )}
             </div>
-            <p className="text-white font-bold text-sm leading-tight">{match.away_team}</p>
-            <p className="text-[10px] text-zinc-600 mt-0.5">Deplasman</p>
+            <p className="text-gray-800 font-bold text-sm leading-tight">{match.away_team}</p>
+            <p className="text-[10px] text-gray-400 mt-0.5">Deplasman</p>
           </div>
         </div>
 
         {(homePercent > 0 || awayPercent > 0) && (
-          <div className="mt-4 pt-4 border-t border-zinc-800">
+          <div className="mt-4 pt-4 border-t border-gray-100">
             <div className="flex items-center justify-between text-xs mb-2">
-              <span className="text-emerald-400 font-bold">{homePercent}%</span>
-              <span className="text-zinc-600">{drawPercent}%</span>
-              <span className="text-zinc-400 font-bold">{awayPercent}%</span>
+              <span className="text-emerald-600 font-bold">{homePercent}%</span>
+              <span className="text-gray-400">{drawPercent}%</span>
+              <span className="text-blue-600 font-bold">{awayPercent}%</span>
             </div>
-            <div className="h-1.5 w-full bg-zinc-800 rounded-full flex overflow-hidden">
+            <div className="h-1.5 w-full bg-gray-100 rounded-full flex overflow-hidden">
               <div className="bg-emerald-500 rounded-l-full" style={{ width: `${homePercent}%` }} />
-              <div className="bg-zinc-600" style={{ width: `${drawPercent}%` }} />
-              <div className="bg-zinc-400 rounded-r-full" style={{ width: `${awayPercent}%` }} />
+              <div className="bg-gray-300" style={{ width: `${drawPercent}%` }} />
+              <div className="bg-blue-500 rounded-r-full" style={{ width: `${awayPercent}%` }} />
             </div>
           </div>
         )}
 
         {match.api_winner_name && (
-          <div className="mt-4 px-4 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-            <p className="text-sm text-emerald-400 font-medium text-center">
+          <div className="mt-4 px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-100">
+            <p className="text-sm text-emerald-600 font-medium text-center">
               {match.api_winner_name} kazanır
             </p>
           </div>
