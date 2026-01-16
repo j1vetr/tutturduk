@@ -129,3 +129,11 @@ Key entities include:
 - Added prediction result evaluation based on API-Football scores
 - Enhanced coupon system to work with best_bets instead of predictions table
 - Added admin routes for managing best bets in coupons
+
+### January 16, 2026 - Major Fixes
+- **Fixed autoPublishService**: Rewrote to iterate through SUPPORTED_LEAGUES and fetch matches by date using `getFixtures()` API
+- **AI Analysis Best Bets Integration**: AI analysis now automatically saves predictions to `best_bets` table for tracking and evaluation
+- **Admin Panel Filtering**: Finished matches are now automatically hidden from admin "Yayınlanan Maçlar" section (keeps last 2 hours visible for review)
+- **WinnersPage Enhancement**: Finished matches now show all predictions with won/lost status using color-coded badges
+- **New AI Analysis Structure**: Uses 3-tier prediction format (expected/medium/risky) with score-goal consistency validation
+- **Cache Key Versioning**: AI analysis uses v3 cache keys for fresh generation
