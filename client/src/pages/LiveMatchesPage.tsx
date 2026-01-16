@@ -75,17 +75,17 @@ export default function LiveMatchesPage() {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <CheckCircle className="w-6 h-6 text-emerald-500" />
-              <h2 className="text-2xl font-display font-black text-white tracking-tight">BİTEN MAÇLAR</h2>
+              <CheckCircle className="w-6 h-6 text-blue-500" />
+              <h2 className="text-2xl font-display font-black text-gray-800 tracking-tight">BİTEN MAÇLAR</h2>
             </div>
             <button 
               onClick={loadFinishedMatches}
-              className="p-2 rounded-lg bg-zinc-800 text-zinc-400 hover:text-white transition-colors"
+              className="p-2 rounded-lg bg-gray-100 text-gray-500 hover:text-gray-800 hover:bg-gray-200 transition-colors"
             >
               <RefreshCcw className="w-4 h-4" />
             </button>
           </div>
-          <p className="text-xs text-zinc-400 font-medium">Dün ve bugün oynanan maçların sonuçları</p>
+          <p className="text-xs text-gray-500 font-medium">Dün ve bugün oynanan maçların sonuçları</p>
         </div>
 
         <div className="flex gap-2">
@@ -93,8 +93,8 @@ export default function LiveMatchesPage() {
             onClick={() => setDateFilter('all')}
             className={`flex-1 text-xs py-2 px-3 rounded-lg border transition-colors ${
               dateFilter === 'all'
-                ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-700'
+                ? 'bg-blue-50 text-blue-600 border-blue-200'
+                : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300'
             }`}
           >
             Tümü ({matches.length})
@@ -103,8 +103,8 @@ export default function LiveMatchesPage() {
             onClick={() => setDateFilter('today')}
             className={`flex-1 text-xs py-2 px-3 rounded-lg border transition-colors ${
               dateFilter === 'today'
-                ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-700'
+                ? 'bg-blue-50 text-blue-600 border-blue-200'
+                : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300'
             }`}
           >
             Bugün ({todayCount})
@@ -113,90 +113,89 @@ export default function LiveMatchesPage() {
             onClick={() => setDateFilter('yesterday')}
             className={`flex-1 text-xs py-2 px-3 rounded-lg border transition-colors ${
               dateFilter === 'yesterday'
-                ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                : 'bg-zinc-900 text-zinc-400 border-zinc-800 hover:border-zinc-700'
+                ? 'bg-blue-50 text-blue-600 border-blue-200'
+                : 'bg-white text-gray-500 border-gray-200 hover:border-gray-300'
             }`}
           >
             Dün ({yesterdayCount})
           </button>
         </div>
 
-        <div className="relative group">
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-zinc-700 to-zinc-800 rounded-xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
-          <div className="relative flex items-center bg-black rounded-xl border border-white/10 px-3 h-11">
-            <Search className="w-4 h-4 text-zinc-500 mr-2" />
+        <div className="relative">
+          <div className="flex items-center bg-white rounded-xl border border-gray-200 px-3 h-11 shadow-sm">
+            <Search className="w-4 h-4 text-gray-400 mr-2" />
             <Input 
               placeholder="Takım veya lig ara..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="bg-transparent border-none h-full text-xs placeholder:text-zinc-600 focus-visible:ring-0 p-0" 
+              className="bg-transparent border-none h-full text-xs placeholder:text-gray-400 focus-visible:ring-0 p-0" 
             />
           </div>
         </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+            <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
           </div>
         ) : filteredMatches.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-zinc-500">Bitmiş maç bulunamadı</p>
+            <p className="text-gray-400">Bitmiş maç bulunamadı</p>
           </div>
         ) : (
           <div className="space-y-6">
             {Object.entries(groupedByDate).map(([date, dateMatches]) => (
               <div key={date} className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <div className="w-1 h-4 bg-emerald-500 rounded-full" />
-                  <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+                  <div className="w-1 h-4 bg-blue-500 rounded-full" />
+                  <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
                     {date === today ? 'Bugün' : date === yesterday ? 'Dün' : date}
                   </span>
-                  <Badge className="bg-zinc-800 text-zinc-400 border-zinc-700 text-[10px]">{dateMatches.length} maç</Badge>
+                  <Badge className="bg-gray-100 text-gray-500 border-gray-200 text-[10px]">{dateMatches.length} maç</Badge>
                 </div>
                 
                 {dateMatches.map((match) => (
-                  <Card key={match.id} className="bg-zinc-900/40 border-white/5 overflow-hidden relative group hover:bg-zinc-900/60 transition-all duration-300">
-                    <div className="absolute top-0 left-0 bottom-0 w-1 bg-gradient-to-b from-emerald-500 to-emerald-600" />
+                  <Card key={match.id} className="bg-white border-gray-200 overflow-hidden relative group hover:shadow-md transition-all duration-300 shadow-sm">
+                    <div className="absolute top-0 left-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-blue-600" />
                     
                     <div className="p-4">
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
                           <img src={match.league.logo} alt="" className="w-4 h-4 object-contain" />
-                          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
                             {match.league.country} / {match.league.name}
                           </span>
                         </div>
-                        <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px]">
+                        <Badge className="bg-blue-50 text-blue-600 border-blue-200 text-[10px]">
                           {match.localTime}
                         </Badge>
                       </div>
 
                       <div className="flex items-center justify-between gap-4 relative">
-                        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-3xl font-display font-black text-white/[0.03]">VS</span>
+                        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-3xl font-display font-black text-gray-100">VS</span>
 
                         <div className="flex-1 flex flex-col items-center gap-2 text-center z-10">
                           <div className="relative w-10 h-10">
-                            <div className="absolute inset-0 bg-white/5 rounded-full blur-md" />
+                            <div className="absolute inset-0 bg-gray-100 rounded-full blur-md" />
                             <img src={match.homeTeam.logo} className="w-full h-full object-contain relative" alt={match.homeTeam.name} />
                           </div>
-                          <span className="text-[10px] font-bold text-white leading-tight">{match.homeTeam.name}</span>
+                          <span className="text-[10px] font-bold text-gray-800 leading-tight">{match.homeTeam.name}</span>
                         </div>
 
                         <div className="flex flex-col items-center justify-center w-20 shrink-0 z-10">
-                          <div className="flex items-center justify-center gap-1 bg-zinc-800/50 px-3 py-1 rounded-lg">
-                            <span className="text-2xl font-display font-black text-white">{match.score.home}</span>
-                            <span className="text-lg font-bold text-zinc-600">-</span>
-                            <span className="text-2xl font-display font-black text-white">{match.score.away}</span>
+                          <div className="flex items-center justify-center gap-1 bg-gray-100 px-3 py-1 rounded-lg">
+                            <span className="text-2xl font-display font-black text-gray-800">{match.score.home}</span>
+                            <span className="text-lg font-bold text-gray-300">-</span>
+                            <span className="text-2xl font-display font-black text-gray-800">{match.score.away}</span>
                           </div>
-                          <span className="text-[9px] text-emerald-400 font-medium mt-1">MS</span>
+                          <span className="text-[9px] text-blue-500 font-medium mt-1">MS</span>
                         </div>
 
                         <div className="flex-1 flex flex-col items-center gap-2 text-center z-10">
                           <div className="relative w-10 h-10">
-                            <div className="absolute inset-0 bg-white/5 rounded-full blur-md" />
+                            <div className="absolute inset-0 bg-gray-100 rounded-full blur-md" />
                             <img src={match.awayTeam.logo} className="w-full h-full object-contain relative" alt={match.awayTeam.name} />
                           </div>
-                          <span className="text-[10px] font-bold text-white leading-tight">{match.awayTeam.name}</span>
+                          <span className="text-[10px] font-bold text-gray-800 leading-tight">{match.awayTeam.name}</span>
                         </div>
                       </div>
                     </div>

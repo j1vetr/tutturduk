@@ -72,9 +72,9 @@ export default function CouponDetailPage() {
 
   const getResultColor = (result: string) => {
     switch (result) {
-      case 'won': return 'bg-green-500';
+      case 'won': return 'bg-emerald-500';
       case 'lost': return 'bg-red-500';
-      default: return 'bg-yellow-500';
+      default: return 'bg-amber-500';
     }
   };
 
@@ -96,9 +96,9 @@ export default function CouponDetailPage() {
 
   const getConfidenceColor = (confidence?: string) => {
     switch (confidence) {
-      case 'high': return 'text-primary';
-      case 'medium': return 'text-blue-400';
-      default: return 'text-zinc-400';
+      case 'high': return 'text-emerald-600';
+      case 'medium': return 'text-blue-500';
+      default: return 'text-gray-500';
     }
   };
 
@@ -106,7 +106,7 @@ export default function CouponDetailPage() {
     return (
       <MobileLayout activeTab="home">
         <div className="flex justify-center items-center min-h-[50vh]">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
         </div>
       </MobileLayout>
     );
@@ -116,8 +116,8 @@ export default function CouponDetailPage() {
     return (
       <MobileLayout activeTab="home">
         <div className="text-center py-12">
-          <Ticket className="w-16 h-16 mx-auto mb-4 opacity-30" />
-          <p className="text-zinc-500">Kupon bulunamadı.</p>
+          <Ticket className="w-16 h-16 mx-auto mb-4 text-gray-200" />
+          <p className="text-gray-500">Kupon bulunamadı.</p>
           <Button variant="outline" className="mt-4" onClick={() => setLocation('/')}>
             <ArrowLeft className="w-4 h-4 mr-2" /> Ana Sayfaya Dön
           </Button>
@@ -131,21 +131,21 @@ export default function CouponDetailPage() {
   return (
     <MobileLayout activeTab="home">
       <div className="space-y-6">
-        <Button variant="ghost" className="text-zinc-400 hover:text-white -ml-2" onClick={() => setLocation('/')}>
+        <Button variant="ghost" className="text-gray-500 hover:text-gray-800 -ml-2" onClick={() => setLocation('/')}>
           <ArrowLeft className="w-4 h-4 mr-2" /> Geri
         </Button>
 
-        <Card className="bg-gradient-to-br from-zinc-900 to-zinc-800 border-primary/30 overflow-hidden">
-          <div className="absolute top-0 right-0 w-40 h-40 bg-primary/10 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
+        <Card className="bg-gradient-to-br from-white to-gray-50 border-emerald-200 overflow-hidden shadow-lg">
+          <div className="absolute top-0 right-0 w-40 h-40 bg-emerald-100 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
           <CardContent className="p-6 relative">
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center">
-                  <Ticket className="w-6 h-6 text-primary" />
+                <div className="w-12 h-12 rounded-xl bg-emerald-100 flex items-center justify-center">
+                  <Ticket className="w-6 h-6 text-emerald-600" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold text-white">{coupon.name}</h1>
-                  <p className="text-sm text-zinc-400">{formatDate(coupon.coupon_date)}</p>
+                  <h1 className="text-xl font-bold text-gray-800">{coupon.name}</h1>
+                  <p className="text-sm text-gray-400">{formatDate(coupon.coupon_date)}</p>
                 </div>
               </div>
               <Badge className={`${getResultColor(coupon.result)} text-white flex items-center gap-1`}>
@@ -155,67 +155,67 @@ export default function CouponDetailPage() {
             </div>
 
             <div className="grid grid-cols-2 gap-4 mt-6">
-              <div className="bg-black/30 rounded-xl p-4 text-center">
-                <p className="text-xs text-zinc-500 mb-1">Maç Sayısı</p>
-                <p className="text-2xl font-bold text-white">{coupon.predictions?.length || 0}</p>
+              <div className="bg-gray-100 rounded-xl p-4 text-center">
+                <p className="text-xs text-gray-500 mb-1">Maç Sayısı</p>
+                <p className="text-2xl font-bold text-gray-800">{coupon.predictions?.length || 0}</p>
               </div>
-              <div className="bg-black/30 rounded-xl p-4 text-center">
-                <p className="text-xs text-zinc-500 mb-1">Kombine Oran</p>
-                <p className="text-2xl font-bold text-primary">{coupon.combined_odds}x</p>
+              <div className="bg-emerald-50 rounded-xl p-4 text-center">
+                <p className="text-xs text-gray-500 mb-1">Kombine Oran</p>
+                <p className="text-2xl font-bold text-emerald-600">{coupon.combined_odds}x</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <div className="space-y-3">
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <Trophy className="w-5 h-5 text-primary" />
+          <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+            <Trophy className="w-5 h-5 text-emerald-500" />
             Kupondaki Tahminler
           </h2>
 
           {coupon.predictions && coupon.predictions.length > 0 ? (
             <div className="space-y-3">
               {coupon.predictions.map((pred, index) => (
-                <Card key={pred.id} className="bg-zinc-900 border-white/5 overflow-hidden">
+                <Card key={pred.id} className="bg-white border-gray-200 overflow-hidden shadow-sm">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3 mb-3">
-                      <span className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary">
+                      <span className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center text-xs font-bold text-emerald-600">
                         {index + 1}
                       </span>
                       <div className="flex items-center gap-2 flex-1">
                         {pred.league_logo && <img src={pred.league_logo} className="w-4 h-4 object-contain" />}
-                        <span className="text-xs text-zinc-500">{pred.league_name || pred.league_id}</span>
+                        <span className="text-xs text-gray-400">{pred.league_name || pred.league_id}</span>
                       </div>
-                      <span className="text-xs text-zinc-500">{pred.match_time}</span>
+                      <span className="text-xs text-gray-400">{pred.match_time}</span>
                     </div>
 
                     <div className="flex items-center justify-between gap-4 mb-3">
                       <div className="flex items-center gap-2 flex-1">
                         {pred.home_logo && <img src={pred.home_logo} className="w-8 h-8 object-contain" onError={(e) => { e.currentTarget.style.opacity = '0.3'; }} />}
-                        <span className="text-sm font-medium text-white">{pred.home_team}</span>
+                        <span className="text-sm font-medium text-gray-800">{pred.home_team}</span>
                       </div>
-                      <span className="text-zinc-600 text-xs font-bold">VS</span>
+                      <span className="text-gray-300 text-xs font-bold">VS</span>
                       <div className="flex items-center gap-2 flex-1 justify-end">
-                        <span className="text-sm font-medium text-white">{pred.away_team}</span>
+                        <span className="text-sm font-medium text-gray-800">{pred.away_team}</span>
                         {pred.away_logo && <img src={pred.away_logo} className="w-8 h-8 object-contain" onError={(e) => { e.currentTarget.style.opacity = '0.3'; }} />}
                       </div>
                     </div>
 
-                    <div className="flex items-center justify-between bg-black/30 rounded-lg p-3">
+                    <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-zinc-500">Tahmin:</span>
-                        <Badge variant="outline" className="text-white border-white/20">{pred.prediction}</Badge>
+                        <span className="text-xs text-gray-500">Tahmin:</span>
+                        <Badge variant="outline" className="text-gray-800 border-gray-300">{pred.prediction}</Badge>
                       </div>
                       <div className="flex items-center gap-3">
                         <span className={`text-xs font-medium ${getConfidenceColor(pred.confidence)}`}>
                           {pred.confidence === 'high' ? 'Banko' : pred.confidence === 'medium' ? 'Güçlü' : 'Normal'}
                         </span>
-                        <Badge className="bg-primary text-black font-bold">{typeof pred.odds === 'number' ? pred.odds.toFixed(2) : pred.odds}</Badge>
+                        <Badge className="bg-emerald-500 text-white font-bold">{typeof pred.odds === 'number' ? pred.odds.toFixed(2) : pred.odds}</Badge>
                       </div>
                     </div>
 
                     {pred.result !== 'pending' && (
-                      <div className={`mt-3 p-2 rounded-lg flex items-center justify-center gap-2 ${pred.result === 'won' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
+                      <div className={`mt-3 p-2 rounded-lg flex items-center justify-center gap-2 ${pred.result === 'won' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-500'}`}>
                         {pred.result === 'won' ? <CheckCircle className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
                         <span className="text-sm font-bold">{pred.result === 'won' ? 'KAZANDI' : 'KAYBETTİ'}</span>
                       </div>
@@ -225,8 +225,8 @@ export default function CouponDetailPage() {
               ))}
             </div>
           ) : (
-            <Card className="bg-zinc-900 border-white/5">
-              <CardContent className="p-8 text-center text-zinc-500">
+            <Card className="bg-white border-gray-200 shadow-sm">
+              <CardContent className="p-8 text-center text-gray-400">
                 Bu kuponda tahmin bulunmuyor.
               </CardContent>
             </Card>
