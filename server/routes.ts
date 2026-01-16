@@ -1179,6 +1179,51 @@ export async function registerRoutes(
         });
       }, 1440);
 
+      // Save predictions to best_bets for tracking and evaluation
+      if (analysis && analysis.predictions && Array.isArray(analysis.predictions)) {
+        const matchDate = match.match_date || new Date().toISOString().split('T')[0];
+        
+        // First delete existing predictions for this fixture/date
+        await pool.query(
+          `DELETE FROM best_bets WHERE fixture_id = $1 AND date_for = $2`,
+          [match.fixture_id, matchDate]
+        );
+        
+        for (const pred of analysis.predictions) {
+          try {
+            const riskLevel = pred.type === 'expected' ? 'düşük' : pred.type === 'medium' ? 'orta' : 'yüksek';
+            
+            await pool.query(
+              `INSERT INTO best_bets 
+               (match_id, fixture_id, home_team, away_team, home_logo, away_logo, league_name, league_logo,
+                match_date, match_time, bet_type, bet_description, confidence, risk_level, reasoning, date_for)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
+              [
+                match.id,
+                match.fixture_id,
+                match.home_team,
+                match.away_team,
+                match.home_logo,
+                match.away_logo,
+                match.league_name,
+                match.league_logo,
+                match.match_date,
+                match.match_time,
+                pred.bet,
+                pred.consistentScores?.join(', ') || '',
+                pred.confidence,
+                riskLevel,
+                pred.reasoning,
+                matchDate
+              ]
+            );
+          } catch (e) {
+            console.log('[BestBets] Error inserting prediction:', e);
+          }
+        }
+        console.log(`[BestBets] Saved ${analysis.predictions.length} predictions for fixture ${match.fixture_id}`);
+      }
+
       res.json(analysis);
     } catch (error: any) {
       console.error('AI Analysis error:', error);
