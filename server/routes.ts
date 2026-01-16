@@ -1687,7 +1687,7 @@ export async function registerRoutes(
     }
   });
 
-  // Admin: get all published matches (including finished)
+  // Admin: get all published matches (separating active from finished)
   app.get('/api/admin/matches', async (req, res) => {
     if (!req.session.userId) {
       return res.status(401).json({ message: 'Oturum açılmamış' });
@@ -1697,7 +1697,19 @@ export async function registerRoutes(
       return res.status(403).json({ message: 'Yetkiniz yok' });
     }
     try {
-      const result = await pool.query('SELECT * FROM published_matches ORDER BY created_at DESC');
+      const includeFinished = req.query.includeFinished === 'true';
+      
+      let query = 'SELECT * FROM published_matches';
+      if (!includeFinished) {
+        // Only show active matches (not finished, or finished within last 2 hours for review)
+        const twoHoursAgo = Math.floor(Date.now() / 1000) - (2 * 60 * 60);
+        query = `SELECT * FROM published_matches 
+                 WHERE status != 'finished' 
+                 OR (status = 'finished' AND timestamp > ${twoHoursAgo})`;
+      }
+      query += ' ORDER BY match_date ASC, match_time ASC';
+      
+      const result = await pool.query(query);
       res.json(result.rows);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
