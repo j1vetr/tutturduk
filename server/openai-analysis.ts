@@ -8,6 +8,10 @@ interface MatchData {
   homeTeam: string;
   awayTeam: string;
   league: string;
+  leagueId?: number;
+  matchType?: 'league' | 'cup' | 'friendly';
+  homeLeagueLevel?: number;
+  awayLeagueLevel?: number;
   homeForm?: string;
   awayForm?: string;
   homeGoalsFor?: number;
@@ -98,29 +102,29 @@ interface MatchData {
   awayLastMatches?: { opponent: string; result: string; score: string; home: boolean }[];
 }
 
+export interface PredictionItem {
+  type: 'expected' | 'medium' | 'risky';
+  bet: string;
+  odds: string;
+  confidence: number;
+  reasoning: string;
+  consistentScores: string[];
+}
+
 export interface AIAnalysisResult {
-  matchAnalysis: string;
-  expectedBet: {
-    prediction: string;
-    confidence: number;
-    reasoning: string;
-    odds?: string;
+  matchContext: {
+    type: 'league' | 'cup' | 'derby' | 'friendly';
+    significance: 'normal' | 'relegation' | 'title' | 'promotion' | 'final';
+    homeLeagueLevel: number;
+    awayLeagueLevel: number;
+    isCupUpset: boolean;
+    isDerby: boolean;
   };
-  mediumRiskBet: {
-    prediction: string;
-    confidence: number;
-    reasoning: string;
-    odds?: string;
-  };
-  riskyBet: {
-    prediction: string;
-    confidence: number;
-    reasoning: string;
-    odds?: string;
-  };
-  scorePredictions: string[];
+  analysis: string;
+  predictions: PredictionItem[];
+  avoidBets: string[];
+  expertTip: string;
   expectedGoalRange: string;
-  expertComment: string;
 }
 
 function formatForm(form?: string): string {
@@ -142,6 +146,31 @@ function formatLastMatches(matches?: { opponent: string; result: string; score: 
   ).join('\n  ');
 }
 
+function detectMatchType(league: string): string {
+  const cupKeywords = ['Kupa', 'Cup', 'Copa', 'Coupe', 'Pokal', 'FA Cup', 'League Cup', 'Coppa'];
+  const isCup = cupKeywords.some(k => league.toLowerCase().includes(k.toLowerCase()));
+  return isCup ? 'cup' : 'league';
+}
+
+function detectDerby(homeTeam: string, awayTeam: string): boolean {
+  const derbies = [
+    ['Galatasaray', 'Fenerbahçe'], ['Galatasaray', 'Beşiktaş'], ['Fenerbahçe', 'Beşiktaş'],
+    ['Real Madrid', 'Barcelona'], ['Real Madrid', 'Atletico Madrid'],
+    ['Manchester United', 'Manchester City'], ['Liverpool', 'Everton'],
+    ['Arsenal', 'Tottenham'], ['AC Milan', 'Inter'], ['Juventus', 'Inter'],
+    ['Bayern', 'Dortmund'], ['PSG', 'Marseille'], ['Ajax', 'Feyenoord'],
+    ['Celtic', 'Rangers'], ['Boca', 'River'], ['Flamengo', 'Fluminense'],
+  ];
+  
+  const homeLower = homeTeam.toLowerCase();
+  const awayLower = awayTeam.toLowerCase();
+  
+  return derbies.some(([t1, t2]) => 
+    (homeLower.includes(t1.toLowerCase()) && awayLower.includes(t2.toLowerCase())) ||
+    (homeLower.includes(t2.toLowerCase()) && awayLower.includes(t1.toLowerCase()))
+  );
+}
+
 export async function generateMatchAnalysis(matchData: MatchData): Promise<AIAnalysisResult> {
   const h2hTotal = matchData.h2hResults?.reduce((sum, m) => sum + m.homeGoals + m.awayGoals, 0) || 0;
   const h2hCount = matchData.h2hResults?.length || 0;
@@ -156,65 +185,74 @@ export async function generateMatchAnalysis(matchData: MatchData): Promise<AIAna
   const apiPred = matchData.apiPrediction;
   const comp = matchData.comparison;
   const odds = matchData.odds;
+  
+  const matchType = matchData.matchType || detectMatchType(matchData.league);
+  const isDerby = detectDerby(matchData.homeTeam, matchData.awayTeam);
+  const homeLeagueLevel = matchData.homeLeagueLevel || 1;
+  const awayLeagueLevel = matchData.awayLeagueLevel || 1;
 
-  const prompt = `Sen 25 yıllık deneyime sahip UZMAN BİR BAHİSÇİSİN. Profesyonel bahis stratejileri geliştiriyorsun.
-
-Aşağıdaki verileri analiz ederek 3 farklı risk seviyesinde TAHMİN üreteceksin.
+  const prompt = `Sen 25 yıllık deneyime sahip PROFESYONEL BAHİS UZMANISIN. Mantıksal tutarlılık en önemli önceliğin.
 
 ================================
-MAÇ BİLGİLERİ
+🏟️ MAÇ BİLGİLERİ
 ================================
-Lig: ${matchData.league}
+Lig/Turnuva: ${matchData.league}
+Maç Tipi: ${matchType === 'cup' ? '🏆 KUPA MAÇI' : '⚽ LİG MAÇI'}
+${isDerby ? '🔥 DERBİ MAÇI' : ''}
 Ev Sahibi: ${matchData.homeTeam}${matchData.homeRank ? ` (Sıralama: ${matchData.homeRank}. - ${matchData.homePoints} puan)` : ''}
 Deplasman: ${matchData.awayTeam}${matchData.awayRank ? ` (Sıralama: ${matchData.awayRank}. - ${matchData.awayPoints} puan)` : ''}
 
+${homeLeagueLevel !== awayLeagueLevel ? `⚠️ DİKKAT: Farklı lig seviyeleri!
+- ${matchData.homeTeam}: ${homeLeagueLevel}. Lig
+- ${matchData.awayTeam}: ${awayLeagueLevel}. Lig
+Alt lig takımı genelde defansif oynar, sürpriz riski yüksek!` : ''}
+
 ================================
-EV SAHİBİ SON MAÇLARI
+📊 EV SAHİBİ İSTATİSTİKLERİ
 ================================
 ${matchData.homeTeam}:
+Son 5 Maç:
   ${formatLastMatches(matchData.homeLastMatches)}
   
-Form (Son 5): ${formatForm(matchData.homeForm)}
+Form: ${formatForm(matchData.homeForm)}
 Sezon: ${matchData.homeWins || 0}G ${matchData.homeDraws || 0}B ${matchData.homeLosses || 0}M | Attığı: ${matchData.homeGoalsFor || 0} | Yediği: ${matchData.homeGoalsAgainst || 0}
 ${homeStats ? `Detay:
   - Temiz Kale: ${homeStats.cleanSheets || 0}
   - Gol Atamadığı Maç: ${homeStats.failedToScore || 0}
   - Evde Gol Ort.: ${homeStats.avgGoalsHome?.toFixed(2) || '-'}
-  - Evde Yediği Ort.: ${homeStats.avgGoalsConcededHome?.toFixed(2) || '-'}
-  - Gol Dakikaları: ${formatGoalMinutes(homeStats.goalsMinutes)}` : ''}
+  - Evde Yediği Ort.: ${homeStats.avgGoalsConcededHome?.toFixed(2) || '-'}` : ''}
 
 ================================
-DEPLASMAN SON MAÇLARI
+📊 DEPLASMAN İSTATİSTİKLERİ
 ================================
 ${matchData.awayTeam}:
+Son 5 Maç:
   ${formatLastMatches(matchData.awayLastMatches)}
   
-Form (Son 5): ${formatForm(matchData.awayForm)}
+Form: ${formatForm(matchData.awayForm)}
 Sezon: ${matchData.awayWins || 0}G ${matchData.awayDraws || 0}B ${matchData.awayLosses || 0}M | Attığı: ${matchData.awayGoalsFor || 0} | Yediği: ${matchData.awayGoalsAgainst || 0}
 ${awayStats ? `Detay:
   - Temiz Kale: ${awayStats.cleanSheets || 0}
   - Gol Atamadığı Maç: ${awayStats.failedToScore || 0}
   - Deplasmanda Gol Ort.: ${awayStats.avgGoalsAway?.toFixed(2) || '-'}
-  - Deplasmanda Yediği Ort.: ${awayStats.avgGoalsConcededAway?.toFixed(2) || '-'}
-  - Gol Dakikaları: ${formatGoalMinutes(awayStats.goalsMinutes)}` : ''}
+  - Deplasmanda Yediği Ort.: ${awayStats.avgGoalsConcededAway?.toFixed(2) || '-'}` : ''}
 
 ================================
-H2H (KAFA KAFAYA GEÇMİŞ)
+🤝 H2H (KAFA KAFAYA GEÇMİŞ)
 ================================
 ${h2hSummary}
 ${matchData.h2hResults?.length ? matchData.h2hResults.slice(0, 5).map(h => `  ${matchData.homeTeam} ${h.homeGoals} - ${h.awayGoals} ${matchData.awayTeam}`).join('\n') : ''}
 
 ================================
-MODEL KARŞILAŞTIRMALARI
+📈 MODEL KARŞILAŞTIRMALARI
 ================================
 - Form: Ev ${comp?.form?.home || '-'}% vs Dep ${comp?.form?.away || '-'}%
-- Atak Gücü: Ev ${comp?.att?.home || '-'}% vs Dep ${comp?.att?.away || '-'}%
-- Defans Gücü: Ev ${comp?.def?.home || '-'}% vs Dep ${comp?.def?.away || '-'}%
+- Atak: Ev ${comp?.att?.home || '-'}% vs Dep ${comp?.att?.away || '-'}%
+- Defans: Ev ${comp?.def?.home || '-'}% vs Dep ${comp?.def?.away || '-'}%
 - H2H Üstünlük: Ev ${comp?.h2h?.home || '-'}% vs Dep ${comp?.h2h?.away || '-'}%
-- Gol Beklentisi: Ev ${comp?.goals?.home || '-'}% vs Dep ${comp?.goals?.away || '-'}%
 
 ${apiPred ? `================================
-API TAHMİN VERİLERİ
+🎯 API TAHMİN VERİLERİ
 ================================
 - Kazanan: ${apiPred.winner?.name || '-'} (${apiPred.winner?.comment || ''})
 - Olasılıklar: Ev %${apiPred.percent?.home || '-'} | X %${apiPred.percent?.draw || '-'} | Dep %${apiPred.percent?.away || '-'}
@@ -223,86 +261,92 @@ API TAHMİN VERİLERİ
 - Tavsiye: ${apiPred.advice || '-'}` : ''}
 
 ${odds ? `================================
-BAHİS ORANLARI
+💰 BAHİS ORANLARI
 ================================
 - Ev Kazanır: ${odds.home?.toFixed(2) || '-'}
 - Beraberlik: ${odds.draw?.toFixed(2) || '-'}
-- Deplasman Kazanır: ${odds.away?.toFixed(2) || '-'}
+- Deplasman: ${odds.away?.toFixed(2) || '-'}
 - 2.5 Üst: ${odds.over25?.toFixed(2) || '-'}
 - 2.5 Alt: ${odds.under25?.toFixed(2) || '-'}` : ''}
 
 ${matchData.injuries?.home?.length || matchData.injuries?.away?.length ? `================================
-SAKATLIKLAR VE CEZALILAR
+🏥 SAKATLIKLAR
 ================================
-${matchData.injuries?.home?.length ? `${matchData.homeTeam}: ${matchData.injuries.home.map(i => `${i.player} (${i.reason})`).join(', ')}` : `${matchData.homeTeam}: Bilgi yok`}
-${matchData.injuries?.away?.length ? `${matchData.awayTeam}: ${matchData.injuries.away.map(i => `${i.player} (${i.reason})`).join(', ')}` : `${matchData.awayTeam}: Bilgi yok`}` : `================================
-SAKATLIKLAR
-================================
-Sakatlık bilgisi mevcut değil.`}
+${matchData.injuries?.home?.length ? `${matchData.homeTeam}: ${matchData.injuries.home.map(i => `${i.player} (${i.reason})`).join(', ')}` : ''}
+${matchData.injuries?.away?.length ? `${matchData.awayTeam}: ${matchData.injuries.away.map(i => `${i.player} (${i.reason})`).join(', ')}` : ''}` : ''}
 
 ================================
-UZMAN BAHİSÇİ OLARAK TAHMİN YAP
+⚠️ KRİTİK KURALLAR (ZORUNLU)
 ================================
 
-3 FARKLI RİSK SEVİYESİNDE TAHMİN VER:
+1️⃣ SKOR-GOL TUTARLILIĞI (ÇOK ÖNEMLİ!)
+   - 2.5 ÜST tahmini veriyorsan: SADECE 3+ gollü skorlar ver (2-1, 3-0, 2-2, 3-1 vb.)
+   - 2.5 ALT tahmini veriyorsan: SADECE 0-2 gollü skorlar ver (1-0, 0-0, 1-1, 2-0 vb.)
+   - 3.5 ÜST tahmini veriyorsan: SADECE 4+ gollü skorlar ver (3-1, 2-2, 4-0 vb.)
+   - KG VAR diyorsan: Her iki takım da gol atmalı (1-1, 2-1, 1-2 vb.)
+   - KG YOK diyorsan: En az bir takım gol atmamalı (1-0, 0-0, 2-0 vb.)
 
-1️⃣ BEKLENEN (Düşük Risk)
-- En güvenli tahmin
-- Genellikle 2.5 Üst veya 2.5 Alt gibi standart bahisler
-- %60+ güven oranı beklenir
-- Oran: 1.40 - 1.80 arası
+2️⃣ RİSK SEVİYELERİ
+   - BEKLENEN (Düşük Risk): %60+ güven, 1.30-1.70 oran aralığı
+   - ORTA RİSK: %40-60 güven, 1.70-2.50 oran aralığı
+   - RİSKLİ (Yüksek Risk): %15-40 güven, 2.50+ oran aralığı
 
-2️⃣ ORTA RİSKLİ
-- Daha cesur tahmin
-- Örnekler: 3.5 Üst, 4.5 Üst, İY 1.5 Alt, İY 0.5 Üst, Ev Kazanır, Deplasman Kazanır, KG Var/Yok
-- %40-60 güven oranı
-- Oran: 1.80 - 2.50 arası
+3️⃣ KUPA MAÇI KURALLARI
+   - Alt lig takımı genelde defansif oynar
+   - İlk yarıda az gol beklenir (İY 0.5 Alt değerli)
+   - Sürpriz sonuç riski yüksek
+   - Üst lig takımı için handikap riskli
 
-3️⃣ RİSKLİ (Yüksek Risk)
-- En cesur ve kazançlı tahmin
-- Örnekler: İY 0 - MS 1, İY 1-1, Tam Skor, Handikaplı Sonuç, İlk Gol Dakikası, 5+ Gol
-- %20-40 güven oranı
-- Oran: 2.50+ (genellikle 3.00+)
-
+4️⃣ DERBİ KURALLARI
+   - İlk yarı genelde temkinli geçer
+   - Duygusal atmosfer, beklenmedik kartlar
+   - Çok gollü veya golsüz olabilir - ekstrem tahminler
+   
 ================================
-ANALİZ KURALLARI
-================================
-- Her takımın son maçlarını detaylı incele
-- H2H geçmişini değerlendir (ilk karşılaşma ise bunu belirt)
-- Lig seviyesini ve takım kalitelerini karşılaştır
-- İç saha/deplasman performanslarını analiz et
-- Sakatlık bilgisi varsa etkisini değerlendir
-- Bahis oranlarını ve değer analizini yap
-- UZMAN bir bahisçi gibi profesyonelce yorum yap
-- Tahminlerde Türkçe kullan (Üst/Alt, İY/MS, KG Var/Yok gibi)
-
-================================
-JSON ÇIKTI FORMATI (ZORUNLU)
+📤 JSON ÇIKTI FORMATI (ZORUNLU)
 ================================
 {
-  "matchAnalysis": "5-6 cümlelik detaylı uzman analizi. Lig seviyesi, takım kaliteleri, son maçlar, H2H durumu, form karşılaştırması ve iç saha faktörünü içermeli. Profesyonel bahisçi bakış açısıyla yaz.",
-  "expectedBet": {
-    "prediction": "2.5 Üst veya 2.5 Alt gibi tek bir tahmin",
-    "confidence": 65,
-    "reasoning": "Neden bu tahmini verdiğini 2 cümleyle açıkla",
-    "odds": "~1.55"
+  "matchContext": {
+    "type": "${matchType}",
+    "significance": "normal",
+    "homeLeagueLevel": ${homeLeagueLevel},
+    "awayLeagueLevel": ${awayLeagueLevel},
+    "isCupUpset": false,
+    "isDerby": ${isDerby}
   },
-  "mediumRiskBet": {
-    "prediction": "3.5 Üst, Ev Kazanır, İY 1.5 Alt gibi tek bir tahmin",
-    "confidence": 48,
-    "reasoning": "Neden bu tahmini verdiğini 2 cümleyle açıkla",
-    "odds": "~2.10"
-  },
-  "riskyBet": {
-    "prediction": "İY 0 - MS 1, Tam Skor 2-1, Handikap -1.5 gibi cesur tek bir tahmin",
-    "confidence": 28,
-    "reasoning": "Neden bu tahmini verdiğini 2 cümleyle açıkla",
-    "odds": "~4.50"
-  },
-  "scorePredictions": ["2-1", "1-1", "2-0"],
-  "expectedGoalRange": "2-3 gol",
-  "expertComment": "Uzman bahisçi olarak 1-2 cümlelik kısa strateji önerisi ve maç hakkında ana görüş"
-}`;
+  "analysis": "5-6 cümlelik detaylı analiz. Takım formları, H2H, iç saha avantajı, lig seviyesi farkı gibi faktörleri değerlendir. Profesyonel bahisçi bakış açısıyla yaz.",
+  "predictions": [
+    {
+      "type": "expected",
+      "bet": "2.5 Üst veya 2.5 Alt gibi güvenli bahis",
+      "odds": "~1.55",
+      "confidence": 65,
+      "reasoning": "2 cümlelik açıklama",
+      "consistentScores": ["2-1", "1-2", "2-2"]
+    },
+    {
+      "type": "medium",
+      "bet": "Ev Kazanır, KG Var, 3.5 Üst gibi orta riskli bahis",
+      "odds": "~2.00",
+      "confidence": 48,
+      "reasoning": "2 cümlelik açıklama",
+      "consistentScores": ["2-1", "3-1"]
+    },
+    {
+      "type": "risky",
+      "bet": "İY 0 - MS 1, Tam Skor, Handikap gibi yüksek oranlı bahis",
+      "odds": "~5.00",
+      "confidence": 22,
+      "reasoning": "2 cümlelik açıklama",
+      "consistentScores": ["1-0"]
+    }
+  ],
+  "avoidBets": ["Bu maçta kaçınılması gereken 1-2 bahis ve sebebi"],
+  "expertTip": "1-2 cümlelik kısa strateji önerisi",
+  "expectedGoalRange": "2-3 gol"
+}
+
+NOT: consistentScores her zaman bet ile uyumlu olmalı! 2.5 Üst diyorsan 3+ gollü skorlar, 2.5 Alt diyorsan 2 ve altı gollü skorlar ver.`;
 
   try {
     const response = await openai.chat.completions.create({
@@ -310,15 +354,15 @@ JSON ÇIKTI FORMATI (ZORUNLU)
       messages: [
         {
           role: "system",
-          content: "Sen 25 yıllık deneyime sahip profesyonel bir bahis uzmanı ve futbol analistisin. Avrupa'nın tüm liglerini yakından takip ediyorsun. Risk yönetimi ve değer bahisi konularında uzmansın. Verilerden anlam çıkarıp pratik bahis önerileri sunuyorsun. Türkçe yazıyorsun. Kesin ifadeler kullanmıyorsun. Sadece JSON formatında yanıt veriyorsun."
+          content: "Sen 25 yıllık deneyime sahip profesyonel bir bahis uzmanı ve futbol analistisin. En önemli özelliğin MANTIKSAL TUTARLILIK. Skor tahminlerin her zaman gol tahminlerinle uyumlu olmalı. Kesinlikle 2.5 Üst deyip 2 gollü skor vermezsin. Türkçe yazıyorsun. Sadece JSON formatında yanıt veriyorsun."
         },
         {
           role: "user",
           content: prompt
         }
       ],
-      temperature: 0.7,
-      max_tokens: 1800,
+      temperature: 0.6,
+      max_tokens: 2000,
       response_format: { type: "json_object" }
     });
 
@@ -328,6 +372,28 @@ JSON ÇIKTI FORMATI (ZORUNLU)
     }
 
     const result = JSON.parse(content) as AIAnalysisResult;
+    
+    // Validate score consistency
+    for (const pred of result.predictions) {
+      if (pred.bet.includes('2.5 Üst') || pred.bet.includes('2,5 Üst')) {
+        pred.consistentScores = pred.consistentScores.filter(score => {
+          const [h, a] = score.split('-').map(Number);
+          return (h + a) >= 3;
+        });
+        if (pred.consistentScores.length === 0) {
+          pred.consistentScores = ['2-1', '1-2', '2-2'];
+        }
+      } else if (pred.bet.includes('2.5 Alt') || pred.bet.includes('2,5 Alt')) {
+        pred.consistentScores = pred.consistentScores.filter(score => {
+          const [h, a] = score.split('-').map(Number);
+          return (h + a) <= 2;
+        });
+        if (pred.consistentScores.length === 0) {
+          pred.consistentScores = ['1-0', '0-1', '1-1'];
+        }
+      }
+    }
+    
     return result;
   } catch (error) {
     console.error("OpenAI analysis error:", error);
