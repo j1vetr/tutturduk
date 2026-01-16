@@ -5,6 +5,7 @@ import { ArrowLeft, Clock, Loader2, Trophy, Target, Flame, Shield, AlertTriangle
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { MatchSimulation } from "@/components/MatchSimulation";
 
 interface PredictionItem {
   type: 'expected' | 'medium' | 'risky';
@@ -427,6 +428,22 @@ export default function MatchDetailPage() {
           <LoadingAnimation />
         ) : aiAnalysis ? (
           <div className={`space-y-4 transition-all duration-700 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+            
+            {/* Match Simulation */}
+            {aiAnalysis.predictions[0]?.consistentScores?.[0] && (
+              <MatchSimulation
+                homeTeam={match.home_team}
+                awayTeam={match.away_team}
+                homeLogo={match.home_logo}
+                awayLogo={match.away_logo}
+                predictedScore={(() => {
+                  const score = aiAnalysis.predictions[0].consistentScores[0];
+                  const [home, away] = score.split('-').map(s => parseInt(s.trim()) || 0);
+                  return { home, away };
+                })()}
+              />
+            )}
+            
             <div className="rounded-xl bg-gradient-to-br from-zinc-900 via-zinc-900/95 to-zinc-950 border border-white/5 p-4 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-3xl" />
               
