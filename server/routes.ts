@@ -1383,57 +1383,35 @@ export async function registerRoutes(
             });
           }, 1440);
 
-          const maxConfidence = Math.max(
-            analysis.over25?.confidence || 0,
-            analysis.btts?.confidence || 0,
-            analysis.winner?.confidence || 0
-          );
-          
-          let betType = '';
-          let betDescription = '';
-          let confidence = 0;
-          let reasoning = '';
-          
-          if (analysis.over25?.confidence >= analysis.btts?.confidence && 
-              analysis.over25?.confidence >= analysis.winner?.confidence) {
-            betType = analysis.over25.prediction ? '2.5 ÜST' : '2.5 ALT';
-            betDescription = analysis.over25.prediction ? 'Maçta 3+ gol bekleniyor' : 'Maçta 2 veya daha az gol bekleniyor';
-            confidence = analysis.over25.confidence;
-            reasoning = analysis.over25.reasoning;
-          } else if (analysis.btts?.confidence >= analysis.winner?.confidence) {
-            betType = analysis.btts.prediction ? 'KG VAR' : 'KG YOK';
-            betDescription = analysis.btts.prediction ? 'Her iki takım da gol atar' : 'En az bir takım gol atamaz';
-            confidence = analysis.btts.confidence;
-            reasoning = analysis.btts.reasoning;
-          } else {
-            const winnerLabel = analysis.winner.prediction === '1' ? match.home_team : 
-                               analysis.winner.prediction === '2' ? match.away_team : 'Beraberlik';
-            betType = `MS ${analysis.winner.prediction}`;
-            betDescription = `${winnerLabel} kazanır`;
-            confidence = analysis.winner.confidence;
-            reasoning = analysis.winner.reasoning;
+          // Use new predictions array from AIAnalysisResult
+          if (analysis.predictions && analysis.predictions.length > 0) {
+            // Get the best prediction (expected type has highest confidence)
+            const expectedPred = analysis.predictions.find(p => p.type === 'expected') || analysis.predictions[0];
+            
+            const riskLevel = expectedPred.type === 'expected' ? 'düşük' : 
+                             expectedPred.type === 'medium' ? 'orta' : 'yüksek';
+            
+            const bet = await storage.createBestBet({
+              match_id: match.id,
+              fixture_id: match.fixture_id,
+              home_team: match.home_team,
+              away_team: match.away_team,
+              home_logo: match.home_logo,
+              away_logo: match.away_logo,
+              league_name: match.league_name,
+              league_logo: match.league_logo,
+              match_date: match.match_date!,
+              match_time: match.match_time!,
+              bet_type: expectedPred.bet,
+              bet_description: expectedPred.consistentScores?.join(', ') || '',
+              confidence: expectedPred.confidence,
+              risk_level: riskLevel,
+              reasoning: expectedPred.reasoning,
+              date_for: today
+            });
+            
+            bestBets.push(bet);
           }
-
-          const bet = await storage.createBestBet({
-            match_id: match.id,
-            fixture_id: match.fixture_id,
-            home_team: match.home_team,
-            away_team: match.away_team,
-            home_logo: match.home_logo,
-            away_logo: match.away_logo,
-            league_name: match.league_name,
-            league_logo: match.league_logo,
-            match_date: match.match_date!,
-            match_time: match.match_time!,
-            bet_type: betType,
-            bet_description: betDescription,
-            confidence: confidence,
-            risk_level: analysis.riskLevel,
-            reasoning: reasoning,
-            date_for: today
-          });
-          
-          bestBets.push(bet);
         } catch (err) {
           console.error(`Error generating best bet for match ${match.id}:`, err);
         }
