@@ -990,8 +990,16 @@ export async function registerRoutes(
         const allFixtures = [...todayFixtures, ...tomorrowFixtures];
         console.log(`[All Predictions] Bugün: ${todayFixtures.length}, Yarın: ${tomorrowFixtures.length}, Toplam: ${allFixtures.length} maç`);
         
+        // Filter out matches that have already started (timestamp in the past)
+        const nowTimestamp = Math.floor(Date.now() / 1000);
+        const upcomingFixtures = allFixtures.filter((f: any) => {
+          const matchTimestamp = f.fixture?.timestamp || 0;
+          return matchTimestamp > nowTimestamp;
+        });
+        console.log(`[All Predictions] Başlamamış maçlar: ${upcomingFixtures.length} (${allFixtures.length - upcomingFixtures.length} geçmiş maç filtrelendi)`);
+        
         // Filter out U23, Women's, Reserve leagues BEFORE fetching predictions (saves API calls)
-        const filteredFixtures = filterMatches(allFixtures);
+        const filteredFixtures = filterMatches(upcomingFixtures);
         console.log(`[All Predictions] Filtreleme sonrası: ${filteredFixtures.length} maç`);
         
         // 2. Her maç için tahmin çek (paralel, 10'lu gruplar halinde)
@@ -1048,7 +1056,14 @@ export async function registerRoutes(
         }));
       }, 300); // 5 dakika cache
       
-      res.json(result);
+      // Filter out past matches from cached data (in case cache is stale)
+      const nowTimestamp = Math.floor(Date.now() / 1000);
+      const filteredResult = result.filter((m: any) => {
+        const matchTimestamp = new Date(m.date).getTime() / 1000;
+        return matchTimestamp > nowTimestamp;
+      });
+      
+      res.json(filteredResult);
     } catch (error: any) {
       console.error('All predictions error:', error);
       res.status(500).json({ message: error.message });
