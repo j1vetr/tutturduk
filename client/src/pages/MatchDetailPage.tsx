@@ -27,7 +27,7 @@ interface AIAnalysis {
   matchContext: MatchContext;
   analysis: string;
   predictions: PredictionItem[];
-  avoidBets: string[];
+  avoidBets: (string | { bet?: string; reason?: string })[];
   expertTip: string;
   expectedGoalRange: string;
 }
@@ -640,12 +640,15 @@ export default function MatchDetailPage() {
                 
                 <div className={`overflow-hidden transition-all duration-300 ${showAvoidBets ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
                   <div className="px-4 pb-4 space-y-2">
-                    {aiAnalysis.avoidBets.map((bet, i) => (
-                      <div key={i} className="flex items-start gap-2 p-3 rounded-xl bg-red-50">
-                        <XCircle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
-                        <span className="text-sm text-red-700">{bet}</span>
-                      </div>
-                    ))}
+                    {aiAnalysis.avoidBets.map((bet, i) => {
+                      const betText = typeof bet === 'string' ? bet : (bet as any).bet || (bet as any).reason || JSON.stringify(bet);
+                      return (
+                        <div key={i} className="flex items-start gap-2 p-3 rounded-xl bg-red-50">
+                          <XCircle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
+                          <span className="text-sm text-red-700">{betText}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
