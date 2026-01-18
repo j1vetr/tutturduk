@@ -100,8 +100,8 @@ app.use((req, res, next) => {
       startMatchStatusService(15);
       log('Match status service started (15 min interval)');
       
-      startAutoPublishService(20); // Run at 20:00 daily
-      log('Auto-publish service started (daily at 20:00)');
+      startAutoPublishService(22); // Run at 22:00 daily
+      log('Auto-publish service started (daily at 22:00)');
     },
   );
 })();

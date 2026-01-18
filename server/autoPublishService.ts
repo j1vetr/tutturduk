@@ -394,7 +394,7 @@ export async function autoPublishTomorrowMatches(targetCount: number = 40) {
 
 let autoPublishInterval: NodeJS.Timeout | null = null;
 
-export function startAutoPublishService(runAtHour: number = 20) {
+export function startAutoPublishService(runAtHour: number = 22) {
   console.log(`[AutoPublish] Service scheduled to run daily at ${runAtHour}:00`);
   
   const checkAndRun = async () => {
