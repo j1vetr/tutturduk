@@ -1202,15 +1202,26 @@ export async function registerRoutes(
         // Reconstruct analysis from existing best_bets
         console.log(`[AI Analysis] Reconstructing from ${existingBets.rows.length} existing best_bets`);
         const reconstructedAnalysis = {
-          matchContext: { type: 'league', significance: 'normal' },
+          matchContext: { 
+            type: 'league', 
+            significance: 'normal',
+            homeLeagueLevel: 1,
+            awayLeagueLevel: 1,
+            isCupUpset: false,
+            isDerby: false
+          },
           analysis: existingBets.rows[0]?.reasoning || 'Analiz mevcut.',
           predictions: existingBets.rows.map((bet: any) => ({
             type: bet.risk_level === 'düşük' ? 'expected' : bet.risk_level === 'orta' ? 'medium' : 'risky',
             bet: bet.bet_type,
-            confidence: bet.confidence,
-            reasoning: bet.reasoning,
-            consistentScores: bet.bet_description ? bet.bet_description.split(', ') : []
+            odds: bet.odds ? `${bet.odds.toFixed(2)}` : '~1.50',
+            confidence: bet.confidence || 65,
+            reasoning: bet.reasoning || '',
+            consistentScores: bet.bet_description ? bet.bet_description.split(', ') : ['1-1', '2-1']
           })),
+          avoidBets: [],
+          expertTip: existingBets.rows[0]?.reasoning || 'İstatistiklere dayalı tahminler.',
+          expectedGoalRange: '2-3 gol',
           expertCommentary: {
             headline: `${match.home_team} vs ${match.away_team} Analizi`,
             keyInsight: existingBets.rows[0]?.reasoning || '',
