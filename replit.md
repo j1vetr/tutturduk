@@ -81,6 +81,7 @@ Key entities include:
 
 ### Third-Party APIs
 - **API-Football (v3)**: Live match scores, fixtures, predictions, H2H data (via API_FOOTBALL_KEY)
+- **NosyAPI**: Turkish İddaa betting odds integration (via NOSYAPI_KEY) - Uses intelligent team name matching algorithm
 - **OpenAI GPT-4o-mini**: AI-powered match analysis and predictions (via OPENAI_API_KEY)
 
 ### Key NPM Packages
@@ -94,6 +95,7 @@ Key entities include:
 - `DATABASE_URL`: PostgreSQL connection string
 - `SESSION_SECRET`: Secret for session encryption (optional, has default)
 - `API_FOOTBALL_KEY`: API-Football (RapidAPI) key for match data
+- `NOSYAPI_KEY`: NosyAPI key for Turkish İddaa odds
 - `OPENAI_API_KEY`: OpenAI API key for AI analysis
 
 ## Coupon System
@@ -145,3 +147,9 @@ Key entities include:
      - Bet-specific score requirements enforced (2.5 Üst → 3+ goals, KG Var → both score)
      - High-scoring clean sheet handling (Ev 1.5 Üst with 3-0, 4-0 instead of 2.5 Alt)
      - All replacement scores meet the scenario's goal band requirement
+
+### January 18, 2026 - Turkish Odds Integration
+- **NosyAPI Integration**: Added Turkish İddaa odds via NosyAPI with intelligent team name matching
+- **Hybrid API Architecture**: API-Football for match data/statistics, NosyAPI for Turkish betting odds only
+- **Collapsible Odds Display**: MatchDetailPage now shows İddaa oranları with MS, Alt/Üst, KG, and Çifte Şans markets
+- **Team Name Matching**: Uses similarity algorithm (0.5+ threshold) with Turkish character normalization
