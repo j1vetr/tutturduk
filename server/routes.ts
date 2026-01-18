@@ -1834,7 +1834,7 @@ export async function registerRoutes(
       const dateFilter = date ? `AND pm.match_date = $1` : '';
       const params = date ? [date] : [];
 
-      // Get matches with predictions for the selected date (or all recent)
+      // Get matches with predictions for the selected date (only finished matches with scores)
       const matchesQuery = `
         SELECT pm.id, pm.fixture_id, pm.home_team, pm.away_team, pm.home_logo, pm.away_logo,
                pm.league_name, pm.league_logo, pm.match_date, pm.match_time, pm.status,
@@ -1854,7 +1854,7 @@ export async function registerRoutes(
            END
          ) FROM best_bets bb WHERE bb.fixture_id = pm.fixture_id) as predictions
          FROM published_matches pm
-         WHERE (pm.status = 'finished' OR pm.match_date <= CURRENT_DATE) ${dateFilter}
+         WHERE pm.status = 'finished' AND pm.final_score_home IS NOT NULL ${dateFilter}
          ORDER BY pm.match_date DESC, pm.match_time DESC
          LIMIT 100`;
       
