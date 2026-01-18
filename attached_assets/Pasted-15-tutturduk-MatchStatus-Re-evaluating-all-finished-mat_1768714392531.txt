@@ -1,0 +1,79 @@
+15|tutturduk  | [MatchStatus] Re-evaluating all finished matches...
+15|tutturduk  | [MatchStatus] Found 3 finished matches with pending predictions
+15|tutturduk  | [MatchStatus] Re-evaluating: Central Coast Mariners vs Macarthur (1-1)
+15|tutturduk  | [MatchStatus] Error re-evaluating 1469631: error: column "ai_analysis" does not exist
+15|tutturduk  |     at /var/www/tutturduk/dist/index.cjs:64:13326
+15|tutturduk  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+15|tutturduk  |     at async e_ (/var/www/tutturduk/dist/index.cjs:444:608)
+15|tutturduk  |     at async t_ (/var/www/tutturduk/dist/index.cjs:458:279)
+15|tutturduk  |     at async /var/www/tutturduk/dist/index.cjs:492:860 {
+15|tutturduk  |   length: 111,
+15|tutturduk  |   severity: 'ERROR',
+15|tutturduk  |   code: '42703',
+15|tutturduk  |   detail: undefined,
+15|tutturduk  |   hint: undefined,
+15|tutturduk  |   position: '12',
+15|tutturduk  |   internalPosition: undefined,
+15|tutturduk  |   internalQuery: undefined,
+15|tutturduk  |   where: undefined,
+15|tutturduk  |   schema: undefined,
+15|tutturduk  |   table: undefined,
+15|tutturduk  |   column: undefined,
+15|tutturduk  |   dataType: undefined,
+15|tutturduk  |   constraint: undefined,
+15|tutturduk  |   file: 'parse_relation.c',
+15|tutturduk  |   line: '3647',
+15|tutturduk  |   routine: 'errorMissingColumn'
+15|tutturduk  | }
+15|tutturduk  | [MatchStatus] Re-evaluating: CS Herediano vs Deportivo Saprissa (2-0)
+15|tutturduk  | [MatchStatus] Error re-evaluating 1489100: error: column "ai_analysis" does not exist
+15|tutturduk  |     at /var/www/tutturduk/dist/index.cjs:64:13326
+15|tutturduk  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+15|tutturduk  |     at async e_ (/var/www/tutturduk/dist/index.cjs:444:608)
+15|tutturduk  |     at async t_ (/var/www/tutturduk/dist/index.cjs:458:279)
+15|tutturduk  |     at async /var/www/tutturduk/dist/index.cjs:492:860 {
+15|tutturduk  |   length: 111,
+15|tutturduk  |   severity: 'ERROR',
+15|tutturduk  |   code: '42703',
+15|tutturduk  |   detail: undefined,
+15|tutturduk  |   hint: undefined,
+15|tutturduk  |   position: '12',
+15|tutturduk  |   internalPosition: undefined,
+15|tutturduk  |   internalQuery: undefined,
+15|tutturduk  |   where: undefined,
+15|tutturduk  |   schema: undefined,
+15|tutturduk  |   table: undefined,
+15|tutturduk  |   column: undefined,
+15|tutturduk  |   dataType: undefined,
+15|tutturduk  |   constraint: undefined,
+15|tutturduk  |   file: 'parse_relation.c',
+15|tutturduk  |   line: '3647',
+15|tutturduk  |   routine: 'errorMissingColumn'
+15|tutturduk  | }
+15|tutturduk  | [MatchStatus] Re-evaluating: Cruz Azul vs Puebla (1-0)
+15|tutturduk  | [MatchStatus] Error re-evaluating 1491814: error: column "ai_analysis" does not exist
+15|tutturduk  |     at /var/www/tutturduk/dist/index.cjs:64:13326
+15|tutturduk  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+15|tutturduk  |     at async e_ (/var/www/tutturduk/dist/index.cjs:444:608)
+15|tutturduk  |     at async t_ (/var/www/tutturduk/dist/index.cjs:458:279)
+15|tutturduk  |     at async /var/www/tutturduk/dist/index.cjs:492:860 {
+15|tutturduk  |   length: 111,
+15|tutturduk  |   severity: 'ERROR',
+15|tutturduk  |   code: '42703',
+15|tutturduk  |   detail: undefined,
+15|tutturduk  |   hint: undefined,
+15|tutturduk  |   position: '12',
+15|tutturduk  |   internalPosition: undefined,
+15|tutturduk  |   internalQuery: undefined,
+15|tutturduk  |   where: undefined,
+15|tutturduk  |   schema: undefined,
+15|tutturduk  |   table: undefined,
+15|tutturduk  |   column: undefined,
+15|tutturduk  |   dataType: undefined,
+15|tutturduk  |   constraint: undefined,
+15|tutturduk  |   file: 'parse_relation.c',
+15|tutturduk  |   line: '3647',
+15|tutturduk  |   routine: 'errorMissingColumn'
+15|tutturduk  | }
+15|tutturduk  | [MatchStatus] Re-evaluation completed: 0 predictions evaluated
+15|tutturduk  | 8:32:57 AM [express] POST /api/admin/re-evaluate 200 in 15ms :: {"success":true,"message":"0 tahmin değerlendirildi","evaluated":0}

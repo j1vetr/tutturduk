@@ -105,14 +105,6 @@ async function evaluateMatchPredictions(fixtureId: number, homeScore: number, aw
   const totalGoals = homeScore + awayScore;
   const bothTeamsScored = homeScore > 0 && awayScore > 0;
   
-  const htResult = await pool.query(
-    `SELECT id, ai_analysis FROM published_matches WHERE fixture_id = $1`,
-    [fixtureId]
-  );
-  
-  const matchId = htResult.rows[0]?.id;
-  const aiAnalysis = htResult.rows[0]?.ai_analysis;
-  
   const bestBetsResult = await pool.query(
     `SELECT id, bet_type FROM best_bets WHERE fixture_id = $1`,
     [fixtureId]
