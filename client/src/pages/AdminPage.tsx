@@ -460,7 +460,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (activeTab === "predictions" && upcomingMatches.length === 0) {
-      loadUpcomingMatches();
+      loadUpcomingMatches(true); // Load validated/quality matches by default
     }
   }, [activeTab]);
 
