@@ -191,13 +191,20 @@ export async function autoPublishTomorrowMatches(targetCount: number = 40) {
           console.log(`[AutoPublish] No odds for ${homeTeam} vs ${awayTeam}`);
         }
         
-        // Log progress
-        const hasOdds = parsedOdds.home || parsedOdds.over25;
-        if (!hasOdds) {
+        // Check if match has essential odds (MS or over/under)
+        const hasBasicOdds = parsedOdds.home && parsedOdds.draw && parsedOdds.away;
+        const hasOverUnderOdds = parsedOdds.over25 || parsedOdds.over15 || parsedOdds.over35;
+        const hasBttsOdds = parsedOdds.bttsYes && parsedOdds.bttsNo;
+        
+        // Must have at least MS odds AND (over/under OR btts)
+        if (!hasBasicOdds || (!hasOverUnderOdds && !hasBttsOdds)) {
           skippedNoOdds++;
+          console.log(`[AutoPublish] Skipping ${homeTeam} vs ${awayTeam} - insufficient odds data`);
+          await new Promise(resolve => setTimeout(resolve, 500));
+          continue;
         }
         
-        console.log(`[AutoPublish] [${scoredMatches.length + 1}/${targetCount}] Valid match: ${homeTeam} vs ${awayTeam} (stats: ${statsScore}, odds: ${hasOdds ? 'yes' : 'no'})`);
+        console.log(`[AutoPublish] [${scoredMatches.length + 1}/${targetCount}] Valid match: ${homeTeam} vs ${awayTeam} (stats: ${statsScore}, odds: complete)`);
         
         scoredMatches.push({
           fixture: match.fixture,
