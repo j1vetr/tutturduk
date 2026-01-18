@@ -7,6 +7,7 @@ import { pool } from './db';
 import { apiFootball, SUPPORTED_LEAGUES, CURRENT_SEASON } from './apiFootball';
 import { generateMatchAnalysis } from './openai-analysis';
 import { filterMatches, hasValidStatistics, getStatisticsScore } from './matchFilter';
+import { nosyApi } from './nosyApi';
 import { checkAndUpdateMatchStatuses } from './matchStatusService';
 import { autoPublishTomorrowMatches } from './autoPublishService';
 import { generatePredictionsForAllPendingMatches } from './openai-analysis';
@@ -1036,11 +1037,22 @@ export async function registerRoutes(
       if (!match) {
         return res.status(404).json({ message: 'Maç bulunamadı' });
       }
-      const odds = await apiFootball.getOdds(match.fixture_id);
-      res.json(odds || []);
+      
+      const result = await nosyApi.getOddsForFixture(
+        match.home_team,
+        match.away_team,
+        match.match_date || undefined
+      );
+      
+      res.json({
+        found: result.found,
+        source: 'iddaa',
+        matchedTeams: result.matchedTeams,
+        odds: result.odds
+      });
     } catch (error: any) {
       console.error('Odds fetch error:', error);
-      res.json([]);
+      res.json({ found: false, source: 'iddaa', odds: null });
     }
   });
 

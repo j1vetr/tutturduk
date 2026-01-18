@@ -46,6 +46,23 @@ interface PublishedMatch {
   is_featured?: boolean;
 }
 
+interface TurkishOdds {
+  found: boolean;
+  source: string;
+  matchedTeams?: { home: string; away: string };
+  odds: {
+    msOdds?: { home: number; draw: number; away: number };
+    overUnder?: {
+      over15?: number; under15?: number;
+      over25?: number; under25?: number;
+      over35?: number; under35?: number;
+    };
+    btts?: { yes?: number; no?: number };
+    doubleChance?: { homeOrDraw?: number; awayOrDraw?: number; homeOrAway?: number };
+    halfTime?: { home?: number; draw?: number; away?: number };
+  } | null;
+}
+
 function LoadingAnimation() {
   return (
     <div className="flex flex-col items-center justify-center py-20 gap-4">
@@ -81,10 +98,13 @@ export default function MatchDetailPage() {
   const [, setLocation] = useLocation();
   const [match, setMatch] = useState<PublishedMatch | null>(null);
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysis | null>(null);
+  const [turkishOdds, setTurkishOdds] = useState<TurkishOdds | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingAI, setLoadingAI] = useState(false);
+  const [loadingOdds, setLoadingOdds] = useState(false);
   const [showAvoidBets, setShowAvoidBets] = useState(false);
   const [showAnalysis, setShowAnalysis] = useState(false);
+  const [showOdds, setShowOdds] = useState(true);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -104,11 +124,27 @@ export default function MatchDetailPage() {
         const data = await res.json();
         setMatch(data);
         loadAIAnalysis();
+        loadTurkishOdds();
       }
     } catch (error) {
       console.error('Failed to load match:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadTurkishOdds = async () => {
+    setLoadingOdds(true);
+    try {
+      const res = await fetch(`/api/matches/${id}/odds`);
+      if (res.ok) {
+        const data = await res.json();
+        setTurkishOdds(data);
+      }
+    } catch (error) {
+      console.error('Failed to load Turkish odds:', error);
+    } finally {
+      setLoadingOdds(false);
     }
   };
 
@@ -391,6 +427,125 @@ export default function MatchDetailPage() {
                       <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
                     </h3>
                     <p className="text-sm text-amber-700 leading-relaxed">{aiAnalysis.expertTip}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TURKISH ODDS - İDDAA ORANLARI */}
+            {turkishOdds?.found && turkishOdds.odds && (
+              <div className="rounded-2xl bg-white shadow-lg border border-gray-100 overflow-hidden">
+                <button 
+                  onClick={() => setShowOdds(!showOdds)}
+                  className="w-full flex items-center justify-between p-4"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center">
+                      <span className="text-white font-bold text-sm">🇹🇷</span>
+                    </div>
+                    <div className="text-left">
+                      <span className="text-sm font-semibold text-gray-800">İddaa Oranları</span>
+                      <p className="text-[10px] text-gray-400">Türkiye resmi oranları</p>
+                    </div>
+                  </div>
+                  {showOdds ? (
+                    <ChevronUp className="w-5 h-5 text-gray-400" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-gray-400" />
+                  )}
+                </button>
+                
+                <div className={`overflow-hidden transition-all duration-300 ${showOdds ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                  <div className="px-4 pb-4 space-y-4">
+                    {/* Maç Sonucu */}
+                    {turkishOdds.odds.msOdds && (
+                      <div>
+                        <p className="text-xs font-medium text-gray-500 mb-2">Maç Sonucu (MS)</p>
+                        <div className="grid grid-cols-3 gap-2">
+                          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-center">
+                            <span className="text-[10px] text-emerald-600 font-medium">1</span>
+                            <p className="text-lg font-black text-emerald-700">{turkishOdds.odds.msOdds.home?.toFixed(2) || '-'}</p>
+                          </div>
+                          <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 text-center">
+                            <span className="text-[10px] text-gray-500 font-medium">X</span>
+                            <p className="text-lg font-black text-gray-700">{turkishOdds.odds.msOdds.draw?.toFixed(2) || '-'}</p>
+                          </div>
+                          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-center">
+                            <span className="text-[10px] text-blue-600 font-medium">2</span>
+                            <p className="text-lg font-black text-blue-700">{turkishOdds.odds.msOdds.away?.toFixed(2) || '-'}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Alt/Üst */}
+                    {turkishOdds.odds.overUnder && (turkishOdds.odds.overUnder.over25 || turkishOdds.odds.overUnder.under25) && (
+                      <div>
+                        <p className="text-xs font-medium text-gray-500 mb-2">Alt / Üst</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          {turkishOdds.odds.overUnder.under25 && (
+                            <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 text-center">
+                              <span className="text-[10px] text-orange-600 font-medium">2.5 Alt</span>
+                              <p className="text-lg font-black text-orange-700">{turkishOdds.odds.overUnder.under25.toFixed(2)}</p>
+                            </div>
+                          )}
+                          {turkishOdds.odds.overUnder.over25 && (
+                            <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 text-center">
+                              <span className="text-[10px] text-purple-600 font-medium">2.5 Üst</span>
+                              <p className="text-lg font-black text-purple-700">{turkishOdds.odds.overUnder.over25.toFixed(2)}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* KG Var/Yok */}
+                    {turkishOdds.odds.btts && (turkishOdds.odds.btts.yes || turkishOdds.odds.btts.no) && (
+                      <div>
+                        <p className="text-xs font-medium text-gray-500 mb-2">Karşılıklı Gol</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          {turkishOdds.odds.btts.yes && (
+                            <div className="bg-teal-50 border border-teal-200 rounded-xl p-3 text-center">
+                              <span className="text-[10px] text-teal-600 font-medium">KG Var</span>
+                              <p className="text-lg font-black text-teal-700">{turkishOdds.odds.btts.yes.toFixed(2)}</p>
+                            </div>
+                          )}
+                          {turkishOdds.odds.btts.no && (
+                            <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 text-center">
+                              <span className="text-[10px] text-rose-600 font-medium">KG Yok</span>
+                              <p className="text-lg font-black text-rose-700">{turkishOdds.odds.btts.no.toFixed(2)}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Çifte Şans */}
+                    {turkishOdds.odds.doubleChance && (turkishOdds.odds.doubleChance.homeOrDraw || turkishOdds.odds.doubleChance.awayOrDraw) && (
+                      <div>
+                        <p className="text-xs font-medium text-gray-500 mb-2">Çifte Şans</p>
+                        <div className="grid grid-cols-3 gap-2">
+                          {turkishOdds.odds.doubleChance.homeOrDraw && (
+                            <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-2 text-center">
+                              <span className="text-[9px] text-indigo-600 font-medium">1-X</span>
+                              <p className="text-sm font-bold text-indigo-700">{turkishOdds.odds.doubleChance.homeOrDraw.toFixed(2)}</p>
+                            </div>
+                          )}
+                          {turkishOdds.odds.doubleChance.homeOrAway && (
+                            <div className="bg-cyan-50 border border-cyan-200 rounded-xl p-2 text-center">
+                              <span className="text-[9px] text-cyan-600 font-medium">1-2</span>
+                              <p className="text-sm font-bold text-cyan-700">{turkishOdds.odds.doubleChance.homeOrAway.toFixed(2)}</p>
+                            </div>
+                          )}
+                          {turkishOdds.odds.doubleChance.awayOrDraw && (
+                            <div className="bg-sky-50 border border-sky-200 rounded-xl p-2 text-center">
+                              <span className="text-[9px] text-sky-600 font-medium">X-2</span>
+                              <p className="text-sm font-bold text-sky-700">{turkishOdds.odds.doubleChance.awayOrDraw.toFixed(2)}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
