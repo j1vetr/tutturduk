@@ -1815,42 +1815,85 @@ export async function registerRoutes(
     }
   });
 
-  // Winners API - Get all completed predictions with results
+  // Winners API - Get all completed predictions with results (with date filtering)
   app.get('/api/winners', async (req, res) => {
     try {
-      // Get finished matches with scores and their predictions
-      const finishedMatches = await pool.query(
-        `SELECT pm.*, 
+      const { date } = req.query;
+      
+      // Get available dates that have matches
+      const availableDates = await pool.query(
+        `SELECT DISTINCT match_date, COUNT(*) as match_count
+         FROM published_matches 
+         WHERE status = 'finished' OR match_date <= CURRENT_DATE
+         GROUP BY match_date
+         ORDER BY match_date DESC
+         LIMIT 30`
+      );
+
+      // Filter by date if provided
+      const dateFilter = date ? `AND pm.match_date = $1` : '';
+      const params = date ? [date] : [];
+
+      // Get matches with predictions for the selected date (or all recent)
+      const matchesQuery = `
+        SELECT pm.id, pm.fixture_id, pm.home_team, pm.away_team, pm.home_logo, pm.away_logo,
+               pm.league_name, pm.league_logo, pm.match_date, pm.match_time, pm.status,
+               pm.final_score_home, pm.final_score_away,
          (SELECT json_agg(json_build_object(
            'id', bb.id,
            'bet_type', bb.bet_type,
            'risk_level', bb.risk_level,
            'result', bb.result,
-           'confidence', bb.confidence
-         )) FROM best_bets bb WHERE bb.fixture_id = pm.fixture_id) as predictions
+           'confidence', bb.confidence,
+           'reasoning', bb.reasoning
+         ) ORDER BY 
+           CASE bb.risk_level 
+             WHEN 'düşük' THEN 1 
+             WHEN 'orta' THEN 2 
+             WHEN 'yüksek' THEN 3 
+           END
+         ) FROM best_bets bb WHERE bb.fixture_id = pm.fixture_id) as predictions
          FROM published_matches pm
-         WHERE pm.status = 'finished' AND pm.final_score_home IS NOT NULL
+         WHERE (pm.status = 'finished' OR pm.match_date <= CURRENT_DATE) ${dateFilter}
          ORDER BY pm.match_date DESC, pm.match_time DESC
-         LIMIT 50`
-      );
+         LIMIT 100`;
+      
+      const matches = await pool.query(matchesQuery, params);
 
-      // Get won best bets
-      const wonBestBets = await pool.query(
-        `SELECT * FROM best_bets 
-         WHERE result = 'won'
-         ORDER BY created_at DESC
-         LIMIT 30`
-      );
+      // Get daily stats for selected date
+      const dailyStatsQuery = date 
+        ? `SELECT 
+             COUNT(*) FILTER (WHERE result = 'won') as won,
+             COUNT(*) FILTER (WHERE result = 'lost') as lost,
+             COUNT(*) FILTER (WHERE result = 'pending') as pending,
+             COUNT(*) as total
+           FROM best_bets WHERE date_for = $1`
+        : `SELECT 
+             COUNT(*) FILTER (WHERE result = 'won') as won,
+             COUNT(*) FILTER (WHERE result = 'lost') as lost,
+             COUNT(*) FILTER (WHERE result = 'pending') as pending,
+             COUNT(*) as total
+           FROM best_bets`;
+      
+      const dailyStats = await pool.query(dailyStatsQuery, date ? [date] : []);
+      const daily = dailyStats.rows[0];
 
-      // Get won predictions
-      const wonPredictions = await pool.query(
-        `SELECT * FROM predictions 
-         WHERE result = 'won'
-         ORDER BY created_at DESC
-         LIMIT 30`
-      );
+      // Calculate overall stats
+      const overallStats = await pool.query(`
+        SELECT 
+          COUNT(*) FILTER (WHERE result = 'won') as total_won,
+          COUNT(*) FILTER (WHERE result = 'lost') as total_lost,
+          COUNT(*) FILTER (WHERE result != 'pending') as total_evaluated,
+          COUNT(*) as total
+        FROM best_bets
+      `);
+      
+      const overall = overallStats.rows[0];
+      const winRate = overall.total_evaluated > 0 
+        ? Math.round((parseInt(overall.total_won) / parseInt(overall.total_evaluated)) * 100) 
+        : 0;
 
-      // Get won coupons with predictions
+      // Get won coupons
       const wonCoupons = await pool.query(
         `SELECT c.*, 
          (SELECT COUNT(*) FROM coupon_predictions WHERE coupon_id = c.id) as match_count
@@ -1860,34 +1903,25 @@ export async function registerRoutes(
          LIMIT 10`
       );
 
-      // Calculate stats
-      const statsResult = await pool.query(`
-        SELECT 
-          (SELECT COUNT(*) FROM best_bets WHERE result != 'pending') as total_evaluated,
-          (SELECT COUNT(*) FROM best_bets WHERE result = 'won') as total_won,
-          (SELECT COUNT(*) FROM best_bets WHERE result = 'lost') as total_lost,
-          (SELECT COUNT(*) FROM coupons WHERE result != 'pending') as coupons_evaluated,
-          (SELECT COUNT(*) FROM coupons WHERE result = 'won') as coupons_won
-      `);
-
-      const stats = statsResult.rows[0];
-      const winRate = stats.total_evaluated > 0 
-        ? Math.round((parseInt(stats.total_won) / parseInt(stats.total_evaluated)) * 100) 
-        : 0;
-
       res.json({
-        finishedMatches: finishedMatches.rows,
-        wonBestBets: wonBestBets.rows,
-        wonPredictions: wonPredictions.rows,
-        wonCoupons: wonCoupons.rows,
-        stats: {
-          totalEvaluated: parseInt(stats.total_evaluated) || 0,
-          totalWon: parseInt(stats.total_won) || 0,
-          totalLost: parseInt(stats.total_lost) || 0,
-          winRate,
-          couponsEvaluated: parseInt(stats.coupons_evaluated) || 0,
-          couponsWon: parseInt(stats.coupons_won) || 0
-        }
+        matches: matches.rows,
+        availableDates: availableDates.rows,
+        dailyStats: {
+          won: parseInt(daily.won) || 0,
+          lost: parseInt(daily.lost) || 0,
+          pending: parseInt(daily.pending) || 0,
+          total: parseInt(daily.total) || 0,
+          winRate: daily.total > 0 && (parseInt(daily.won) + parseInt(daily.lost)) > 0
+            ? Math.round((parseInt(daily.won) / (parseInt(daily.won) + parseInt(daily.lost))) * 100)
+            : 0
+        },
+        overallStats: {
+          totalWon: parseInt(overall.total_won) || 0,
+          totalLost: parseInt(overall.total_lost) || 0,
+          totalEvaluated: parseInt(overall.total_evaluated) || 0,
+          winRate
+        },
+        wonCoupons: wonCoupons.rows
       });
     } catch (error: any) {
       console.error('Winners API error:', error);
