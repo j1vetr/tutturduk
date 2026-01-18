@@ -440,12 +440,12 @@ export default function MatchDetailPage() {
                   className="w-full flex items-center justify-between p-4"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center">
-                      <span className="text-white font-bold text-sm">🇹🇷</span>
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center">
+                      <span className="text-lg">📊</span>
                     </div>
                     <div className="text-left">
-                      <span className="text-sm font-semibold text-gray-800">İddaa Oranları</span>
-                      <p className="text-[10px] text-gray-400">Türkiye resmi oranları</p>
+                      <span className="text-sm font-semibold text-gray-800">Oranlar</span>
+                      <p className="text-[10px] text-gray-400">Güncel bahis oranları</p>
                     </div>
                   </div>
                   {showOdds ? (
