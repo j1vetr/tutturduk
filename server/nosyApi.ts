@@ -39,6 +39,8 @@ interface MatchOdds {
     under25?: number;
     over35?: number;
     under35?: number;
+    over45?: number;
+    under45?: number;
   };
   btts?: {
     yes?: number;
@@ -164,6 +166,10 @@ function parseOdds(rawMatch: RawMatchData): MatchOdds {
           odds.overUnder.over35 = value;
         } else if (outcomeName.includes('3,5 alt') || outcomeName.includes('3.5 alt')) {
           odds.overUnder.under35 = value;
+        } else if (outcomeName.includes('4,5 üst') || outcomeName.includes('4.5 üst')) {
+          odds.overUnder.over45 = value;
+        } else if (outcomeName.includes('4,5 alt') || outcomeName.includes('4.5 alt')) {
+          odds.overUnder.under45 = value;
         }
       }
     }

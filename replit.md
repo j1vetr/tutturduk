@@ -148,8 +148,14 @@ Key entities include:
      - High-scoring clean sheet handling (Ev 1.5 Üst with 3-0, 4-0 instead of 2.5 Alt)
      - All replacement scores meet the scenario's goal band requirement
 
-### January 18, 2026 - Turkish Odds Integration
+### January 18, 2026 - Turkish Odds Integration & Auto-Publish Enhancement
 - **NosyAPI Integration**: Added Turkish İddaa odds via NosyAPI with intelligent team name matching
 - **Hybrid API Architecture**: API-Football for match data/statistics, NosyAPI for Turkish betting odds only
-- **Collapsible Odds Display**: MatchDetailPage now shows İddaa oranları with MS, Alt/Üst, KG, and Çifte Şans markets
+- **Collapsible Odds Display**: MatchDetailPage now shows "Oranlar" with MS, Alt/Üst, KG, and Çifte Şans markets
 - **Team Name Matching**: Uses similarity algorithm (0.5+ threshold) with Turkish character normalization
+- **Enhanced Auto-Publish Flow**:
+  1. Fetches matches from API-Football (max 40 per day, up from 25)
+  2. Requires NosyAPI odds - matches without Turkish odds are NOT published
+  3. AI analysis generated immediately with full NosyAPI odds data (not on user click)
+  4. OpenAI receives all odds: MS, 1.5/2.5/3.5/4.5 Alt/Üst, KG, Çifte Şans, İY
+- **Quality Control**: Only matches with both statistics (score 30+) AND NosyAPI odds are published
