@@ -87,8 +87,22 @@ interface MatchData {
     home?: number;
     draw?: number;
     away?: number;
+    over15?: number;
+    under15?: number;
     over25?: number;
     under25?: number;
+    over35?: number;
+    under35?: number;
+    over45?: number;
+    under45?: number;
+    bttsYes?: number;
+    bttsNo?: number;
+    doubleChanceHomeOrDraw?: number;
+    doubleChanceAwayOrDraw?: number;
+    doubleChanceHomeOrAway?: number;
+    halfTimeHome?: number;
+    halfTimeDraw?: number;
+    halfTimeAway?: number;
   };
   homeLastMatches?: { opponent: string; result: string; score: string; home: boolean }[];
   awayLastMatches?: { opponent: string; result: string; score: string; home: boolean }[];
@@ -339,13 +353,29 @@ ${trends.length > 0 ? `================================
 ${trends.map(t => `- ${t}`).join('\n')}` : ''}
 
 ${odds ? `================================
-💰 BAHİS ORANLARI (Referans)
+💰 BAHİS ORANLARI (Türkiye İddaa)
 ================================
-- Ev Kazanır: ${odds.home?.toFixed(2) || '-'}
-- Beraberlik: ${odds.draw?.toFixed(2) || '-'}
-- Deplasman: ${odds.away?.toFixed(2) || '-'}
-- 2.5 Üst: ${odds.over25?.toFixed(2) || '-'}
-- 2.5 Alt: ${odds.under25?.toFixed(2) || '-'}` : ''}
+MAÇ SONUCU:
+- Ev Kazanır (1): ${odds.home?.toFixed(2) || '-'}
+- Beraberlik (X): ${odds.draw?.toFixed(2) || '-'}
+- Deplasman (2): ${odds.away?.toFixed(2) || '-'}
+
+ALT/ÜST GOLLER:
+- 1.5 Alt: ${odds.under15?.toFixed(2) || '-'} | 1.5 Üst: ${odds.over15?.toFixed(2) || '-'}
+- 2.5 Alt: ${odds.under25?.toFixed(2) || '-'} | 2.5 Üst: ${odds.over25?.toFixed(2) || '-'}
+- 3.5 Alt: ${odds.under35?.toFixed(2) || '-'} | 3.5 Üst: ${odds.over35?.toFixed(2) || '-'}
+- 4.5 Alt: ${odds.under45?.toFixed(2) || '-'} | 4.5 Üst: ${odds.over45?.toFixed(2) || '-'}
+
+KARŞILIKLI GOL:
+- KG Var: ${odds.bttsYes?.toFixed(2) || '-'} | KG Yok: ${odds.bttsNo?.toFixed(2) || '-'}
+
+ÇİFTE ŞANS:
+- 1-X (Ev veya Beraberlik): ${odds.doubleChanceHomeOrDraw?.toFixed(2) || '-'}
+- 1-2 (Ev veya Deplasman): ${odds.doubleChanceHomeOrAway?.toFixed(2) || '-'}
+- X-2 (Beraberlik veya Deplasman): ${odds.doubleChanceAwayOrDraw?.toFixed(2) || '-'}
+
+İLK YARI:
+- İY Ev: ${odds.halfTimeHome?.toFixed(2) || '-'} | İY X: ${odds.halfTimeDraw?.toFixed(2) || '-'} | İY Deplasman: ${odds.halfTimeAway?.toFixed(2) || '-'}` : ''}
 
 ${matchData.injuries?.home?.length || matchData.injuries?.away?.length ? `================================
 🏥 SAKATLIK/CEZA BİLGİLERİ

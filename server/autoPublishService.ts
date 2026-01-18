@@ -2,7 +2,30 @@ import { pool } from './db';
 import { apiFootball, SUPPORTED_LEAGUES, CURRENT_SEASON } from './apiFootball';
 import { filterMatches, getStatisticsScore } from './matchFilter';
 import { generateAndSavePredictions } from './openai-analysis';
+import { nosyApi } from './nosyApi';
 import type { MatchData } from './openai-analysis';
+
+interface NosyOdds {
+  home?: number;
+  draw?: number;
+  away?: number;
+  over15?: number;
+  under15?: number;
+  over25?: number;
+  under25?: number;
+  over35?: number;
+  under35?: number;
+  over45?: number;
+  under45?: number;
+  bttsYes?: number;
+  bttsNo?: number;
+  doubleChanceHomeOrDraw?: number;
+  doubleChanceAwayOrDraw?: number;
+  doubleChanceHomeOrAway?: number;
+  halfTimeHome?: number;
+  halfTimeDraw?: number;
+  halfTimeAway?: number;
+}
 
 interface MatchWithScore {
   fixture: any;
@@ -10,10 +33,11 @@ interface MatchWithScore {
   league: any;
   teams: any;
   statisticsScore: number;
+  nosyOdds?: NosyOdds;
 }
 
-export async function autoPublishTomorrowMatches(targetCount: number = 25) {
-  console.log('[AutoPublish] Starting automatic match publishing...');
+export async function autoPublishTomorrowMatches(targetCount: number = 40) {
+  console.log('[AutoPublish] Starting automatic match publishing (max: ' + targetCount + ')...');
   
   try {
     const tomorrow = new Date();
@@ -70,8 +94,49 @@ export async function autoPublishTomorrowMatches(targetCount: number = 25) {
     
     const scoredMatches: MatchWithScore[] = [];
     
-    for (const match of filteredMatches.slice(0, 50)) {
+    console.log(`[AutoPublish] Fetching predictions and NosyAPI odds for matches...`);
+    
+    for (const match of filteredMatches.slice(0, 60)) {
       try {
+        const homeTeam = match.teams?.home?.name || '';
+        const awayTeam = match.teams?.away?.name || '';
+        const matchDate = match.fixture.date?.split('T')[0];
+        
+        // Fetch NosyAPI odds
+        const nosyResult = await nosyApi.getOddsForFixture(homeTeam, awayTeam, matchDate);
+        
+        if (!nosyResult.found || !nosyResult.odds) {
+          console.log(`[AutoPublish] No NosyAPI odds for ${homeTeam} vs ${awayTeam}, skipping`);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          continue;
+        }
+        
+        // Map NosyAPI odds to our format
+        const nosyOdds: NosyOdds = {
+          home: nosyResult.odds.msOdds?.home,
+          draw: nosyResult.odds.msOdds?.draw,
+          away: nosyResult.odds.msOdds?.away,
+          over15: nosyResult.odds.overUnder?.over15,
+          under15: nosyResult.odds.overUnder?.under15,
+          over25: nosyResult.odds.overUnder?.over25,
+          under25: nosyResult.odds.overUnder?.under25,
+          over35: nosyResult.odds.overUnder?.over35,
+          under35: nosyResult.odds.overUnder?.under35,
+          over45: nosyResult.odds.overUnder?.over45,
+          under45: nosyResult.odds.overUnder?.under45,
+          bttsYes: nosyResult.odds.btts?.yes,
+          bttsNo: nosyResult.odds.btts?.no,
+          doubleChanceHomeOrDraw: nosyResult.odds.doubleChance?.homeOrDraw,
+          doubleChanceAwayOrDraw: nosyResult.odds.doubleChance?.awayOrDraw,
+          doubleChanceHomeOrAway: nosyResult.odds.doubleChance?.homeOrAway,
+          halfTimeHome: nosyResult.odds.halfTime?.home,
+          halfTimeDraw: nosyResult.odds.halfTime?.draw,
+          halfTimeAway: nosyResult.odds.halfTime?.away,
+        };
+        
+        console.log(`[AutoPublish] Found NosyAPI odds for ${homeTeam} vs ${awayTeam}`);
+        
+        // Fetch API-Football prediction for statistics
         const prediction = await apiFootball.getPrediction(match.fixture.id);
         
         if (prediction) {
@@ -83,20 +148,21 @@ export async function autoPublishTomorrowMatches(targetCount: number = 25) {
               prediction: prediction,
               league: match.league,
               teams: match.teams,
-              statisticsScore: statsScore
+              statisticsScore: statsScore,
+              nosyOdds: nosyOdds
             });
           }
         }
         
-        // 2 second delay between prediction requests
+        // 2 second delay between requests
         await new Promise(resolve => setTimeout(resolve, 2000));
       } catch (error: any) {
-        console.log(`[AutoPublish] Error getting prediction for ${match.fixture.id}:`, error?.message || error);
+        console.log(`[AutoPublish] Error processing match ${match.fixture.id}:`, error?.message || error);
         await new Promise(resolve => setTimeout(resolve, 3000));
       }
     }
     
-    console.log(`[AutoPublish] ${scoredMatches.length} matches have sufficient statistics`);
+    console.log(`[AutoPublish] ${scoredMatches.length} matches have NosyAPI odds + sufficient statistics`);
     
     scoredMatches.sort((a, b) => b.statisticsScore - a.statisticsScore);
     const matchesToPublish = scoredMatches.slice(0, targetCount);
@@ -191,7 +257,7 @@ export async function autoPublishTomorrowMatches(targetCount: number = 25) {
         if (insertedMatch.rows.length > 0) {
           const matchId = insertedMatch.rows[0].id;
           
-          // Prepare match data for AI analysis
+          // Prepare match data for AI analysis (with NosyAPI odds)
           const matchData: MatchData = {
             homeTeam,
             awayTeam,
@@ -214,6 +280,7 @@ export async function autoPublishTomorrowMatches(targetCount: number = 25) {
             awayLosses: teams?.away?.league?.loses,
             awayGoalsFor: teams?.away?.league?.goals?.for?.total,
             awayGoalsAgainst: teams?.away?.league?.goals?.against?.total,
+            odds: match.nosyOdds,
           };
           
           // Generate AI analysis and save to best_bets
@@ -273,7 +340,7 @@ export function startAutoPublishService(runAtHour: number = 20) {
     if (currentHour === runAtHour && currentMinute < 5) {
       console.log('[AutoPublish] Scheduled run triggered');
       try {
-        await autoPublishTomorrowMatches(25);
+        await autoPublishTomorrowMatches(40);
       } catch (error) {
         console.error('[AutoPublish] Scheduled run failed:', error);
       }
