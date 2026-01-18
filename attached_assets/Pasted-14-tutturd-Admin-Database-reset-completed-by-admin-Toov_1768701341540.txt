@@ -1,0 +1,180 @@
+14|tutturd | [Admin] Database reset completed by admin: Toov
+14|tutturd | 4:53:07 AM [express] POST /api/admin/reset-database 200 in 8ms :: {"success":true,"message":"Veritabanı sıfırlandı. Tüm maçlar, tahminler ve kuponlar silindi. Kullanıcılar korundu."}
+14|tutturd | 4:53:07 AM [express] GET /api/admin/matches 200 in 2ms :: []
+14|tutturd | [Admin] Database reset completed by admin: Toov
+14|tutturd | 4:53:14 AM [express] POST /api/admin/reset-database 200 in 4ms :: {"success":true,"message":"Veritabanı sıfırlandı. Tüm maçlar, tahminler ve kuponlar silindi. Kullanıcılar korundu."}
+14|tutturd | 4:53:14 AM [express] GET /api/admin/matches 304 in 2ms :: []
+
+14|tutturduk  | [AutoPublish] Starting automatic match publishing (max: 40)...
+14|tutturduk  | [AutoPublish] Fetching matches for 2026-01-19...
+14|tutturduk  | [AutoPublish] Fetching from 38 leagues (this may take several minutes)...
+14|tutturduk  | [AutoPublish] [1/38] Checking Süper Lig...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '203', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 3 results
+14|tutturduk  | [AutoPublish] Found 3 matches in Süper Lig
+14|tutturduk  | [AutoPublish] [2/38] Checking TFF 1. Lig...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '206', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 0 results
+14|tutturduk  | [AutoPublish] [3/38] Checking Türkiye Kupası...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '208', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 0 results
+14|tutturduk  | [AutoPublish] [4/38] Checking Premier League...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '39', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 1 results
+14|tutturduk  | [AutoPublish] Found 1 matches in Premier League
+14|tutturduk  | [AutoPublish] [5/38] Checking Championship...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '40', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 0 results
+14|tutturduk  | [AutoPublish] [6/38] Checking FA Cup...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '45', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 0 results
+14|tutturduk  | [AutoPublish] [7/38] Checking EFL Cup...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '48', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 0 results
+14|tutturduk  | [AutoPublish] [8/38] Checking Scottish Premiership...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '179', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 0 results
+14|tutturduk  | [AutoPublish] [9/38] Checking Welsh Premier League...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '110', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 0 results
+14|tutturduk  | [AutoPublish] [10/38] Checking La Liga...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '140', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 1 results
+14|tutturduk  | [AutoPublish] Found 1 matches in La Liga
+14|tutturduk  | [AutoPublish] [11/38] Checking La Liga 2...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '141', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 1 results
+14|tutturduk  | [AutoPublish] Found 1 matches in La Liga 2
+14|tutturduk  | [AutoPublish] [12/38] Checking Copa del Rey...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '143', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 0 results
+14|tutturduk  | [AutoPublish] [13/38] Checking Bundesliga...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '78', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 0 results
+14|tutturduk  | [AutoPublish] [14/38] Checking 2. Bundesliga...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '79', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 0 results
+14|tutturduk  | [AutoPublish] [15/38] Checking DFB Pokal...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '81', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 0 results
+14|tutturduk  | [AutoPublish] [16/38] Checking Serie A...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '135', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 2 results
+14|tutturduk  | [AutoPublish] Found 2 matches in Serie A
+14|tutturduk  | [AutoPublish] [17/38] Checking Serie B...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '136', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 0 results
+14|tutturduk  | [AutoPublish] [18/38] Checking Coppa Italia...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '137', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 0 results
+14|tutturduk  | [AutoPublish] [19/38] Checking Ligue 1...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '61', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 0 results
+14|tutturduk  | [AutoPublish] [20/38] Checking Ligue 2...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '62', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 1 results
+14|tutturduk  | [AutoPublish] Found 1 matches in Ligue 2
+14|tutturduk  | [AutoPublish] [21/38] Checking Coupe de France...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '66', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 0 results
+14|tutturduk  | [AutoPublish] [22/38] Checking Eredivisie...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '88', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 0 results
+14|tutturduk  | [AutoPublish] [23/38] Checking Eerste Divisie...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '89', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 2 results
+14|tutturduk  | [AutoPublish] Found 2 matches in Eerste Divisie
+14|tutturduk  | [AutoPublish] [24/38] Checking Primeira Liga...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '94', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 1 results
+14|tutturduk  | [AutoPublish] Found 1 matches in Primeira Liga
+14|tutturduk  | [AutoPublish] [25/38] Checking Taça de Portugal...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '96', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 0 results
+14|tutturduk  | [AutoPublish] [26/38] Checking Pro League...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '144', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 0 results
+14|tutturduk  | [AutoPublish] [27/38] Checking Bundesliga...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '218', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 0 results
+14|tutturduk  | [AutoPublish] [28/38] Checking Super League...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '207', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 0 results
+14|tutturduk  | [AutoPublish] [29/38] Checking Super League...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '197', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 2 results
+14|tutturduk  | [AutoPublish] Found 2 matches in Super League
+14|tutturduk  | [AutoPublish] [30/38] Checking Premier League...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '235', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 0 results
+14|tutturduk  | [AutoPublish] [31/38] Checking Premier League...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '333', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 0 results
+14|tutturduk  | [AutoPublish] [32/38] Checking MLS...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '253', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 0 results
+14|tutturduk  | [AutoPublish] [33/38] Checking Liga MX...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '262', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 1 results
+14|tutturduk  | [AutoPublish] Found 1 matches in Liga MX
+14|tutturduk  | [AutoPublish] [34/38] Checking Serie A...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '71', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 0 results
+14|tutturduk  | [AutoPublish] [35/38] Checking Primera División...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '128', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 0 results
+14|tutturduk  | [AutoPublish] [36/38] Checking UEFA Champions League...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '2', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 0 results
+14|tutturduk  | [AutoPublish] [37/38] Checking UEFA Europa League...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '3', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 0 results
+14|tutturduk  | [AutoPublish] [38/38] Checking UEFA Conference League...
+14|tutturduk  | [API-Football] Requesting: /fixtures { league: '848', season: '2025', date: '2026-01-19' }
+14|tutturduk  | [API-Football] Response: 0 results
+14|tutturduk  | [AutoPublish] Total matches found: 15
+14|tutturduk  | [MatchFilter] 15 maçtan 13 tanesi filtrelendi (2 hariç tutuldu)
+14|tutturduk  | [AutoPublish] After filtering: 13 matches
+14|tutturduk  | [AutoPublish] Fetching predictions and NosyAPI odds for matches...
+14|tutturduk  | [NosyAPI] Fetching: bettable-matches/all
+14|tutturduk  | [NosyAPI] HTTP error: 400
+14|tutturduk  | [AutoPublish] No NosyAPI odds for Konyaspor vs Eyüpspor, skipping
+14|tutturduk  | [NosyAPI] Fetching: bettable-matches/all
+14|tutturduk  | [NosyAPI] HTTP error: 400
+14|tutturduk  | [AutoPublish] No NosyAPI odds for Beşiktaş vs Kayserispor, skipping
+14|tutturduk  | [NosyAPI] Fetching: bettable-matches/all
+14|tutturduk  | [NosyAPI] HTTP error: 400
+14|tutturduk  | [AutoPublish] No NosyAPI odds for Göztepe vs Rizespor, skipping
+14|tutturduk  | [NosyAPI] Fetching: bettable-matches/all
+14|tutturduk  | [NosyAPI] HTTP error: 400
+14|tutturduk  | [AutoPublish] No NosyAPI odds for Brighton vs Bournemouth, skipping
+14|tutturduk  | [NosyAPI] Fetching: bettable-matches/all
+14|tutturduk  | [NosyAPI] HTTP error: 400
+14|tutturduk  | [AutoPublish] No NosyAPI odds for Elche vs Sevilla, skipping
+14|tutturduk  | [NosyAPI] Fetching: bettable-matches/all
+14|tutturduk  | [NosyAPI] HTTP error: 400
+14|tutturduk  | [AutoPublish] No NosyAPI odds for Granada CF vs Eibar, skipping
+14|tutturduk  | [NosyAPI] Fetching: bettable-matches/all
+14|tutturduk  | [NosyAPI] HTTP error: 400
+14|tutturduk  | [AutoPublish] No NosyAPI odds for Cremonese vs Verona, skipping
+14|tutturduk  | [NosyAPI] Fetching: bettable-matches/all
+14|tutturduk  | [NosyAPI] HTTP error: 400
+14|tutturduk  | [AutoPublish] No NosyAPI odds for Lazio vs Como, skipping
+14|tutturduk  | [NosyAPI] Fetching: bettable-matches/all
+14|tutturduk  | [NosyAPI] HTTP error: 400
+14|tutturduk  | [AutoPublish] No NosyAPI odds for Nancy vs Guingamp, skipping
+14|tutturduk  | [NosyAPI] Fetching: bettable-matches/all
+14|tutturduk  | [NosyAPI] HTTP error: 400
+14|tutturduk  | [AutoPublish] No NosyAPI odds for Jong Ajax vs Roda, skipping
+14|tutturduk  | [NosyAPI] Fetching: bettable-matches/all
+14|tutturduk  | [NosyAPI] HTTP error: 400
+14|tutturduk  | [AutoPublish] No NosyAPI odds for Estrela vs Estoril, skipping
+14|tutturduk  | [NosyAPI] Fetching: bettable-matches/all
+14|tutturduk  | [NosyAPI] HTTP error: 400
+14|tutturduk  | [AutoPublish] No NosyAPI odds for Panetolikos vs Levadiakos, skipping
+14|tutturduk  | [NosyAPI] Fetching: bettable-matches/all
+14|tutturduk  | [NosyAPI] HTTP error: 400
+14|tutturduk  | [AutoPublish] No NosyAPI odds for Volos NFC vs Atromitos, skipping
+14|tutturduk  | [AutoPublish] 0 matches have NosyAPI odds + sufficient statistics
+14|tutturduk  | [AutoPublish] Publishing top 0 matches...
+14|tutturduk  | [AutoPublish] Completed! Published 0 of 0 matches with AI predictions
