@@ -308,14 +308,15 @@ export default function MatchDetailPage() {
             
             {/* PRIMARY BET - Hero Card */}
             {aiAnalysis.predictions && aiAnalysis.predictions[0] && (
-              <div className="relative rounded-3xl bg-white shadow-xl shadow-emerald-500/10 border border-emerald-100 overflow-hidden">
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-500" />
+              <div className="relative rounded-3xl bg-white shadow-xl shadow-emerald-500/10 border border-emerald-100 overflow-hidden group hover:shadow-2xl hover:shadow-emerald-500/20 transition-all duration-500">
+                <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-500" />
+                <div className="absolute -top-20 -right-20 w-40 h-40 bg-emerald-500/5 rounded-full blur-3xl group-hover:bg-emerald-500/10 transition-all duration-500" />
                 
-                <div className="p-5">
+                <div className="p-5 relative">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
-                        <Shield className="w-5 h-5 text-white" />
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/40 group-hover:scale-110 transition-transform duration-300">
+                        <Shield className="w-6 h-6 text-white" />
                       </div>
                       <div>
                         <span className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Ana Tahmin</span>
@@ -323,34 +324,62 @@ export default function MatchDetailPage() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <span className="text-2xl font-black text-gray-900">{aiAnalysis.predictions[0].odds}</span>
-                      <p className="text-[10px] text-gray-400">ORAN</p>
+                      <span className="text-3xl font-black bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">{aiAnalysis.predictions[0].odds}</span>
+                      <p className="text-[10px] text-gray-400 font-medium">ORAN</p>
                     </div>
                   </div>
 
-                  <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-2xl p-4 mb-4">
+                  <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 rounded-2xl p-4 mb-4 border border-emerald-100/50">
                     <h3 className="text-2xl font-black text-gray-900 mb-2">{aiAnalysis.predictions[0].bet}</h3>
                     <div className="flex items-center gap-2">
-                      <span className="text-lg">{getBetComment('expected', aiAnalysis.predictions[0].bet, aiAnalysis.predictions[0].confidence).emoji}</span>
-                      <p className="text-sm text-gray-600">{getBetComment('expected', aiAnalysis.predictions[0].bet, aiAnalysis.predictions[0].confidence).text}</p>
+                      <span className="text-xl">{getBetComment('expected', aiAnalysis.predictions[0].bet, aiAnalysis.predictions[0].confidence).emoji}</span>
+                      <p className="text-sm text-gray-600 font-medium">{getBetComment('expected', aiAnalysis.predictions[0].bet, aiAnalysis.predictions[0].confidence).text}</p>
+                    </div>
+                  </div>
+
+                  {/* Confidence Bar */}
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">Güven Skoru</span>
+                      <span className="text-sm font-black text-emerald-600">{aiAnalysis.predictions[0].confidence}%</span>
+                    </div>
+                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 rounded-full transition-all duration-1000 ease-out"
+                        style={{ width: `${aiAnalysis.predictions[0].confidence}%` }}
+                      />
                     </div>
                   </div>
 
                   <p className="text-sm text-gray-500 leading-relaxed">{aiAnalysis.predictions[0].reasoning}</p>
+                  
+                  {/* Consistent Scores */}
+                  {aiAnalysis.predictions[0].consistentScores && aiAnalysis.predictions[0].consistentScores.length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-gray-100">
+                      <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Olası Skorlar</span>
+                      <div className="flex gap-2 mt-2">
+                        {aiAnalysis.predictions[0].consistentScores.slice(0, 3).map((score, i) => (
+                          <span key={i} className="px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg text-sm font-bold border border-emerald-100">
+                            {score}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
 
             {/* RISK SEVEN - Medium Risk */}
             {aiAnalysis.predictions && aiAnalysis.predictions[1] && (
-              <div className="relative rounded-2xl bg-white shadow-lg border border-amber-200 overflow-hidden">
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 to-orange-400" />
+              <div className="relative rounded-2xl bg-white shadow-lg border border-amber-200 overflow-hidden group hover:shadow-xl hover:shadow-amber-500/10 transition-all duration-300">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-orange-400 to-amber-400" />
                 
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
-                        <Target className="w-4 h-4 text-white" />
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30 group-hover:scale-105 transition-transform duration-300">
+                        <Target className="w-5 h-5 text-white" />
                       </div>
                       <div>
                         <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">Risk Seven</span>
@@ -358,13 +387,24 @@ export default function MatchDetailPage() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <span className="text-xl font-black text-gray-900">{aiAnalysis.predictions[1].odds}</span>
-                      <p className="text-[9px] text-gray-400">ORAN</p>
+                      <span className="text-2xl font-black bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">{aiAnalysis.predictions[1].odds}</span>
+                      <p className="text-[9px] text-gray-400 font-medium">ORAN</p>
                     </div>
                   </div>
 
-                  <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-3 mb-3">
+                  <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 rounded-xl p-3 mb-3 border border-amber-100/50">
                     <h3 className="text-xl font-black text-gray-900">{aiAnalysis.predictions[1].bet}</h3>
+                  </div>
+
+                  {/* Confidence Indicator */}
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-amber-400 to-orange-400 rounded-full"
+                        style={{ width: `${aiAnalysis.predictions[1].confidence}%` }}
+                      />
+                    </div>
+                    <span className="text-xs font-bold text-amber-600">{aiAnalysis.predictions[1].confidence}%</span>
                   </div>
 
                   <p className="text-xs text-gray-500 leading-relaxed">{aiAnalysis.predictions[1].reasoning}</p>
@@ -374,28 +414,42 @@ export default function MatchDetailPage() {
 
             {/* RISKLI - High Risk */}
             {aiAnalysis.predictions && aiAnalysis.predictions[2] && (
-              <div className="relative rounded-2xl bg-white shadow-lg border border-red-200 overflow-hidden">
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 to-red-500" />
+              <div className="relative rounded-2xl bg-white shadow-lg border border-red-200 overflow-hidden group hover:shadow-xl hover:shadow-red-500/10 transition-all duration-300">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 via-red-500 to-rose-500" />
                 
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-lg shadow-red-500/30">
-                        <Flame className="w-4 h-4 text-white" />
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-lg shadow-red-500/30 group-hover:scale-105 transition-transform duration-300">
+                        <Flame className="w-5 h-5 text-white" />
                       </div>
                       <div>
-                        <span className="text-[10px] font-bold text-red-600 uppercase tracking-wider">Riskli</span>
+                        <span className="text-[10px] font-bold text-red-600 uppercase tracking-wider flex items-center gap-1">
+                          Riskli
+                          <span className="inline-block w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                        </span>
                         <p className="text-[10px] text-gray-400">Yüksek oran, yüksek risk</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <span className="text-xl font-black text-gray-900">{aiAnalysis.predictions[2].odds}</span>
-                      <p className="text-[9px] text-gray-400">ORAN</p>
+                      <span className="text-2xl font-black bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">{aiAnalysis.predictions[2].odds}</span>
+                      <p className="text-[9px] text-gray-400 font-medium">ORAN</p>
                     </div>
                   </div>
 
-                  <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-xl p-3 mb-3">
+                  <div className="bg-gradient-to-r from-orange-50 via-red-50 to-rose-50 rounded-xl p-3 mb-3 border border-red-100/50">
                     <h3 className="text-xl font-black text-gray-900">{aiAnalysis.predictions[2].bet}</h3>
+                  </div>
+
+                  {/* Risk Indicator */}
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-gradient-to-r from-orange-400 to-red-500 rounded-full"
+                        style={{ width: `${aiAnalysis.predictions[2].confidence}%` }}
+                      />
+                    </div>
+                    <span className="text-xs font-bold text-red-600">{aiAnalysis.predictions[2].confidence}%</span>
                   </div>
 
                   <p className="text-xs text-gray-500 leading-relaxed">{aiAnalysis.predictions[2].reasoning}</p>
@@ -461,125 +515,6 @@ export default function MatchDetailPage() {
                       <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
                     </h3>
                     <p className="text-sm text-amber-700 leading-relaxed">{aiAnalysis.expertTip}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* TURKISH ODDS - İDDAA ORANLARI */}
-            {turkishOdds?.found && turkishOdds.odds && (
-              <div className="rounded-2xl bg-white shadow-lg border border-gray-100 overflow-hidden">
-                <button 
-                  onClick={() => setShowOdds(!showOdds)}
-                  className="w-full flex items-center justify-between p-4"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center">
-                      <span className="text-lg">📊</span>
-                    </div>
-                    <div className="text-left">
-                      <span className="text-sm font-semibold text-gray-800">Oranlar</span>
-                      <p className="text-[10px] text-gray-400">Güncel bahis oranları</p>
-                    </div>
-                  </div>
-                  {showOdds ? (
-                    <ChevronUp className="w-5 h-5 text-gray-400" />
-                  ) : (
-                    <ChevronDown className="w-5 h-5 text-gray-400" />
-                  )}
-                </button>
-                
-                <div className={`overflow-hidden transition-all duration-300 ${showOdds ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
-                  <div className="px-4 pb-4 space-y-4">
-                    {/* Maç Sonucu */}
-                    {turkishOdds.odds.msOdds && (
-                      <div>
-                        <p className="text-xs font-medium text-gray-500 mb-2">Maç Sonucu (MS)</p>
-                        <div className="grid grid-cols-3 gap-2">
-                          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-center">
-                            <span className="text-[10px] text-emerald-600 font-medium">1</span>
-                            <p className="text-lg font-black text-emerald-700">{turkishOdds.odds.msOdds.home?.toFixed(2) || '-'}</p>
-                          </div>
-                          <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 text-center">
-                            <span className="text-[10px] text-gray-500 font-medium">X</span>
-                            <p className="text-lg font-black text-gray-700">{turkishOdds.odds.msOdds.draw?.toFixed(2) || '-'}</p>
-                          </div>
-                          <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-center">
-                            <span className="text-[10px] text-blue-600 font-medium">2</span>
-                            <p className="text-lg font-black text-blue-700">{turkishOdds.odds.msOdds.away?.toFixed(2) || '-'}</p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Alt/Üst */}
-                    {turkishOdds.odds.overUnder && (turkishOdds.odds.overUnder.over25 || turkishOdds.odds.overUnder.under25) && (
-                      <div>
-                        <p className="text-xs font-medium text-gray-500 mb-2">Alt / Üst</p>
-                        <div className="grid grid-cols-2 gap-2">
-                          {turkishOdds.odds.overUnder.under25 && (
-                            <div className="bg-orange-50 border border-orange-200 rounded-xl p-3 text-center">
-                              <span className="text-[10px] text-orange-600 font-medium">2.5 Alt</span>
-                              <p className="text-lg font-black text-orange-700">{turkishOdds.odds.overUnder.under25.toFixed(2)}</p>
-                            </div>
-                          )}
-                          {turkishOdds.odds.overUnder.over25 && (
-                            <div className="bg-purple-50 border border-purple-200 rounded-xl p-3 text-center">
-                              <span className="text-[10px] text-purple-600 font-medium">2.5 Üst</span>
-                              <p className="text-lg font-black text-purple-700">{turkishOdds.odds.overUnder.over25.toFixed(2)}</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* KG Var/Yok */}
-                    {turkishOdds.odds.btts && (turkishOdds.odds.btts.yes || turkishOdds.odds.btts.no) && (
-                      <div>
-                        <p className="text-xs font-medium text-gray-500 mb-2">Karşılıklı Gol</p>
-                        <div className="grid grid-cols-2 gap-2">
-                          {turkishOdds.odds.btts.yes && (
-                            <div className="bg-teal-50 border border-teal-200 rounded-xl p-3 text-center">
-                              <span className="text-[10px] text-teal-600 font-medium">KG Var</span>
-                              <p className="text-lg font-black text-teal-700">{turkishOdds.odds.btts.yes.toFixed(2)}</p>
-                            </div>
-                          )}
-                          {turkishOdds.odds.btts.no && (
-                            <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 text-center">
-                              <span className="text-[10px] text-rose-600 font-medium">KG Yok</span>
-                              <p className="text-lg font-black text-rose-700">{turkishOdds.odds.btts.no.toFixed(2)}</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Çifte Şans */}
-                    {turkishOdds.odds.doubleChance && (turkishOdds.odds.doubleChance.homeOrDraw || turkishOdds.odds.doubleChance.awayOrDraw) && (
-                      <div>
-                        <p className="text-xs font-medium text-gray-500 mb-2">Çifte Şans</p>
-                        <div className="grid grid-cols-3 gap-2">
-                          {turkishOdds.odds.doubleChance.homeOrDraw && (
-                            <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-2 text-center">
-                              <span className="text-[9px] text-indigo-600 font-medium">1-X</span>
-                              <p className="text-sm font-bold text-indigo-700">{turkishOdds.odds.doubleChance.homeOrDraw.toFixed(2)}</p>
-                            </div>
-                          )}
-                          {turkishOdds.odds.doubleChance.homeOrAway && (
-                            <div className="bg-cyan-50 border border-cyan-200 rounded-xl p-2 text-center">
-                              <span className="text-[9px] text-cyan-600 font-medium">1-2</span>
-                              <p className="text-sm font-bold text-cyan-700">{turkishOdds.odds.doubleChance.homeOrAway.toFixed(2)}</p>
-                            </div>
-                          )}
-                          {turkishOdds.odds.doubleChance.awayOrDraw && (
-                            <div className="bg-sky-50 border border-sky-200 rounded-xl p-2 text-center">
-                              <span className="text-[9px] text-sky-600 font-medium">X-2</span>
-                              <p className="text-sm font-bold text-sky-700">{turkishOdds.odds.doubleChance.awayOrDraw.toFixed(2)}</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
