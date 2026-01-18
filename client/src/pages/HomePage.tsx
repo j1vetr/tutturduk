@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { MobileLayout } from "@/components/MobileLayout";
 import { HeroPrediction } from "@/components/HeroPrediction";
-import BestBets from "@/components/BestBets";
-import { Loader2, Clock, Filter, ChevronDown, ChevronUp, ChevronRight } from "lucide-react";
+import { Loader2, Clock, Filter, ChevronDown, ChevronUp, ChevronRight, Timer, Sparkles } from "lucide-react";
 import { useLocation } from "wouter";
 import { Badge } from "@/components/ui/badge";
 
@@ -178,12 +177,13 @@ export default function HomePage() {
     <MobileLayout activeTab="home">
       <div className="space-y-6 pb-6">
         <HeroPrediction />
-        
-        <BestBets />
 
         <div>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-800">Günün maçları</h2>
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-emerald-500" />
+              <h2 className="text-lg font-bold text-gray-800">Günün Tahminleri</h2>
+            </div>
             <button 
               onClick={() => setShowFilters(!showFilters)}
               className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-800 transition-colors"
@@ -283,37 +283,47 @@ export default function HomePage() {
                 return (
                   <div 
                     key={match.id} 
-                    className="relative bg-white rounded-2xl border border-gray-200 overflow-hidden cursor-pointer active:scale-[0.98] transition-all duration-200 group shadow-sm hover:shadow-md"
+                    className="relative bg-white rounded-2xl border border-gray-200 overflow-hidden cursor-pointer active:scale-[0.98] transition-all duration-200 group shadow-sm hover:shadow-lg hover:border-emerald-200"
                     onClick={() => setLocation(`/match/${match.id}`)}
                     data-testid={`match-card-${match.id}`}
                   >
-                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-50/50 via-transparent to-blue-50/50 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    {/* Top gradient bar */}
+                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-500 opacity-0 group-hover:opacity-100 transition-opacity" />
                     
                     <div className="relative p-4">
+                      {/* Header with league and timer */}
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
                           {match.league_logo && <img src={match.league_logo} className="w-4 h-4" alt="" />}
-                          <span className="text-[11px] text-gray-500 font-medium">{match.league_name}</span>
+                          <span className="text-[11px] text-gray-500 font-medium truncate max-w-[140px]">{match.league_name}</span>
                         </div>
-                        <div className="flex items-center gap-1.5">
-                          {timeInfo.isLive && (
-                            <span className="inline-block w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
-                          )}
-                          <span className={`text-xs font-semibold ${
-                            timeInfo.isLive ? 'text-red-500' : timeInfo.isPast ? 'text-gray-400' : 'text-gray-800'
-                          }`}>
-                            {match.match_time}
-                          </span>
-                        </div>
+                        
+                        {/* Time Badge */}
+                        {timeInfo.isLive ? (
+                          <div className="flex items-center gap-1.5 bg-red-50 border border-red-200 px-2.5 py-1 rounded-full">
+                            <span className="inline-block w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                            <span className="text-[11px] font-bold text-red-600">CANLI</span>
+                          </div>
+                        ) : timeInfo.isPast ? (
+                          <div className="flex items-center gap-1 bg-gray-100 px-2.5 py-1 rounded-full">
+                            <span className="text-[11px] font-medium text-gray-500">Bitti</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
+                            <Timer className="w-3 h-3 text-emerald-600" />
+                            <span className="text-[11px] font-bold text-emerald-700">{timeInfo.text}</span>
+                          </div>
+                        )}
                       </div>
 
+                      {/* Teams */}
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex-1 flex flex-col items-center text-center">
-                          <div className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 p-1.5 mb-2">
+                          <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-gray-50 to-white border border-gray-100 p-2 mb-2 shadow-sm group-hover:shadow-md transition-shadow">
                             {match.home_logo ? (
                               <img src={match.home_logo} alt="" className="w-full h-full object-contain" />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center text-xs font-bold text-gray-400">
+                              <div className="w-full h-full flex items-center justify-center text-sm font-bold text-gray-400">
                                 {match.home_team.substring(0, 2)}
                               </div>
                             )}
@@ -321,18 +331,19 @@ export default function HomePage() {
                           <span className="text-gray-800 font-semibold text-xs leading-tight line-clamp-2">{match.home_team}</span>
                         </div>
 
-                        <div className="flex-shrink-0 flex flex-col items-center">
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 border border-gray-200 flex items-center justify-center">
-                            <span className="text-sm font-black text-gray-400">VS</span>
+                        <div className="flex-shrink-0 flex flex-col items-center gap-1">
+                          <span className="text-sm font-bold text-gray-800">{match.match_time}</span>
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 border border-gray-200 flex items-center justify-center">
+                            <span className="text-[10px] font-black text-gray-400">VS</span>
                           </div>
                         </div>
 
                         <div className="flex-1 flex flex-col items-center text-center">
-                          <div className="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 p-1.5 mb-2">
+                          <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-gray-50 to-white border border-gray-100 p-2 mb-2 shadow-sm group-hover:shadow-md transition-shadow">
                             {match.away_logo ? (
                               <img src={match.away_logo} alt="" className="w-full h-full object-contain" />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center text-xs font-bold text-gray-400">
+                              <div className="w-full h-full flex items-center justify-center text-sm font-bold text-gray-400">
                                 {match.away_team.substring(0, 2)}
                               </div>
                             )}
@@ -341,10 +352,12 @@ export default function HomePage() {
                         </div>
                       </div>
 
+                      {/* CTA Button */}
                       <div className="mt-4 pt-3 border-t border-gray-100">
-                        <div className="flex items-center justify-center gap-2 text-emerald-500 group-hover:text-emerald-600 transition-colors">
-                          <span className="text-[11px] font-medium">Analiz için dokun</span>
-                          <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                        <div className="flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100 rounded-xl py-2.5 group-hover:from-emerald-100 group-hover:to-teal-100 transition-all">
+                          <Sparkles className="w-4 h-4 text-emerald-600" />
+                          <span className="text-sm font-semibold text-emerald-700">Tahmini Gör</span>
+                          <ChevronRight className="w-4 h-4 text-emerald-600 group-hover:translate-x-1 transition-transform" />
                         </div>
                       </div>
                     </div>
