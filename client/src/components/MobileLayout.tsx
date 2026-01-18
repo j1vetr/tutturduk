@@ -6,7 +6,7 @@ import logoIcon from "@assets/generated_images/minimalist_sports_betting_logo_ic
 
 interface MobileLayoutProps {
   children: React.ReactNode;
-  activeTab?: "home" | "winners" | "profile" | "admin" | "live" | "upcoming" | "coupons";
+  activeTab?: "home" | "winners" | "profile" | "admin" | "coupons";
 }
 
 export function MobileLayout({ children, activeTab }: MobileLayoutProps) {
@@ -72,20 +72,6 @@ export function MobileLayout({ children, activeTab }: MobileLayoutProps) {
           <div className="w-[1px] h-8 bg-gray-200" />
 
           <button 
-            onClick={() => setLocation("/live")}
-            className={cn(
-              "flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all duration-300 relative group overflow-hidden",
-              activeTab === "live" ? "text-blue-600 bg-blue-50" : "text-gray-400 hover:text-gray-700 hover:bg-gray-50"
-            )}
-          >
-            <div className={cn("absolute inset-0 bg-blue-100 blur-xl opacity-0 transition-opacity", activeTab === "live" && "opacity-50")} />
-            <CheckCircle className={cn("w-5 h-5 transition-transform relative z-10", activeTab === "live" ? "scale-110" : "group-active:scale-90")} />
-            <span className={cn("text-[9px] font-bold tracking-wide relative z-10", activeTab === "live" && "text-blue-700")}>Bitenler</span>
-          </button>
-          
-          <div className="w-[1px] h-8 bg-gray-200" />
-
-          <button 
             onClick={() => setLocation("/coupons")}
             className={cn(
               "flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all duration-300 relative group overflow-hidden",
@@ -108,7 +94,7 @@ export function MobileLayout({ children, activeTab }: MobileLayoutProps) {
           >
             <div className={cn("absolute inset-0 bg-purple-100 blur-xl opacity-0 transition-opacity", activeTab === "winners" && "opacity-50")} />
             <Trophy className={cn("w-5 h-5 transition-transform relative z-10", activeTab === "winners" ? "scale-110" : "group-active:scale-90")} />
-            <span className={cn("text-[9px] font-bold tracking-wide relative z-10", activeTab === "winners" && "text-purple-700")}>Kazananlar</span>
+            <span className={cn("text-[9px] font-bold tracking-wide relative z-10", activeTab === "winners" && "text-purple-700")}>Tuttu/Tutmadı</span>
           </button>
         </div>
       </nav>

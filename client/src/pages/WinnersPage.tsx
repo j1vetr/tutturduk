@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { MobileLayout } from "@/components/MobileLayout";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, TrendingUp, Target, CheckCircle, XCircle, Clock, Loader2, ChevronRight, ChevronLeft, Calendar, Flame, BarChart3 } from "lucide-react";
+import { Trophy, TrendingUp, Target, CheckCircle, XCircle, Clock, Loader2, ChevronRight, Calendar, Flame, BarChart3, Shield } from "lucide-react";
 import { useLocation } from "wouter";
 import { format, subDays, isToday, isYesterday, parseISO } from "date-fns";
 import { tr } from "date-fns/locale";
@@ -115,57 +115,26 @@ export default function WinnersPage() {
     return dates;
   };
 
-  const getRiskLabel = (riskLevel: string) => {
-    switch (riskLevel) {
-      case 'düşük': return 'Beklenen';
-      case 'orta': return 'Orta';
-      case 'yüksek': return 'Riskli';
-      default: return riskLevel;
-    }
+  const getMainBet = (predictions: Prediction[] | undefined) => {
+    if (!predictions || predictions.length === 0) return null;
+    return predictions.find(p => p.risk_level === 'düşük') || predictions[0];
   };
 
-  const getRiskColor = (riskLevel: string) => {
-    switch (riskLevel) {
-      case 'düşük': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-      case 'orta': return 'bg-amber-50 text-amber-700 border-amber-200';
-      case 'yüksek': return 'bg-red-50 text-red-700 border-red-200';
-      default: return 'bg-gray-50 text-gray-700 border-gray-200';
-    }
+  const getOtherBets = (predictions: Prediction[] | undefined) => {
+    if (!predictions || predictions.length === 0) return [];
+    return predictions.filter(p => p.risk_level !== 'düşük');
   };
 
-  const getResultIcon = (result: string) => {
-    switch (result) {
-      case 'won':
-        return <CheckCircle className="w-4 h-4 text-emerald-500" />;
-      case 'lost':
-        return <XCircle className="w-4 h-4 text-red-500" />;
-      default:
-        return <Clock className="w-4 h-4 text-gray-400" />;
-    }
-  };
-
-  const getResultBadge = (result: string) => {
-    switch (result) {
-      case 'won':
-        return <Badge className="bg-emerald-100 text-emerald-700 border-0 text-[10px] px-1.5">Tuttu</Badge>;
-      case 'lost':
-        return <Badge className="bg-red-100 text-red-700 border-0 text-[10px] px-1.5">Tutmadı</Badge>;
-      default:
-        return <Badge className="bg-gray-100 text-gray-500 border-0 text-[10px] px-1.5">Bekliyor</Badge>;
-    }
+  const getMatchResult = (match: Match): 'won' | 'lost' | 'pending' => {
+    const mainBet = getMainBet(match.predictions);
+    if (!mainBet) return 'pending';
+    return mainBet.result as 'won' | 'lost' | 'pending';
   };
 
   const filteredMatches = data?.matches.filter(match => {
     if (filter === 'all') return true;
-    if (!match.predictions) return false;
-    
-    if (filter === 'won') {
-      return match.predictions.some(p => p.result === 'won');
-    }
-    if (filter === 'lost') {
-      return match.predictions.some(p => p.result === 'lost');
-    }
-    return true;
+    const result = getMatchResult(match);
+    return result === filter;
   }) || [];
 
   const displayDates = data?.availableDates?.length 
@@ -179,23 +148,23 @@ export default function WinnersPage() {
         {/* Header */}
         <div className="flex items-center justify-between px-1">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
-              <Trophy className="w-5 h-5 text-purple-600" />
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
+              <Trophy className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-gray-800">Sonuçlar</h1>
-              <p className="text-xs text-gray-500">Tahmin geçmişi</p>
+              <h1 className="text-lg font-bold text-gray-800">Tuttu / Tutmadı</h1>
+              <p className="text-xs text-gray-500">Ana tahmin sonuçları</p>
             </div>
           </div>
           {data && (
-            <div className="text-right">
-              <p className="text-lg font-bold text-emerald-600">%{data.overallStats.winRate}</p>
-              <p className="text-[10px] text-gray-400">Genel Başarı</p>
+            <div className="text-right bg-gradient-to-br from-emerald-50 to-green-50 border border-emerald-200 rounded-xl px-3 py-2">
+              <p className="text-xl font-black text-emerald-600">%{data.overallStats.winRate}</p>
+              <p className="text-[9px] text-emerald-700 font-medium">Başarı Oranı</p>
             </div>
           )}
         </div>
 
-        {/* Date Picker - uses availableDates from API */}
+        {/* Date Picker */}
         <div className="relative">
           <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
             <button
@@ -230,85 +199,36 @@ export default function WinnersPage() {
           </div>
         ) : data ? (
           <>
-            {/* Daily Stats Card */}
-            {selectedDate && (
-              <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-2xl p-4 border border-purple-100">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-purple-600" />
-                    <span className="text-sm font-semibold text-gray-700">
-                      {formatDateLabel(selectedDate)} İstatistikleri
-                    </span>
-                  </div>
-                  <Badge className="bg-purple-100 text-purple-700 border-0">
-                    {data.dailyStats.total} Tahmin
-                  </Badge>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-3 gap-2">
+              <div className="bg-gradient-to-br from-emerald-50 to-green-50 rounded-xl border border-emerald-200 p-3 text-center">
+                <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-1">
+                  <CheckCircle className="w-4 h-4 text-emerald-600" />
                 </div>
-                
-                <div className="grid grid-cols-4 gap-3">
-                  <div className="text-center">
-                    <p className="text-xl font-bold text-emerald-600">{data.dailyStats.won}</p>
-                    <p className="text-[10px] text-gray-500">Tuttu</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-xl font-bold text-red-500">{data.dailyStats.lost}</p>
-                    <p className="text-[10px] text-gray-500">Tutmadı</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-xl font-bold text-gray-400">{data.dailyStats.pending}</p>
-                    <p className="text-[10px] text-gray-500">Bekliyor</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-xl font-bold text-purple-600">%{data.dailyStats.winRate}</p>
-                    <p className="text-[10px] text-gray-500">Başarı</p>
-                  </div>
-                </div>
-
-                {/* Progress Bar */}
-                {(data.dailyStats.won + data.dailyStats.lost) > 0 && (
-                  <div className="mt-3">
-                    <div className="h-2 bg-gray-200 rounded-full overflow-hidden flex">
-                      <div 
-                        className="h-full bg-emerald-500 transition-all"
-                        style={{ width: `${(data.dailyStats.won / (data.dailyStats.won + data.dailyStats.lost)) * 100}%` }}
-                      />
-                      <div 
-                        className="h-full bg-red-400 transition-all"
-                        style={{ width: `${(data.dailyStats.lost / (data.dailyStats.won + data.dailyStats.lost)) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                )}
+                <p className="text-xl font-black text-emerald-600">{data.overallStats.totalWon}</p>
+                <p className="text-[9px] text-emerald-700 font-medium">Tuttu</p>
               </div>
-            )}
-
-            {/* Overall Stats (when no date selected) */}
-            {!selectedDate && (
-              <div className="grid grid-cols-4 gap-2">
-                <div className="bg-white rounded-xl border border-gray-200 p-3 text-center shadow-sm">
-                  <p className="text-xl font-bold text-emerald-600">%{data.overallStats.winRate}</p>
-                  <p className="text-[9px] text-gray-400 mt-0.5">Başarı</p>
+              <div className="bg-gradient-to-br from-red-50 to-rose-50 rounded-xl border border-red-200 p-3 text-center">
+                <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-1">
+                  <XCircle className="w-4 h-4 text-red-500" />
                 </div>
-                <div className="bg-white rounded-xl border border-gray-200 p-3 text-center shadow-sm">
-                  <p className="text-xl font-bold text-emerald-600">{data.overallStats.totalWon}</p>
-                  <p className="text-[9px] text-gray-400 mt-0.5">Kazanan</p>
-                </div>
-                <div className="bg-white rounded-xl border border-gray-200 p-3 text-center shadow-sm">
-                  <p className="text-xl font-bold text-red-500">{data.overallStats.totalLost}</p>
-                  <p className="text-[9px] text-gray-400 mt-0.5">Kaybeden</p>
-                </div>
-                <div className="bg-white rounded-xl border border-gray-200 p-3 text-center shadow-sm">
-                  <p className="text-xl font-bold text-gray-700">{data.overallStats.totalEvaluated}</p>
-                  <p className="text-[9px] text-gray-400 mt-0.5">Toplam</p>
-                </div>
+                <p className="text-xl font-black text-red-500">{data.overallStats.totalLost}</p>
+                <p className="text-[9px] text-red-600 font-medium">Tutmadı</p>
               </div>
-            )}
+              <div className="bg-gradient-to-br from-gray-50 to-slate-50 rounded-xl border border-gray-200 p-3 text-center">
+                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-1">
+                  <BarChart3 className="w-4 h-4 text-gray-500" />
+                </div>
+                <p className="text-xl font-black text-gray-700">{data.overallStats.totalEvaluated}</p>
+                <p className="text-[9px] text-gray-500 font-medium">Toplam</p>
+              </div>
+            </div>
 
             {/* Filter Tabs */}
             <div className="flex gap-2 bg-gray-100 p-1 rounded-xl">
               <button
                 onClick={() => setFilter('all')}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
+                className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all ${
                   filter === 'all' ? 'bg-white text-gray-800 shadow-sm' : 'text-gray-500'
                 }`}
               >
@@ -316,20 +236,20 @@ export default function WinnersPage() {
               </button>
               <button
                 onClick={() => setFilter('won')}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-1 ${
+                className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${
                   filter === 'won' ? 'bg-white text-emerald-600 shadow-sm' : 'text-gray-500'
                 }`}
               >
-                <CheckCircle className="w-3.5 h-3.5" />
+                <CheckCircle className="w-4 h-4" />
                 Tutanlar
               </button>
               <button
                 onClick={() => setFilter('lost')}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-1 ${
+                className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-1.5 ${
                   filter === 'lost' ? 'bg-white text-red-500 shadow-sm' : 'text-gray-500'
                 }`}
               >
-                <XCircle className="w-3.5 h-3.5" />
+                <XCircle className="w-4 h-4" />
                 Tutmayanlar
               </button>
             </div>
@@ -366,81 +286,148 @@ export default function WinnersPage() {
               </div>
             )}
 
-            {/* Matches with All Predictions */}
+            {/* Matches with Main Bet Focus */}
             {filteredMatches.length > 0 ? (
               <div className="space-y-3">
                 <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide px-1">
-                  Maç Tahminleri {selectedDate ? `(${formatDateLabel(selectedDate)})` : ''}
+                  Ana Tahmin Sonuçları {selectedDate ? `(${formatDateLabel(selectedDate)})` : ''}
                 </h3>
                 
-                {filteredMatches.map(match => (
-                  <div 
-                    key={match.id}
-                    className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden"
-                  >
-                    {/* Match Header */}
+                {filteredMatches.map(match => {
+                  const mainBet = getMainBet(match.predictions);
+                  const otherBets = getOtherBets(match.predictions);
+                  const matchResult = getMatchResult(match);
+                  
+                  return (
                     <div 
-                      className="p-3 cursor-pointer hover:bg-gray-50"
-                      onClick={() => setLocation(`/match/${match.fixture_id}`)}
+                      key={match.id}
+                      className={`bg-white rounded-2xl border overflow-hidden shadow-sm transition-all hover:shadow-md ${
+                        matchResult === 'won' ? 'border-emerald-200' :
+                        matchResult === 'lost' ? 'border-red-200' :
+                        'border-gray-200'
+                      }`}
                     >
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-[10px] text-gray-400">{match.league_name}</span>
+                      {/* Result Badge Top */}
+                      <div className={`px-4 py-2 flex items-center justify-between ${
+                        matchResult === 'won' ? 'bg-gradient-to-r from-emerald-50 to-green-50' :
+                        matchResult === 'lost' ? 'bg-gradient-to-r from-red-50 to-rose-50' :
+                        'bg-gray-50'
+                      }`}>
+                        <div className="flex items-center gap-2">
+                          {matchResult === 'won' ? (
+                            <CheckCircle className="w-5 h-5 text-emerald-500" />
+                          ) : matchResult === 'lost' ? (
+                            <XCircle className="w-5 h-5 text-red-500" />
+                          ) : (
+                            <Clock className="w-5 h-5 text-gray-400" />
+                          )}
+                          <span className={`text-sm font-bold ${
+                            matchResult === 'won' ? 'text-emerald-700' :
+                            matchResult === 'lost' ? 'text-red-700' :
+                            'text-gray-500'
+                          }`}>
+                            {matchResult === 'won' ? 'TUTTU!' : matchResult === 'lost' ? 'TUTMADI' : 'Bekliyor'}
+                          </span>
+                        </div>
                         {match.status === 'finished' && match.final_score_home !== undefined && (
-                          <Badge className="bg-gray-100 text-gray-700 border-0 text-xs font-bold">
+                          <Badge className="bg-gray-800 text-white border-0 text-sm font-bold px-3">
                             {match.final_score_home} - {match.final_score_away}
                           </Badge>
                         )}
                       </div>
-                      
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 flex-1">
-                          {match.home_logo && (
-                            <img src={match.home_logo} alt="" className="w-6 h-6 object-contain" />
-                          )}
-                          <span className="text-sm font-medium text-gray-800 truncate">{match.home_team}</span>
-                        </div>
-                        <span className="text-xs text-gray-400 px-2">vs</span>
-                        <div className="flex items-center gap-2 flex-1 justify-end">
-                          <span className="text-sm font-medium text-gray-800 truncate">{match.away_team}</span>
-                          {match.away_logo && (
-                            <img src={match.away_logo} alt="" className="w-6 h-6 object-contain" />
-                          )}
-                        </div>
-                      </div>
-                      
-                      {match.match_date && (
-                        <div className="text-[10px] text-gray-400 mt-2 text-center">
-                          {format(parseISO(match.match_date), 'd MMM yyyy', { locale: tr })} • {match.match_time}
-                        </div>
-                      )}
-                    </div>
 
-                    {/* All 3 Predictions */}
-                    {match.predictions && match.predictions.length > 0 && (
-                      <div className="border-t border-gray-100 bg-gray-50/50 p-2 space-y-1.5">
-                        {match.predictions.map((pred, idx) => (
-                          <div 
-                            key={pred.id || idx}
-                            className={`flex items-center justify-between p-2 rounded-lg ${
-                              pred.result === 'won' ? 'bg-emerald-50 border border-emerald-200' :
-                              pred.result === 'lost' ? 'bg-red-50 border border-red-200' :
-                              'bg-white border border-gray-200'
-                            }`}
-                          >
-                            <div className="flex items-center gap-2">
-                              {getResultIcon(pred.result)}
-                              <Badge className={`text-[10px] px-2 py-0.5 border ${getRiskColor(pred.risk_level)}`}>
-                                {getRiskLabel(pred.risk_level)}
-                              </Badge>
-                              <span className="text-sm font-medium text-gray-800">{pred.bet_type}</span>
-                            </div>
-                            {getResultBadge(pred.result)}
+                      {/* Match Info */}
+                      <div 
+                        className="p-4 cursor-pointer"
+                        onClick={() => setLocation(`/match/${match.fixture_id}`)}
+                      >
+                        <div className="text-[10px] text-gray-400 mb-2">{match.league_name}</div>
+                        
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2 flex-1">
+                            {match.home_logo && (
+                              <img src={match.home_logo} alt="" className="w-7 h-7 object-contain" />
+                            )}
+                            <span className="text-sm font-semibold text-gray-800 truncate">{match.home_team}</span>
                           </div>
-                        ))}
+                          <span className="text-xs text-gray-400 px-3">vs</span>
+                          <div className="flex items-center gap-2 flex-1 justify-end">
+                            <span className="text-sm font-semibold text-gray-800 truncate">{match.away_team}</span>
+                            {match.away_logo && (
+                              <img src={match.away_logo} alt="" className="w-7 h-7 object-contain" />
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Main Bet - Ana Tahmin */}
+                        {mainBet && (
+                          <div className={`rounded-xl p-3 mb-2 ${
+                            mainBet.result === 'won' ? 'bg-emerald-50 border border-emerald-200' :
+                            mainBet.result === 'lost' ? 'bg-red-50 border border-red-200' :
+                            'bg-gray-50 border border-gray-200'
+                          }`}>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                                  mainBet.result === 'won' ? 'bg-emerald-100' :
+                                  mainBet.result === 'lost' ? 'bg-red-100' :
+                                  'bg-gray-100'
+                                }`}>
+                                  <Shield className={`w-4 h-4 ${
+                                    mainBet.result === 'won' ? 'text-emerald-600' :
+                                    mainBet.result === 'lost' ? 'text-red-500' :
+                                    'text-gray-500'
+                                  }`} />
+                                </div>
+                                <div>
+                                  <span className="text-[9px] font-bold text-gray-500 uppercase">Ana Tahmin</span>
+                                  <p className="text-sm font-bold text-gray-800">{mainBet.bet_type}</p>
+                                </div>
+                              </div>
+                              {mainBet.result === 'won' ? (
+                                <Badge className="bg-emerald-100 text-emerald-700 border-0 text-xs font-bold">Tuttu</Badge>
+                              ) : mainBet.result === 'lost' ? (
+                                <Badge className="bg-red-100 text-red-700 border-0 text-xs font-bold">Tutmadı</Badge>
+                              ) : (
+                                <Badge className="bg-gray-100 text-gray-500 border-0 text-xs">Bekliyor</Badge>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Other Bets - Diğer Tahminler */}
+                        {otherBets.length > 0 && (
+                          <div className="space-y-1.5">
+                            <span className="text-[9px] font-semibold text-gray-400 uppercase">Diğer Tahminler</span>
+                            <div className="grid grid-cols-2 gap-2">
+                              {otherBets.map((pred, idx) => (
+                                <div 
+                                  key={pred.id || idx}
+                                  className={`flex items-center justify-between p-2 rounded-lg text-xs ${
+                                    pred.result === 'won' ? 'bg-emerald-50 border border-emerald-100' :
+                                    pred.result === 'lost' ? 'bg-red-50 border border-red-100' :
+                                    'bg-gray-50 border border-gray-100'
+                                  }`}
+                                >
+                                  <div className="flex items-center gap-1.5 min-w-0">
+                                    {pred.result === 'won' ? (
+                                      <CheckCircle className="w-3 h-3 text-emerald-500 flex-shrink-0" />
+                                    ) : pred.result === 'lost' ? (
+                                      <XCircle className="w-3 h-3 text-red-500 flex-shrink-0" />
+                                    ) : (
+                                      <Clock className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                                    )}
+                                    <span className="font-medium text-gray-700 truncate">{pred.bet_type}</span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                ))}
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center py-12">

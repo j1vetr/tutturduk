@@ -2110,25 +2110,25 @@ export async function registerRoutes(
       
       const matches = await pool.query(matchesQuery, params);
 
-      // Get daily stats for selected date
+      // Get daily stats for selected date - MAIN BETS ONLY (risk_level = 'düşük')
       const dailyStatsQuery = date 
         ? `SELECT 
              COUNT(*) FILTER (WHERE result = 'won') as won,
              COUNT(*) FILTER (WHERE result = 'lost') as lost,
              COUNT(*) FILTER (WHERE result = 'pending') as pending,
              COUNT(*) as total
-           FROM best_bets WHERE date_for = $1`
+           FROM best_bets WHERE date_for = $1 AND risk_level = 'düşük'`
         : `SELECT 
              COUNT(*) FILTER (WHERE result = 'won') as won,
              COUNT(*) FILTER (WHERE result = 'lost') as lost,
              COUNT(*) FILTER (WHERE result = 'pending') as pending,
              COUNT(*) as total
-           FROM best_bets`;
+           FROM best_bets WHERE risk_level = 'düşük'`;
       
       const dailyStats = await pool.query(dailyStatsQuery, date ? [date] : []);
       const daily = dailyStats.rows[0];
 
-      // Calculate overall stats
+      // Calculate overall stats - MAIN BETS ONLY (risk_level = 'düşük' = Ana Tahmin)
       const overallStats = await pool.query(`
         SELECT 
           COUNT(*) FILTER (WHERE result = 'won') as total_won,
@@ -2136,6 +2136,7 @@ export async function registerRoutes(
           COUNT(*) FILTER (WHERE result != 'pending') as total_evaluated,
           COUNT(*) as total
         FROM best_bets
+        WHERE risk_level = 'düşük'
       `);
       
       const overall = overallStats.rows[0];
