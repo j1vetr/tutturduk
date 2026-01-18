@@ -328,14 +328,20 @@ let statusCheckInterval: NodeJS.Timer | null = null;
 export function startMatchStatusService(intervalMinutes: number = 15) {
   console.log(`[MatchStatus] Starting service with ${intervalMinutes} minute interval`);
   
-  checkAndUpdateMatchStatuses().catch(err => {
+  // Run initial check
+  checkAndUpdateMatchStatuses().then(() => {
+    return reEvaluateAllFinishedMatches();
+  }).catch(err => {
     console.error('[MatchStatus] Initial check failed:', err);
   });
   
-  statusCheckInterval = setInterval(() => {
-    checkAndUpdateMatchStatuses().catch(err => {
+  statusCheckInterval = setInterval(async () => {
+    try {
+      await checkAndUpdateMatchStatuses();
+      await reEvaluateAllFinishedMatches();
+    } catch (err) {
       console.error('[MatchStatus] Scheduled check failed:', err);
-    });
+    }
   }, intervalMinutes * 60 * 1000);
   
   return statusCheckInterval;
