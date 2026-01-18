@@ -218,6 +218,52 @@ function evaluateBet(betType: string, homeScore: number, awayScore: number, tota
   return false;
 }
 
+// Re-evaluate all finished matches with pending predictions
+export async function reEvaluateAllFinishedMatches(): Promise<{ evaluated: number }> {
+  console.log('[MatchStatus] Re-evaluating all finished matches...');
+  
+  try {
+    const finishedMatches = await pool.query(
+      `SELECT pm.id, pm.fixture_id, pm.home_team, pm.away_team, pm.final_score_home, pm.final_score_away
+       FROM published_matches pm
+       WHERE pm.status = 'finished' 
+       AND pm.final_score_home IS NOT NULL 
+       AND pm.final_score_away IS NOT NULL
+       AND EXISTS (
+         SELECT 1 FROM best_bets bb 
+         WHERE bb.fixture_id = pm.fixture_id 
+         AND bb.result = 'pending'
+       )`
+    );
+    
+    console.log(`[MatchStatus] Found ${finishedMatches.rows.length} finished matches with pending predictions`);
+    
+    let totalEvaluated = 0;
+    
+    for (const match of finishedMatches.rows) {
+      try {
+        const homeScore = match.final_score_home;
+        const awayScore = match.final_score_away;
+        
+        console.log(`[MatchStatus] Re-evaluating: ${match.home_team} vs ${match.away_team} (${homeScore}-${awayScore})`);
+        
+        const count = await evaluateMatchPredictions(match.fixture_id, homeScore, awayScore);
+        totalEvaluated += count;
+        
+      } catch (error) {
+        console.error(`[MatchStatus] Error re-evaluating ${match.fixture_id}:`, error);
+      }
+    }
+    
+    console.log(`[MatchStatus] Re-evaluation completed: ${totalEvaluated} predictions evaluated`);
+    return { evaluated: totalEvaluated };
+    
+  } catch (error) {
+    console.error('[MatchStatus] Re-evaluation error:', error);
+    throw error;
+  }
+}
+
 async function updateCouponResults() {
   try {
     const couponsResult = await pool.query(

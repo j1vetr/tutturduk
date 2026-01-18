@@ -7,7 +7,7 @@ import { pool } from './db';
 import { apiFootball, SUPPORTED_LEAGUES, CURRENT_SEASON } from './apiFootball';
 import { generateMatchAnalysis, generateAndSavePredictions } from './openai-analysis';
 import { filterMatches, hasValidStatistics, getStatisticsScore } from './matchFilter';
-import { checkAndUpdateMatchStatuses } from './matchStatusService';
+import { checkAndUpdateMatchStatuses, reEvaluateAllFinishedMatches } from './matchStatusService';
 
 function parseApiFootballOdds(oddsData: any[]): any {
   const parsed: any = {};
@@ -2113,6 +2113,27 @@ export async function registerRoutes(
     try {
       const result = await checkAndUpdateMatchStatuses();
       res.json({ success: true, ...result });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Admin: re-evaluate all finished matches with pending predictions
+  app.post('/api/admin/re-evaluate', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Yetkiniz yok' });
+    }
+    try {
+      const result = await reEvaluateAllFinishedMatches();
+      res.json({ 
+        success: true, 
+        message: `${result.evaluated} tahmin değerlendirildi`,
+        ...result 
+      });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }

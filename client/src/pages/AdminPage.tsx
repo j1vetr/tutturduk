@@ -1339,6 +1339,28 @@ export default function AdminPage() {
                     </Button>
                     <Button 
                       onClick={async () => {
+                        try {
+                          const res = await fetch('/api/admin/re-evaluate', {
+                            method: 'POST',
+                            credentials: 'include'
+                          });
+                          const data = await res.json();
+                          if (res.ok) {
+                            toast({ title: 'Değerlendirme Tamamlandı', description: data.message, className: 'bg-green-500 text-white border-none' });
+                          } else {
+                            toast({ variant: 'destructive', description: data.message });
+                          }
+                        } catch (e) {
+                          toast({ variant: 'destructive', description: 'İşlem başarısız' });
+                        }
+                      }}
+                      variant="outline" 
+                      className="border-green-500/30 bg-green-500/10 hover:bg-green-500/20 text-green-400"
+                    >
+                      <RefreshCcw className="w-4 h-4 mr-2" /> Sonuçları Değerlendir
+                    </Button>
+                    <Button 
+                      onClick={async () => {
                         const confirmCode = prompt('Veritabanını sıfırlamak için "SIFIRLA" yazın:');
                         if (confirmCode !== 'SIFIRLA') {
                           toast({ variant: 'destructive', description: 'Onay kodu yanlış' });
