@@ -1,0 +1,82 @@
+15|tutturduk  | 6:34:49 AM [express] GET /api/matches/3 200 in 3ms :: {"id":3,"fixture_id":1504833,"home_team":"H&H Export","away_team":"Matagalpa","home_logo":"https://media.api-sports.io/football/teams/17135.png","away_logo":"https://media.api-sports.io/football/teams/19159.png","league_id":396,"league_name":"Primera Division","league_logo":"https://media.api-sports.io/football/leagues/396.png","match_date":"2026-01-19","match_time":"03:00","timestamp":1768780800,"api_advice":"Double chance : draw or Matagalpa","api_winner_name":"Matagalpa","api_winner_comment":"Win or draw","api_percent_home":"10%","api_percent_draw":"45%","api_percent_away":"45%","api_under_over":null,"api_goals_home":"-2.5","api_goals_away":"-1.5","api_comparison":{"att":{"away":"55%","home":"45%"},"def":{"away":"63%","home":"38%"},"h2h":{"away":"62%","home":"38%"},"form":{"away":"60%","home":"40%"},"goals":{"away":"56%","home":"44%"},"total":{"away":"55.0%","home":"45.2%"},"poisson_distribution":{"away":"34%","home":"66%"}},"api_h2h":[{"date":"2025-11-27T20:00:00+00:00","awayTeam":"Matagalpa","homeTeam":"H&H Export","awayGoals":0,"homeGoals":2},{"date":"2025-09-21T21:00:00+00:00","awayTeam":"Matagalpa","homeTeam":"H&H Export","awayGoals":0,"homeGoals":0},{"date":"2025-07-17T21:00:00+00:00","awayTeam":"H&H Export","homeTeam":"Matagalpa","awayGoals":2,"homeGoals":3},{"date":"2025-03-30T21:00:00+00:00","awayTeam":"H&H Export","homeTeam":"Matagalpa","awayGoals":2,"homeGoals":5},{"date":"2025-02-02T21:00:00+00:00","awayTeam":"Matagalpa","homeTeam":"H&H Export","awayGoals":1,"homeGoals":1}],"api_teams":{"away":{"id":19159,"logo":"https://media.api-sports.io/football/teams/19159.png","name":"Matagalpa","last_5":{"att":"55%","def":"45%","form":"60%","goals":{"for":{"total":6,"average":"1.2"},"against":{"total":6,"average":"1.2"}},"played":5},"league":{"form":"WWLDLWLDLDLWWDWLWWL","cards":{"red":{"0-15":{"total":null,"percentage":null},"16-30":{"total":null,"percentage":null},"31-45":{"total":null,"percentage":null},"46-60":{"total":null,"percentage":null},"61-75":{"total":3,"percentage":"100.00%"},"76-90":{"total":null,"percentage":null},"91-105":{"total":null,"percentage":null},"106-120":{"total":null,"percentage":null}},"yellow":{"0-15":{"total":null,"percentage":null},"16-30":{"total":null,"percentage":null},"31-45":{"total":null,"percentage":null},"46-60":{"total":null,"percentage":null},"61-75":{"total":null,"percentage":null},"76-90":{"total":null,"percentage":null},"91-105":{"total":null,"percentage":null},"106-120":{"total":null,"percentage":null}}},"goals":{"for":{"total":{"away":13,"home":16,"total":29},"minute":{"0-15":{"total":4,"percentage":"13.79%"},"16-30":{"total":5,"percentage":"17.24%"},"31-45":{"total":7,"percentage":"24.14%"},"46-60":{"total":5,"percentage":"17.24%"},"61-75":{"total":3,"percentage":"10.34%"},"76-90":{"total":5,"percentage":"17.24%"},"91-105":{"total":null,"percentage":null},"106-120":{"total":null,"percentage":null}},"average":{"away":"1.3","home":"1.8","total":"1.5"},"under_over":{"0.5":{"over":15,"under":4},"1.5":{"over":10,"under":9},"2.5":{"over":3,"under":16},"3.5":{"over":1,"under":18},"4.5":{"over":0,"under":19}}},"against":{"total":{"away":14,"home":14,"total":28},"minute":{"0-15":{"total":3,"percentage":"10.71%"},"16-30":{"total":3,"percentage":"10.71%"},"31-45":{"total":5,"percentage":"17.86%"},"46-60":{"total":5,"percentage":"17.86%"},"61-75":{"total":7,"percentage":"25.00%"},"76-90":{"total":5,"percentage":"17.86%"},"91-105":{"total":null,"percentage":null},"106-120":{"total":null,"percentage":null}},"average":{"away":"1.4","home":"1.6","total":"1.5"},"under_over":{"0.5":{"over":14,"under":5},"1.5":{"over":11,"under":8},"2.5":{"over":2,"under":17},"3.5":{"over":1,"under":18},"4.5":{"over":0,"under":19}}}},"biggest":{"wins":{"away":"0-2","home":"4-0"},"goals":{"for":{"away":2,"home":4},"against":{"away":3,"home":4}},"loses":{"away":"3-0","home":"1-4"},"streak":{"wins":2,"draws":1,"loses":1}},"lineups":[],"penalty":{"total":2,"missed":{"total":0,"percentage":"0%"},"scored":{"total":2,"percentage":"100.00%"}},"fixtures":{"wins":{"away":4,"home":4,"total":8},"draws":{"away":3,"home":1,"total":4},"loses":{"away":3,"home":4,"total":7},"played":{"away":10,"home":9,"total":19}},"clean_sheet":{"away":2,"home":3,"total":5},"failed_to_score":{"away":3,"home":1,"total":4}}},"home":{"id":17135,"logo":"https://media.api-sports.io/football/teams/17135.png","name":"H&H Export","last_5":{"att":"45%","def":"9%","form":"40%","goals":{"for":{"total":5,"average":"1.0"},"against":{"total":10,"average":"2.0"}},"played":5},"league":{"form":"LWLLWWWWWDLWDDWLLWWLL","cards":{"red":{"0-15":{"total":null,"percentage":null},"16-30":{"total":null,"percentage":null},"31-45":{"total":1,"percentage":"50.00%"},"46-60":{"total":null,"percentage":null},"61-75":{"total":null,"percentage":null},"76-90":{"total":1,"percentage":"50.00%"},"91-105":{"total":null,"percentage":null},"106-120":{"total":null,"percentage":null}},"yellow":{"0-15":{"total":null,"percentage":null},"16-30":{"total":null,"percentage":null},"31-45":{"total":1,"percentage":"100.00%"},"46-60":{"total":null,"percentage":null},"61-75":{"total":null,"percentage":null},"76-90":{"total":null,"percentage":null},"91-105":{"total":null,"percentage":null},"106-120":{"total":null,"percentage":null}}},"goals":{"for":{"total":{"away":12,"home":20,"total":32},"minute":{"0-15":{"total":3,"percentage":"9.38%"},"16-30":{"total":3,"percentage":"9.38%"},"31-45":{"total":5,"percentage":"15.63%"},"46-60":{"total":7,"percentage":"21.88%"},"61-75":{"total":7,"percentage":"21.88%"},"76-90":{"total":7,"percentage":"21.88%"},"91-105":{"total":null,"percentage":null},"106-120":{"total":null,"percentage":null}},"average":{"away":"1.2","home":"1.8","total":"1.5"},"under_over":{"0.5":{"over":14,"under":7},"1.5":{"over":13,"under":8},"2.5":{"over":4,"under":17},"3.5":{"over":1,"under":20},"4.5":{"over":0,"under":21}}},"against":{"total":{"away":28,"home":7,"total":35},"minute":{"0-15":{"total":1,"percentage":"2.86%"},"16-30":{"total":1,"percentage":"2.86%"},"31-45":{"total":7,"percentage":"20.00%"},"46-60":{"total":6,"percentage":"17.14%"},"61-75":{"total":6,"percentage":"17.14%"},"76-90":{"total":13,"percentage":"37.14%"},"91-105":{"total":1,"percentage":"2.86%"},"106-120":{"total":null,"percentage":null}},"average":{"away":"2.8","home":"0.6","total":"1.7"},"under_over":{"0.5":{"over":15,"under":6},"1.5":{"over":8,"under":13},"2.5":{"over":6,"under":15},"3.5":{"over":4,"under":17},"4.5":{"over":2,"under":19}}}},"biggest":{"wins":{"away":"2-4","home":"3-0"},"goals":{"for":{"away":4,"home":3},"against":{"away":5,"home":2}},"loses":{"away":"5-0","home":"0-1"},"streak":{"wins":5,"draws":2,"loses":2}},"lineups":[],"penalty":{"total":1,"missed":{"total":0,"percentage":"0%"},"scored":{"total":1,"percentage":"100.00%"}},"fixtures":{"wins":{"away":2,"home":8,"total":10},"draws":{"away":1,"home":2,"total":3},"loses":{"away":7,"home":1,"total":8},"played":{"away":10,"home":11,"total":21}},"clean_sheet":{"away":1,"home":5,"total":6},"failed_to_score":{"away":5,"home":2,"total":7}}}},"status":"pending","result":null,"is_featured":false,"final_score_home":null,"final_score_away":null,"created_at":"2026-01-18T03:34:39.334Z"}
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1504833' }
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1504833' }
+15|tutturduk  | [API-Football] Requesting: /teams/statistics { team: '17135', league: '396', season: '2025' }
+15|tutturduk  | [API-Football] Requesting: /teams/statistics { team: '19159', league: '396', season: '2025' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | 6:34:50 AM [express] GET /api/matches/3/odds 304 in 49ms :: {"found":1.53,"source":"api-football","odds":{"msOdds":{"home":1.53,"draw":3.2,"away":2.38},"overUnder":{"over15":2.1,"under15":1.67,"over25":4.5,"under25":1.18,"over35":11,"under35":1.04},"btts":{"yes":3.2,"no":1.3},"doubleChance":{"homeOrDraw":1.3,"homeOrAway":1.3}}}
+15|tutturduk  | [API-Football] Response: 11 results
+15|tutturduk  | [API-Football] Response: 11 results
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AI Consistency] Main bet: "Ev Kazanır (MS1)", Avg goals: 3.0 (2.0-1.0)
+15|tutturduk  | [AI Consistency] Scenario: High=true, Low=false, Home=true, Away=false, BothScore=true
+15|tutturduk  | [AI+BestBets] Saved prediction: Ev Kazanır (MS1) (expected) for fixture 1504833
+15|tutturduk  | [AI+BestBets] Saved prediction: Çifte Şans (1-X) (medium) for fixture 1504833
+15|tutturduk  | [AI+BestBets] Saved prediction: 2.5 Üst (risky) for fixture 1504833
+15|tutturduk  | [AI+BestBets] Cached analysis for fixture 1504833
+15|tutturduk  | [AI+BestBets] Completed for H&H Export vs Matagalpa: 3 predictions saved
+15|tutturduk  | [AutoPublish] AI predictions saved for H&H Export vs Matagalpa
+15|tutturduk  | [AutoPublish] Match 1505934 already published, skipping
+15|tutturduk  | [AutoPublish] Published: San Carlos vs Sporting San Jose (score: 100)
+15|tutturduk  | [AutoPublish] Generating AI predictions for San Carlos vs Sporting San Jose...
+15|tutturduk  | [AI+BestBets] Generating analysis for San Carlos vs Sporting San Jose...
+15|tutturduk  | [AI Consistency] Main bet: "2.5 Alt", Avg goals: 1.0 (0.7-0.3)
+15|tutturduk  | [AI Consistency] Scenario: High=false, Low=true, Home=false, Away=false, BothScore=false
+15|tutturduk  | [AI+BestBets] Saved prediction: 2.5 Alt (expected) for fixture 1505934
+15|tutturduk  | [AI+BestBets] Saved prediction: KG Yok (medium) for fixture 1505934
+15|tutturduk  | [AI+BestBets] Saved prediction: MS1 (risky) for fixture 1505934
+15|tutturduk  | [AI+BestBets] Cached analysis for fixture 1505934
+15|tutturduk  | [AI+BestBets] Completed for Juventud vs Progreso: 3 predictions saved
+15|tutturduk  | [AutoPublish] AI predictions saved for Juventud vs Progreso
+15|tutturduk  | [AutoPublish] Match 1489102 already published, skipping
+15|tutturduk  | [AutoPublish] Published: Santa Fe vs Rionegro Aguilas (score: 100)
+15|tutturduk  | [AutoPublish] Generating AI predictions for Santa Fe vs Rionegro Aguilas...
+15|tutturduk  | [AI+BestBets] Generating analysis for Santa Fe vs Rionegro Aguilas...
+15|tutturduk  | [AI Consistency] Main bet: "2.5 Alt", Avg goals: 1.0 (0.7-0.3)
+15|tutturduk  | [AI Consistency] Scenario: High=false, Low=true, Home=false, Away=false, BothScore=false
+15|tutturduk  | [BestBets] Error inserting prediction: error: duplicate key value violates unique constraint "best_bets_fixture_date_unique"
+15|tutturduk  |     at /var/www/tutturduk/dist/index.cjs:64:13326
+15|tutturduk  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+15|tutturduk  |     at async /var/www/tutturduk/dist/index.cjs:470:16512 {
+15|tutturduk  |   length: 258,
+15|tutturduk  |   severity: 'ERROR',
+15|tutturduk  |   code: '23505',
+15|tutturduk  |   detail: 'Key (fixture_id, date_for)=(1504833, 2026-01-19) already exists.',
+15|tutturduk  |   hint: undefined,
+15|tutturduk  |   position: undefined,
+15|tutturduk  |   internalPosition: undefined,
+15|tutturduk  |   internalQuery: undefined,
+15|tutturduk  |   where: undefined,
+15|tutturduk  |   schema: 'public',
+15|tutturduk  |   table: 'best_bets',
+15|tutturduk  |   column: undefined,
+15|tutturduk  |   dataType: undefined,
+15|tutturduk  |   constraint: 'best_bets_fixture_date_unique',
+15|tutturduk  |   file: 'nbtinsert.c',
+15|tutturduk  |   line: '663',
+15|tutturduk  |   routine: '_bt_check_unique'
+15|tutturduk  | }
+15|tutturduk  | [BestBets] Error inserting prediction: error: duplicate key value violates unique constraint "best_bets_fixture_date_unique"
+15|tutturduk  |     at /var/www/tutturduk/dist/index.cjs:64:13326
+15|tutturduk  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+15|tutturduk  |     at async /var/www/tutturduk/dist/index.cjs:470:16512 {
+15|tutturduk  |   length: 258,
+15|tutturduk  |   severity: 'ERROR',
+15|tutturduk  |   code: '23505',
+15|tutturduk  |   detail: 'Key (fixture_id, date_for)=(1504833, 2026-01-19) already exists.',
+15|tutturduk  |   hint: undefined,
+15|tutturduk  |   position: undefined,
+15|tutturduk  |   internalPosition: undefined,
+15|tutturduk  |   internalQuery: undefined,
+15|tutturduk  |   where: undefined,
+15|tutturduk  |   schema: 'public',
+15|tutturduk  |   table: 'best_bets',
+15|tutturduk  |   column: undefined,
+15|tutturduk  |   dataType: undefined,
+15|tutturduk  |   constraint: 'best_bets_fixture_date_unique',
+15|tutturduk  |   file: 'nbtinsert.c',
+15|tutturduk  |   line: '663',
+15|tutturduk  |   routine: '_bt_check_unique'
+15|tutturduk  | }
+15|tutturduk  | [BestBets] Saved 3 predictions for fixture 1504833
+15|tutturduk  | 6:35:11 AM [express] GET /api/matches/3/ai-analysis 200 in 21302ms :: {"matchContext":{"type":"league","significance":"normal","homeLeagueLevel":1,"awayLeagueLevel":1,"isCupUpset":false,"isDerby":false},"analysis":"H&H Export, son maçlarda gösterdiği form ile dikkat çekiyor, ancak hücumda yaşadığı zayıflıklar, son 7 maçta gol atamadığı gerçeğiyle birleştiğinde, takımın güvenilirliğini sorgulatıyor. Matagalpa ise deplasman performansında dalgalanmalar gösterse de, son 4 maçta gol atamadığı için hücum gücünün zayıf olduğunu kanıtlıyor. İki takım arasında oynanan son 5 karşılaşmada 16 gol atılması, maçın gollü geçeceği yönünde bir beklenti oluşturuyor. Ancak, H&H Export'un son dönemlerdeki savunma başarısı ve Matagalpa'nın gol atamama durumu, maçın daha az gollü geçebileceği ihtimalini de göz önünde bulunduruyor. Sonuç olarak, bu maçta H&H Export'un ev sahibi avantajı ile galip gelmesi bekleniyor, ancak toplam gol sayısının 2.5 altında kalma ihtimali de göz ardı edilmemeli.","keyFactors":[{"factor":"H&H Export'un güçlü savunması","impact":"positive","weight":9},{"factor":"Matagalpa'nın gol atma zayıflığı","impact":"negative","weight":7},{"factor":"H2H geçmişi gollü maçlar","impact":"neutral","weight":5}],"predictions":[{"type":"expected","bet":"2.5 Alt","odds":"~1.55","confidence":62,"isValueBet":true,"reasoning":"H&H Export'un son 6 maçta temiz kale tutması ve Matagalpa'nın son 4 maçta gol atamaması, bu tahmini destekliyor. Oran, gerçek olasılığa göre değerli çünkü toplam gol beklentisi 2.6.","consistentScores":["0-0","1-0","1-1"]},{"type":"medium","bet":"Çifte Şans 1-X","odds":"~2.10","confidence":48,"isValueBet":false,"reasoning":"H&H Export'un ev sahibi avantajı ve Matagalpa'nın zayıf deplasman performansı, bu tahminin kazanma ihtimalini artırıyor. Ancak, Matagalpa'nın son dönemdeki formu belirsizlik yaratıyor.","consistentScores":["1-0","0-0"]},{"type":"risky","bet":"KG Yok","odds":"~4.50","confidence":28,"isValueBet":true,"reasoning":"Bu yüksek oran, H&H Export'un güçlü savunması ve Matagalpa'nın gol atamama durumu ile destekleniyor. Eğer H&H Export maçı kazanırsa, bu tahmin gerçekleşebilir.","consistentScores":["1-0","2-0"]}],"expertCommentary":{"headline":"H&H Export, evinde galibiyet peşinde!","keyInsight":"H&H Export'un güçlü savunması ve Matagalpa'nın gol atma zayıflığı, bu maçı ev sahibi lehine çevirebilir.","formAnalysis":"H&H Export son dönemde dalgalı bir form sergileyerek, evinde daha güçlü bir performans gösteriyor. Matagalpa ise deplasmanda istikrarsız bir görüntü sergiliyor.","tacticalView":"H&H Export, savunma odaklı bir oyun planı ile maça başlayacakken, Matagalpa'nın hücumda daha yaratıcı olması bekleniyor. Ancak, son dönem performansları bu beklentiyi sorgulatıyor.","riskWarning":"Matagalpa'nın son dönemdeki formu ve H&H Export'un gol atamama durumu, tahminlerde belirsizlik yaratabilir. Bu nedenle dikkatli olunmalı.","stakeSuggestion":"orta"},"avoidBets":[{"bet":"2.5 Üst","reason":"Maçın düşük golle geçme ihtimali yüksek."},{"bet":"KG Var","reason":"Matagalpa'nın gol atma zayıflığı nedeniyle riskli."}],"matchPrediction":{"mostLikelyScore":"1-0","expectedTotalGoals":"2.6","winProbabilities":{"home":45,"draw":25,"away":30},"overUnderProbability":{"over25":55,"under25":45}}}

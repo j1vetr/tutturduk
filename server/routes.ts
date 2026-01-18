@@ -1195,8 +1195,49 @@ export async function registerRoutes(
         return res.status(404).json({ message: 'Maç bulunamadı' });
       }
 
-      // First check if we already have cached analysis (v7 - enhanced prompt)
       const cacheKey = `ai_analysis_v7_${match.fixture_id}`;
+      
+      // Helper function to reconstruct analysis from best_bets
+      const reconstructFromBestBets = async () => {
+        const existingBets = await pool.query(
+          'SELECT * FROM best_bets WHERE fixture_id = $1 ORDER BY risk_level',
+          [match.fixture_id]
+        );
+        
+        if (existingBets.rows.length >= 1) {
+          console.log(`[AI Analysis] Reconstructing from ${existingBets.rows.length} existing best_bets for fixture ${match.fixture_id}`);
+          return {
+            matchContext: { 
+              type: 'league', 
+              significance: 'normal',
+              homeLeagueLevel: 1,
+              awayLeagueLevel: 1,
+              isCupUpset: false,
+              isDerby: false
+            },
+            analysis: existingBets.rows[0]?.reasoning || 'Analiz mevcut.',
+            predictions: existingBets.rows.map((bet: any) => ({
+              type: bet.risk_level === 'düşük' ? 'expected' : bet.risk_level === 'orta' ? 'medium' : 'risky',
+              bet: bet.bet_type,
+              odds: bet.odds ? `${bet.odds.toFixed(2)}` : '~1.50',
+              confidence: bet.confidence || 65,
+              reasoning: bet.reasoning || '',
+              consistentScores: bet.bet_description ? bet.bet_description.split(', ') : ['1-1', '2-1']
+            })),
+            avoidBets: [],
+            expertTip: existingBets.rows[0]?.reasoning || 'İstatistiklere dayalı tahminler.',
+            expectedGoalRange: '2-3 gol',
+            expertCommentary: {
+              headline: `${match.home_team} vs ${match.away_team} Analizi`,
+              keyInsight: existingBets.rows[0]?.reasoning || '',
+              riskAssessment: 'Mevcut tahminler otomatik yayından alınmıştır.'
+            }
+          };
+        }
+        return null;
+      };
+
+      // 1. First check cache
       const cachedResult = await pool.query(
         'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
         [cacheKey]
@@ -1207,44 +1248,53 @@ export async function registerRoutes(
         return res.json(JSON.parse(cachedResult.rows[0].value));
       }
 
-      // Check if best_bets already exist for this fixture (from auto-publish)
-      const existingBets = await pool.query(
-        'SELECT * FROM best_bets WHERE fixture_id = $1 ORDER BY risk_level',
-        [match.fixture_id]
-      );
-      
-      if (existingBets.rows.length >= 3) {
-        // Reconstruct analysis from existing best_bets
-        console.log(`[AI Analysis] Reconstructing from ${existingBets.rows.length} existing best_bets`);
-        const reconstructedAnalysis = {
-          matchContext: { 
-            type: 'league', 
-            significance: 'normal',
-            homeLeagueLevel: 1,
-            awayLeagueLevel: 1,
-            isCupUpset: false,
-            isDerby: false
-          },
-          analysis: existingBets.rows[0]?.reasoning || 'Analiz mevcut.',
-          predictions: existingBets.rows.map((bet: any) => ({
-            type: bet.risk_level === 'düşük' ? 'expected' : bet.risk_level === 'orta' ? 'medium' : 'risky',
-            bet: bet.bet_type,
-            odds: bet.odds ? `${bet.odds.toFixed(2)}` : '~1.50',
-            confidence: bet.confidence || 65,
-            reasoning: bet.reasoning || '',
-            consistentScores: bet.bet_description ? bet.bet_description.split(', ') : ['1-1', '2-1']
-          })),
-          avoidBets: [],
-          expertTip: existingBets.rows[0]?.reasoning || 'İstatistiklere dayalı tahminler.',
-          expectedGoalRange: '2-3 gol',
-          expertCommentary: {
-            headline: `${match.home_team} vs ${match.away_team} Analizi`,
-            keyInsight: existingBets.rows[0]?.reasoning || '',
-            riskAssessment: 'Mevcut tahminler otomatik yayından alınmıştır.'
-          }
-        };
-        return res.json(reconstructedAnalysis);
+      // 2. Check if best_bets exist (from auto-publish or previous generation)
+      const reconstructed = await reconstructFromBestBets();
+      if (reconstructed) {
+        // Also cache this reconstructed analysis for future requests
+        try {
+          await pool.query(
+            `INSERT INTO api_cache (key, value, expires_at)
+             VALUES ($1, $2, NOW() + INTERVAL '24 hours')
+             ON CONFLICT (key) DO UPDATE SET value = $2, expires_at = NOW() + INTERVAL '24 hours'`,
+            [cacheKey, JSON.stringify(reconstructed)]
+          );
+        } catch (e) { /* ignore cache errors */ }
+        return res.json(reconstructed);
       }
+      
+      // 3. Check if another process is already generating (wait up to 30 seconds)
+      console.log(`[AI Analysis] No cache or best_bets found for fixture ${match.fixture_id}, checking if generation in progress...`);
+      for (let i = 0; i < 6; i++) {
+        await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
+        
+        // Check cache again
+        const recheckCache = await pool.query(
+          'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
+          [cacheKey]
+        );
+        if (recheckCache.rows.length > 0) {
+          console.log(`[AI Analysis] Cache appeared while waiting for fixture ${match.fixture_id}`);
+          return res.json(JSON.parse(recheckCache.rows[0].value));
+        }
+        
+        // Check best_bets again
+        const recheckBets = await reconstructFromBestBets();
+        if (recheckBets) {
+          // Cache it
+          try {
+            await pool.query(
+              `INSERT INTO api_cache (key, value, expires_at)
+               VALUES ($1, $2, NOW() + INTERVAL '24 hours')
+               ON CONFLICT (key) DO UPDATE SET value = $2, expires_at = NOW() + INTERVAL '24 hours'`,
+              [cacheKey, JSON.stringify(recheckBets)]
+            );
+          } catch (e) { /* ignore */ }
+          return res.json(recheckBets);
+        }
+      }
+      
+      console.log(`[AI Analysis] No data found after waiting, generating new analysis for fixture ${match.fixture_id}...`);
 
       // No cache, no existing bets - generate new analysis
       const analysis = await getCachedData(cacheKey, async () => {
