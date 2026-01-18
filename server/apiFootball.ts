@@ -1,6 +1,83 @@
 const API_BASE_URL = 'https://v3.football.api-sports.io';
 const API_KEY = process.env.API_FOOTBALL_KEY || '';
 
+// API call counter for monitoring
+let apiCallCounter = {
+  total: 0,
+  byEndpoint: {} as Record<string, number>,
+  lastReset: new Date().toISOString()
+};
+
+// Export function to get API stats
+export function getApiStats() {
+  return { ...apiCallCounter, cacheSize: memoryCache.size };
+}
+
+// Reset counter daily at midnight
+const resetTime = new Date();
+resetTime.setHours(24, 0, 0, 0);
+setTimeout(() => {
+  setInterval(() => {
+    console.log(`[API-Football] Daily stats - Total calls: ${apiCallCounter.total}`, apiCallCounter.byEndpoint);
+    apiCallCounter = { total: 0, byEndpoint: {}, lastReset: new Date().toISOString() };
+  }, 24 * 60 * 60 * 1000);
+}, resetTime.getTime() - Date.now());
+
+// In-memory cache for frequently accessed data
+const memoryCache = new Map<string, { data: any; expiry: number }>();
+
+// Cache TTLs in minutes
+const CACHE_TTL = {
+  fixtures: 30,        // 30 minutes for fixtures list
+  prediction: 240,     // 4 hours for predictions (rarely changes)
+  odds: 15,            // 15 minutes for odds
+  standings: 120,      // 2 hours for standings
+};
+
+// Get from memory cache
+function getFromCache(key: string): any | null {
+  const cached = memoryCache.get(key);
+  if (cached && cached.expiry > Date.now()) {
+    console.log(`[API-Football] Cache HIT: ${key.substring(0, 50)}`);
+    return cached.data;
+  }
+  if (cached) {
+    memoryCache.delete(key);
+  }
+  return null;
+}
+
+// Set to memory cache
+function setToCache(key: string, data: any, ttlMinutes: number): void {
+  memoryCache.set(key, {
+    data,
+    expiry: Date.now() + ttlMinutes * 60 * 1000
+  });
+  console.log(`[API-Football] Cache SET: ${key.substring(0, 50)} (TTL: ${ttlMinutes}min)`);
+}
+
+// Clean expired cache entries periodically
+setInterval(() => {
+  const now = Date.now();
+  let cleaned = 0;
+  const keysToDelete: string[] = [];
+  
+  memoryCache.forEach((value, key) => {
+    if (value.expiry < now) {
+      keysToDelete.push(key);
+    }
+  });
+  
+  keysToDelete.forEach(key => {
+    memoryCache.delete(key);
+    cleaned++;
+  });
+  
+  if (cleaned > 0) {
+    console.log(`[API-Football] Cache cleanup: ${cleaned} entries removed`);
+  }
+}, 5 * 60 * 1000); // Run every 5 minutes
+
 interface ApiResponse<T> {
   get: string;
   parameters: Record<string, string>;
@@ -242,7 +319,15 @@ export const apiFootball = {
     if (params.next) queryParams.next = params.next.toString();
     if (params.status) queryParams.status = params.status;
     
+    // Check cache first
+    const cacheKey = `fixtures:${JSON.stringify(queryParams)}`;
+    const cached = getFromCache(cacheKey);
+    if (cached) return cached;
+    
     const response = await apiRequest<Fixture>('/fixtures', queryParams);
+    
+    // Cache the result
+    setToCache(cacheKey, response.response, CACHE_TTL.fixtures);
     return response.response;
   },
 
@@ -252,16 +337,37 @@ export const apiFootball = {
   },
 
   async getStandings(leagueId: number, season: number): Promise<Standing[][]> {
+    // Check cache first
+    const cacheKey = `standings:${leagueId}:${season}`;
+    const cached = getFromCache(cacheKey);
+    if (cached) return cached;
+    
     const response = await apiRequest<{ league: { standings: Standing[][] } }>('/standings', {
       league: leagueId.toString(),
       season: season.toString()
     });
-    return response.response[0]?.league?.standings || [];
+    const result = response.response[0]?.league?.standings || [];
+    
+    // Cache the result
+    setToCache(cacheKey, result, CACHE_TTL.standings);
+    return result;
   },
 
   async getPrediction(fixtureId: number): Promise<Prediction | null> {
+    // Check cache first - use special marker for cached null values
+    const cacheKey = `prediction:${fixtureId}`;
+    const cached = getFromCache(cacheKey);
+    if (cached !== null) {
+      if (cached === '__NULL__') return null;
+      return cached;
+    }
+    
     const response = await apiRequest<Prediction>('/predictions', { fixture: fixtureId.toString() });
-    return response.response[0] || null;
+    const result = response.response[0] || null;
+    
+    // Cache the result (use marker for null)
+    setToCache(cacheKey, result === null ? '__NULL__' : result, CACHE_TTL.prediction);
+    return result;
   },
 
   async getHeadToHead(team1Id: number, team2Id: number, last?: number): Promise<HeadToHead[]> {
@@ -286,7 +392,15 @@ export const apiFootball = {
   },
 
   async getOdds(fixtureId: number) {
+    // Check cache first
+    const cacheKey = `odds:${fixtureId}`;
+    const cached = getFromCache(cacheKey);
+    if (cached) return cached;
+    
     const response = await apiRequest<any>('/odds', { fixture: fixtureId.toString() });
+    
+    // Cache the result
+    setToCache(cacheKey, response.response, CACHE_TTL.odds);
     return response.response;
   }
 };

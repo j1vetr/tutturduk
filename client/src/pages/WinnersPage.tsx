@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
 import { MobileLayout } from "@/components/MobileLayout";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, TrendingUp, Target, CheckCircle, XCircle, Clock, Loader2, ChevronRight, Calendar, Flame, BarChart3, Shield } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Trophy, TrendingUp, Target, CheckCircle, XCircle, Clock, Loader2, ChevronRight, Calendar, Flame, BarChart3, Shield, Edit } from "lucide-react";
 import { useLocation } from "wouter";
 import { format, subDays, isToday, isYesterday, parseISO } from "date-fns";
 import { tr } from "date-fns/locale";
+import { useAuth } from "@/lib/auth";
+import { useToast } from "@/hooks/use-toast";
 
 interface Prediction {
   id: number;
@@ -76,10 +79,36 @@ export default function WinnersPage() {
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [filter, setFilter] = useState<FilterType>('all');
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const isAdmin = user?.role === 'admin';
 
   useEffect(() => {
     loadData();
   }, [selectedDate]);
+
+  const updatePredictionResult = async (predId: number, result: 'won' | 'lost' | 'pending') => {
+    try {
+      const res = await fetch(`/api/admin/best-bets/${predId}/result`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ result })
+      });
+      if (res.ok) {
+        toast({ 
+          title: 'Güncellendi', 
+          description: `Tahmin ${result === 'won' ? 'kazandı' : result === 'lost' ? 'kaybetti' : 'bekliyor'} olarak işaretlendi`,
+          className: result === 'won' ? 'bg-emerald-500 text-white border-none' : result === 'lost' ? 'bg-red-500 text-white border-none' : ''
+        });
+        loadData();
+      } else {
+        toast({ variant: 'destructive', description: 'Güncelleme başarısız' });
+      }
+    } catch (e) {
+      toast({ variant: 'destructive', description: 'Hata oluştu' });
+    }
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -384,14 +413,44 @@ export default function WinnersPage() {
                                   <p className="text-sm font-bold text-gray-800">{mainBet.bet_type}</p>
                                 </div>
                               </div>
-                              {mainBet.result === 'won' ? (
-                                <Badge className="bg-emerald-100 text-emerald-700 border-0 text-xs font-bold">Tuttu</Badge>
-                              ) : mainBet.result === 'lost' ? (
-                                <Badge className="bg-red-100 text-red-700 border-0 text-xs font-bold">Tutmadı</Badge>
-                              ) : (
-                                <Badge className="bg-gray-100 text-gray-500 border-0 text-xs">Bekliyor</Badge>
-                              )}
+                              <div className="flex items-center gap-2">
+                                {mainBet.result === 'won' ? (
+                                  <Badge className="bg-emerald-100 text-emerald-700 border-0 text-xs font-bold">Tuttu</Badge>
+                                ) : mainBet.result === 'lost' ? (
+                                  <Badge className="bg-red-100 text-red-700 border-0 text-xs font-bold">Tutmadı</Badge>
+                                ) : (
+                                  <Badge className="bg-gray-100 text-gray-500 border-0 text-xs">Bekliyor</Badge>
+                                )}
+                              </div>
                             </div>
+                            {isAdmin && (
+                              <div className="flex gap-2 mt-2 pt-2 border-t border-gray-200">
+                                <Button
+                                  size="sm"
+                                  variant={mainBet.result === 'won' ? 'default' : 'outline'}
+                                  className={`flex-1 h-7 text-xs ${mainBet.result === 'won' ? 'bg-emerald-500 hover:bg-emerald-600' : ''}`}
+                                  onClick={(e) => { e.stopPropagation(); updatePredictionResult(mainBet.id, 'won'); }}
+                                >
+                                  <CheckCircle className="w-3 h-3 mr-1" />Kazandı
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant={mainBet.result === 'lost' ? 'default' : 'outline'}
+                                  className={`flex-1 h-7 text-xs ${mainBet.result === 'lost' ? 'bg-red-500 hover:bg-red-600' : ''}`}
+                                  onClick={(e) => { e.stopPropagation(); updatePredictionResult(mainBet.id, 'lost'); }}
+                                >
+                                  <XCircle className="w-3 h-3 mr-1" />Kaybetti
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant={mainBet.result === 'pending' ? 'default' : 'outline'}
+                                  className={`flex-1 h-7 text-xs ${mainBet.result === 'pending' ? 'bg-gray-500 hover:bg-gray-600' : ''}`}
+                                  onClick={(e) => { e.stopPropagation(); updatePredictionResult(mainBet.id, 'pending'); }}
+                                >
+                                  <Clock className="w-3 h-3 mr-1" />Bekliyor
+                                </Button>
+                              </div>
+                            )}
                           </div>
                         )}
 
@@ -399,26 +458,56 @@ export default function WinnersPage() {
                         {otherBets.length > 0 && (
                           <div className="space-y-1.5">
                             <span className="text-[9px] font-semibold text-gray-400 uppercase">Diğer Tahminler</span>
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid grid-cols-1 gap-2">
                               {otherBets.map((pred, idx) => (
                                 <div 
                                   key={pred.id || idx}
-                                  className={`flex items-center justify-between p-2 rounded-lg text-xs ${
+                                  className={`p-2 rounded-lg text-xs ${
                                     pred.result === 'won' ? 'bg-emerald-50 border border-emerald-100' :
                                     pred.result === 'lost' ? 'bg-red-50 border border-red-100' :
                                     'bg-gray-50 border border-gray-100'
                                   }`}
                                 >
-                                  <div className="flex items-center gap-1.5 min-w-0">
-                                    {pred.result === 'won' ? (
-                                      <CheckCircle className="w-3 h-3 text-emerald-500 flex-shrink-0" />
-                                    ) : pred.result === 'lost' ? (
-                                      <XCircle className="w-3 h-3 text-red-500 flex-shrink-0" />
-                                    ) : (
-                                      <Clock className="w-3 h-3 text-gray-400 flex-shrink-0" />
-                                    )}
-                                    <span className="font-medium text-gray-700 truncate">{pred.bet_type}</span>
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-1.5 min-w-0">
+                                      {pred.result === 'won' ? (
+                                        <CheckCircle className="w-3 h-3 text-emerald-500 flex-shrink-0" />
+                                      ) : pred.result === 'lost' ? (
+                                        <XCircle className="w-3 h-3 text-red-500 flex-shrink-0" />
+                                      ) : (
+                                        <Clock className="w-3 h-3 text-gray-400 flex-shrink-0" />
+                                      )}
+                                      <span className="font-medium text-gray-700 truncate">{pred.bet_type}</span>
+                                    </div>
                                   </div>
+                                  {isAdmin && (
+                                    <div className="flex gap-1 mt-2">
+                                      <Button
+                                        size="sm"
+                                        variant={pred.result === 'won' ? 'default' : 'outline'}
+                                        className={`flex-1 h-6 text-[10px] ${pred.result === 'won' ? 'bg-emerald-500 hover:bg-emerald-600' : ''}`}
+                                        onClick={(e) => { e.stopPropagation(); updatePredictionResult(pred.id, 'won'); }}
+                                      >
+                                        Kazandı
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant={pred.result === 'lost' ? 'default' : 'outline'}
+                                        className={`flex-1 h-6 text-[10px] ${pred.result === 'lost' ? 'bg-red-500 hover:bg-red-600' : ''}`}
+                                        onClick={(e) => { e.stopPropagation(); updatePredictionResult(pred.id, 'lost'); }}
+                                      >
+                                        Kaybetti
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant={pred.result === 'pending' ? 'default' : 'outline'}
+                                        className={`flex-1 h-6 text-[10px] ${pred.result === 'pending' ? 'bg-gray-500 hover:bg-gray-600' : ''}`}
+                                        onClick={(e) => { e.stopPropagation(); updatePredictionResult(pred.id, 'pending'); }}
+                                      >
+                                        Bekliyor
+                                      </Button>
+                                    </div>
+                                  )}
                                 </div>
                               ))}
                             </div>

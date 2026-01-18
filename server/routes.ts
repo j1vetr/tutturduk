@@ -614,6 +614,33 @@ export async function registerRoutes(
     }
   });
 
+  // Admin: manually update best bet result (won/lost)
+  app.put('/api/admin/best-bets/:id/result', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Yetkisiz erişim' });
+    }
+    try {
+      const { result } = req.body;
+      if (!['won', 'lost', 'pending'].includes(result)) {
+        return res.status(400).json({ message: 'Geçersiz sonuç değeri' });
+      }
+      
+      await pool.query(
+        'UPDATE best_bets SET result = $1 WHERE id = $2',
+        [result, parseInt(req.params.id)]
+      );
+      
+      console.log(`[Admin] Best bet ${req.params.id} manually set to: ${result}`);
+      res.json({ success: true, message: `Tahmin ${result === 'won' ? 'kazandı' : result === 'lost' ? 'kaybetti' : 'bekliyor'} olarak işaretlendi` });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   app.put('/api/admin/coupons/:id/result', async (req, res) => {
     if (!req.session.userId) {
       return res.status(401).json({ message: 'Oturum açılmamış' });
