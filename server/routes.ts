@@ -5,7 +5,7 @@ import session from 'express-session';
 import connectPgSimple from 'connect-pg-simple';
 import { pool } from './db';
 import { apiFootball, SUPPORTED_LEAGUES, CURRENT_SEASON } from './apiFootball';
-import { generateMatchAnalysis } from './openai-analysis';
+import { generateMatchAnalysis, generateAndSavePredictions } from './openai-analysis';
 import { filterMatches, hasValidStatistics, getStatisticsScore } from './matchFilter';
 import { nosyApi } from './nosyApi';
 import { checkAndUpdateMatchStatuses } from './matchStatusService';
@@ -1525,84 +1525,97 @@ export async function registerRoutes(
 
       res.json(published);
       
-      // Trigger AI analysis in background (don't wait)
+      // Generate AI analysis with NosyAPI odds (same as auto-publish)
       (async () => {
         try {
-          const cacheKey = `ai_analysis_v2_${fixtureId}`;
-          await getCachedData(cacheKey, async () => {
-            const homeTeam = apiPrediction?.teams?.home;
-            const awayTeam = apiPrediction?.teams?.away;
-            const h2h = apiPrediction?.h2h || [];
-            const comparison = apiPrediction?.comparison;
-            
-            let oddsData: any = null;
-            let homeTeamStats: any = null;
-            let awayTeamStats: any = null;
-            
-            try {
-              const homeTeamId = homeTeam?.id;
-              const awayTeamId = awayTeam?.id;
-              const leagueId = fixture.league?.id;
-              
-              const [oddsRes, homeStatsRes, awayStatsRes] = await Promise.all([
-                apiFootball.getOdds(fixtureId).catch(() => []),
-                (homeTeamId && leagueId) ? apiFootball.getTeamStatistics(homeTeamId, leagueId, CURRENT_SEASON).catch(() => null) : null,
-                (awayTeamId && leagueId) ? apiFootball.getTeamStatistics(awayTeamId, leagueId, CURRENT_SEASON).catch(() => null) : null,
-              ]);
-              
-              const homeStats = homeStatsRes as any;
-              const awayStats = awayStatsRes as any;
-              
-              if (oddsRes && (oddsRes as any)[0]?.bookmakers?.[0]?.bets) {
-                const bets = (oddsRes as any)[0].bookmakers[0].bets;
-                const matchWinner = bets.find((b: any) => b.name === 'Match Winner');
-                const overUnder = bets.find((b: any) => b.name === 'Goals Over/Under');
-                if (matchWinner?.values) {
-                  oddsData = {
-                    home: parseFloat(matchWinner.values.find((v: any) => v.value === 'Home')?.odd || 0),
-                    draw: parseFloat(matchWinner.values.find((v: any) => v.value === 'Draw')?.odd || 0),
-                    away: parseFloat(matchWinner.values.find((v: any) => v.value === 'Away')?.odd || 0),
-                  };
-                }
-                if (overUnder?.values) {
-                  oddsData = { ...oddsData, over25: parseFloat(overUnder.values.find((v: any) => v.value === 'Over 2.5')?.odd || 0), under25: parseFloat(overUnder.values.find((v: any) => v.value === 'Under 2.5')?.odd || 0) };
-                }
-              }
-              
-              if (homeStats) {
-                homeTeamStats = { cleanSheets: homeStats.clean_sheet?.total || 0, failedToScore: homeStats.failed_to_score?.total || 0, avgGoalsHome: homeStats.goals?.for?.average?.home ? parseFloat(homeStats.goals.for.average.home) : undefined, avgGoalsAway: homeStats.goals?.for?.average?.away ? parseFloat(homeStats.goals.for.average.away) : undefined };
-              }
-              if (awayStats) {
-                awayTeamStats = { cleanSheets: awayStats.clean_sheet?.total || 0, failedToScore: awayStats.failed_to_score?.total || 0, avgGoalsHome: awayStats.goals?.for?.average?.home ? parseFloat(awayStats.goals.for.average.home) : undefined, avgGoalsAway: awayStats.goals?.for?.average?.away ? parseFloat(awayStats.goals.for.average.away) : undefined };
-              }
-            } catch (e) { console.log('Error fetching additional stats:', e); }
-            
-            return generateMatchAnalysis({
-              homeTeam: fixture.teams?.home?.name || '',
-              awayTeam: fixture.teams?.away?.name || '',
-              league: fixture.league?.name || '',
-              homeForm: homeTeam?.league?.form,
-              awayForm: awayTeam?.league?.form,
-              homeGoalsFor: homeTeam?.league?.goals?.for?.total,
-              homeGoalsAgainst: homeTeam?.league?.goals?.against?.total,
-              awayGoalsFor: awayTeam?.league?.goals?.for?.total,
-              awayGoalsAgainst: awayTeam?.league?.goals?.against?.total,
-              homeWins: homeTeam?.league?.fixtures?.wins?.total,
-              homeDraws: homeTeam?.league?.fixtures?.draws?.total,
-              homeLosses: homeTeam?.league?.fixtures?.loses?.total,
-              awayWins: awayTeam?.league?.fixtures?.wins?.total,
-              awayDraws: awayTeam?.league?.fixtures?.draws?.total,
-              awayLosses: awayTeam?.league?.fixtures?.loses?.total,
-              h2hResults: h2h.slice(0, 5).map((m: any) => ({ homeGoals: m.goals?.home || 0, awayGoals: m.goals?.away || 0 })),
-              comparison,
-              homeTeamStats,
-              awayTeamStats,
-              odds: oddsData,
-            });
-          }, 1440);
-          console.log(`[AI] Pre-generated analysis for fixture ${fixtureId}`);
-        } catch (e) {
-          console.log(`[AI] Failed to pre-generate analysis for fixture ${fixtureId}:`, e);
+          const homeTeamName = fixture.teams?.home?.name || '';
+          const awayTeamName = fixture.teams?.away?.name || '';
+          const homeLogo = fixture.teams?.home?.logo || '';
+          const awayLogo = fixture.teams?.away?.logo || '';
+          const leagueName = fixture.league?.name || '';
+          const leagueLogo = fixture.league?.logo || '';
+          const leagueId = fixture.league?.id;
+          
+          // Fetch NosyAPI odds
+          console.log(`[ManualPublish] Fetching NosyAPI odds for ${homeTeamName} vs ${awayTeamName}...`);
+          const nosyResult = await nosyApi.getOddsForFixture(homeTeamName, awayTeamName, isoDate);
+          
+          let nosyOdds: any = undefined;
+          if (nosyResult.found && nosyResult.odds) {
+            nosyOdds = {
+              home: nosyResult.odds.msOdds?.home,
+              draw: nosyResult.odds.msOdds?.draw,
+              away: nosyResult.odds.msOdds?.away,
+              over15: nosyResult.odds.overUnder?.over15,
+              under15: nosyResult.odds.overUnder?.under15,
+              over25: nosyResult.odds.overUnder?.over25,
+              under25: nosyResult.odds.overUnder?.under25,
+              over35: nosyResult.odds.overUnder?.over35,
+              under35: nosyResult.odds.overUnder?.under35,
+              over45: nosyResult.odds.overUnder?.over45,
+              under45: nosyResult.odds.overUnder?.under45,
+              bttsYes: nosyResult.odds.btts?.yes,
+              bttsNo: nosyResult.odds.btts?.no,
+              doubleChanceHomeOrDraw: nosyResult.odds.doubleChance?.homeOrDraw,
+              doubleChanceAwayOrDraw: nosyResult.odds.doubleChance?.awayOrDraw,
+              doubleChanceHomeOrAway: nosyResult.odds.doubleChance?.homeOrAway,
+              halfTimeHome: nosyResult.odds.halfTime?.home,
+              halfTimeDraw: nosyResult.odds.halfTime?.draw,
+              halfTimeAway: nosyResult.odds.halfTime?.away,
+            };
+            console.log(`[ManualPublish] NosyAPI odds found for ${homeTeamName} vs ${awayTeamName}`);
+          } else {
+            console.log(`[ManualPublish] No NosyAPI odds for ${homeTeamName} vs ${awayTeamName}, using API-Football odds`);
+          }
+          
+          const teams = apiPrediction?.teams;
+          const h2h = apiPrediction?.h2h || [];
+          const comparison = apiPrediction?.comparison;
+          
+          // Prepare match data for AI (matching autoPublishService format)
+          const matchData = {
+            homeTeam: homeTeamName,
+            awayTeam: awayTeamName,
+            league: leagueName,
+            leagueId: leagueId,
+            comparison: comparison || undefined,
+            homeForm: teams?.home?.league?.form,
+            awayForm: teams?.away?.league?.form,
+            h2hResults: h2h?.slice(0, 5).map((h: any) => ({
+              homeGoals: h.goals?.home || 0,
+              awayGoals: h.goals?.away || 0
+            })),
+            homeWins: teams?.home?.league?.wins,
+            homeDraws: teams?.home?.league?.draws,
+            homeLosses: teams?.home?.league?.loses,
+            homeGoalsFor: teams?.home?.league?.goals?.for?.total,
+            homeGoalsAgainst: teams?.home?.league?.goals?.against?.total,
+            awayWins: teams?.away?.league?.wins,
+            awayDraws: teams?.away?.league?.draws,
+            awayLosses: teams?.away?.league?.loses,
+            awayGoalsFor: teams?.away?.league?.goals?.for?.total,
+            awayGoalsAgainst: teams?.away?.league?.goals?.against?.total,
+            odds: nosyOdds,
+          };
+          
+          // Generate AI analysis and save to best_bets (same as auto-publish)
+          console.log(`[ManualPublish] Generating AI predictions for ${homeTeamName} vs ${awayTeamName}...`);
+          await generateAndSavePredictions(
+            published.id,
+            fixtureId,
+            homeTeamName,
+            awayTeamName,
+            homeLogo,
+            awayLogo,
+            leagueName,
+            leagueLogo,
+            isoDate,
+            localTime,
+            matchData
+          );
+          console.log(`[ManualPublish] AI predictions saved for ${homeTeamName} vs ${awayTeamName}`);
+        } catch (e: any) {
+          console.error(`[ManualPublish] AI generation failed:`, e.message);
         }
       })();
     } catch (error: any) {
