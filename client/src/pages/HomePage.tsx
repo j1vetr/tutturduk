@@ -143,9 +143,9 @@ export default function HomePage() {
             </div>
             <div className="relative flex justify-center">
               <div className="bg-gradient-to-r from-gray-50 via-white to-gray-50 px-6">
-                <div className="relative group">
-                  {/* Animated glow effect */}
-                  <div className="absolute -inset-3 bg-gradient-to-r from-emerald-500/20 via-teal-500/20 to-emerald-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-700" />
+                <div className="relative">
+                  {/* Animated glow effect - continuous pulse */}
+                  <div className="absolute -inset-3 bg-gradient-to-r from-emerald-500/20 via-teal-500/20 to-emerald-500/20 rounded-2xl blur-xl animate-pulse" />
                   
                   {/* Main title container */}
                   <div className="relative bg-white border-2 border-gray-200 rounded-2xl px-6 py-4 shadow-lg group-hover:border-emerald-300 group-hover:shadow-emerald-100 transition-all duration-300">
