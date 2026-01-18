@@ -257,34 +257,113 @@ function calculateSimilarity(str1: string, str2: string): number {
   return maxWords > 0 ? matchCount / maxWords : 0;
 }
 
+interface NosyMatchResponse {
+  MatchID: number;
+  Date: string;
+  Time: string;
+  DateTime: string;
+  LeagueCode: string;
+  LeagueFlag: string;
+  Country: string;
+  League: string;
+  Teams: string;
+  Team1: string;
+  Team2: string;
+  Odds?: {
+    MS?: { '1'?: string; '0'?: string; '2'?: string };
+    AU?: { [key: string]: string };
+    KG?: { Var?: string; Yok?: string };
+    CS?: { [key: string]: string };
+    IY?: { '1'?: string; '0'?: string; '2'?: string };
+  };
+}
+
 export const nosyApi = {
-  async getAllMatches(type: number = 1): Promise<BettableMatch[]> {
-    const response = await apiRequest<RawMatchData[]>('bettable-matches/all', { type: type.toString() });
+  async getAllMatches(type: number = 1, date?: string): Promise<BettableMatch[]> {
+    const targetDate = date || new Date().toISOString().split('T')[0];
+    const params: Record<string, string> = { 
+      type: type.toString(),
+      date: targetDate
+    };
+    
+    const response = await apiRequest<NosyMatchResponse[]>('bettable-matches', params);
     
     if (!response || !response.data) {
       return [];
     }
 
-    return response.data.map(match => ({
-      matchId: match.C,
-      matchCode: match.C,
-      matchDate: match.D,
-      matchTime: match.T,
-      homeTeam: match.HN,
-      awayTeam: match.AN,
-      league: match.LN,
-      leagueCode: match.LEESSION,
-      country: match.N,
-      mbs: match.MBS,
-      odds: parseOdds(match)
-    }));
+    console.log(`[NosyAPI] Fetched ${response.data.length} matches for date ${targetDate}`);
+
+    return response.data.map(match => {
+      const odds: MatchOdds = {};
+      
+      if (match.Odds?.MS) {
+        odds.msOdds = {
+          home: parseFloat(match.Odds.MS['1'] || '0') || 0,
+          draw: parseFloat(match.Odds.MS['0'] || '0') || 0,
+          away: parseFloat(match.Odds.MS['2'] || '0') || 0
+        };
+      }
+      
+      if (match.Odds?.AU) {
+        odds.overUnder = {};
+        for (const [key, value] of Object.entries(match.Odds.AU)) {
+          const val = parseFloat(value) || 0;
+          if (key.includes('1.5') || key.includes('1,5')) {
+            if (key.toLowerCase().includes('üst') || key.toLowerCase().includes('ust')) odds.overUnder.over15 = val;
+            if (key.toLowerCase().includes('alt')) odds.overUnder.under15 = val;
+          }
+          if (key.includes('2.5') || key.includes('2,5')) {
+            if (key.toLowerCase().includes('üst') || key.toLowerCase().includes('ust')) odds.overUnder.over25 = val;
+            if (key.toLowerCase().includes('alt')) odds.overUnder.under25 = val;
+          }
+          if (key.includes('3.5') || key.includes('3,5')) {
+            if (key.toLowerCase().includes('üst') || key.toLowerCase().includes('ust')) odds.overUnder.over35 = val;
+            if (key.toLowerCase().includes('alt')) odds.overUnder.under35 = val;
+          }
+          if (key.includes('4.5') || key.includes('4,5')) {
+            if (key.toLowerCase().includes('üst') || key.toLowerCase().includes('ust')) odds.overUnder.over45 = val;
+            if (key.toLowerCase().includes('alt')) odds.overUnder.under45 = val;
+          }
+        }
+      }
+      
+      if (match.Odds?.KG) {
+        odds.btts = {
+          yes: parseFloat(match.Odds.KG.Var || '0') || 0,
+          no: parseFloat(match.Odds.KG.Yok || '0') || 0
+        };
+      }
+      
+      if (match.Odds?.IY) {
+        odds.halfTime = {
+          home: parseFloat(match.Odds.IY['1'] || '0') || 0,
+          draw: parseFloat(match.Odds.IY['0'] || '0') || 0,
+          away: parseFloat(match.Odds.IY['2'] || '0') || 0
+        };
+      }
+
+      return {
+        matchId: match.MatchID,
+        matchCode: match.MatchID,
+        matchDate: match.Date,
+        matchTime: match.Time,
+        homeTeam: match.Team1,
+        awayTeam: match.Team2,
+        league: match.League,
+        leagueCode: match.LeagueCode,
+        country: match.Country,
+        mbs: 0,
+        odds
+      };
+    });
   },
 
   async findMatchOdds(homeTeam: string, awayTeam: string, matchDate?: string): Promise<MatchOdds | null> {
-    const matches = await this.getAllMatches();
+    const matches = await this.getAllMatches(1, matchDate);
     
     if (matches.length === 0) {
-      console.log('[NosyAPI] No matches found');
+      console.log('[NosyAPI] No matches found for date:', matchDate);
       return null;
     }
 
@@ -325,7 +404,7 @@ export const nosyApi = {
     odds: MatchOdds | null;
     matchedTeams?: { home: string; away: string };
   }> {
-    const matches = await this.getAllMatches();
+    const matches = await this.getAllMatches(1, matchDate);
     
     if (matches.length === 0) {
       return { found: false, source: 'nosyapi', odds: null };
