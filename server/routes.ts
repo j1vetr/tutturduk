@@ -801,14 +801,23 @@ export async function registerRoutes(
         const matchTimestamp = f.fixture?.timestamp || 0;
         return matchTimestamp > nowTimestamp;
       });
-      console.log(`[ValidatedFixtures] Upcoming only: ${upcomingFixtures.length} matches`);
+      
+      // Sort by match time to ensure we get matches from all hours
+      upcomingFixtures.sort((a: any, b: any) => {
+        const timeA = a.fixture?.timestamp || 0;
+        const timeB = b.fixture?.timestamp || 0;
+        return timeA - timeB;
+      });
+      
+      console.log(`[ValidatedFixtures] Upcoming only: ${upcomingFixtures.length} matches (sorted by time)`);
       
       // Validate each fixture for stats/odds (with delays)
       const validatedFixtures: any[] = [];
       const batchSize = 5;
       const delayBetweenBatches = 2000; // 2 seconds between batches
+      const maxToCheck = 300; // Check more matches to find ones at later hours
       
-      for (let i = 0; i < upcomingFixtures.length && validatedFixtures.length < 150; i += batchSize) {
+      for (let i = 0; i < upcomingFixtures.length && i < maxToCheck && validatedFixtures.length < 150; i += batchSize) {
         const batch = upcomingFixtures.slice(i, i + batchSize);
         
         const results = await Promise.all(
