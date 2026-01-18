@@ -16,20 +16,20 @@ const PgSession = connectPgSimple(session);
 
 async function getCachedData<T>(key: string, fetchFn: () => Promise<T>, ttlMinutes: number = 60): Promise<T> {
   const cached = await pool.query(
-    'SELECT data FROM api_cache WHERE key = $1 AND expires_at > NOW()',
+    'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
     [key]
   );
   
   if (cached.rows.length > 0) {
-    return JSON.parse(cached.rows[0].data) as T;
+    return JSON.parse(cached.rows[0].value) as T;
   }
   
   const data = await fetchFn();
   const expiresAt = new Date(Date.now() + ttlMinutes * 60 * 1000);
   
   await pool.query(
-    `INSERT INTO api_cache (key, data, expires_at) VALUES ($1, $2, $3)
-     ON CONFLICT (key) DO UPDATE SET data = $2, expires_at = $3`,
+    `INSERT INTO api_cache (key, value, expires_at) VALUES ($1, $2, $3)
+     ON CONFLICT (key) DO UPDATE SET value = $2, expires_at = $3`,
     [key, JSON.stringify(data), expiresAt]
   );
   
@@ -1014,12 +1014,12 @@ export async function registerRoutes(
       for (const match of matches) {
         const cacheKey = `ai_analysis_v7_${match.fixture_id}`;
         const cachedResult = await pool.query(
-          'SELECT data FROM api_cache WHERE key = $1 AND expires_at > NOW()',
+          'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
           [cacheKey]
         );
         if (cachedResult.rows.length > 0) {
           try {
-            const analysis = JSON.parse(cachedResult.rows[0].data);
+            const analysis = JSON.parse(cachedResult.rows[0].value);
             badges[match.id] = {
               bestBet: analysis.bestBet,
               riskLevel: analysis.riskLevel,
@@ -1111,13 +1111,13 @@ export async function registerRoutes(
       // First check if we already have cached analysis (v7 - enhanced prompt)
       const cacheKey = `ai_analysis_v7_${match.fixture_id}`;
       const cachedResult = await pool.query(
-        'SELECT data FROM api_cache WHERE key = $1 AND expires_at > NOW()',
+        'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
         [cacheKey]
       );
       
       if (cachedResult.rows.length > 0) {
         console.log(`[AI Analysis] Returning cached analysis for fixture ${match.fixture_id}`);
-        return res.json(JSON.parse(cachedResult.rows[0].data));
+        return res.json(JSON.parse(cachedResult.rows[0].value));
       }
 
       // Check if best_bets already exist for this fixture (from auto-publish)

@@ -862,9 +862,9 @@ export async function generateAndSavePredictions(
     const cacheKey = `ai_analysis_v7_${fixtureId}`;
     try {
       await pool.query(
-        `INSERT INTO api_cache (key, data, expires_at)
+        `INSERT INTO api_cache (key, value, expires_at)
          VALUES ($1, $2, NOW() + INTERVAL '24 hours')
-         ON CONFLICT (key) DO UPDATE SET data = $2, expires_at = NOW() + INTERVAL '24 hours'`,
+         ON CONFLICT (key) DO UPDATE SET value = $2, expires_at = NOW() + INTERVAL '24 hours'`,
         [cacheKey, JSON.stringify(analysis)]
       );
       console.log(`[AI+BestBets] Cached analysis for fixture ${fixtureId}`);
