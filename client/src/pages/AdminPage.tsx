@@ -578,32 +578,60 @@ export default function AdminPage() {
     setBulkPublishing(false);
   };
 
-  const loadUpcomingMatches = async () => {
+  const loadUpcomingMatches = async (validated: boolean = false) => {
     setLoadingMatches(true);
     try {
-      // Tüm tahminleri maçlarla birlikte çek
-      const res = await fetch('/api/football/all-predictions');
-      if (res.ok) {
-        const data = await res.json();
-        // Mevcut UpcomingMatch formatına dönüştür
-        const formatted = data.map((m: any) => ({
-          id: m.id,
-          date: m.date,
-          timestamp: new Date(m.date).getTime() / 1000,
-          status: { long: 'Not Started', short: 'NS', elapsed: null },
-          homeTeam: m.homeTeam,
-          awayTeam: m.awayTeam,
-          league: m.league,
-          goals: { home: null, away: null },
-          localDate: m.localDate,
-          localTime: m.localTime,
-          apiPrediction: m.prediction // API tahmini ekle
-        }));
-        setUpcomingMatches(formatted);
-        toast({ 
-          title: "Tahminler yüklendi", 
-          description: `${data.length} maç ve tahmin getirildi` 
-        });
+      if (validated) {
+        // Sadece istatistiği ve H2H olan maçlar
+        toast({ title: "Kontrol ediliyor...", description: "Kaliteli maçlar filtreleniyor (bu biraz sürebilir)" });
+        const res = await fetch('/api/football/fixtures-validated');
+        if (res.ok) {
+          const data = await res.json();
+          const formatted = data.map((m: any) => ({
+            id: m.id,
+            date: m.date,
+            timestamp: m.timestamp,
+            status: { long: 'Not Started', short: 'NS', elapsed: null },
+            homeTeam: m.homeTeam,
+            awayTeam: m.awayTeam,
+            league: m.league,
+            goals: m.goals || { home: null, away: null },
+            localDate: m.localDate,
+            localTime: m.localTime,
+            apiPrediction: null,
+            validated: true
+          }));
+          setUpcomingMatches(formatted);
+          toast({ 
+            title: "Kaliteli maçlar yüklendi", 
+            description: `${data.length} maç (istatistik + H2H var)`,
+            className: 'bg-emerald-500 text-black border-none'
+          });
+        }
+      } else {
+        // Tüm tahminleri maçlarla birlikte çek
+        const res = await fetch('/api/football/all-predictions');
+        if (res.ok) {
+          const data = await res.json();
+          const formatted = data.map((m: any) => ({
+            id: m.id,
+            date: m.date,
+            timestamp: new Date(m.date).getTime() / 1000,
+            status: { long: 'Not Started', short: 'NS', elapsed: null },
+            homeTeam: m.homeTeam,
+            awayTeam: m.awayTeam,
+            league: m.league,
+            goals: { home: null, away: null },
+            localDate: m.localDate,
+            localTime: m.localTime,
+            apiPrediction: m.prediction
+          }));
+          setUpcomingMatches(formatted);
+          toast({ 
+            title: "Tahminler yüklendi", 
+            description: `${data.length} maç ve tahmin getirildi` 
+          });
+        }
       }
     } catch (error) {
       console.error('Failed to load predictions:', error);
@@ -1273,11 +1301,18 @@ export default function AdminPage() {
                     >
                       <Zap className="w-4 h-4 mr-2" /> Yarının Maçları
                     </Button>
-                    <Button onClick={loadUpcomingMatches} disabled={loadingMatches} variant="outline" className="border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400">
+                    <Button onClick={() => loadUpcomingMatches(true)} disabled={loadingMatches} className="bg-amber-500 text-black font-bold hover:bg-amber-400">
+                      {loadingMatches ? (
+                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Kontrol ediliyor...</>
+                      ) : (
+                        <><Target className="w-4 h-4 mr-2" /> Kaliteli Maçlar</>
+                      )}
+                    </Button>
+                    <Button onClick={() => loadUpcomingMatches(false)} disabled={loadingMatches} variant="outline" className="border-zinc-500/30 bg-zinc-500/10 hover:bg-zinc-500/20 text-zinc-400">
                       {loadingMatches ? (
                         <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Yükleniyor...</>
                       ) : (
-                        <><Target className="w-4 h-4 mr-2" /> Maçları Getir</>
+                        <>Tüm Maçlar</>
                       )}
                     </Button>
                     <Button 

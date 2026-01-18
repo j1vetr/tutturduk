@@ -760,6 +760,151 @@ export async function registerRoutes(
     }
   });
 
+  // Validated fixtures - only returns matches with stats, odds, and H2H
+  app.get('/api/football/fixtures-validated', async (req, res) => {
+    try {
+      const today = new Date();
+      const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+      const todayStr = today.toISOString().split('T')[0];
+      const tomorrowStr = tomorrow.toISOString().split('T')[0];
+      
+      const cacheKey = `fixtures_validated_${todayStr}`;
+      
+      // Check cache first (60 min TTL)
+      const cached = await pool.query(
+        'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
+        [cacheKey]
+      );
+      
+      if (cached.rows.length > 0) {
+        console.log('[ValidatedFixtures] Returning cached data');
+        return res.json(JSON.parse(cached.rows[0].value));
+      }
+      
+      console.log(`[ValidatedFixtures] Fetching fixtures for ${todayStr} and ${tomorrowStr}...`);
+      
+      const [todayFixtures, tomorrowFixtures] = await Promise.all([
+        apiFootball.getFixtures({ date: todayStr }),
+        apiFootball.getFixtures({ date: tomorrowStr })
+      ]);
+      
+      const allFixtures = [...todayFixtures, ...tomorrowFixtures];
+      console.log(`[ValidatedFixtures] Total: ${allFixtures.length} matches`);
+      
+      // Filter out U23, Women's, Reserve
+      const filteredFixtures = filterMatches(allFixtures);
+      console.log(`[ValidatedFixtures] After basic filter: ${filteredFixtures.length} matches`);
+      
+      // Filter out matches that have already started
+      const nowTimestamp = Math.floor(Date.now() / 1000);
+      const upcomingFixtures = filteredFixtures.filter((f: any) => {
+        const matchTimestamp = f.fixture?.timestamp || 0;
+        return matchTimestamp > nowTimestamp;
+      });
+      console.log(`[ValidatedFixtures] Upcoming only: ${upcomingFixtures.length} matches`);
+      
+      // Validate each fixture for stats/odds (with delays)
+      const validatedFixtures: any[] = [];
+      const batchSize = 5;
+      const delayBetweenBatches = 2000; // 2 seconds between batches
+      
+      for (let i = 0; i < upcomingFixtures.length && validatedFixtures.length < 150; i += batchSize) {
+        const batch = upcomingFixtures.slice(i, i + batchSize);
+        
+        const results = await Promise.all(
+          batch.map(async (fixture: any) => {
+            try {
+              const prediction = await apiFootball.getPrediction(fixture.fixture.id);
+              
+              if (!prediction) return null;
+              
+              // Check if has valid comparison data
+              const comparison = prediction.comparison;
+              const hasComparison = comparison && 
+                (comparison.form?.home || comparison.form?.away || 
+                 comparison.att?.home || comparison.def?.home);
+              
+              // Check if has H2H
+              const h2h = prediction.h2h;
+              const hasH2H = h2h && Array.isArray(h2h) && h2h.length >= 1;
+              
+              // Check if has team form data
+              const teams = prediction.teams;
+              const hasTeamData = teams?.home?.league?.form || teams?.away?.league?.form;
+              
+              // Must have at least 2 of 3 criteria
+              const criteria = [hasComparison, hasH2H, hasTeamData].filter(Boolean).length;
+              
+              if (criteria < 2) return null;
+              
+              return {
+                fixture,
+                hasComparison,
+                hasH2H,
+                hasTeamData
+              };
+            } catch (e) {
+              return null;
+            }
+          })
+        );
+        
+        const validResults = results.filter(r => r !== null);
+        validatedFixtures.push(...validResults.map(r => r!.fixture));
+        
+        console.log(`[ValidatedFixtures] Batch ${Math.floor(i/batchSize) + 1}: ${validResults.length}/${batch.length} valid`);
+        
+        // Delay between batches
+        if (i + batchSize < upcomingFixtures.length) {
+          await new Promise(resolve => setTimeout(resolve, delayBetweenBatches));
+        }
+      }
+      
+      console.log(`[ValidatedFixtures] Final: ${validatedFixtures.length} validated matches`);
+      
+      const formatted = validatedFixtures.map((f: any) => ({
+        id: f.fixture.id,
+        date: f.fixture.date,
+        timestamp: f.fixture.timestamp,
+        status: f.fixture.status,
+        homeTeam: {
+          id: f.teams.home.id,
+          name: f.teams.home.name,
+          logo: f.teams.home.logo,
+        },
+        awayTeam: {
+          id: f.teams.away.id,
+          name: f.teams.away.name,
+          logo: f.teams.away.logo,
+        },
+        league: {
+          id: f.league.id,
+          name: f.league.name,
+          logo: f.league.logo,
+          country: f.league.country,
+          round: f.league.round,
+        },
+        goals: f.goals,
+        localDate: new Date(f.fixture.date).toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' }),
+        localTime: new Date(f.fixture.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Istanbul' }),
+        validated: true
+      })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      
+      // Cache for 60 minutes
+      await pool.query(
+        `INSERT INTO api_cache (key, value, expires_at)
+         VALUES ($1, $2, NOW() + INTERVAL '60 minutes')
+         ON CONFLICT (key) DO UPDATE SET value = $2, expires_at = NOW() + INTERVAL '60 minutes'`,
+        [cacheKey, JSON.stringify(formatted)]
+      );
+      
+      res.json(formatted);
+    } catch (error: any) {
+      console.error('[ValidatedFixtures] Error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   app.get('/api/football/fixtures/:id', async (req, res) => {
     try {
       const fixtureId = parseInt(req.params.id);
