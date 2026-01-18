@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { MobileLayout } from "@/components/MobileLayout";
 import { HeroPrediction } from "@/components/HeroPrediction";
-import { Loader2, Clock, Filter, ChevronDown, ChevronUp, ChevronRight, Timer, Sparkles } from "lucide-react";
+import { Loader2, ChevronRight, Timer, Sparkles } from "lucide-react";
 import { useLocation } from "wouter";
 import { Badge } from "@/components/ui/badge";
 
@@ -90,16 +90,10 @@ function MatchCardSkeleton() {
   );
 }
 
-type SortOption = 'time-asc' | 'time-desc' | 'league';
-type TimeFilter = 'all' | 'soon' | 'today' | 'tomorrow';
-
 export default function HomePage() {
   const [, setLocation] = useLocation();
   const [matches, setMatches] = useState<PublishedMatch[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState<SortOption>('time-asc');
-  const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
-  const [showFilters, setShowFilters] = useState(false);
   const [page, setPage] = useState(1);
   const perPage = 10;
 
@@ -128,50 +122,13 @@ export default function HomePage() {
     return dt;
   };
 
-  const filteredMatches = matches.filter(match => {
-    if (timeFilter === 'all') return true;
-    
-    const matchDt = getMatchDateTime(match);
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
-    const dayAfter = new Date(today.getTime() + 48 * 60 * 60 * 1000);
-    
-    if (timeFilter === 'soon') {
-      const diff = matchDt.getTime() - now.getTime();
-      return diff > 0 && diff < 3 * 60 * 60 * 1000; // 3 saat içinde
-    }
-    if (timeFilter === 'today') {
-      return matchDt >= today && matchDt < tomorrow;
-    }
-    if (timeFilter === 'tomorrow') {
-      return matchDt >= tomorrow && matchDt < dayAfter;
-    }
-    return true;
-  });
-
-  const sortedMatches = [...filteredMatches].sort((a, b) => {
-    if (sortBy === 'time-asc') {
-      return getMatchDateTime(a).getTime() - getMatchDateTime(b).getTime();
-    }
-    if (sortBy === 'time-desc') {
-      return getMatchDateTime(b).getTime() - getMatchDateTime(a).getTime();
-    }
-    if (sortBy === 'league') {
-      return (a.league_name || '').localeCompare(b.league_name || '');
-    }
-    return 0;
+  // Sort matches by time (closest first)
+  const sortedMatches = [...matches].sort((a, b) => {
+    return getMatchDateTime(a).getTime() - getMatchDateTime(b).getTime();
   });
 
   const totalPages = Math.ceil(sortedMatches.length / perPage);
   const paginatedMatches = sortedMatches.slice((page - 1) * perPage, page * perPage);
-
-  const filterLabels: Record<TimeFilter, string> = {
-    'all': 'Tümü',
-    'soon': '3 saat içinde',
-    'today': 'Bugün',
-    'tomorrow': 'Yarın'
-  };
 
   return (
     <MobileLayout activeTab="home">
@@ -179,91 +136,17 @@ export default function HomePage() {
         <HeroPrediction />
 
         <div>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-emerald-500" />
-              <h2 className="text-lg font-bold text-gray-800">Günün Tahminleri</h2>
+          {/* Section Header - Centered */}
+          <div className="text-center mb-6">
+            <div className="inline-block">
+              <div className="flex items-center justify-center gap-3 mb-1">
+                <div className="h-[1px] w-8 bg-gradient-to-r from-transparent to-emerald-300" />
+                <h2 className="text-lg font-black text-gray-800 uppercase tracking-wider">Günün Tahminleri</h2>
+                <div className="h-[1px] w-8 bg-gradient-to-l from-transparent to-emerald-300" />
+              </div>
+              <p className="text-[11px] text-gray-400">{sortedMatches.length} maç analiz edildi</p>
             </div>
-            <button 
-              onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-800 transition-colors"
-            >
-              <Filter className="w-3.5 h-3.5" />
-              Filtrele
-              {showFilters ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-            </button>
           </div>
-
-          {showFilters && (
-            <div className="mb-4 p-3 bg-white rounded-xl border border-gray-200 shadow-sm space-y-3">
-              <div>
-                <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-2">Zaman</p>
-                <div className="flex flex-wrap gap-2">
-                  {(['all', 'soon', 'today', 'tomorrow'] as TimeFilter[]).map(f => (
-                    <button
-                      key={f}
-                      onClick={() => { setTimeFilter(f); setPage(1); }}
-                      className={`text-[10px] px-3 py-1.5 rounded-lg border transition-colors ${
-                        timeFilter === f 
-                          ? 'bg-emerald-50 text-emerald-600 border-emerald-300' 
-                          : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      {filterLabels[f]}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <p className="text-[10px] text-gray-500 uppercase tracking-wider mb-2">Sıralama</p>
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    onClick={() => setSortBy('time-asc')}
-                    className={`text-[10px] px-3 py-1.5 rounded-lg border transition-colors flex items-center gap-1 ${
-                      sortBy === 'time-asc' 
-                        ? 'bg-emerald-50 text-emerald-600 border-emerald-300' 
-                        : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <Clock className="w-3 h-3" /> Yakın
-                  </button>
-                  <button
-                    onClick={() => setSortBy('time-desc')}
-                    className={`text-[10px] px-3 py-1.5 rounded-lg border transition-colors flex items-center gap-1 ${
-                      sortBy === 'time-desc' 
-                        ? 'bg-emerald-50 text-emerald-600 border-emerald-300' 
-                        : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <Clock className="w-3 h-3" /> Uzak
-                  </button>
-                  <button
-                    onClick={() => setSortBy('league')}
-                    className={`text-[10px] px-3 py-1.5 rounded-lg border transition-colors ${
-                      sortBy === 'league' 
-                        ? 'bg-emerald-50 text-emerald-600 border-emerald-300' 
-                        : 'bg-gray-50 text-gray-600 border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    Lige göre
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {filteredMatches.length > 0 && (
-            <div className="flex items-center justify-between mb-3">
-              <Badge className="bg-gray-100 text-gray-600 border-gray-200 text-[10px]">
-                {filteredMatches.length} maç
-              </Badge>
-              {totalPages > 1 && (
-                <span className="text-[10px] text-gray-500">
-                  Sayfa {page}/{totalPages}
-                </span>
-              )}
-            </div>
-          )}
           
           {loading ? (
             <div className="space-y-3">
