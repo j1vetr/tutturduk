@@ -1317,6 +1317,28 @@ export default function AdminPage() {
                     </Button>
                     <Button 
                       onClick={async () => {
+                        try {
+                          const res = await fetch('/api/admin/clear-cache', {
+                            method: 'POST',
+                            credentials: 'include'
+                          });
+                          const data = await res.json();
+                          if (res.ok) {
+                            toast({ title: 'Cache Temizlendi', description: data.message, className: 'bg-purple-500 text-white border-none' });
+                          } else {
+                            toast({ variant: 'destructive', description: data.message });
+                          }
+                        } catch (e) {
+                          toast({ variant: 'destructive', description: 'İşlem başarısız' });
+                        }
+                      }}
+                      variant="outline" 
+                      className="border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400"
+                    >
+                      <RefreshCcw className="w-4 h-4 mr-2" /> Cache Temizle
+                    </Button>
+                    <Button 
+                      onClick={async () => {
                         const confirmCode = prompt('Veritabanını sıfırlamak için "SIFIRLA" yazın:');
                         if (confirmCode !== 'SIFIRLA') {
                           toast({ variant: 'destructive', description: 'Onay kodu yanlış' });

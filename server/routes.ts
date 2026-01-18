@@ -2162,6 +2162,29 @@ export async function registerRoutes(
     }
   });
 
+  // Admin: clear API cache
+  app.post('/api/admin/clear-cache', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Yetkiniz yok' });
+    }
+    try {
+      const result = await pool.query('DELETE FROM api_cache');
+      console.log(`[Admin] Cache cleared: ${result.rowCount} entries deleted`);
+      res.json({ 
+        success: true, 
+        message: `Cache temizlendi (${result.rowCount} kayıt silindi)`,
+        deleted: result.rowCount 
+      });
+    } catch (error: any) {
+      console.error('[Admin] Cache clear error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // Admin: generate AI predictions for all pending matches without predictions
   app.post('/api/admin/generate-predictions', async (req, res) => {
     if (!req.session.userId) {
