@@ -154,6 +154,19 @@ export default function MatchDetailPage() {
       const res = await fetch(`/api/matches/${id}/ai-analysis`);
       if (res.ok) {
         const data = await res.json();
+        // Normalize predictions array - ensure it exists and has correct format
+        if (!data.predictions || !Array.isArray(data.predictions)) {
+          data.predictions = [];
+        }
+        // Ensure each prediction has required fields
+        data.predictions = data.predictions.map((pred: any, index: number) => ({
+          type: pred.type || (index === 0 ? 'expected' : index === 1 ? 'medium' : 'risky'),
+          bet: pred.bet || 'Tahmin yükleniyor...',
+          odds: pred.odds || '~1.50',
+          confidence: pred.confidence || 50,
+          reasoning: pred.reasoning || '',
+          consistentScores: pred.consistentScores || []
+        }));
         setAiAnalysis(data);
       }
     } catch (error) {
@@ -283,8 +296,18 @@ export default function MatchDetailPage() {
         ) : aiAnalysis ? (
           <div className={`space-y-4 mt-6 transition-all duration-700 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
             
+            {/* No Predictions Fallback */}
+            {(!aiAnalysis.predictions || aiAnalysis.predictions.length === 0) && (
+              <div className="rounded-2xl bg-amber-50 border border-amber-200 p-4">
+                <div className="flex items-center gap-3">
+                  <AlertTriangle className="w-5 h-5 text-amber-500" />
+                  <p className="text-sm text-amber-700">Tahminler henüz hazırlanıyor. Lütfen daha sonra tekrar deneyin.</p>
+                </div>
+              </div>
+            )}
+            
             {/* PRIMARY BET - Hero Card */}
-            {aiAnalysis.predictions[0] && (
+            {aiAnalysis.predictions && aiAnalysis.predictions[0] && (
               <div className="relative rounded-3xl bg-white shadow-xl shadow-emerald-500/10 border border-emerald-100 overflow-hidden">
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-500" />
                 
@@ -319,7 +342,7 @@ export default function MatchDetailPage() {
             )}
 
             {/* RISK SEVEN - Medium Risk */}
-            {aiAnalysis.predictions[1] && (
+            {aiAnalysis.predictions && aiAnalysis.predictions[1] && (
               <div className="relative rounded-2xl bg-white shadow-lg border border-amber-200 overflow-hidden">
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 to-orange-400" />
                 
@@ -350,7 +373,7 @@ export default function MatchDetailPage() {
             )}
 
             {/* RISKLI - High Risk */}
-            {aiAnalysis.predictions[2] && (
+            {aiAnalysis.predictions && aiAnalysis.predictions[2] && (
               <div className="relative rounded-2xl bg-white shadow-lg border border-red-200 overflow-hidden">
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 to-red-500" />
                 
