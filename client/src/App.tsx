@@ -18,6 +18,16 @@ import CouponDetailPage from "@/pages/CouponDetailPage";
 import CouponCreatorPage from "@/pages/CouponCreatorPage";
 import { useEffect } from "react";
 
+function ScrollToTop() {
+  const [location] = useLocation();
+  
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location]);
+  
+  return null;
+}
+
 function ProtectedRoute({ component: Component, ...rest }: any) {
   const { user, isLoading } = useAuth();
   const [, setLocation] = useLocation();
@@ -80,6 +90,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AuthProvider>
+          <ScrollToTop />
           <Toaster />
           <Router />
         </AuthProvider>
