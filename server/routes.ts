@@ -68,7 +68,7 @@ function parseApiFootballOdds(oddsData: any[]): any {
   return parsed;
 }
 
-import { autoPublishTomorrowMatches, autoPublishTodayMatches } from './autoPublishService';
+import { autoPublishTomorrowMatchesValidated, autoPublishTodayMatchesValidated, prefetchValidatedFixtures } from './autoPublishService';
 import { generatePredictionsForAllPendingMatches } from './openai-analysis';
 
 const PgSession = connectPgSimple(session);
@@ -2118,7 +2118,7 @@ export async function registerRoutes(
     }
   });
 
-  // Admin: auto-publish tomorrow's matches (70 total, 5 per hour)
+  // Admin: auto-publish tomorrow's matches (validated, 70 total, 5 per hour)
   app.post('/api/admin/auto-publish', async (req, res) => {
     if (!req.session.userId) {
       return res.status(401).json({ message: 'Oturum açılmamış' });
@@ -2129,10 +2129,10 @@ export async function registerRoutes(
     }
     try {
       const { totalLimit = 70, perHour = 5 } = req.body;
-      const result = await autoPublishTomorrowMatches(totalLimit, perHour);
+      const result = await autoPublishTomorrowMatchesValidated(totalLimit, perHour);
       res.json({ 
         success: true, 
-        message: `${result.published} maç yayınlandı (${result.date} için)`,
+        message: `${result.published} kaliteli maç yayınlandı (${result.date} için)`,
         ...result 
       });
     } catch (error: any) {
@@ -2140,7 +2140,7 @@ export async function registerRoutes(
     }
   });
 
-  // Admin: auto-publish today's matches (manual trigger, 70 total, 5 per hour)
+  // Admin: auto-publish today's matches (validated, manual trigger, 70 total, 5 per hour)
   app.post('/api/admin/auto-publish-today', async (req, res) => {
     if (!req.session.userId) {
       return res.status(401).json({ message: 'Oturum açılmamış' });
@@ -2151,11 +2151,37 @@ export async function registerRoutes(
     }
     try {
       const { totalLimit = 70, perHour = 5 } = req.body;
-      const result = await autoPublishTodayMatches(totalLimit, perHour);
+      const result = await autoPublishTodayMatchesValidated(totalLimit, perHour);
       res.json({ 
         success: true, 
-        message: `${result.published} maç yayınlandı (bugün ${result.date} için)`,
+        message: `${result.published} kaliteli maç yayınlandı (bugün ${result.date} için)`,
         ...result 
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Admin: manually trigger prefetch for tomorrow's matches
+  app.post('/api/admin/prefetch-tomorrow', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Yetkiniz yok' });
+    }
+    try {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowStr = tomorrow.toISOString().split('T')[0];
+      
+      const result = await prefetchValidatedFixtures(tomorrowStr);
+      res.json({ 
+        success: true, 
+        message: `${result.length} kaliteli maç önbelleğe alındı (${tomorrowStr} için)`,
+        count: result.length,
+        date: tomorrowStr
       });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
