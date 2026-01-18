@@ -548,8 +548,10 @@ export default function AdminPage() {
     setBulkPublishing(true);
     let successCount = 0;
     let failCount = 0;
+    const matchIds = Array.from(selectedMatchIds);
     
-    for (const matchId of Array.from(selectedMatchIds)) {
+    for (let i = 0; i < matchIds.length; i++) {
+      const matchId = matchIds[i];
       const match = upcomingMatches.find(m => m.id === matchId);
       if (!match || isMatchPublished(matchId)) continue;
       
@@ -564,6 +566,11 @@ export default function AdminPage() {
         else failCount++;
       } catch {
         failCount++;
+      }
+      
+      // 3 second delay between each match to avoid rate limits
+      if (i < matchIds.length - 1) {
+        await new Promise(resolve => setTimeout(resolve, 3000));
       }
     }
     
