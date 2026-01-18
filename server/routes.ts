@@ -1108,7 +1108,47 @@ export async function registerRoutes(
         return res.status(404).json({ message: 'Maç bulunamadı' });
       }
 
-      const cacheKey = `ai_analysis_v4_${match.fixture_id}`;
+      // First check if we already have cached analysis (v6)
+      const cacheKey = `ai_analysis_v6_${match.fixture_id}`;
+      const cachedResult = await pool.query(
+        'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
+        [cacheKey]
+      );
+      
+      if (cachedResult.rows.length > 0) {
+        console.log(`[AI Analysis] Returning cached analysis for fixture ${match.fixture_id}`);
+        return res.json(JSON.parse(cachedResult.rows[0].value));
+      }
+
+      // Check if best_bets already exist for this fixture (from auto-publish)
+      const existingBets = await pool.query(
+        'SELECT * FROM best_bets WHERE fixture_id = $1 ORDER BY risk_level',
+        [match.fixture_id]
+      );
+      
+      if (existingBets.rows.length >= 3) {
+        // Reconstruct analysis from existing best_bets
+        console.log(`[AI Analysis] Reconstructing from ${existingBets.rows.length} existing best_bets`);
+        const reconstructedAnalysis = {
+          matchContext: { type: 'league', significance: 'normal' },
+          analysis: existingBets.rows[0]?.reasoning || 'Analiz mevcut.',
+          predictions: existingBets.rows.map((bet: any) => ({
+            type: bet.risk_level === 'düşük' ? 'expected' : bet.risk_level === 'orta' ? 'medium' : 'risky',
+            bet: bet.bet_type,
+            confidence: bet.confidence,
+            reasoning: bet.reasoning,
+            consistentScores: bet.bet_description ? bet.bet_description.split(', ') : []
+          })),
+          expertCommentary: {
+            headline: `${match.home_team} vs ${match.away_team} Analizi`,
+            keyInsight: existingBets.rows[0]?.reasoning || '',
+            riskAssessment: 'Mevcut tahminler otomatik yayından alınmıştır.'
+          }
+        };
+        return res.json(reconstructedAnalysis);
+      }
+
+      // No cache, no existing bets - generate new analysis
       const analysis = await getCachedData(cacheKey, async () => {
         const homeTeam = (match as any).api_teams?.home;
         const awayTeam = (match as any).api_teams?.away;

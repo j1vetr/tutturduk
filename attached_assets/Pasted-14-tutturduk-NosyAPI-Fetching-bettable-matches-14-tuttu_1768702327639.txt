@@ -1,0 +1,57 @@
+14|tutturduk  | [NosyAPI] Fetching: bettable-matches
+14|tutturduk  | [API-Football] Requesting: /odds { fixture: '1394591' }
+14|tutturduk  | [API-Football] Requesting: /teams/statistics { team: '994', league: '203', season: '2025' }
+14|tutturduk  | [API-Football] Requesting: /teams/statistics { team: '1007', league: '203', season: '2025' }
+14|tutturduk  | [API-Football] Response: 11 results
+14|tutturduk  | [API-Football] Response: 11 results
+14|tutturduk  | [API-Football] Response: 1 results
+14|tutturduk  | [NosyAPI] Fetched 40 matches for date 2026-01-19
+14|tutturduk  | 5:11:35 AM [express] GET /api/matches/3/odds 200 in 247ms :: {"found":true,"source":"iddaa","matchedTeams":{"home":"Göztepe","away":"Rizespor"},"odds":{}}
+14|tutturduk  | [AI Consistency] Main bet: "2.5 Alt", Avg goals: 1.0 (1.0-0.0)
+14|tutturduk  | [AI Consistency] Scenario: High=false, Low=true, Home=true, Away=false, BothScore=false
+14|tutturduk  | [BestBets] Error inserting prediction: error: duplicate key value violates unique constraint "best_bets_fixture_date_unique"
+14|tutturduk  |     at /var/www/tutturduk/dist/index.cjs:64:13326
+14|tutturduk  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+14|tutturduk  |     at async /var/www/tutturduk/dist/index.cjs:420:14646 {
+14|tutturduk  |   length: 258,
+14|tutturduk  |   severity: 'ERROR',
+14|tutturduk  |   code: '23505',
+14|tutturduk  |   detail: 'Key (fixture_id, date_for)=(1394591, 2026-01-19) already exists.',
+14|tutturduk  |   hint: undefined,
+14|tutturduk  |   position: undefined,
+14|tutturduk  |   internalPosition: undefined,
+14|tutturduk  |   internalQuery: undefined,
+14|tutturduk  |   where: undefined,
+14|tutturduk  |   schema: 'public',
+14|tutturduk  |   table: 'best_bets',
+14|tutturduk  |   column: undefined,
+14|tutturduk  |   dataType: undefined,
+14|tutturduk  |   constraint: 'best_bets_fixture_date_unique',
+14|tutturduk  |   file: 'nbtinsert.c',
+14|tutturduk  |   line: '663',
+14|tutturduk  |   routine: '_bt_check_unique'
+14|tutturduk  | }
+14|tutturduk  | [BestBets] Error inserting prediction: error: duplicate key value violates unique constraint "best_bets_fixture_date_unique"
+14|tutturduk  |     at /var/www/tutturduk/dist/index.cjs:64:13326
+14|tutturduk  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+14|tutturduk  |     at async /var/www/tutturduk/dist/index.cjs:420:14646 {
+14|tutturduk  |   length: 258,
+14|tutturduk  |   severity: 'ERROR',
+14|tutturduk  |   code: '23505',
+14|tutturduk  |   detail: 'Key (fixture_id, date_for)=(1394591, 2026-01-19) already exists.',
+14|tutturduk  |   hint: undefined,
+14|tutturduk  |   position: undefined,
+14|tutturduk  |   internalPosition: undefined,
+14|tutturduk  |   internalQuery: undefined,
+14|tutturduk  |   where: undefined,
+14|tutturduk  |   schema: 'public',
+14|tutturduk  |   table: 'best_bets',
+14|tutturduk  |   column: undefined,
+14|tutturduk  |   dataType: undefined,
+14|tutturduk  |   constraint: 'best_bets_fixture_date_unique',
+14|tutturduk  |   file: 'nbtinsert.c',
+14|tutturduk  |   line: '663',
+14|tutturduk  |   routine: '_bt_check_unique'
+14|tutturduk  | }
+14|tutturduk  | [BestBets] Saved 3 predictions for fixture 1394591
+14|tutturduk  | 5:11:45 AM [express] GET /api/matches/3/ai-analysis 200 in 10868ms :: {"matchContext":{"type":"league","significance":"normal","homeLeagueLevel":1,"awayLeagueLevel":1,"isCupUpset":false,"isDerby":false},"analysis":"Göztepe son 5 maçında daha iyi bir form sergiliyor ve ev sahibi avantajına sahip. Rizespor ise deplasmanda zayıf bir performans gösteriyor ve son dönemde gol atma konusunda sıkıntı yaşıyor. Göztepe'nin savunması oldukça güçlü, evinde az gol yiyor. H2H geçmişi ise gollü maçlara işaret ediyor, ancak iki takımın da son dönemde gol atma sorunları var. Bu durum, maçın düşük gollü geçme ihtimalini artırıyor.","predictions":[{"type":"expected","bet":"2.5 Alt","odds":"~1.73","confidence":62,"reasoning":"Her iki takımın son dönemde gol atma sorunları var. Göztepe'nin güçlü savunması ve Rizespor'un zayıf hücumu, maçta 2.5 altı gol olasılığını artırıyor.","consistentScores":["1-0","0-0","2-0"]},{"type":"medium","bet":"KG Yok","odds":"~2.10","confidence":48,"reasoning":"Göztepe'nin evinde az gol yemesi ve Rizespor'un son dönemde gol atamaması, en az bir takımın gol atamayacağı ihtimalini güçlendiriyor.","consistentScores":["1-0","2-0"]},{"type":"risky","bet":"MS1","odds":"~1.93","confidence":28,"reasoning":"Göztepe'nin ev sahibi avantajı ve Rizespor'un zayıf formu, Göztepe'nin maçı kazanma olasılığını artırıyor. Ancak oranlar riskli.","consistentScores":["1-0"]}],"avoidBets":["KG Var (her iki takımın da son dönemde gol atamaması nedeniyle)","3.5 Üst (yüksek gol sayısı beklenmiyor)","Beraberlik (Göztepe'nin ev sahibi avantajı ile kazanması muhtemel)"],"expertTip":"Göztepe'nin güçlü savunmasını ve Rizespor'un gol atma zayıflığını dikkate alarak, düşük gollü senaryolara yönelmek akıllıca olacaktır. Ayrıca, Göztepe'nin ev sahibi avantajı ile kazanma ihtimali yüksek.","expectedGoalRange":"1-2 gol"}
