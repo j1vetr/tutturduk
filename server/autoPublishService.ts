@@ -1,11 +1,10 @@
 import { pool } from './db';
-import { apiFootball, SUPPORTED_LEAGUES, CURRENT_SEASON } from './apiFootball';
+import { apiFootball, CURRENT_SEASON } from './apiFootball';
 import { filterMatches, getStatisticsScore } from './matchFilter';
 import { generateAndSavePredictions } from './openai-analysis';
-import { nosyApi } from './nosyApi';
 import type { MatchData } from './openai-analysis';
 
-interface NosyOdds {
+interface ParsedOdds {
   home?: number;
   draw?: number;
   away?: number;
@@ -33,7 +32,66 @@ interface MatchWithScore {
   league: any;
   teams: any;
   statisticsScore: number;
-  nosyOdds?: NosyOdds;
+  odds?: ParsedOdds;
+}
+
+function parseApiFootballOdds(oddsData: any[]): ParsedOdds {
+  const parsed: ParsedOdds = {};
+  
+  if (!oddsData || !Array.isArray(oddsData) || oddsData.length === 0) {
+    return parsed;
+  }
+  
+  const bookmaker = oddsData[0]?.bookmakers?.[0];
+  if (!bookmaker?.bets) return parsed;
+  
+  for (const bet of bookmaker.bets) {
+    const betName = bet.name?.toLowerCase() || '';
+    const values = bet.values || [];
+    
+    if (betName.includes('match winner') || betName === 'home/away' || betName === '1x2') {
+      for (const v of values) {
+        const val = parseFloat(v.odd) || 0;
+        if (v.value === 'Home' || v.value === '1') parsed.home = val;
+        if (v.value === 'Draw' || v.value === 'X') parsed.draw = val;
+        if (v.value === 'Away' || v.value === '2') parsed.away = val;
+      }
+    }
+    
+    if (betName.includes('goals over/under') || betName.includes('over/under')) {
+      for (const v of values) {
+        const val = parseFloat(v.odd) || 0;
+        const line = v.value || '';
+        if (line.includes('Over 1.5')) parsed.over15 = val;
+        if (line.includes('Under 1.5')) parsed.under15 = val;
+        if (line.includes('Over 2.5')) parsed.over25 = val;
+        if (line.includes('Under 2.5')) parsed.under25 = val;
+        if (line.includes('Over 3.5')) parsed.over35 = val;
+        if (line.includes('Under 3.5')) parsed.under35 = val;
+        if (line.includes('Over 4.5')) parsed.over45 = val;
+        if (line.includes('Under 4.5')) parsed.under45 = val;
+      }
+    }
+    
+    if (betName.includes('both teams') || betName.includes('btts')) {
+      for (const v of values) {
+        const val = parseFloat(v.odd) || 0;
+        if (v.value === 'Yes') parsed.bttsYes = val;
+        if (v.value === 'No') parsed.bttsNo = val;
+      }
+    }
+    
+    if (betName.includes('double chance')) {
+      for (const v of values) {
+        const val = parseFloat(v.odd) || 0;
+        if (v.value === 'Home/Draw' || v.value === '1X') parsed.doubleChanceHomeOrDraw = val;
+        if (v.value === 'Away/Draw' || v.value === 'X2') parsed.doubleChanceAwayOrDraw = val;
+        if (v.value === 'Home/Away' || v.value === '12') parsed.doubleChanceHomeOrAway = val;
+      }
+    }
+  }
+  
+  return parsed;
 }
 
 export async function autoPublishTomorrowMatches(targetCount: number = 40) {
@@ -84,35 +142,11 @@ export async function autoPublishTomorrowMatches(targetCount: number = 40) {
     const minStatsScore = 20; // Lowered from 30 to include more matches
     const targetWithBuffer = Math.ceil(targetCount * 1.5); // Get extra matches for better selection
     
-    // Pre-fetch all NosyAPI odds ONCE (no type filter to get ALL matches)
-    console.log(`[AutoPublish] Pre-fetching ALL NosyAPI odds for ${tomorrowStr}...`);
-    let nosyMatches: any[] = [];
-    try {
-      // Try without type filter first, then with type=1 as fallback
-      nosyMatches = await nosyApi.getAllMatches(0, tomorrowStr);
-      if (nosyMatches.length === 0) {
-        nosyMatches = await nosyApi.getAllMatches(1, tomorrowStr);
-      }
-      console.log(`[AutoPublish] NosyAPI returned ${nosyMatches.length} bettable matches`);
-    } catch (error: any) {
-      console.log(`[AutoPublish] NosyAPI error:`, error?.message || error);
-    }
-    
-    // Create lookup map for NosyAPI matches by team names
-    const nosyOddsMap = new Map<string, any>();
-    for (const nm of nosyMatches) {
-      const key1 = `${nm.homeTeam?.toLowerCase()}_${nm.awayTeam?.toLowerCase()}`;
-      const key2 = `${nm.awayTeam?.toLowerCase()}_${nm.homeTeam?.toLowerCase()}`;
-      nosyOddsMap.set(key1, nm);
-      nosyOddsMap.set(key2, nm);
-    }
-    console.log(`[AutoPublish] Created NosyAPI lookup map with ${nosyOddsMap.size} entries`);
-    
-    console.log(`[AutoPublish] Processing matches to find ${targetCount} with NosyAPI odds (target buffer: ${targetWithBuffer})...`);
+    console.log(`[AutoPublish] Processing ${filteredMatches.length} matches to find ${targetCount} with valid statistics (buffer: ${targetWithBuffer})...`);
     
     let processedCount = 0;
-    let skippedNoOdds = 0;
     let skippedLowStats = 0;
+    let skippedNoOdds = 0;
     
     // Process all filtered matches until we have enough valid ones
     for (const match of filteredMatches) {
@@ -127,81 +161,54 @@ export async function autoPublishTomorrowMatches(targetCount: number = 40) {
       try {
         const homeTeam = match.teams?.home?.name || '';
         const awayTeam = match.teams?.away?.name || '';
-        const matchDate = match.fixture.date?.split('T')[0];
-        
-        // Look up NosyAPI odds from pre-fetched cache
-        const lookupKey = `${homeTeam.toLowerCase()}_${awayTeam.toLowerCase()}`;
-        let nosyMatch = nosyOddsMap.get(lookupKey);
-        
-        // Try fuzzy match if exact match not found
-        if (!nosyMatch) {
-          const entries = Array.from(nosyOddsMap.entries());
-          for (const [key, value] of entries) {
-            if (key.includes(homeTeam.toLowerCase().substring(0, 5)) && 
-                key.includes(awayTeam.toLowerCase().substring(0, 5))) {
-              nosyMatch = value;
-              break;
-            }
-          }
-        }
-        
-        const nosyResult = nosyMatch ? { found: true, odds: nosyMatch.odds } : { found: false, odds: null };
-        
-        if (!nosyResult.found || !nosyResult.odds) {
-          skippedNoOdds++;
-          // Only log every 50th skip to reduce noise
-          if (skippedNoOdds % 50 === 0) {
-            console.log(`[AutoPublish] Skipped ${skippedNoOdds} matches without NosyAPI odds so far...`);
-          }
-          continue; // No delay needed - using cached data
-        }
-        
-        // Map NosyAPI odds to our format
-        const nosyOdds: NosyOdds = {
-          home: nosyResult.odds.msOdds?.home,
-          draw: nosyResult.odds.msOdds?.draw,
-          away: nosyResult.odds.msOdds?.away,
-          over15: nosyResult.odds.overUnder?.over15,
-          under15: nosyResult.odds.overUnder?.under15,
-          over25: nosyResult.odds.overUnder?.over25,
-          under25: nosyResult.odds.overUnder?.under25,
-          over35: nosyResult.odds.overUnder?.over35,
-          under35: nosyResult.odds.overUnder?.under35,
-          over45: nosyResult.odds.overUnder?.over45,
-          under45: nosyResult.odds.overUnder?.under45,
-          bttsYes: nosyResult.odds.btts?.yes,
-          bttsNo: nosyResult.odds.btts?.no,
-          doubleChanceHomeOrDraw: nosyResult.odds.doubleChance?.homeOrDraw,
-          doubleChanceAwayOrDraw: nosyResult.odds.doubleChance?.awayOrDraw,
-          doubleChanceHomeOrAway: nosyResult.odds.doubleChance?.homeOrAway,
-          halfTimeHome: nosyResult.odds.halfTime?.home,
-          halfTimeDraw: nosyResult.odds.halfTime?.draw,
-          halfTimeAway: nosyResult.odds.halfTime?.away,
-        };
-        
-        console.log(`[AutoPublish] [${scoredMatches.length + 1}/${targetCount}] Found odds: ${homeTeam} vs ${awayTeam}`);
         
         // Fetch API-Football prediction for statistics
         const prediction = await apiFootball.getPrediction(match.fixture.id);
         
-        if (prediction) {
-          const statsScore = getStatisticsScore(prediction);
-          
-          if (statsScore >= minStatsScore) {
-            scoredMatches.push({
-              fixture: match.fixture,
-              prediction: prediction,
-              league: match.league,
-              teams: match.teams,
-              statisticsScore: statsScore,
-              nosyOdds: nosyOdds
-            });
-          } else {
-            skippedLowStats++;
-          }
+        if (!prediction) {
+          skippedLowStats++;
+          await new Promise(resolve => setTimeout(resolve, 500));
+          continue;
         }
         
-        // 1.5 second delay between requests (faster)
+        const statsScore = getStatisticsScore(prediction);
+        
+        if (statsScore < minStatsScore) {
+          skippedLowStats++;
+          if (skippedLowStats % 50 === 0) {
+            console.log(`[AutoPublish] Skipped ${skippedLowStats} matches with low stats so far...`);
+          }
+          await new Promise(resolve => setTimeout(resolve, 500));
+          continue;
+        }
+        
+        // Fetch odds from API-Football
+        let parsedOdds: ParsedOdds = {};
+        try {
+          const oddsData = await apiFootball.getOdds(match.fixture.id);
+          parsedOdds = parseApiFootballOdds(oddsData);
+        } catch (oddsError: any) {
+          console.log(`[AutoPublish] No odds for ${homeTeam} vs ${awayTeam}`);
+        }
+        
+        // Log progress
+        const hasOdds = parsedOdds.home || parsedOdds.over25;
+        if (!hasOdds) {
+          skippedNoOdds++;
+        }
+        
+        console.log(`[AutoPublish] [${scoredMatches.length + 1}/${targetCount}] Valid match: ${homeTeam} vs ${awayTeam} (stats: ${statsScore}, odds: ${hasOdds ? 'yes' : 'no'})`);
+        
+        scoredMatches.push({
+          fixture: match.fixture,
+          prediction: prediction,
+          league: match.league,
+          teams: match.teams,
+          statisticsScore: statsScore,
+          odds: parsedOdds
+        });
+        
+        // 1.5 second delay between requests
         await new Promise(resolve => setTimeout(resolve, 1500));
       } catch (error: any) {
         console.log(`[AutoPublish] Error processing match ${match.fixture.id}:`, error?.message || error);
@@ -308,7 +315,7 @@ export async function autoPublishTomorrowMatches(targetCount: number = 40) {
         if (insertedMatch.rows.length > 0) {
           const matchId = insertedMatch.rows[0].id;
           
-          // Prepare match data for AI analysis (with NosyAPI odds)
+          // Prepare match data for AI analysis (with API-Football odds)
           const matchData: MatchData = {
             homeTeam,
             awayTeam,
@@ -331,7 +338,7 @@ export async function autoPublishTomorrowMatches(targetCount: number = 40) {
             awayLosses: teams?.away?.league?.loses,
             awayGoalsFor: teams?.away?.league?.goals?.for?.total,
             awayGoalsAgainst: teams?.away?.league?.goals?.against?.total,
-            odds: match.nosyOdds,
+            odds: match.odds,
           };
           
           // Generate AI analysis and save to best_bets

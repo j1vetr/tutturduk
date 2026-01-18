@@ -7,8 +7,67 @@ import { pool } from './db';
 import { apiFootball, SUPPORTED_LEAGUES, CURRENT_SEASON } from './apiFootball';
 import { generateMatchAnalysis, generateAndSavePredictions } from './openai-analysis';
 import { filterMatches, hasValidStatistics, getStatisticsScore } from './matchFilter';
-import { nosyApi } from './nosyApi';
 import { checkAndUpdateMatchStatuses } from './matchStatusService';
+
+function parseApiFootballOdds(oddsData: any[]): any {
+  const parsed: any = {};
+  
+  if (!oddsData || !Array.isArray(oddsData) || oddsData.length === 0) {
+    return parsed;
+  }
+  
+  const bookmaker = oddsData[0]?.bookmakers?.[0];
+  if (!bookmaker?.bets) return parsed;
+  
+  for (const bet of bookmaker.bets) {
+    const betName = bet.name?.toLowerCase() || '';
+    const values = bet.values || [];
+    
+    if (betName.includes('match winner') || betName === 'home/away' || betName === '1x2') {
+      for (const v of values) {
+        const val = parseFloat(v.odd) || 0;
+        if (v.value === 'Home' || v.value === '1') parsed.home = val;
+        if (v.value === 'Draw' || v.value === 'X') parsed.draw = val;
+        if (v.value === 'Away' || v.value === '2') parsed.away = val;
+      }
+    }
+    
+    if (betName.includes('goals over/under') || betName.includes('over/under')) {
+      for (const v of values) {
+        const val = parseFloat(v.odd) || 0;
+        const line = v.value || '';
+        if (line.includes('Over 1.5')) parsed.over15 = val;
+        if (line.includes('Under 1.5')) parsed.under15 = val;
+        if (line.includes('Over 2.5')) parsed.over25 = val;
+        if (line.includes('Under 2.5')) parsed.under25 = val;
+        if (line.includes('Over 3.5')) parsed.over35 = val;
+        if (line.includes('Under 3.5')) parsed.under35 = val;
+        if (line.includes('Over 4.5')) parsed.over45 = val;
+        if (line.includes('Under 4.5')) parsed.under45 = val;
+      }
+    }
+    
+    if (betName.includes('both teams') || betName.includes('btts')) {
+      for (const v of values) {
+        const val = parseFloat(v.odd) || 0;
+        if (v.value === 'Yes') parsed.bttsYes = val;
+        if (v.value === 'No') parsed.bttsNo = val;
+      }
+    }
+    
+    if (betName.includes('double chance')) {
+      for (const v of values) {
+        const val = parseFloat(v.odd) || 0;
+        if (v.value === 'Home/Draw' || v.value === '1X') parsed.doubleChanceHomeOrDraw = val;
+        if (v.value === 'Away/Draw' || v.value === 'X2') parsed.doubleChanceAwayOrDraw = val;
+        if (v.value === 'Home/Away' || v.value === '12') parsed.doubleChanceHomeOrAway = val;
+      }
+    }
+  }
+  
+  return parsed;
+}
+
 import { autoPublishTomorrowMatches } from './autoPublishService';
 import { generatePredictionsForAllPendingMatches } from './openai-analysis';
 
@@ -1082,21 +1141,34 @@ export async function registerRoutes(
         return res.status(404).json({ message: 'Maç bulunamadı' });
       }
       
-      const result = await nosyApi.getOddsForFixture(
-        match.home_team,
-        match.away_team,
-        match.match_date || undefined
-      );
+      // Fetch odds from API-Football
+      const oddsData = await apiFootball.getOdds(match.fixture_id);
+      const parsed = parseApiFootballOdds(oddsData);
+      
+      const hasOdds = parsed.home || parsed.over25;
       
       res.json({
-        found: result.found,
-        source: 'iddaa',
-        matchedTeams: result.matchedTeams,
-        odds: result.odds
+        found: hasOdds,
+        source: 'api-football',
+        odds: hasOdds ? {
+          msOdds: { home: parsed.home, draw: parsed.draw, away: parsed.away },
+          overUnder: { 
+            over15: parsed.over15, under15: parsed.under15,
+            over25: parsed.over25, under25: parsed.under25,
+            over35: parsed.over35, under35: parsed.under35,
+            over45: parsed.over45, under45: parsed.under45
+          },
+          btts: { yes: parsed.bttsYes, no: parsed.bttsNo },
+          doubleChance: { 
+            homeOrDraw: parsed.doubleChanceHomeOrDraw, 
+            awayOrDraw: parsed.doubleChanceAwayOrDraw, 
+            homeOrAway: parsed.doubleChanceHomeOrAway 
+          }
+        } : null
       });
     } catch (error: any) {
       console.error('Odds fetch error:', error);
-      res.json({ found: false, source: 'iddaa', odds: null });
+      res.json({ found: false, source: 'api-football', odds: null });
     }
   });
 
@@ -1609,7 +1681,7 @@ export async function registerRoutes(
 
       res.json(published);
       
-      // Generate AI analysis with NosyAPI odds (same as auto-publish)
+      // Generate AI analysis with API-Football odds (same as auto-publish)
       (async () => {
         try {
           const homeTeamName = fixture.teams?.home?.name || '';
@@ -1620,36 +1692,19 @@ export async function registerRoutes(
           const leagueLogo = fixture.league?.logo || '';
           const leagueId = fixture.league?.id;
           
-          // Fetch NosyAPI odds
-          console.log(`[ManualPublish] Fetching NosyAPI odds for ${homeTeamName} vs ${awayTeamName}...`);
-          const nosyResult = await nosyApi.getOddsForFixture(homeTeamName, awayTeamName, isoDate);
-          
-          let nosyOdds: any = undefined;
-          if (nosyResult.found && nosyResult.odds) {
-            nosyOdds = {
-              home: nosyResult.odds.msOdds?.home,
-              draw: nosyResult.odds.msOdds?.draw,
-              away: nosyResult.odds.msOdds?.away,
-              over15: nosyResult.odds.overUnder?.over15,
-              under15: nosyResult.odds.overUnder?.under15,
-              over25: nosyResult.odds.overUnder?.over25,
-              under25: nosyResult.odds.overUnder?.under25,
-              over35: nosyResult.odds.overUnder?.over35,
-              under35: nosyResult.odds.overUnder?.under35,
-              over45: nosyResult.odds.overUnder?.over45,
-              under45: nosyResult.odds.overUnder?.under45,
-              bttsYes: nosyResult.odds.btts?.yes,
-              bttsNo: nosyResult.odds.btts?.no,
-              doubleChanceHomeOrDraw: nosyResult.odds.doubleChance?.homeOrDraw,
-              doubleChanceAwayOrDraw: nosyResult.odds.doubleChance?.awayOrDraw,
-              doubleChanceHomeOrAway: nosyResult.odds.doubleChance?.homeOrAway,
-              halfTimeHome: nosyResult.odds.halfTime?.home,
-              halfTimeDraw: nosyResult.odds.halfTime?.draw,
-              halfTimeAway: nosyResult.odds.halfTime?.away,
-            };
-            console.log(`[ManualPublish] NosyAPI odds found for ${homeTeamName} vs ${awayTeamName}`);
-          } else {
-            console.log(`[ManualPublish] No NosyAPI odds for ${homeTeamName} vs ${awayTeamName}, using API-Football odds`);
+          // Fetch API-Football odds
+          console.log(`[ManualPublish] Fetching API-Football odds for ${homeTeamName} vs ${awayTeamName}...`);
+          let parsedOdds: any = undefined;
+          try {
+            const oddsData = await apiFootball.getOdds(fixtureId);
+            parsedOdds = parseApiFootballOdds(oddsData);
+            if (parsedOdds.home || parsedOdds.over25) {
+              console.log(`[ManualPublish] API-Football odds found for ${homeTeamName} vs ${awayTeamName}`);
+            } else {
+              console.log(`[ManualPublish] No odds available for ${homeTeamName} vs ${awayTeamName}`);
+            }
+          } catch (oddsErr: any) {
+            console.log(`[ManualPublish] Odds fetch error: ${oddsErr.message}`);
           }
           
           const teams = apiPrediction?.teams;
@@ -1679,7 +1734,7 @@ export async function registerRoutes(
             awayLosses: teams?.away?.league?.loses,
             awayGoalsFor: teams?.away?.league?.goals?.for?.total,
             awayGoalsAgainst: teams?.away?.league?.goals?.against?.total,
-            odds: nosyOdds,
+            odds: parsedOdds,
           };
           
           // Generate AI analysis and save to best_bets (same as auto-publish)

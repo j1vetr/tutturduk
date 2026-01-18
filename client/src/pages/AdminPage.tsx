@@ -1225,7 +1225,7 @@ export default function AdminPage() {
                     </Button>
                     <Button 
                       onClick={async () => {
-                        toast({ title: 'Yayınlanıyor...', description: 'Maçlar çekiliyor, NosyAPI oranları kontrol ediliyor ve AI tahminleri oluşturuluyor...', className: 'bg-blue-500 text-white border-none' });
+                        toast({ title: 'Yayınlanıyor...', description: 'Maçlar çekiliyor, oranlar kontrol ediliyor ve AI tahminleri oluşturuluyor...', className: 'bg-blue-500 text-white border-none' });
                         try {
                           const res = await fetch('/api/admin/auto-publish', {
                             method: 'POST',

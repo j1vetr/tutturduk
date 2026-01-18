@@ -80,8 +80,7 @@ Key entities include:
 ## External Dependencies
 
 ### Third-Party APIs
-- **API-Football (v3)**: Live match scores, fixtures, predictions, H2H data (via API_FOOTBALL_KEY)
-- **NosyAPI**: Turkish İddaa betting odds integration (via NOSYAPI_KEY) - Uses intelligent team name matching algorithm
+- **API-Football (v3)**: Live match scores, fixtures, predictions, H2H data, betting odds (via API_FOOTBALL_KEY)
 - **OpenAI GPT-4o-mini**: AI-powered match analysis and predictions (via OPENAI_API_KEY)
 
 ### Key NPM Packages
@@ -94,8 +93,7 @@ Key entities include:
 ### Environment Variables Required
 - `DATABASE_URL`: PostgreSQL connection string
 - `SESSION_SECRET`: Secret for session encryption (optional, has default)
-- `API_FOOTBALL_KEY`: API-Football (RapidAPI) key for match data
-- `NOSYAPI_KEY`: NosyAPI key for Turkish İddaa odds
+- `API_FOOTBALL_KEY`: API-Football (RapidAPI) key for match data and odds
 - `OPENAI_API_KEY`: OpenAI API key for AI analysis
 
 ## Coupon System
@@ -148,14 +146,15 @@ Key entities include:
      - High-scoring clean sheet handling (Ev 1.5 Üst with 3-0, 4-0 instead of 2.5 Alt)
      - All replacement scores meet the scenario's goal band requirement
 
-### January 18, 2026 - Turkish Odds Integration & Auto-Publish Enhancement
-- **NosyAPI Integration**: Added Turkish İddaa odds via NosyAPI with intelligent team name matching
-- **Hybrid API Architecture**: API-Football for match data/statistics, NosyAPI for Turkish betting odds only
-- **Collapsible Odds Display**: MatchDetailPage now shows "Oranlar" with MS, Alt/Üst, KG, and Çifte Şans markets
-- **Team Name Matching**: Uses similarity algorithm (0.5+ threshold) with Turkish character normalization
+### January 18, 2026 - Auto-Publish Enhancement & API Consolidation
+- **Unified API Architecture**: All match data, statistics, and odds now come from API-Football (single source of truth)
+- **Removed NosyAPI**: Eliminated dependency on secondary odds API for simpler, more reliable data flow
 - **Enhanced Auto-Publish Flow**:
-  1. Fetches matches from API-Football (max 40 per day, up from 25)
-  2. Requires NosyAPI odds - matches without Turkish odds are NOT published
-  3. AI analysis generated immediately with full NosyAPI odds data (not on user click)
-  4. OpenAI receives all odds: MS, 1.5/2.5/3.5/4.5 Alt/Üst, KG, Çifte Şans, İY
-- **Quality Control**: Only matches with both statistics (score 30+) AND NosyAPI odds are published
+  1. Fetches ALL matches for date via single API call (no league iteration)
+  2. Filters out U23/Women's/Reserve matches automatically
+  3. Validates statistics score (minimum 20)
+  4. Fetches odds from API-Football for each valid match
+  5. Generates AI analysis with full odds data
+  6. Maximum 40 matches published per day
+- **Collapsible Odds Display**: MatchDetailPage shows "Oranlar" with MS, Alt/Üst, KG, and Çifte Şans markets
+- **Quality Control**: Only matches with sufficient statistics (score 20+) are published
