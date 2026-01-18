@@ -313,61 +313,72 @@ export default function MatchDetailPage() {
                     </div>
                   </div>
 
-                  <p className="text-sm text-gray-500 leading-relaxed mb-4">{aiAnalysis.predictions[0].reasoning}</p>
-
-                  {aiAnalysis.predictions[0].consistentScores && aiAnalysis.predictions[0].consistentScores.length > 0 && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-gray-400">Olası skorlar:</span>
-                      <div className="flex gap-2">
-                        {aiAnalysis.predictions[0].consistentScores.slice(0, 3).map((score, i) => (
-                          <span key={i} className="text-sm font-bold text-gray-700 bg-gray-100 px-3 py-1 rounded-lg">
-                            {score}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  <p className="text-sm text-gray-500 leading-relaxed">{aiAnalysis.predictions[0].reasoning}</p>
                 </div>
               </div>
             )}
 
-            {/* OTHER PREDICTIONS */}
-            <div className="grid grid-cols-2 gap-3">
-              {aiAnalysis.predictions.slice(1).map((pred, index) => {
-                const isRisky = pred.type === 'risky';
-                const comment = getBetComment(pred.type, pred.bet, pred.confidence);
+            {/* RISK SEVEN - Medium Risk */}
+            {aiAnalysis.predictions[1] && (
+              <div className="relative rounded-2xl bg-white shadow-lg border border-amber-200 overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 to-orange-400" />
                 
-                return (
-                  <div 
-                    key={index}
-                    className={`rounded-2xl bg-white shadow-lg border p-4 ${
-                      isRisky ? 'border-orange-100' : 'border-amber-100'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 mb-3">
-                      {isRisky ? (
-                        <Flame className="w-4 h-4 text-orange-500" />
-                      ) : (
-                        <Target className="w-4 h-4 text-amber-500" />
-                      )}
-                      <span className={`text-[9px] font-bold uppercase tracking-wider ${
-                        isRisky ? 'text-orange-500' : 'text-amber-500'
-                      }`}>
-                        {isRisky ? 'Riskli' : 'Alternatif'}
-                      </span>
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
+                        <Target className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-bold text-amber-600 uppercase tracking-wider">Risk Seven</span>
+                        <p className="text-[10px] text-gray-400">Orta risk, iyi getiri</p>
+                      </div>
                     </div>
-                    
-                    <h4 className="text-lg font-bold text-gray-900 mb-1">{pred.bet}</h4>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xl font-black text-gray-900">{pred.odds}</span>
-                      <span className="text-lg">{comment.emoji}</span>
+                    <div className="text-right">
+                      <span className="text-xl font-black text-gray-900">{aiAnalysis.predictions[1].odds}</span>
+                      <p className="text-[9px] text-gray-400">ORAN</p>
                     </div>
-                    
-                    <p className="text-[11px] text-gray-400 mt-2 line-clamp-2">{pred.reasoning}</p>
                   </div>
-                );
-              })}
-            </div>
+
+                  <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-3 mb-3">
+                    <h3 className="text-xl font-black text-gray-900">{aiAnalysis.predictions[1].bet}</h3>
+                  </div>
+
+                  <p className="text-xs text-gray-500 leading-relaxed">{aiAnalysis.predictions[1].reasoning}</p>
+                </div>
+              </div>
+            )}
+
+            {/* RISKLI - High Risk */}
+            {aiAnalysis.predictions[2] && (
+              <div className="relative rounded-2xl bg-white shadow-lg border border-red-200 overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 to-red-500" />
+                
+                <div className="p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-lg shadow-red-500/30">
+                        <Flame className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-bold text-red-600 uppercase tracking-wider">Riskli</span>
+                        <p className="text-[10px] text-gray-400">Yüksek oran, yüksek risk</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xl font-black text-gray-900">{aiAnalysis.predictions[2].odds}</span>
+                      <p className="text-[9px] text-gray-400">ORAN</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-xl p-3 mb-3">
+                    <h3 className="text-xl font-black text-gray-900">{aiAnalysis.predictions[2].bet}</h3>
+                  </div>
+
+                  <p className="text-xs text-gray-500 leading-relaxed">{aiAnalysis.predictions[2].reasoning}</p>
+                </div>
+              </div>
+            )}
 
             {/* SIMULATION - Always Visible After Bets */}
             {aiAnalysis.predictions[0]?.consistentScores?.[0] && (
