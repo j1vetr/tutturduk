@@ -44,35 +44,23 @@ export async function autoPublishTomorrowMatches(targetCount: number = 40) {
     tomorrow.setDate(tomorrow.getDate() + 1);
     const tomorrowStr = tomorrow.toISOString().split('T')[0];
     
-    console.log(`[AutoPublish] Fetching matches for ${tomorrowStr}...`);
+    console.log(`[AutoPublish] Fetching ALL matches for ${tomorrowStr} (no league filter)...`);
     
-    const allMatches: any[] = [];
+    // Fetch ALL fixtures for the date - no league filter
+    let allMatches: any[] = [];
     
-    console.log(`[AutoPublish] Fetching from ${SUPPORTED_LEAGUES.length} leagues (this may take several minutes)...`);
-    
-    for (let i = 0; i < SUPPORTED_LEAGUES.length; i++) {
-      const league = SUPPORTED_LEAGUES[i];
-      try {
-        console.log(`[AutoPublish] [${i + 1}/${SUPPORTED_LEAGUES.length}] Checking ${league.name}...`);
-        
-        const fixtures = await apiFootball.getFixtures({
-          league: league.id,
-          season: CURRENT_SEASON,
-          date: tomorrowStr
-        });
-        
-        if (fixtures && fixtures.length > 0) {
-          console.log(`[AutoPublish] Found ${fixtures.length} matches in ${league.name}`);
-          allMatches.push(...fixtures);
-        }
-        
-        // 2 second delay between league requests to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 2000));
-      } catch (error: any) {
-        console.log(`[AutoPublish] Error fetching ${league.name}:`, error?.message || error);
-        // Wait extra on error
-        await new Promise(resolve => setTimeout(resolve, 3000));
+    try {
+      const fixtures = await apiFootball.getFixtures({
+        date: tomorrowStr
+      });
+      
+      if (fixtures && fixtures.length > 0) {
+        allMatches = fixtures;
+        console.log(`[AutoPublish] Found ${allMatches.length} total matches for ${tomorrowStr}`);
       }
+    } catch (error: any) {
+      console.log(`[AutoPublish] Error fetching fixtures:`, error?.message || error);
+      return { published: 0, total: 0, date: tomorrowStr };
     }
     
     console.log(`[AutoPublish] Total matches found: ${allMatches.length}`);
@@ -96,6 +84,26 @@ export async function autoPublishTomorrowMatches(targetCount: number = 40) {
     const minStatsScore = 20; // Lowered from 30 to include more matches
     const targetWithBuffer = Math.ceil(targetCount * 1.5); // Get extra matches for better selection
     
+    // Pre-fetch all NosyAPI odds ONCE
+    console.log(`[AutoPublish] Pre-fetching NosyAPI odds for ${tomorrowStr}...`);
+    let nosyMatches: any[] = [];
+    try {
+      nosyMatches = await nosyApi.getAllMatches(1, tomorrowStr);
+      console.log(`[AutoPublish] NosyAPI returned ${nosyMatches.length} bettable matches`);
+    } catch (error: any) {
+      console.log(`[AutoPublish] NosyAPI error:`, error?.message || error);
+    }
+    
+    // Create lookup map for NosyAPI matches by team names
+    const nosyOddsMap = new Map<string, any>();
+    for (const nm of nosyMatches) {
+      const key1 = `${nm.homeTeam?.toLowerCase()}_${nm.awayTeam?.toLowerCase()}`;
+      const key2 = `${nm.awayTeam?.toLowerCase()}_${nm.homeTeam?.toLowerCase()}`;
+      nosyOddsMap.set(key1, nm);
+      nosyOddsMap.set(key2, nm);
+    }
+    console.log(`[AutoPublish] Created NosyAPI lookup map with ${nosyOddsMap.size} entries`);
+    
     console.log(`[AutoPublish] Processing matches to find ${targetCount} with NosyAPI odds (target buffer: ${targetWithBuffer})...`);
     
     let processedCount = 0;
@@ -117,17 +125,30 @@ export async function autoPublishTomorrowMatches(targetCount: number = 40) {
         const awayTeam = match.teams?.away?.name || '';
         const matchDate = match.fixture.date?.split('T')[0];
         
-        // Fetch NosyAPI odds
-        const nosyResult = await nosyApi.getOddsForFixture(homeTeam, awayTeam, matchDate);
+        // Look up NosyAPI odds from pre-fetched cache
+        const lookupKey = `${homeTeam.toLowerCase()}_${awayTeam.toLowerCase()}`;
+        let nosyMatch = nosyOddsMap.get(lookupKey);
+        
+        // Try fuzzy match if exact match not found
+        if (!nosyMatch) {
+          for (const [key, value] of nosyOddsMap.entries()) {
+            if (key.includes(homeTeam.toLowerCase().substring(0, 5)) && 
+                key.includes(awayTeam.toLowerCase().substring(0, 5))) {
+              nosyMatch = value;
+              break;
+            }
+          }
+        }
+        
+        const nosyResult = nosyMatch ? { found: true, odds: nosyMatch.odds } : { found: false, odds: null };
         
         if (!nosyResult.found || !nosyResult.odds) {
           skippedNoOdds++;
-          // Only log every 10th skip to reduce noise
-          if (skippedNoOdds % 10 === 0) {
+          // Only log every 50th skip to reduce noise
+          if (skippedNoOdds % 50 === 0) {
             console.log(`[AutoPublish] Skipped ${skippedNoOdds} matches without NosyAPI odds so far...`);
           }
-          await new Promise(resolve => setTimeout(resolve, 500)); // Faster skip
-          continue;
+          continue; // No delay needed - using cached data
         }
         
         // Map NosyAPI odds to our format
