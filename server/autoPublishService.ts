@@ -93,10 +93,25 @@ export async function autoPublishTomorrowMatches(targetCount: number = 40) {
     console.log(`[AutoPublish] After filtering: ${filteredMatches.length} matches`);
     
     const scoredMatches: MatchWithScore[] = [];
+    const minStatsScore = 20; // Lowered from 30 to include more matches
+    const targetWithBuffer = Math.ceil(targetCount * 1.5); // Get extra matches for better selection
     
-    console.log(`[AutoPublish] Fetching predictions and NosyAPI odds for matches...`);
+    console.log(`[AutoPublish] Processing matches to find ${targetCount} with NosyAPI odds (target buffer: ${targetWithBuffer})...`);
     
-    for (const match of filteredMatches.slice(0, 60)) {
+    let processedCount = 0;
+    let skippedNoOdds = 0;
+    let skippedLowStats = 0;
+    
+    // Process all filtered matches until we have enough valid ones
+    for (const match of filteredMatches) {
+      // Stop if we have enough valid matches
+      if (scoredMatches.length >= targetWithBuffer) {
+        console.log(`[AutoPublish] Reached target buffer of ${targetWithBuffer} matches, stopping processing`);
+        break;
+      }
+      
+      processedCount++;
+      
       try {
         const homeTeam = match.teams?.home?.name || '';
         const awayTeam = match.teams?.away?.name || '';
@@ -106,8 +121,12 @@ export async function autoPublishTomorrowMatches(targetCount: number = 40) {
         const nosyResult = await nosyApi.getOddsForFixture(homeTeam, awayTeam, matchDate);
         
         if (!nosyResult.found || !nosyResult.odds) {
-          console.log(`[AutoPublish] No NosyAPI odds for ${homeTeam} vs ${awayTeam}, skipping`);
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          skippedNoOdds++;
+          // Only log every 10th skip to reduce noise
+          if (skippedNoOdds % 10 === 0) {
+            console.log(`[AutoPublish] Skipped ${skippedNoOdds} matches without NosyAPI odds so far...`);
+          }
+          await new Promise(resolve => setTimeout(resolve, 500)); // Faster skip
           continue;
         }
         
@@ -134,7 +153,7 @@ export async function autoPublishTomorrowMatches(targetCount: number = 40) {
           halfTimeAway: nosyResult.odds.halfTime?.away,
         };
         
-        console.log(`[AutoPublish] Found NosyAPI odds for ${homeTeam} vs ${awayTeam}`);
+        console.log(`[AutoPublish] [${scoredMatches.length + 1}/${targetCount}] Found odds: ${homeTeam} vs ${awayTeam}`);
         
         // Fetch API-Football prediction for statistics
         const prediction = await apiFootball.getPrediction(match.fixture.id);
@@ -142,7 +161,7 @@ export async function autoPublishTomorrowMatches(targetCount: number = 40) {
         if (prediction) {
           const statsScore = getStatisticsScore(prediction);
           
-          if (statsScore >= 30) {
+          if (statsScore >= minStatsScore) {
             scoredMatches.push({
               fixture: match.fixture,
               prediction: prediction,
@@ -151,18 +170,24 @@ export async function autoPublishTomorrowMatches(targetCount: number = 40) {
               statisticsScore: statsScore,
               nosyOdds: nosyOdds
             });
+          } else {
+            skippedLowStats++;
           }
         }
         
-        // 2 second delay between requests
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // 1.5 second delay between requests (faster)
+        await new Promise(resolve => setTimeout(resolve, 1500));
       } catch (error: any) {
         console.log(`[AutoPublish] Error processing match ${match.fixture.id}:`, error?.message || error);
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        await new Promise(resolve => setTimeout(resolve, 2000));
       }
     }
     
-    console.log(`[AutoPublish] ${scoredMatches.length} matches have NosyAPI odds + sufficient statistics`);
+    console.log(`[AutoPublish] Processing complete:`);
+    console.log(`  - Total processed: ${processedCount}`);
+    console.log(`  - Skipped (no odds): ${skippedNoOdds}`);
+    console.log(`  - Skipped (low stats): ${skippedLowStats}`);
+    console.log(`  - Valid matches: ${scoredMatches.length}`);
     
     scoredMatches.sort((a, b) => b.statisticsScore - a.statisticsScore);
     const matchesToPublish = scoredMatches.slice(0, targetCount);
