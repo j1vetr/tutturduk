@@ -1225,17 +1225,42 @@ export default function AdminPage() {
                     </Button>
                     <Button 
                       onClick={async () => {
-                        toast({ title: 'Yayınlanıyor...', description: 'Maçlar çekiliyor, oranlar kontrol ediliyor ve AI tahminleri oluşturuluyor...', className: 'bg-blue-500 text-white border-none' });
+                        toast({ title: 'Bugün yayınlanıyor...', description: 'Bugünün maçları çekiliyor (saat başı 5 maç, max 70)...', className: 'bg-emerald-500 text-white border-none' });
+                        try {
+                          const res = await fetch('/api/admin/auto-publish-today', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            credentials: 'include',
+                            body: JSON.stringify({ totalLimit: 70, perHour: 5 })
+                          });
+                          const data = await res.json();
+                          if (res.ok) {
+                            toast({ title: 'Bugünün Maçları', description: data.message, className: 'bg-emerald-500 text-white border-none' });
+                            loadPublishedMatches();
+                          } else {
+                            toast({ variant: 'destructive', description: data.message });
+                          }
+                        } catch (e) {
+                          toast({ variant: 'destructive', description: 'İşlem başarısız' });
+                        }
+                      }}
+                      className="bg-emerald-500 text-black font-bold hover:bg-emerald-400"
+                    >
+                      <Zap className="w-4 h-4 mr-2" /> Bugünün Maçları
+                    </Button>
+                    <Button 
+                      onClick={async () => {
+                        toast({ title: 'Yarın yayınlanıyor...', description: 'Yarının maçları çekiliyor (saat başı 5 maç, max 70)...', className: 'bg-blue-500 text-white border-none' });
                         try {
                           const res = await fetch('/api/admin/auto-publish', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             credentials: 'include',
-                            body: JSON.stringify({ count: 40 })
+                            body: JSON.stringify({ totalLimit: 70, perHour: 5 })
                           });
                           const data = await res.json();
                           if (res.ok) {
-                            toast({ title: 'Otomatik Yayın', description: data.message, className: 'bg-blue-500 text-white border-none' });
+                            toast({ title: 'Yarının Maçları', description: data.message, className: 'bg-blue-500 text-white border-none' });
                             loadPublishedMatches();
                           } else {
                             toast({ variant: 'destructive', description: data.message });
@@ -1246,7 +1271,7 @@ export default function AdminPage() {
                       }}
                       className="bg-blue-500 text-white font-bold hover:bg-blue-400"
                     >
-                      <Zap className="w-4 h-4 mr-2" /> Otomatik Yayınla
+                      <Zap className="w-4 h-4 mr-2" /> Yarının Maçları
                     </Button>
                     <Button onClick={loadUpcomingMatches} disabled={loadingMatches} variant="outline" className="border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400">
                       {loadingMatches ? (
