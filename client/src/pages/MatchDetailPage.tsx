@@ -381,7 +381,7 @@ export default function MatchDetailPage() {
             )}
 
             {/* SIMULATION - Always Visible After Bets */}
-            {aiAnalysis.predictions[0]?.consistentScores?.[0] && (
+            {aiAnalysis.predictions[0] && (
               <div className="rounded-2xl bg-white shadow-lg border border-gray-100 overflow-hidden">
                 <div className="p-4 border-b border-gray-100">
                   <div className="flex items-center gap-3">
@@ -398,7 +398,7 @@ export default function MatchDetailPage() {
                     homeLogo={match.home_logo}
                     awayLogo={match.away_logo}
                     predictedScore={(() => {
-                      const score = aiAnalysis.predictions[0].consistentScores[0];
+                      const score = aiAnalysis.predictions[0]?.consistentScores?.[0] || '1-1';
                       const [home, away] = score.split('-').map(s => parseInt(s.trim()) || 0);
                       return { home, away };
                     })()}

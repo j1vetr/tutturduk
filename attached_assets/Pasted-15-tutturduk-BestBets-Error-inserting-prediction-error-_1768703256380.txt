@@ -1,0 +1,45 @@
+15|tutturduk  | [BestBets] Error inserting prediction: error: duplicate key value violates unique constraint "best_bets_fixture_date_unique"
+15|tutturduk  |     at /var/www/tutturduk/dist/index.cjs:64:13326
+15|tutturduk  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+15|tutturduk  |     at async /var/www/tutturduk/dist/index.cjs:470:15663 {
+15|tutturduk  |   length: 258,
+15|tutturduk  |   severity: 'ERROR',
+15|tutturduk  |   code: '23505',
+15|tutturduk  |   detail: 'Key (fixture_id, date_for)=(1392003, 2026-01-19) already exists.',
+15|tutturduk  |   hint: undefined,
+15|tutturduk  |   position: undefined,
+15|tutturduk  |   internalPosition: undefined,
+15|tutturduk  |   internalQuery: undefined,
+15|tutturduk  |   where: undefined,
+15|tutturduk  |   schema: 'public',
+15|tutturduk  |   table: 'best_bets',
+15|tutturduk  |   column: undefined,
+15|tutturduk  |   dataType: undefined,
+15|tutturduk  |   constraint: 'best_bets_fixture_date_unique',
+15|tutturduk  |   file: 'nbtinsert.c',
+15|tutturduk  |   line: '663',
+15|tutturduk  |   routine: '_bt_check_unique'
+15|tutturduk  | }
+15|tutturduk  | [BestBets] Error inserting prediction: error: duplicate key value violates unique constraint "best_bets_fixture_date_unique"
+15|tutturduk  |     at /var/www/tutturduk/dist/index.cjs:64:13326
+15|tutturduk  |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+15|tutturduk  |     at async /var/www/tutturduk/dist/index.cjs:470:15663 {
+15|tutturduk  |   length: 258,
+15|tutturduk  |   severity: 'ERROR',
+15|tutturduk  |   code: '23505',
+15|tutturduk  |   detail: 'Key (fixture_id, date_for)=(1392003, 2026-01-19) already exists.',
+15|tutturduk  |   hint: undefined,
+15|tutturduk  |   position: undefined,
+15|tutturduk  |   internalPosition: undefined,
+15|tutturduk  |   internalQuery: undefined,
+15|tutturduk  |   where: undefined,
+15|tutturduk  |   schema: 'public',
+15|tutturduk  |   table: 'best_bets',
+15|tutturduk  |   column: undefined,
+15|tutturduk  |   dataType: undefined,
+15|tutturduk  |   constraint: 'best_bets_fixture_date_unique',
+15|tutturduk  |   file: 'nbtinsert.c',
+15|tutturduk  |   line: '663',
+15|tutturduk  |   routine: '_bt_check_unique'
+15|tutturduk  | }
+15|tutturduk  | [BestBets] Saved 3 predictions for fixture 1392003
