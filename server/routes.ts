@@ -814,6 +814,7 @@ export async function registerRoutes(
         const results = await Promise.all(
           batch.map(async (fixture: any) => {
             try {
+              // Check predictions/stats first
               const prediction = await apiFootball.getPrediction(fixture.fixture.id);
               
               if (!prediction) return null;
@@ -832,16 +833,32 @@ export async function registerRoutes(
               const teams = prediction.teams;
               const hasTeamData = teams?.home?.league?.form || teams?.away?.league?.form;
               
-              // Must have at least 2 of 3 criteria
-              const criteria = [hasComparison, hasH2H, hasTeamData].filter(Boolean).length;
+              // Must have at least 2 of 3 stat criteria
+              const statCriteria = [hasComparison, hasH2H, hasTeamData].filter(Boolean).length;
+              if (statCriteria < 2) return null;
               
-              if (criteria < 2) return null;
+              // NOW also check odds (same as publish endpoint)
+              let hasOdds = false;
+              try {
+                const oddsData = await apiFootball.getOdds(fixture.fixture.id);
+                const parsedOdds = parseApiFootballOdds(oddsData);
+                const hasBasicOdds = parsedOdds.home && parsedOdds.draw && parsedOdds.away;
+                const hasOverUnderOdds = parsedOdds.over25 || parsedOdds.over15 || parsedOdds.over35;
+                const hasBttsOdds = parsedOdds.bttsYes && parsedOdds.bttsNo;
+                hasOdds = hasBasicOdds && (hasOverUnderOdds || hasBttsOdds);
+              } catch (e) {
+                hasOdds = false;
+              }
+              
+              // Must have both stats AND odds
+              if (!hasOdds) return null;
               
               return {
                 fixture,
                 hasComparison,
                 hasH2H,
-                hasTeamData
+                hasTeamData,
+                hasOdds
               };
             } catch (e) {
               return null;
