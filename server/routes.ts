@@ -511,6 +511,50 @@ export async function registerRoutes(
     }
   });
 
+  // Get best bets stats for admin dashboard
+  app.get('/api/admin/best-bets/stats', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Yetkisiz erişim' });
+    }
+    try {
+      const stats = await pool.query(`
+        SELECT 
+          COUNT(*) FILTER (WHERE result = 'won') as won_count,
+          COUNT(*) FILTER (WHERE result = 'lost') as lost_count,
+          COUNT(*) FILTER (WHERE result = 'pending') as pending_count,
+          COUNT(*) as total_count
+        FROM best_bets
+      `);
+      
+      const wonBets = await pool.query(
+        `SELECT bb.*, pm.home_team, pm.away_team, pm.home_logo, pm.away_logo, pm.league_name
+         FROM best_bets bb
+         LEFT JOIN published_matches pm ON bb.fixture_id = pm.fixture_id
+         WHERE bb.result = 'won'
+         ORDER BY bb.created_at DESC
+         LIMIT 10`
+      );
+      
+      const s = stats.rows[0];
+      const evaluated = parseInt(s.won_count) + parseInt(s.lost_count);
+      
+      res.json({
+        wonCount: parseInt(s.won_count) || 0,
+        lostCount: parseInt(s.lost_count) || 0,
+        pendingCount: parseInt(s.pending_count) || 0,
+        totalCount: parseInt(s.total_count) || 0,
+        successRate: evaluated > 0 ? Math.round((parseInt(s.won_count) / evaluated) * 100) : 0,
+        wonBets: wonBets.rows
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   app.put('/api/admin/coupons/:id/result', async (req, res) => {
     if (!req.session.userId) {
       return res.status(401).json({ message: 'Oturum açılmamış' });

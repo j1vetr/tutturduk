@@ -400,9 +400,14 @@ export default function AdminPage() {
   // Data states
   const [invitationCodes, setInvitationCodes] = useState<InvitationCode[]>([]);
   const [users, setUsers] = useState<User[]>([]);
-  const [predictions, setPredictions] = useState<Prediction[]>([]);
-  const [wonPredictions, setWonPredictions] = useState<Prediction[]>([]);
-  const [lostPredictions, setLostPredictions] = useState<Prediction[]>([]);
+  const [bestBetsStats, setBestBetsStats] = useState<{
+    wonCount: number;
+    lostCount: number;
+    pendingCount: number;
+    totalCount: number;
+    successRate: number;
+    wonBets: any[];
+  }>({ wonCount: 0, lostCount: 0, pendingCount: 0, totalCount: 0, successRate: 0, wonBets: [] });
   
   // Match & prediction states
   const [upcomingMatches, setUpcomingMatches] = useState<UpcomingMatch[]>([]);
@@ -462,9 +467,7 @@ export default function AdminPage() {
   const loadAllData = () => {
     loadInvitationCodes();
     loadUsers();
-    loadPredictions();
-    loadWonPredictions();
-    loadLostPredictions();
+    loadBestBetsStats();
     loadCoupons();
     loadPublishedMatches();
   };
@@ -684,30 +687,12 @@ export default function AdminPage() {
     }
   };
 
-  const loadPredictions = async () => {
+  const loadBestBetsStats = async () => {
     try {
-      const res = await fetch('/api/predictions/pending', { credentials: 'include' });
-      if (res.ok) setPredictions(await res.json());
+      const res = await fetch('/api/admin/best-bets/stats', { credentials: 'include' });
+      if (res.ok) setBestBetsStats(await res.json());
     } catch (error) {
-      console.error('Failed to load predictions:', error);
-    }
-  };
-
-  const loadWonPredictions = async () => {
-    try {
-      const res = await fetch('/api/predictions/won', { credentials: 'include' });
-      if (res.ok) setWonPredictions(await res.json());
-    } catch (error) {
-      console.error('Failed to load won predictions:', error);
-    }
-  };
-
-  const loadLostPredictions = async () => {
-    try {
-      const res = await fetch('/api/predictions/lost', { credentials: 'include' });
-      if (res.ok) setLostPredictions(await res.json());
-    } catch (error) {
-      console.error('Failed to load lost predictions:', error);
+      console.error('Failed to load best bets stats:', error);
     }
   };
 
@@ -791,7 +776,7 @@ export default function AdminPage() {
       if (res.ok) {
         toast({ description: "Tahmin yayınlandı!", className: "bg-green-500 text-white border-none" });
         handleCancelSelection();
-        loadPredictions();
+        loadBestBetsStats();
       }
     } catch (error) {
       toast({ variant: "destructive", description: "Tahmin eklenemedi." });
@@ -803,9 +788,7 @@ export default function AdminPage() {
       const res = await fetch(`/api/admin/predictions/${id}`, { method: 'DELETE', credentials: 'include' });
       if (res.ok) {
         toast({ description: "Tahmin silindi.", className: "bg-green-500 text-white border-none" });
-        loadPredictions();
-        loadWonPredictions();
-        loadLostPredictions();
+        loadBestBetsStats();
       }
     } catch (error) {
       toast({ variant: "destructive", description: "Tahmin silinemedi." });
@@ -822,9 +805,7 @@ export default function AdminPage() {
       });
       if (res.ok) {
         toast({ description: result === 'won' ? "Kazandı!" : "Kaybetti.", className: result === 'won' ? "bg-green-500 text-white border-none" : "bg-red-500 text-white border-none" });
-        loadPredictions();
-        loadWonPredictions();
-        loadLostPredictions();
+        loadBestBetsStats();
       }
     } catch (error) {
       toast({ variant: "destructive", description: "Güncellenemedi." });
@@ -841,7 +822,7 @@ export default function AdminPage() {
       });
       if (res.ok) {
         toast({ description: "Günün tahmini olarak ayarlandı!", className: "bg-primary text-black border-none" });
-        loadPredictions();
+        loadBestBetsStats();
       }
     } catch (error) {
       toast({ variant: "destructive", description: "Güncellenemedi." });
@@ -1013,9 +994,7 @@ export default function AdminPage() {
     return new Date(dateStr).toLocaleDateString('tr-TR');
   };
 
-  const successRate = wonPredictions.length + lostPredictions.length > 0 
-    ? Math.round((wonPredictions.length / (wonPredictions.length + lostPredictions.length)) * 100) 
-    : 0;
+  const successRate = bestBetsStats.successRate;
 
   if (!user) return null;
 
@@ -1119,7 +1098,7 @@ export default function AdminPage() {
                     </div>
                     <div className="mt-4 flex items-center gap-2 text-xs">
                       <ArrowUpRight className="w-3 h-3 text-green-400" />
-                      <span className="text-green-400">{wonPredictions.length} kazanılan</span>
+                      <span className="text-green-400">{bestBetsStats.wonCount} kazanılan</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -1128,8 +1107,8 @@ export default function AdminPage() {
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm text-blue-400 mb-1">Aktif Tahminler</p>
-                        <p className="text-3xl font-bold text-white">{predictions.length}</p>
+                        <p className="text-sm text-blue-400 mb-1">Yayındaki Maçlar</p>
+                        <p className="text-3xl font-bold text-white">{publishedMatches.length}</p>
                       </div>
                       <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center">
                         <Target className="w-6 h-6 text-blue-400" />
@@ -1137,7 +1116,7 @@ export default function AdminPage() {
                     </div>
                     <div className="mt-4 flex items-center gap-2 text-xs">
                       <Clock className="w-3 h-3 text-blue-400" />
-                      <span className="text-blue-400">Sonuç bekleniyor</span>
+                      <span className="text-blue-400">AI tahminli maçlar</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -1184,21 +1163,22 @@ export default function AdminPage() {
                 <Card className="bg-zinc-900/50 border-white/5">
                   <CardHeader>
                     <CardTitle className="text-white flex items-center gap-2">
-                      <Clock className="w-5 h-5 text-primary" /> Son Tahminler
+                      <Clock className="w-5 h-5 text-primary" /> Son Yayınlanan Maçlar
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    {predictions.slice(0, 5).map(pred => (
-                      <div key={pred.id} className="flex items-center justify-between p-3 rounded-lg bg-white/5">
-                        <div>
-                          <p className="font-medium text-white text-sm">{pred.home_team} vs {pred.away_team}</p>
-                          <p className="text-xs text-zinc-500">{pred.prediction} @ {pred.odds}</p>
+                    {publishedMatches.slice(0, 5).map(pm => (
+                      <div key={pm.id} className="flex items-center justify-between p-3 rounded-lg bg-white/5">
+                        <div className="flex items-center gap-2">
+                          <img src={pm.home_logo} alt="" className="w-5 h-5 object-contain" />
+                          <p className="font-medium text-white text-sm">{pm.home_team} vs {pm.away_team}</p>
+                          <img src={pm.away_logo} alt="" className="w-5 h-5 object-contain" />
                         </div>
-                        <Badge variant="outline" className="text-primary border-primary/30">{pred.confidence}</Badge>
+                        <Badge variant="outline" className="text-primary border-primary/30">{pm.match_time}</Badge>
                       </div>
                     ))}
-                    {predictions.length === 0 && (
-                      <p className="text-zinc-500 text-center py-4">Henüz aktif tahmin yok</p>
+                    {publishedMatches.length === 0 && (
+                      <p className="text-zinc-500 text-center py-4">Henüz yayınlanmış maç yok</p>
                     )}
                   </CardContent>
                 </Card>
@@ -1210,16 +1190,16 @@ export default function AdminPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    {wonPredictions.slice(0, 5).map(pred => (
-                      <div key={pred.id} className="flex items-center justify-between p-3 rounded-lg bg-green-500/5 border border-green-500/10">
+                    {bestBetsStats.wonBets.slice(0, 5).map((bet: any) => (
+                      <div key={bet.id} className="flex items-center justify-between p-3 rounded-lg bg-green-500/5 border border-green-500/10">
                         <div>
-                          <p className="font-medium text-white text-sm">{pred.home_team} vs {pred.away_team}</p>
-                          <p className="text-xs text-zinc-500">{pred.prediction} @ {pred.odds}</p>
+                          <p className="font-medium text-white text-sm">{bet.home_team || 'Maç'} vs {bet.away_team || ''}</p>
+                          <p className="text-xs text-zinc-500">{bet.bet_type} @ {bet.odds}</p>
                         </div>
                         <Badge className="bg-green-500/20 text-green-400 border-green-500/30">Kazandı</Badge>
                       </div>
                     ))}
-                    {wonPredictions.length === 0 && (
+                    {bestBetsStats.wonBets.length === 0 && (
                       <p className="text-zinc-500 text-center py-4">Henüz kazanan tahmin yok</p>
                     )}
                   </CardContent>
@@ -1239,41 +1219,19 @@ export default function AdminPage() {
                     <h2 className="text-3xl font-display font-black text-white mb-1">Maç yönetimi</h2>
                     <p className="text-sm text-zinc-400">Maçları yayınla, öne çıkar ve yönet</p>
                   </div>
-                  <div className="flex gap-3">
+                  <div className="flex gap-3 flex-wrap">
                     <Button onClick={loadPublishedMatches} variant="outline" className="border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400">
                       <RefreshCcw className="w-4 h-4 mr-2" /> Yenile
                     </Button>
                     <Button 
                       onClick={async () => {
-                        try {
-                          const res = await fetch('/api/admin/best-bets/generate', {
-                            method: 'POST',
-                            credentials: 'include'
-                          });
-                          const data = await res.json();
-                          if (res.ok) {
-                            toast({ title: 'Başarılı', description: data.message, className: 'bg-amber-500 text-black border-none' });
-                          } else {
-                            toast({ variant: 'destructive', description: data.message });
-                          }
-                        } catch (e) {
-                          toast({ variant: 'destructive', description: 'İşlem başarısız' });
-                        }
-                      }}
-                      variant="outline" 
-                      className="border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400"
-                    >
-                      <Sparkles className="w-4 h-4 mr-2" /> En İyi Bahisleri Oluştur
-                    </Button>
-                    <Button 
-                      onClick={async () => {
-                        toast({ title: 'Yayınlanıyor...', description: 'Bu işlem birkaç dakika sürebilir, lütfen bekleyin.', className: 'bg-blue-500 text-white border-none' });
+                        toast({ title: 'Yayınlanıyor...', description: 'Maçlar çekiliyor, NosyAPI oranları kontrol ediliyor ve AI tahminleri oluşturuluyor...', className: 'bg-blue-500 text-white border-none' });
                         try {
                           const res = await fetch('/api/admin/auto-publish', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             credentials: 'include',
-                            body: JSON.stringify({ count: 25 })
+                            body: JSON.stringify({ count: 40 })
                           });
                           const data = await res.json();
                           if (res.ok) {
@@ -1286,34 +1244,16 @@ export default function AdminPage() {
                           toast({ variant: 'destructive', description: 'İşlem başarısız' });
                         }
                       }}
-                      variant="outline" 
-                      className="border-blue-500/30 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400"
+                      className="bg-blue-500 text-white font-bold hover:bg-blue-400"
                     >
-                      <Zap className="w-4 h-4 mr-2" /> Yarını Otomatik Yayınla
+                      <Zap className="w-4 h-4 mr-2" /> Otomatik Yayınla
                     </Button>
-                    <Button 
-                      onClick={async () => {
-                        toast({ title: 'AI Tahminleri Oluşturuluyor...', description: 'Bu işlem birkaç dakika sürebilir, lütfen bekleyin.', className: 'bg-purple-500 text-white border-none' });
-                        try {
-                          const res = await fetch('/api/admin/generate-predictions', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            credentials: 'include'
-                          });
-                          const data = await res.json();
-                          if (res.ok) {
-                            toast({ title: 'AI Tahminleri', description: data.message, className: 'bg-purple-500 text-white border-none' });
-                          } else {
-                            toast({ variant: 'destructive', description: data.message });
-                          }
-                        } catch (e) {
-                          toast({ variant: 'destructive', description: 'İşlem başarısız' });
-                        }
-                      }}
-                      variant="outline" 
-                      className="border-purple-500/30 bg-purple-500/10 hover:bg-purple-500/20 text-purple-400"
-                    >
-                      <Brain className="w-4 h-4 mr-2" /> Tahminleri Üret (Mevcut Maçlar)
+                    <Button onClick={loadUpcomingMatches} disabled={loadingMatches} variant="outline" className="border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400">
+                      {loadingMatches ? (
+                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Yükleniyor...</>
+                      ) : (
+                        <><Target className="w-4 h-4 mr-2" /> Maçları Getir</>
+                      )}
                     </Button>
                     <Button 
                       onClick={async () => {
@@ -1343,14 +1283,7 @@ export default function AdminPage() {
                       variant="outline" 
                       className="border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-red-400"
                     >
-                      <Trash2 className="w-4 h-4 mr-2" /> Veritabanını Sıfırla
-                    </Button>
-                    <Button onClick={loadUpcomingMatches} disabled={loadingMatches} className="bg-emerald-500 text-black font-bold hover:bg-emerald-400">
-                      {loadingMatches ? (
-                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Yükleniyor...</>
-                      ) : (
-                        <><Target className="w-4 h-4 mr-2" /> Maçları getir</>
-                      )}
+                      <Trash2 className="w-4 h-4 mr-2" /> DB Sıfırla
                     </Button>
                   </div>
                 </div>
@@ -1779,58 +1712,6 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              {/* Active Predictions - Premium Design */}
-              {predictions.length > 0 && (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-1 h-6 bg-amber-500 rounded-full" />
-                    <h3 className="text-lg font-bold text-white">Aktif tahminler</h3>
-                    <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30">{predictions.length} tahmin</Badge>
-                  </div>
-                  
-                  <div className="bg-zinc-900/80 backdrop-blur-sm rounded-2xl border border-zinc-800 overflow-hidden">
-                    <div className="divide-y divide-zinc-800/50">
-                      {predictions.map(pred => (
-                        <div key={pred.id} className="p-4 hover:bg-white/[0.02] transition-all">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                              {pred.is_hero && (
-                                <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 rounded-lg">
-                                  <Star className="w-3 h-3 mr-1 fill-current" /> Öne çıkan
-                                </Badge>
-                              )}
-                              <div>
-                                <span className="font-bold text-white">{pred.home_team} vs {pred.away_team}</span>
-                                <p className="text-xs text-zinc-500 mt-0.5">
-                                  {getLeague(pred.league_id)?.name || pred.league_id} • {formatDate(pred.match_date)} • {pred.match_time}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-3">
-                              <Badge variant="outline" className="text-white border-zinc-700 rounded-lg">{pred.prediction}</Badge>
-                              <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 rounded-lg">{pred.odds}x</Badge>
-                              <div className="flex items-center gap-1 ml-2">
-                                <Button size="icon" variant="ghost" onClick={() => handleSetAsHero(pred.id)} className="h-8 w-8 rounded-lg text-amber-400 hover:bg-amber-500/20">
-                                  <Star className="w-4 h-4" />
-                                </Button>
-                                <Button size="icon" variant="ghost" onClick={() => handleMarkResult(pred.id, 'won')} className="h-8 w-8 rounded-lg text-emerald-400 hover:bg-emerald-500/20">
-                                  <CheckCircle className="w-4 h-4" />
-                                </Button>
-                                <Button size="icon" variant="ghost" onClick={() => handleMarkResult(pred.id, 'lost')} className="h-8 w-8 rounded-lg text-red-400 hover:bg-red-500/20">
-                                  <XCircle className="w-4 h-4" />
-                                </Button>
-                                <Button size="icon" variant="ghost" onClick={() => handleDeletePrediction(pred.id)} className="h-8 w-8 rounded-lg text-zinc-500 hover:bg-zinc-700">
-                                  <Trash2 className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           )}
 
