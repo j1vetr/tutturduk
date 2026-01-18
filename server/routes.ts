@@ -2307,7 +2307,7 @@ export async function registerRoutes(
       const availableDates = await pool.query(
         `SELECT DISTINCT match_date, COUNT(*) as match_count
          FROM published_matches 
-         WHERE status = 'finished' OR match_date <= CURRENT_DATE
+         WHERE status = 'finished' OR match_date::date <= CURRENT_DATE
          GROUP BY match_date
          ORDER BY match_date DESC
          LIMIT 30`
