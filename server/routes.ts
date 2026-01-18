@@ -1651,6 +1651,28 @@ export async function registerRoutes(
         }
       }
 
+      // Check if match has valid odds (same as auto-publish)
+      let parsedOddsCheck: any = {};
+      try {
+        const oddsData = await apiFootball.getOdds(fixtureId);
+        parsedOddsCheck = parseApiFootballOdds(oddsData);
+      } catch (e) {
+        console.log(`[Publish] No odds available for fixture ${fixtureId}`);
+      }
+      
+      const hasBasicOdds = parsedOddsCheck.home && parsedOddsCheck.draw && parsedOddsCheck.away;
+      const hasOverUnderOdds = parsedOddsCheck.over25 || parsedOddsCheck.over15 || parsedOddsCheck.over35;
+      const hasBttsOdds = parsedOddsCheck.bttsYes && parsedOddsCheck.bttsNo;
+      
+      if (!hasBasicOdds || (!hasOverUnderOdds && !hasBttsOdds)) {
+        return res.status(400).json({ 
+          message: 'Bu maç için yeterli oran verisi yok. MS oranları ve Alt/Üst veya KG oranları gereklidir.',
+          hasBasicOdds,
+          hasOverUnderOdds,
+          hasBttsOdds
+        });
+      }
+
       const matchDate = new Date(fixture.fixture?.date);
       const isoDate = matchDate.toISOString().split('T')[0]; // YYYY-MM-DD format for database
       const displayDate = matchDate.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Europe/Istanbul' });
