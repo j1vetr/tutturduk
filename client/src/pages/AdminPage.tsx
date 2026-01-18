@@ -1426,7 +1426,7 @@ export default function AdminPage() {
                           <Filter className="w-4 h-4 mr-2 text-zinc-500" />
                           <SelectValue placeholder="Lig filtrele" />
                         </SelectTrigger>
-                        <SelectContent className="bg-zinc-900 border-zinc-800 rounded-xl">
+                        <SelectContent className="bg-zinc-900 border-zinc-800 rounded-xl max-h-64 overflow-y-auto">
                           <SelectItem value="all">Tüm ligler</SelectItem>
                           {getUniqueLeagues().map(league => (
                             <SelectItem key={league.id} value={league.id.toString()}>
