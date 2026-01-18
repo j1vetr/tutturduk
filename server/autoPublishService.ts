@@ -84,11 +84,15 @@ export async function autoPublishTomorrowMatches(targetCount: number = 40) {
     const minStatsScore = 20; // Lowered from 30 to include more matches
     const targetWithBuffer = Math.ceil(targetCount * 1.5); // Get extra matches for better selection
     
-    // Pre-fetch all NosyAPI odds ONCE
-    console.log(`[AutoPublish] Pre-fetching NosyAPI odds for ${tomorrowStr}...`);
+    // Pre-fetch all NosyAPI odds ONCE (no type filter to get ALL matches)
+    console.log(`[AutoPublish] Pre-fetching ALL NosyAPI odds for ${tomorrowStr}...`);
     let nosyMatches: any[] = [];
     try {
-      nosyMatches = await nosyApi.getAllMatches(1, tomorrowStr);
+      // Try without type filter first, then with type=1 as fallback
+      nosyMatches = await nosyApi.getAllMatches(0, tomorrowStr);
+      if (nosyMatches.length === 0) {
+        nosyMatches = await nosyApi.getAllMatches(1, tomorrowStr);
+      }
       console.log(`[AutoPublish] NosyAPI returned ${nosyMatches.length} bettable matches`);
     } catch (error: any) {
       console.log(`[AutoPublish] NosyAPI error:`, error?.message || error);
@@ -131,7 +135,8 @@ export async function autoPublishTomorrowMatches(targetCount: number = 40) {
         
         // Try fuzzy match if exact match not found
         if (!nosyMatch) {
-          for (const [key, value] of nosyOddsMap.entries()) {
+          const entries = Array.from(nosyOddsMap.entries());
+          for (const [key, value] of entries) {
             if (key.includes(homeTeam.toLowerCase().substring(0, 5)) && 
                 key.includes(awayTeam.toLowerCase().substring(0, 5))) {
               nosyMatch = value;
