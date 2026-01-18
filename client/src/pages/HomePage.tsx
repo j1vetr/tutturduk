@@ -136,15 +136,40 @@ export default function HomePage() {
         <HeroPrediction />
 
         <div>
-          {/* Section Header - Centered */}
-          <div className="text-center mb-6">
-            <div className="inline-block">
-              <div className="flex items-center justify-center gap-3 mb-1">
-                <div className="h-[1px] w-8 bg-gradient-to-r from-transparent to-emerald-300" />
-                <h2 className="text-lg font-black text-gray-800 uppercase tracking-wider">Günün Tahminleri</h2>
-                <div className="h-[1px] w-8 bg-gradient-to-l from-transparent to-emerald-300" />
+          {/* Section Header - Premium Football Style */}
+          <div className="relative mb-8">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+            </div>
+            <div className="relative flex justify-center">
+              <div className="bg-gradient-to-r from-gray-50 via-white to-gray-50 px-6">
+                <div className="relative group">
+                  {/* Animated glow effect */}
+                  <div className="absolute -inset-3 bg-gradient-to-r from-emerald-500/20 via-teal-500/20 to-emerald-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-all duration-700" />
+                  
+                  {/* Main title container */}
+                  <div className="relative bg-white border-2 border-gray-200 rounded-2xl px-6 py-4 shadow-lg group-hover:border-emerald-300 group-hover:shadow-emerald-100 transition-all duration-300">
+                    {/* Football icon decoration */}
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white px-3">
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center shadow-md">
+                        <span className="text-white text-xs">⚽</span>
+                      </div>
+                    </div>
+                    
+                    {/* Title text */}
+                    <h2 className="text-2xl font-black text-center bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800 bg-clip-text text-transparent tracking-tight">
+                      Günün Tahminleri
+                    </h2>
+                    
+                    {/* Subtitle with match count */}
+                    <div className="flex items-center justify-center gap-2 mt-2">
+                      <div className="h-[2px] w-6 bg-gradient-to-r from-transparent to-emerald-400 rounded-full" />
+                      <p className="text-xs font-semibold text-emerald-600">{sortedMatches.length} Maç Analiz Edildi</p>
+                      <div className="h-[2px] w-6 bg-gradient-to-l from-transparent to-emerald-400 rounded-full" />
+                    </div>
+                  </div>
+                </div>
               </div>
-              <p className="text-[11px] text-gray-400">{sortedMatches.length} maç analiz edildi</p>
             </div>
           </div>
           
