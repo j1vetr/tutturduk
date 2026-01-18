@@ -94,8 +94,322 @@ function parseApiFootballOdds(oddsData: any[]): ParsedOdds {
   return parsed;
 }
 
-export async function autoPublishTomorrowMatches(targetCount: number = 40) {
-  console.log('[AutoPublish] Starting automatic match publishing (max: ' + targetCount + ')...');
+// Core function for publishing matches - used by both tomorrow and today functions
+async function publishMatchesForDate(dateStr: string, totalLimit: number = 70, matchesPerHour: number = 5) {
+  console.log(`[AutoPublish] Publishing matches for ${dateStr} (limit: ${totalLimit}, per hour: ${matchesPerHour})...`);
+  
+  try {
+    // Fetch ALL fixtures for the date
+    let allMatches: any[] = [];
+    
+    try {
+      const fixtures = await apiFootball.getFixtures({
+        date: dateStr
+      });
+      
+      if (fixtures && fixtures.length > 0) {
+        allMatches = fixtures;
+        console.log(`[AutoPublish] Found ${allMatches.length} total matches for ${dateStr}`);
+      }
+    } catch (error: any) {
+      console.log(`[AutoPublish] Error fetching fixtures:`, error?.message || error);
+      return { published: 0, total: 0, date: dateStr };
+    }
+    
+    if (allMatches.length === 0) {
+      console.log('[AutoPublish] No matches found');
+      return { published: 0, total: 0, date: dateStr };
+    }
+    
+    const formattedMatches = allMatches.map(f => ({
+      fixture: f.fixture,
+      league: f.league,
+      teams: f.teams,
+      goals: f.goals
+    }));
+    
+    const filteredMatches = filterMatches(formattedMatches);
+    console.log(`[AutoPublish] After filtering: ${filteredMatches.length} matches`);
+    
+    // Group matches by hour
+    const matchesByHour: Map<number, any[]> = new Map();
+    
+    for (const match of filteredMatches) {
+      const matchDate = new Date(match.fixture.date);
+      const hour = matchDate.getHours();
+      
+      if (!matchesByHour.has(hour)) {
+        matchesByHour.set(hour, []);
+      }
+      matchesByHour.get(hour)!.push(match);
+    }
+    
+    console.log(`[AutoPublish] Matches distributed across ${matchesByHour.size} hour slots`);
+    
+    // Process each hour slot and collect valid matches
+    const scoredMatches: MatchWithScore[] = [];
+    const minStatsScore = 20;
+    
+    // Sort hours for predictable processing
+    const sortedHours = Array.from(matchesByHour.keys()).sort((a, b) => a - b);
+    
+    for (const hour of sortedHours) {
+      const hourMatches = matchesByHour.get(hour)!;
+      console.log(`[AutoPublish] Processing hour ${hour}:00 - ${hourMatches.length} matches available`);
+      
+      let validForThisHour = 0;
+      
+      for (const match of hourMatches) {
+        // Stop if we have enough for this hour
+        if (validForThisHour >= matchesPerHour) break;
+        // Stop if we've reached total limit
+        if (scoredMatches.length >= totalLimit) break;
+        
+        try {
+          const homeTeam = match.teams?.home?.name || '';
+          const awayTeam = match.teams?.away?.name || '';
+          
+          // Check if already in database
+          const existing = await pool.query(
+            'SELECT id FROM published_matches WHERE fixture_id = $1',
+            [match.fixture.id]
+          );
+          
+          if (existing.rows.length > 0) {
+            console.log(`[AutoPublish] ${homeTeam} vs ${awayTeam} already exists, skipping`);
+            continue;
+          }
+          
+          // Fetch API-Football prediction for statistics
+          const prediction = await apiFootball.getPrediction(match.fixture.id);
+          
+          if (!prediction) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            continue;
+          }
+          
+          const statsScore = getStatisticsScore(prediction);
+          
+          if (statsScore < minStatsScore) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            continue;
+          }
+          
+          // Fetch odds from API-Football
+          let parsedOdds: ParsedOdds = {};
+          try {
+            const oddsData = await apiFootball.getOdds(match.fixture.id);
+            parsedOdds = parseApiFootballOdds(oddsData);
+          } catch (oddsError: any) {
+            console.log(`[AutoPublish] No odds for ${homeTeam} vs ${awayTeam}`);
+          }
+          
+          // Check if match has essential odds
+          const hasBasicOdds = parsedOdds.home && parsedOdds.draw && parsedOdds.away;
+          const hasOverUnderOdds = parsedOdds.over25 || parsedOdds.over15 || parsedOdds.over35;
+          const hasBttsOdds = parsedOdds.bttsYes && parsedOdds.bttsNo;
+          
+          if (!hasBasicOdds || (!hasOverUnderOdds && !hasBttsOdds)) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            continue;
+          }
+          
+          console.log(`[AutoPublish] [${hour}:00] Valid: ${homeTeam} vs ${awayTeam}`);
+          
+          scoredMatches.push({
+            fixture: match.fixture,
+            prediction: prediction,
+            league: match.league,
+            teams: match.teams,
+            statisticsScore: statsScore,
+            odds: parsedOdds
+          });
+          
+          validForThisHour++;
+          await new Promise(resolve => setTimeout(resolve, 1500));
+        } catch (error: any) {
+          console.log(`[AutoPublish] Error processing match:`, error?.message || error);
+          await new Promise(resolve => setTimeout(resolve, 2000));
+        }
+      }
+      
+      console.log(`[AutoPublish] Hour ${hour}:00 - Added ${validForThisHour} matches`);
+      
+      if (scoredMatches.length >= totalLimit) {
+        console.log(`[AutoPublish] Reached total limit of ${totalLimit}`);
+        break;
+      }
+    }
+    
+    console.log(`[AutoPublish] Total valid matches collected: ${scoredMatches.length}`);
+    
+    // Publish all collected matches
+    let publishedCount = 0;
+    
+    for (const match of scoredMatches) {
+      try {
+        const homeTeam = match.teams?.home?.name || 'Unknown';
+        const awayTeam = match.teams?.away?.name || 'Unknown';
+        const homeLogo = match.teams?.home?.logo || '';
+        const awayLogo = match.teams?.away?.logo || '';
+        const leagueName = match.league?.name || '';
+        const leagueLogo = match.league?.logo || '';
+        const leagueId = match.league?.id;
+        
+        const matchDate = match.fixture.date?.split('T')[0];
+        const matchDateTime = new Date(match.fixture.date);
+        const matchTime = matchDateTime.toLocaleTimeString('tr-TR', { 
+          hour: '2-digit', 
+          minute: '2-digit',
+          timeZone: 'Europe/Istanbul'
+        });
+        
+        const pred = match.prediction?.predictions;
+        const teams = match.prediction?.teams;
+        const comparison = match.prediction?.comparison;
+        const h2h = match.prediction?.h2h || [];
+        
+        await pool.query(
+          `INSERT INTO published_matches 
+           (fixture_id, home_team, away_team, home_logo, away_logo, league_name, league_logo, league_id,
+            match_date, match_time, timestamp, status, is_featured,
+            api_advice, api_winner_name, api_winner_comment, api_percent_home, api_percent_draw, api_percent_away,
+            api_under_over, api_goals_home, api_goals_away, api_comparison, api_h2h, api_teams)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'pending', FALSE,
+                   $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)`,
+          [
+            match.fixture.id,
+            homeTeam,
+            awayTeam,
+            homeLogo,
+            awayLogo,
+            leagueName,
+            leagueLogo,
+            leagueId,
+            matchDate,
+            matchTime,
+            match.fixture.timestamp,
+            pred?.advice || null,
+            pred?.winner?.name || null,
+            pred?.winner?.comment || null,
+            pred?.percent?.home || null,
+            pred?.percent?.draw || null,
+            pred?.percent?.away || null,
+            pred?.under_over || null,
+            pred?.goals?.home || null,
+            pred?.goals?.away || null,
+            comparison ? JSON.stringify(comparison) : null,
+            h2h.length > 0 ? JSON.stringify(h2h.slice(0, 5).map((h: any) => ({
+              date: h.fixture?.date,
+              homeTeam: h.teams?.home?.name,
+              awayTeam: h.teams?.away?.name,
+              homeGoals: h.goals?.home,
+              awayGoals: h.goals?.away
+            }))) : null,
+            teams ? JSON.stringify(teams) : null
+          ]
+        );
+        
+        publishedCount++;
+        console.log(`[AutoPublish] Published: ${homeTeam} vs ${awayTeam}`);
+        
+        // Get the newly inserted match ID and generate AI predictions
+        const insertedMatch = await pool.query(
+          'SELECT id FROM published_matches WHERE fixture_id = $1',
+          [match.fixture.id]
+        );
+        
+        if (insertedMatch.rows.length > 0) {
+          const matchId = insertedMatch.rows[0].id;
+          
+          const matchData: MatchData = {
+            homeTeam,
+            awayTeam,
+            league: leagueName,
+            leagueId: leagueId,
+            comparison: comparison || undefined,
+            homeForm: teams?.home?.league?.form,
+            awayForm: teams?.away?.league?.form,
+            h2hResults: h2h?.map((h: any) => ({
+              homeGoals: h.homeGoals || h.goals?.home || 0,
+              awayGoals: h.awayGoals || h.goals?.away || 0
+            })),
+            homeWins: teams?.home?.league?.wins,
+            homeDraws: teams?.home?.league?.draws,
+            homeLosses: teams?.home?.league?.loses,
+            homeGoalsFor: teams?.home?.league?.goals?.for?.total,
+            homeGoalsAgainst: teams?.home?.league?.goals?.against?.total,
+            awayWins: teams?.away?.league?.wins,
+            awayDraws: teams?.away?.league?.draws,
+            awayLosses: teams?.away?.league?.loses,
+            awayGoalsFor: teams?.away?.league?.goals?.for?.total,
+            awayGoalsAgainst: teams?.away?.league?.goals?.against?.total,
+            odds: match.odds,
+          };
+          
+          try {
+            await generateAndSavePredictions(
+              matchId,
+              match.fixture.id,
+              homeTeam,
+              awayTeam,
+              homeLogo,
+              awayLogo,
+              leagueName,
+              leagueLogo,
+              matchDate,
+              matchTime,
+              matchData
+            );
+            console.log(`[AutoPublish] AI predictions saved for ${homeTeam} vs ${awayTeam}`);
+          } catch (aiError: any) {
+            console.error(`[AutoPublish] AI generation failed:`, aiError.message);
+          }
+          
+          await new Promise(resolve => setTimeout(resolve, 3000));
+        }
+        
+      } catch (error) {
+        console.error(`[AutoPublish] Error publishing match:`, error);
+      }
+    }
+    
+    console.log(`[AutoPublish] Completed! Published ${publishedCount} matches`);
+    
+    return { 
+      published: publishedCount, 
+      total: scoredMatches.length,
+      date: dateStr 
+    };
+    
+  } catch (error) {
+    console.error('[AutoPublish] Error:', error);
+    throw error;
+  }
+}
+
+// Publish tomorrow's matches (used by automatic 22:00 scheduler)
+export async function autoPublishTomorrowMatches(totalLimit: number = 70, matchesPerHour: number = 5) {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowStr = tomorrow.toISOString().split('T')[0];
+  
+  console.log(`[AutoPublish] Tomorrow's matches: ${tomorrowStr}`);
+  return publishMatchesForDate(tomorrowStr, totalLimit, matchesPerHour);
+}
+
+// Publish today's matches (used by manual admin button)
+export async function autoPublishTodayMatches(totalLimit: number = 70, matchesPerHour: number = 5) {
+  const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
+  
+  console.log(`[AutoPublish] Today's matches: ${todayStr}`);
+  return publishMatchesForDate(todayStr, totalLimit, matchesPerHour);
+}
+
+// OLD function kept for compatibility - redirects to new function
+export async function autoPublishTomorrowMatchesLegacy(targetCount: number = 70) {
+  console.log('[AutoPublish] Legacy function called, redirecting to new system...');
   
   try {
     const tomorrow = new Date();
@@ -405,7 +719,7 @@ export function startAutoPublishService(runAtHour: number = 22) {
     if (currentHour === runAtHour && currentMinute < 5) {
       console.log('[AutoPublish] Scheduled run triggered');
       try {
-        await autoPublishTomorrowMatches(40);
+        await autoPublishTomorrowMatches(70, 5);
       } catch (error) {
         console.error('[AutoPublish] Scheduled run failed:', error);
       }

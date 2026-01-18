@@ -68,7 +68,7 @@ function parseApiFootballOdds(oddsData: any[]): any {
   return parsed;
 }
 
-import { autoPublishTomorrowMatches } from './autoPublishService';
+import { autoPublishTomorrowMatches, autoPublishTodayMatches } from './autoPublishService';
 import { generatePredictionsForAllPendingMatches } from './openai-analysis';
 
 const PgSession = connectPgSimple(session);
@@ -1956,7 +1956,7 @@ export async function registerRoutes(
     }
   });
 
-  // Admin: auto-publish tomorrow's matches
+  // Admin: auto-publish tomorrow's matches (70 total, 5 per hour)
   app.post('/api/admin/auto-publish', async (req, res) => {
     if (!req.session.userId) {
       return res.status(401).json({ message: 'Oturum açılmamış' });
@@ -1966,11 +1966,33 @@ export async function registerRoutes(
       return res.status(403).json({ message: 'Yetkiniz yok' });
     }
     try {
-      const { count = 25 } = req.body;
-      const result = await autoPublishTomorrowMatches(count);
+      const { totalLimit = 70, perHour = 5 } = req.body;
+      const result = await autoPublishTomorrowMatches(totalLimit, perHour);
       res.json({ 
         success: true, 
         message: `${result.published} maç yayınlandı (${result.date} için)`,
+        ...result 
+      });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Admin: auto-publish today's matches (manual trigger, 70 total, 5 per hour)
+  app.post('/api/admin/auto-publish-today', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Yetkiniz yok' });
+    }
+    try {
+      const { totalLimit = 70, perHour = 5 } = req.body;
+      const result = await autoPublishTodayMatches(totalLimit, perHour);
+      res.json({ 
+        success: true, 
+        message: `${result.published} maç yayınlandı (bugün ${result.date} için)`,
         ...result 
       });
     } catch (error: any) {
