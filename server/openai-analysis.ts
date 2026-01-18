@@ -253,27 +253,43 @@ export async function generateMatchAnalysis(matchData: MatchData): Promise<AIAna
   const expectedGoals = calculateExpectedGoals(matchData);
   const trends = analyzeTrends(matchData);
 
-  const systemPrompt = `Sen %72 başarı oranına sahip, IDDAA ve spor bahisleri konusunda 25 yıllık tecrübeli profesyonel bir analistsin.
+  const systemPrompt = `Sen Türkiye'nin en başarılı bahis analisti "STAT MASTER"sın. 25 yıllık profesyonel tecrübe, %72 uzun vadeli başarı oranı.
 
-ÖNEMLİ: Sen KENDİ TAHMİNİNİ yapıyorsun. Sana verilen istatistikleri analiz ederek bağımsız kararlar veriyorsun.
+🎯 UZMANLIKLARIN:
+- İstatistiksel futbol analizi ve model kurma
+- Value betting (değer bahisi) tespiti
+- Psikolojik faktör analizi (motivasyon, baskı, derbi atmosferi)
+- Oran hareketleri ve piyasa analizi
+- Risk yönetimi ve bankroll stratejileri
 
-DÜŞÜNCE ZİNCİRİ YAKLAŞIMI:
-Tahmin yapmadan önce şu adımları sırayla düşün:
-1. FORM ANALİZİ: Her iki takımın son 5 maç performansı nasıl?
-2. EV SAHİBİ AVANTAJI: Ev sahibi evinde ne kadar güçlü?
-3. GOL EĞİLİMİ: Takımlar gol atıyor mu, yiyor mu?
-4. H2H GEÇMİŞİ: Geçmiş karşılaşmalar ne söylüyor?
-5. SONUÇ: Tüm faktörleri birleştirerek karar ver.
+📊 ANALİZ METODOLOJİN:
+1. TEMEL ANALİZ: Form, kadro, sakatlıklar, motivasyon
+2. İSTATİSTİKSEL ANALİZ: xG, gol beklentisi, temiz kale oranları
+3. PAZAR ANALİZİ: Oran değeri, piyasa beklentisi vs gerçek olasılık
+4. PSİKOLOJİK ANALİZ: Takım motivasyonu, taraftar baskısı, seri durumu
 
-GÜVENİLİRLİK KALİBRASYONU:
-- Form uyumu varsa: +8%
-- H2H desteği varsa: +6%
-- Ev avantajı güçlüyse: +5%
-- Oranlar düşükse (1.30-1.50): +5%
-- Derbi/Kupa maçı: -10% (belirsizlik artar)
-- İlk karşılaşma: -8%
+🔢 GÜVENİLİRLİK KALİBRASYONU:
+BAŞLANGIÇ: %50 (her maç için)
++ Form tutarlılığı güçlü: +12%
++ H2H trendi destekliyor: +8%
++ Ev sahibi avantajı belirgin: +7%
++ Oranlar düşük (1.30-1.50): +5%
++ Değer bahisi tespit edildi: +5%
+- Derbi/Kupa maçı: -12% (belirsizlik)
+- İlk karşılaşma: -10%
+- Sakatlık/ceza yoğunluğu: -8%
+- Son dakika form düşüşü: -6%
 
-Türkçe yanıt ver. Sadece JSON formatında yanıt ver.`;
+💡 DEĞER BAHİSİ PRENSİBİ:
+Oran > (100 / gerçek olasılık %) ise VALUE VAR!
+Örnek: %60 olasılık → 1.67 altı oran value YOK, üstü VALUE VAR
+
+⚖️ RİSK/ÖDÜL DENGELEME:
+- BEKLENEN: %55-75 güven, 1.25-1.75 oran (güvenli seçim)
+- ORTA RİSK: %40-55 güven, 1.75-2.50 oran (dengeli risk)
+- RİSKLİ: %25-40 güven, 2.50+ oran (yüksek potansiyel)
+
+Türkçe, profesyonel dilde yanıt ver. SADECE JSON formatında çıktı üret.`;
 
   const prompt = `
 ================================
@@ -443,39 +459,73 @@ ${matchData.injuries?.away?.length ? `${matchData.awayTeam}: ${matchData.injurie
     "isCupUpset": false,
     "isDerby": ${isDerby}
   },
-  "analysis": "6-8 cümlelik kapsamlı analiz. Düşünce zinciri yaklaşımıyla: form, ev avantajı, gol eğilimi, H2H ve sonuç. Profesyonel bahisçi gibi yaz.",
+  "analysis": "8-12 cümlelik derinlemesine analiz. Her paragrafta: (1) Form ve momentum değerlendirmesi, (2) Taktiksel ve teknik karşılaştırma, (3) Psikolojik faktörler ve motivasyon, (4) Sonuç ve tahmin özeti. Profesyonel spor yazarı üslubuyla yaz.",
+  
+  "keyFactors": [
+    {"factor": "En önemli istatistiksel faktör", "impact": "positive|negative|neutral", "weight": 9},
+    {"factor": "İkinci önemli faktör", "impact": "positive|negative|neutral", "weight": 7},
+    {"factor": "Üçüncü faktör", "impact": "positive|negative|neutral", "weight": 5}
+  ],
+  
   "predictions": [
     {
       "type": "expected",
       "bet": "En güvenilir bahis (2.5 Alt/Üst, KG Var/Yok, MS1/X/2)",
       "odds": "~1.55",
       "confidence": 62,
-      "reasoning": "3 cümlelik gerekçe",
-      "consistentScores": ["...", "...", "..."]
+      "isValueBet": true,
+      "reasoning": "3-4 cümlelik detaylı gerekçe. Hangi istatistikler bu tahmini destekliyor? Neden bu oran değerli?",
+      "consistentScores": ["X-X", "X-X", "X-X"]
     },
     {
       "type": "medium",
       "bet": "Orta riskli bahis (Handikap, 3.5 Üst, Çifte Şans)",
       "odds": "~2.10",
       "confidence": 48,
-      "reasoning": "3 cümlelik gerekçe",
-      "consistentScores": ["...", "..."]
+      "isValueBet": false,
+      "reasoning": "3-4 cümlelik detaylı gerekçe. Risk faktörleri neler? Hangi senaryoda kazanır?",
+      "consistentScores": ["X-X", "X-X"]
     },
     {
       "type": "risky",
       "bet": "Yüksek oranlı bahis (Tam Skor, İY-MS, 4.5 Üst)",
       "odds": "~4.50",
       "confidence": 28,
-      "reasoning": "3 cümlelik gerekçe",
-      "consistentScores": ["..."]
+      "isValueBet": true,
+      "reasoning": "3-4 cümlelik gerekçe. Bu yüksek oran neden değerli? Hangi koşulda gerçekleşir?",
+      "consistentScores": ["X-X"]
     }
   ],
-  "avoidBets": ["Bu maçta kaçınılması gereken 2-3 bahis ve sebepleri"],
-  "expertTip": "2-3 cümlelik profesyonel strateji önerisi",
-  "expectedGoalRange": "${expectedGoals.total > 2.5 ? '2-4' : '1-2'} gol"
+  
+  "expertCommentary": {
+    "headline": "Dikkat çekici 1 cümlelik başlık (tıklama çekici, profesyonel)",
+    "keyInsight": "Bu maçın en kritik noktası nedir? 2-3 cümle derinlemesine içgörü.",
+    "formAnalysis": "Her iki takımın form durumu hakkında 2-3 cümle profesyonel yorum.",
+    "tacticalView": "Taktiksel beklentiler ve olası oyun planları. 2-3 cümle.",
+    "riskWarning": "Bu maçta nelere dikkat edilmeli? Potansiyel tuzaklar neler? 2-3 cümle.",
+    "stakeSuggestion": "düşük|orta|yüksek (bankroll'un %1-5 arası önerisi)"
+  },
+  
+  "avoidBets": [
+    {"bet": "Kaçınılması gereken bahis 1", "reason": "Neden riskli?"},
+    {"bet": "Kaçınılması gereken bahis 2", "reason": "Neden riskli?"}
+  ],
+  
+  "matchPrediction": {
+    "mostLikelyScore": "X-X",
+    "expectedTotalGoals": "${expectedGoals.total.toFixed(1)}",
+    "winProbabilities": {"home": 45, "draw": 25, "away": 30},
+    "overUnderProbability": {"over25": 55, "under25": 45}
+  }
 }
 
-ÖNEMLİ: consistentScores her zaman bet ile tutarlı olmalı! Bu kuralı asla çiğneme.`;
+⚠️ KRİTİK HATIRLATMALAR:
+- consistentScores HER ZAMAN bet türüyle tutarlı olmalı!
+- keyFactors gerçek istatistiklere dayalı olmalı (uydurma yapma)
+- winProbabilities toplamı 100 olmalı
+- isValueBet: Oran gerçek olasılığa göre değerliyse true
+
+ÖNEMLİ: Tüm tahminler birbiriyle tutarlı olmalı. Aynı maç senaryosunu desteklemeli!`;
 
   try {
     const response = await openai.chat.completions.create({
@@ -490,8 +540,8 @@ ${matchData.injuries?.away?.length ? `${matchData.awayTeam}: ${matchData.injurie
           content: prompt
         }
       ],
-      temperature: 0.4,
-      max_tokens: 1800,
+      temperature: 0.35,
+      max_tokens: 2500,
       response_format: { type: "json_object" }
     });
 
@@ -809,7 +859,7 @@ export async function generateAndSavePredictions(
       }
     }
     
-    const cacheKey = `ai_analysis_v6_${fixtureId}`;
+    const cacheKey = `ai_analysis_v7_${fixtureId}`;
     try {
       await pool.query(
         `INSERT INTO api_cache (key, value, expires_at)
