@@ -1,0 +1,213 @@
+15|tutturduk  | [API-Football] Response: 0 results
+15|tutturduk  | [ValidatedFixtures] Batch 50: 0/5 valid
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1507611' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1507612' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1508600' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1508930' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1485365' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1507611' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1485365' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1508600' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1507612' }
+15|tutturduk  | [API-Football] Response: 0 results
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Response: 0 results
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [ValidatedFixtures] Batch 51: 2/5 valid
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1381031' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1381034' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1382134' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1382139' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1385930' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1381034' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1385930' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1381031' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1382139' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1382134' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [ValidatedFixtures] Batch 52: 5/5 valid
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1425953' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1426115' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1426991' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1427157' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1438320' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1438320' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1427157' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1426115' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1425953' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1426991' }
+15|tutturduk  | [API-Football] Response: 0 results
+15|tutturduk  | [API-Football] Response: 0 results
+15|tutturduk  | [API-Football] Response: 0 results
+15|tutturduk  | [API-Football] Response: 0 results
+15|tutturduk  | [API-Football] Response: 0 results
+15|tutturduk  | [ValidatedFixtures] Batch 53: 0/5 valid
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1438321' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1439189' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1439196' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1439948' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1439949' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1439189' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1438321' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1439949' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1439948' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1439196' }
+15|tutturduk  | [API-Football] Response: 0 results
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Response: 0 results
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [ValidatedFixtures] Batch 54: 3/5 valid
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1439955' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1453861' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1453862' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1453863' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1453864' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1453864' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1439955' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1453862' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1453863' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1453861' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [ValidatedFixtures] Batch 55: 5/5 valid
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1453866' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1454473' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1454474' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1454476' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1454477' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1454474' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1454477' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1453866' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1454476' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1454473' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [ValidatedFixtures] Batch 56: 5/5 valid
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1454478' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1454479' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1454480' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1454481' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1454774' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1454478' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1454481' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1454774' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1454479' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1454480' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [ValidatedFixtures] Batch 57: 5/5 valid
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1454775' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1454776' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1454777' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1454781' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1454782' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1454775' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1454776' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1454782' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1454781' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1454777' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of                                                                                                                                                              requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [ValidatedFixtures] Batch 58: 4/5 valid
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1455078' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1455079' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1455080' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1455081' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1455082' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1455078' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1455082' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1455081' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1455080' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1455079' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [ValidatedFixtures] Batch 59: 5/5 valid
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1455083' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1455084' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1455085' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1455086' }
+15|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1455384' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1455086' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1455084' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1455085' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1455083' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /odds { fixture: '1455384' }
+15|tutturduk  | [API-Football] Response: 0 results
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Response: 0 results
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [ValidatedFixtures] Batch 60: 3/5 valid
+15|tutturduk  | [ValidatedFixtures] Final: 139 validated matches

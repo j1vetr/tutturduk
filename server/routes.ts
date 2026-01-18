@@ -813,9 +813,9 @@ export async function registerRoutes(
       
       // Validate each fixture for stats/odds (with delays)
       const validatedFixtures: any[] = [];
-      const batchSize = 5;
-      const delayBetweenBatches = 2000; // 2 seconds between batches
-      const maxToCheck = 300; // Check more matches to find ones at later hours
+      const batchSize = 3; // Reduced batch size to avoid rate limits
+      const delayBetweenBatches = 4000; // 4 seconds between batches to avoid rate limits
+      const maxToCheck = 400; // Check more matches to find ones at later hours
       
       for (let i = 0; i < upcomingFixtures.length && i < maxToCheck && validatedFixtures.length < 150; i += batchSize) {
         const batch = upcomingFixtures.slice(i, i + batchSize);
