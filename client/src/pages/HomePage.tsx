@@ -35,15 +35,19 @@ interface PublishedMatch {
 }
 
 function getTimeInfo(matchDate: string, matchTime: string) {
-  const [hours, minutes] = matchTime.split(':').map(Number);
-  const matchDateTime = new Date(matchDate);
-  matchDateTime.setHours(hours, minutes, 0, 0);
+  // Create ISO string with Turkey timezone (UTC+3)
+  const matchISOString = `${matchDate}T${matchTime.padStart(5, '0')}:00+03:00`;
+  const matchDateTime = new Date(matchISOString);
+  
+  // Get current time
   const now = new Date();
   const diff = matchDateTime.getTime() - now.getTime();
   
+  // Match is live if started within last 2 hours
   if (diff < 0 && diff > -2 * 60 * 60 * 1000) {
     return { text: 'Canlı', isLive: true, isPast: false, minutesLeft: 0 };
   }
+  // Match is finished if more than 2 hours ago
   if (diff < 0) {
     return { text: 'Bitti', isLive: false, isPast: true, minutesLeft: -1 };
   }
