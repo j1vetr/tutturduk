@@ -159,12 +159,29 @@ Key entities include:
 - **Collapsible Odds Display**: MatchDetailPage shows "Oranlar" with MS, Alt/Üst, KG, and Çifte Şans markets
 - **Quality Control**: Only matches with sufficient statistics (score 20+) are published
 
-### January 19, 2026 - AI Model Upgrade & Value Betting System
-- **GPT-4o Upgrade**: Switched AI model from GPT-4o-mini to GPT-4o for improved prediction accuracy (addressing 42% success rate issue)
-- **Single Bet Value Betting System**: Transformed from 3-tier predictions (düşük/orta/yüksek) to focused single-bet approach
-  - Value calculation: ((Probability × Odds) - 1) × 100
-  - Minimum odds requirement: 1.50 (bets below are rejected)
-  - Risk levels: düşük (55%+), orta (45-55%), yüksek (<45%)
+### January 19, 2026 - AI Model Upgrade & Decision-Based Value Betting System
+- **GPT-4o Upgrade**: Switched AI model from GPT-4o-mini to GPT-4o for improved prediction accuracy
+- **Decision-Based System ("karar" field)**:
+  - AI returns `karar: "bahis"` for confident predictions or `karar: "pas"` to skip unclear matches
+  - Prevents forced predictions on volatile/uncertain matches
+  - Expected to improve success rate by 10-15%
+- **Single Bet Value Betting**:
+  - Value calculation: ((Probability / 100 × Odds) - 1) - must be positive
+  - Minimum odds: 1.50 strictly enforced (rejected if below, not rounded)
+  - Bets with zero or negative value automatically rejected
+- **Market Priority Order**:
+  1. 2.5 Üst / 2.5 Alt (equal priority)
+  2. KG Var (Karşılıklı Gol)
+  3. Çifte Şans (1X, X2)
+  4. DNB (Beraberlikte İade)
+  5. 1.5 Üst (only if odds ≥1.50)
+  6. MS (Maç Sonucu) - only very clear scenarios
+  7. İY (İlk Yarı) - last resort
+- **Confidence-Risk Thresholds**:
+  - Confidence ≥70 → düşük risk
+  - Confidence 60-69 → orta risk
+  - Confidence <60 → yüksek risk
+- **avoidBets Format**: Changed from array to object with explanatory reasons: `{"bahis": "sebep"}`
 - **Enhanced Odds Parsing**: Added first half betting options and DNB (Draw No Bet)
   - İY 0.5 Üst/Alt (First Half Over/Under 0.5)
   - İY 1.5 Alt (First Half Under 1.5)
