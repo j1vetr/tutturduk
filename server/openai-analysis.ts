@@ -446,9 +446,7 @@ GEÇERLİ TAHMİN VARSA:
   "avoidBets": {
     "1.5 Üst": "Oran minimum eşiğin altında",
     "MS1": "Ev avantajına rağmen değer düşük"
-  },
-  
-  "expectedGoalRange": "2-3"
+  }
 }
 
 GEÇERLİ TAHMİN YOKSA:

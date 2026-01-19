@@ -479,9 +479,13 @@ export default function MatchDetailPage() {
                       return 'balanced';
                     })()}
                     expectedGoals={(() => {
-                      const range = aiAnalysis.expectedGoalRange || '2-3';
-                      const parts = range.split('-').map(s => parseFloat(s.trim()) || 0);
-                      return (parts[0] + (parts[1] || parts[0])) / 2;
+                      const bestBet = aiAnalysis.predictions[0]?.bet?.toLowerCase() || '';
+                      if (bestBet.includes('3.5 üst') || bestBet.includes('4.5 üst')) return 4;
+                      if (bestBet.includes('2.5 üst')) return 3;
+                      if (bestBet.includes('1.5 üst')) return 2;
+                      if (bestBet.includes('2.5 alt')) return 1.5;
+                      if (bestBet.includes('kg var')) return 2.5;
+                      return 2;
                     })()}
                   />
                 </div>
@@ -528,12 +532,6 @@ export default function MatchDetailPage() {
               <div className={`overflow-hidden transition-all duration-300 ${showAnalysis ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
                 <div className="px-4 pb-4 border-t border-gray-100 pt-3">
                   <p className="text-sm text-gray-600 leading-relaxed">{aiAnalysis.analysis}</p>
-                  {aiAnalysis.expectedGoalRange && (
-                    <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-100">
-                      <span className="text-xs text-blue-600 font-medium">Beklenen gol aralığı:</span>
-                      <span className="text-sm font-bold text-blue-700">{aiAnalysis.expectedGoalRange}</span>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>

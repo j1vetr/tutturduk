@@ -396,12 +396,6 @@ export function AIAnalysis({ matchId, homeTeam, awayTeam }: AIAnalysisProps) {
                     ))}
                   </div>
                 </div>
-                {analysis.expectedGoalRange && (
-                  <div className="text-right">
-                    <div className="text-[9px] text-zinc-500 uppercase tracking-widest mb-1 font-semibold">Beklenen Gol</div>
-                    <div className="text-lg font-bold text-emerald-400">{analysis.expectedGoalRange}</div>
-                  </div>
-                )}
               </div>
             </div>
           </div>
