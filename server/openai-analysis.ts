@@ -120,7 +120,6 @@ export interface PredictionItem {
   odds: string;
   confidence: number;
   reasoning: string;
-  consistentScores: string[];
   isValueBet?: boolean;
   valuePercentage?: number;
 }
@@ -134,7 +133,6 @@ export interface SingleBetResult {
   valuePercentage: number;
   estimatedProbability: number;
   riskLevel: 'düşük' | 'orta' | 'yüksek';
-  consistentScores: string[];
 }
 
 export interface AIAnalysisResult {
@@ -464,8 +462,7 @@ ${matchData.injuries?.away?.length ? `${matchData.awayTeam}: ${matchData.injurie
     "confidence": 62,
     "riskLevel": "düşük|orta|yüksek",
     "isValueBet": true,
-    "reasoning": "3-4 cümlelik detaylı gerekçe. Hangi istatistikler bu tahmini destekliyor?",
-    "consistentScores": ["1-1", "2-1", "1-2"]
+    "reasoning": "DETAYLI YORUM (4-5 cümle): Gerçek bir spor yorumcusu gibi samimi ve akıcı bir dille yaz. İlk cümlede maçın genel havasını ve beklentiyi belirt. İkinci cümlede takımların form durumunu karşılaştır. Üçüncü cümlede istatistiksel verilere değin. Dördüncü cümlede bu tahmini neden seçtiğini açıkla. Son cümlede güven düzeyini ve risk faktörlerini belirt. Samimi, profesyonel ama anlaşılır bir dil kullan."
   },
   
   "expertTip": "Profesyonel bahis uzmanı görüşü - bu maç için kritik uyarı veya ipucu.",
@@ -479,7 +476,7 @@ ${matchData.injuries?.away?.length ? `${matchData.awayTeam}: ${matchData.injurie
 - singleBet.odds minimum 1.50 olmalı!
 - valuePercentage = ((estimatedProbability/100) × odds - 1) × 100
 - isValueBet: valuePercentage > 0 ise true
-- consistentScores bahis türüyle tutarlı olmalı`;
+- reasoning alanı 4-5 cümle olmalı, gerçek yorumcu gibi samimi dil kullan`;
 
   try {
     const response = await openai.chat.completions.create({
@@ -550,78 +547,18 @@ ${matchData.injuries?.away?.length ? `${matchData.awayTeam}: ${matchData.injurie
       }
       bet.confidence = Math.max(0, Math.min(100, bet.confidence));
       
-      // Validate and fix consistent scores based on bet type
-      if (!bet.consistentScores || bet.consistentScores.length === 0) {
-        bet.consistentScores = ['1-1', '2-1', '1-0'];
-      }
-      
-      // Score consistency validation
-      if (betLower.includes('2.5 üst') || betLower.includes('2,5 üst')) {
-        bet.consistentScores = bet.consistentScores.filter(s => {
-          const [h, a] = s.split('-').map(n => parseInt(n) || 0);
-          return h + a >= 3;
-        });
-        if (bet.consistentScores.length === 0) bet.consistentScores = ['2-1', '1-2', '2-2'];
-      } else if (betLower.includes('2.5 alt') || betLower.includes('2,5 alt')) {
-        bet.consistentScores = bet.consistentScores.filter(s => {
-          const [h, a] = s.split('-').map(n => parseInt(n) || 0);
-          return h + a <= 2;
-        });
-        if (bet.consistentScores.length === 0) bet.consistentScores = ['1-0', '0-1', '1-1'];
-      } else if (betLower.includes('kg var')) {
-        bet.consistentScores = bet.consistentScores.filter(s => {
-          const [h, a] = s.split('-').map(n => parseInt(n) || 0);
-          return h > 0 && a > 0;
-        });
-        if (bet.consistentScores.length === 0) bet.consistentScores = ['1-1', '2-1', '1-2'];
-      } else if (betLower.includes('kg yok')) {
-        bet.consistentScores = bet.consistentScores.filter(s => {
-          const [h, a] = s.split('-').map(n => parseInt(n) || 0);
-          return h === 0 || a === 0;
-        });
-        if (bet.consistentScores.length === 0) bet.consistentScores = ['1-0', '0-0', '2-0'];
-      }
-      
       // Convert singleBet to predictions array for backwards compatibility
       result.predictions = [{
         type: 'expected',
         bet: bet.bet,
         odds: bet.odds.toString(),
         confidence: bet.confidence,
-        reasoning: bet.reasoning,
-        consistentScores: bet.consistentScores,
+        reasoning: bet.reasoning || '',
         isValueBet: bet.isValueBet,
         valuePercentage: bet.valuePercentage
       }];
       
       console.log(`[AI] Single bet: ${bet.bet} @ ${bet.odds} | Value: ${bet.valuePercentage}% | Risk: ${bet.riskLevel}`);
-    }
-    
-    // Legacy support: process predictions array if singleBet not present
-    if (!result.singleBet && result.predictions) {
-      for (const pred of result.predictions) {
-        const betLower = pred.bet.toLowerCase();
-        
-        if (betLower.includes('2.5 üst') || betLower.includes('2,5 üst')) {
-          pred.consistentScores = pred.consistentScores?.filter(score => {
-            const parts = score.split('-').map(s => parseInt(s.trim()));
-            if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) return false;
-            return (parts[0] + parts[1]) >= 3;
-          }) || ['2-1', '1-2', '2-2'];
-          if (pred.consistentScores.length === 0) {
-            pred.consistentScores = ['2-1', '1-2', '2-2'];
-          }
-        } else if (betLower.includes('2.5 alt') || betLower.includes('2,5 alt')) {
-          pred.consistentScores = pred.consistentScores?.filter(score => {
-            const parts = score.split('-').map(s => parseInt(s.trim()));
-            if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) return false;
-            return (parts[0] + parts[1]) <= 2;
-          }) || ['1-0', '0-1', '1-1'];
-          if (pred.consistentScores.length === 0) {
-            pred.consistentScores = ['1-0', '0-1', '1-1'];
-          }
-        }
-      }
     }
     
     return result;
@@ -681,7 +618,7 @@ export async function generateAndSavePredictions(
             matchDate,
             matchTime,
             pred.bet,
-            pred.consistentScores?.join(', ') || '',
+            '',
             pred.confidence,
             riskToLevel[pred.type] || 'orta',
             pred.reasoning,

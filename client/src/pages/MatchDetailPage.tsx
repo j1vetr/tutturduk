@@ -11,7 +11,6 @@ interface PredictionItem {
   odds: string;
   confidence: number;
   reasoning: string;
-  consistentScores: string[];
 }
 
 interface MatchContext {
@@ -164,8 +163,7 @@ export default function MatchDetailPage() {
           bet: pred.bet || 'Tahmin yükleniyor...',
           odds: pred.odds || '~1.50',
           confidence: pred.confidence || 50,
-          reasoning: pred.reasoning || '',
-          consistentScores: pred.consistentScores || []
+          reasoning: pred.reasoning || ''
         }));
         setAiAnalysis(data);
       }
@@ -351,21 +349,7 @@ export default function MatchDetailPage() {
                     </div>
                   </div>
 
-                  <p className="text-sm text-gray-500 leading-relaxed">{aiAnalysis.predictions[0].reasoning}</p>
-                  
-                  {/* Consistent Scores */}
-                  {aiAnalysis.predictions[0].consistentScores && aiAnalysis.predictions[0].consistentScores.length > 0 && (
-                    <div className="mt-4 pt-4 border-t border-gray-100">
-                      <span className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide">Olası Skorlar</span>
-                      <div className="flex gap-2 mt-2">
-                        {aiAnalysis.predictions[0].consistentScores.slice(0, 3).map((score, i) => (
-                          <span key={i} className="px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg text-sm font-bold border border-emerald-100">
-                            {score}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  <p className="text-sm text-gray-600 leading-relaxed">{aiAnalysis.predictions[0].reasoning}</p>
                 </div>
               </div>
             )}
@@ -475,21 +459,23 @@ export default function MatchDetailPage() {
                     homeLogo={match.home_logo}
                     awayLogo={match.away_logo}
                     predictedScore={(() => {
-                      const score = aiAnalysis.predictions[0]?.consistentScores?.[0] || '1-1';
-                      const [home, away] = score.split('-').map(s => parseInt(s.trim()) || 0);
-                      return { home, away };
+                      const bestBet = aiAnalysis.predictions[0]?.bet?.toLowerCase() || '';
+                      if (bestBet.includes('ms1') || bestBet.includes('ev')) return { home: 2, away: 0 };
+                      if (bestBet.includes('ms2') || bestBet.includes('deplasman')) return { home: 0, away: 2 };
+                      if (bestBet.includes('2.5 üst') || bestBet.includes('3.5 üst')) return { home: 2, away: 1 };
+                      if (bestBet.includes('2.5 alt') || bestBet.includes('kg yok')) return { home: 1, away: 0 };
+                      if (bestBet.includes('kg var')) return { home: 1, away: 1 };
+                      if (bestBet.includes('1x')) return { home: 1, away: 0 };
+                      if (bestBet.includes('x2')) return { home: 0, away: 1 };
+                      return { home: 1, away: 1 };
                     })()}
                     scenario={(() => {
                       const bestBet = aiAnalysis.predictions[0]?.bet?.toLowerCase() || '';
-                      const score = aiAnalysis.predictions[0]?.consistentScores?.[0] || '1-1';
-                      const [home, away] = score.split('-').map(s => parseInt(s.trim()) || 0);
-                      const totalGoals = home + away;
-                      
-                      if (bestBet.includes('üst') || totalGoals >= 3) return 'high_scoring';
-                      if (bestBet.includes('alt') || totalGoals <= 1) return 'low_scoring';
-                      if (bestBet.includes('kg var') || (home > 0 && away > 0)) return 'btts';
-                      if (bestBet.includes('ev') || home >= away + 2) return 'one_sided_home';
-                      if (bestBet.includes('deplasman') || away >= home + 2) return 'one_sided_away';
+                      if (bestBet.includes('üst')) return 'high_scoring';
+                      if (bestBet.includes('alt')) return 'low_scoring';
+                      if (bestBet.includes('kg var')) return 'btts';
+                      if (bestBet.includes('ms1') || bestBet.includes('ev') || bestBet.includes('1x')) return 'one_sided_home';
+                      if (bestBet.includes('ms2') || bestBet.includes('deplasman') || bestBet.includes('x2')) return 'one_sided_away';
                       return 'balanced';
                     })()}
                     expectedGoals={(() => {
