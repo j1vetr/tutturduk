@@ -2355,6 +2355,48 @@ export async function registerRoutes(
     }
   });
 
+  // Admin: clear finished matches history (Tuttu/Tutmadı geçmişi)
+  app.post('/api/admin/clear-history', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Yetkiniz yok' });
+    }
+    
+    try {
+      await pool.query('BEGIN');
+      
+      // Delete best bets for finished matches only
+      const deletedBets = await pool.query(
+        `DELETE FROM best_bets WHERE fixture_id IN (
+          SELECT fixture_id FROM published_matches WHERE status = 'finished'
+        )`
+      );
+      
+      // Delete finished matches
+      const deletedMatches = await pool.query(
+        `DELETE FROM published_matches WHERE status = 'finished'`
+      );
+      
+      await pool.query('COMMIT');
+      
+      console.log(`[Admin] History cleared: ${deletedMatches.rowCount} matches, ${deletedBets.rowCount} bets`);
+      
+      res.json({ 
+        success: true, 
+        message: `Geçmiş temizlendi: ${deletedMatches.rowCount} maç, ${deletedBets.rowCount} tahmin silindi`,
+        deletedMatches: deletedMatches.rowCount,
+        deletedBets: deletedBets.rowCount
+      });
+    } catch (error: any) {
+      await pool.query('ROLLBACK');
+      console.error('[Admin] Clear history error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // Winners API - Get all completed predictions with results (with date filtering)
   app.get('/api/winners', async (req, res) => {
     try {

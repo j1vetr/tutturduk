@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { MobileLayout } from "@/components/MobileLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Trophy, TrendingUp, Target, CheckCircle, XCircle, Clock, Loader2, ChevronRight, Calendar, Flame, BarChart3, Shield, Edit } from "lucide-react";
+import { Trophy, TrendingUp, Target, CheckCircle, XCircle, Clock, Loader2, ChevronRight, Calendar, Flame, BarChart3, Shield, Edit, Trash2 } from "lucide-react";
 import { useLocation } from "wouter";
 import { format, subDays, isToday, isYesterday, parseISO } from "date-fns";
 import { tr } from "date-fns/locale";
@@ -170,6 +170,29 @@ export default function WinnersPage() {
     ? data.availableDates.map(d => d.match_date)
     : getRecentDates();
 
+  const clearHistory = async () => {
+    if (!confirm('Tüm bitmiş maç geçmişini silmek istediğinize emin misiniz?')) return;
+    try {
+      const res = await fetch('/api/admin/clear-history', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      if (res.ok) {
+        const result = await res.json();
+        toast({ 
+          title: 'Geçmiş Temizlendi', 
+          description: result.message,
+          className: 'bg-emerald-500 text-white border-none'
+        });
+        loadData();
+      } else {
+        toast({ variant: 'destructive', description: 'Temizleme başarısız' });
+      }
+    } catch (e) {
+      toast({ variant: 'destructive', description: 'Hata oluştu' });
+    }
+  };
+
   return (
     <MobileLayout activeTab="winners">
       <div className="space-y-4 pb-6">
@@ -185,12 +208,23 @@ export default function WinnersPage() {
               <p className="text-xs text-gray-500">Ana tahmin sonuçları</p>
             </div>
           </div>
-          {data && (
-            <div className="text-right bg-gradient-to-br from-emerald-50 to-green-50 border border-emerald-200 rounded-xl px-3 py-2">
-              <p className="text-xl font-black text-emerald-600">%{data.overallStats.winRate}</p>
-              <p className="text-[9px] text-emerald-700 font-medium">Başarı Oranı</p>
-            </div>
-          )}
+          <div className="flex items-center gap-2">
+            {isAdmin && (
+              <button
+                onClick={clearHistory}
+                className="p-2 rounded-xl bg-red-50 border border-red-200 text-red-500 hover:bg-red-100 transition-colors"
+                title="Geçmişi Temizle"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
+            {data && (
+              <div className="text-right bg-gradient-to-br from-emerald-50 to-green-50 border border-emerald-200 rounded-xl px-3 py-2">
+                <p className="text-xl font-black text-emerald-600">%{data.overallStats.winRate}</p>
+                <p className="text-[9px] text-emerald-700 font-medium">Başarı Oranı</p>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Date Picker */}
