@@ -274,7 +274,7 @@ export default function WinnersPage() {
             </div>
 
             {/* Won Coupons */}
-            {data.wonCoupons.length > 0 && filter === 'all' && !selectedDate && (
+            {data.wonCoupons.length > 0 && filter === 'all' && (
               <div className="space-y-2">
                 <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wide px-1">
                   Kazanan Kuponlar

@@ -191,6 +191,26 @@ function evaluateBet(betType: string, homeScore: number, awayScore: number, tota
     console.log(`[MatchStatus] 1.5 Alt: ${totalGoals} < 1.5 = ${result}`);
     return result;
   }
+  if (bet.includes('0.5 üst') || bet.includes('0,5 üst') || bet.includes('over 0.5')) {
+    const result = totalGoals > 0.5;
+    console.log(`[MatchStatus] 0.5 Üst: ${totalGoals} > 0.5 = ${result}`);
+    return result;
+  }
+  if (bet.includes('0.5 alt') || bet.includes('0,5 alt') || bet.includes('under 0.5')) {
+    const result = totalGoals < 0.5;
+    console.log(`[MatchStatus] 0.5 Alt: ${totalGoals} < 0.5 = ${result}`);
+    return result;
+  }
+  if (bet.includes('5.5 üst') || bet.includes('5,5 üst') || bet.includes('over 5.5')) {
+    const result = totalGoals > 5.5;
+    console.log(`[MatchStatus] 5.5 Üst: ${totalGoals} > 5.5 = ${result}`);
+    return result;
+  }
+  if (bet.includes('5.5 alt') || bet.includes('5,5 alt') || bet.includes('under 5.5')) {
+    const result = totalGoals < 5.5;
+    console.log(`[MatchStatus] 5.5 Alt: ${totalGoals} < 5.5 = ${result}`);
+    return result;
+  }
   
   // Both Teams to Score (KG)
   if (bet.includes('kg var') || bet.includes('btts yes') || bet === 'kg var' || bet.includes('karşılıklı gol var')) {
