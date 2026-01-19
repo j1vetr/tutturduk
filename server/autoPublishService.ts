@@ -1,7 +1,7 @@
 import { pool } from './db';
 import { apiFootball, CURRENT_SEASON } from './apiFootball';
 import { filterMatches, getStatisticsScore } from './matchFilter';
-import { generateAndSavePredictions } from './openai-analysis';
+import { generateAndSavePredictions, generateMatchAnalysis } from './openai-analysis';
 import type { MatchData } from './openai-analysis';
 
 interface ParsedOdds {
@@ -243,8 +243,9 @@ async function publishMatchesForDate(dateStr: string, totalLimit: number = 70, m
     
     console.log(`[AutoPublish] Total valid matches collected: ${scoredMatches.length}`);
     
-    // Publish all collected matches
+    // Publish all collected matches - but first check AI decision
     let publishedCount = 0;
+    let passedCount = 0;
     
     for (const match of scoredMatches) {
       try {
@@ -269,6 +270,51 @@ async function publishMatchesForDate(dateStr: string, totalLimit: number = 70, m
         const comparison = match.prediction?.comparison;
         const h2h = match.prediction?.h2h || [];
         
+        // Build match data for AI analysis
+        const matchData: MatchData = {
+          homeTeam,
+          awayTeam,
+          league: leagueName,
+          leagueId: leagueId,
+          comparison: comparison || undefined,
+          homeForm: teams?.home?.league?.form,
+          awayForm: teams?.away?.league?.form,
+          h2hResults: h2h?.map((h: any) => ({
+            homeGoals: h.homeGoals || h.goals?.home || 0,
+            awayGoals: h.awayGoals || h.goals?.away || 0
+          })),
+          homeWins: teams?.home?.league?.wins,
+          homeDraws: teams?.home?.league?.draws,
+          homeLosses: teams?.home?.league?.loses,
+          homeGoalsFor: teams?.home?.league?.goals?.for?.total,
+          homeGoalsAgainst: teams?.home?.league?.goals?.against?.total,
+          awayWins: teams?.away?.league?.wins,
+          awayDraws: teams?.away?.league?.draws,
+          awayLosses: teams?.away?.league?.loses,
+          awayGoalsFor: teams?.away?.league?.goals?.for?.total,
+          awayGoalsAgainst: teams?.away?.league?.goals?.against?.total,
+          odds: match.odds,
+        };
+        
+        // FIRST: Check AI decision before publishing
+        console.log(`[AutoPublish] Checking AI decision for ${homeTeam} vs ${awayTeam}...`);
+        let aiAnalysis;
+        try {
+          aiAnalysis = await generateMatchAnalysis(matchData);
+        } catch (aiError: any) {
+          console.error(`[AutoPublish] AI analysis failed for ${homeTeam} vs ${awayTeam}:`, aiError.message);
+          continue;
+        }
+        
+        // If AI says "pas", skip this match entirely
+        if (!aiAnalysis || aiAnalysis.karar === 'pas') {
+          passedCount++;
+          console.log(`[AutoPublish] SKIPPED (pas): ${homeTeam} vs ${awayTeam} - no confident prediction`);
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          continue;
+        }
+        
+        // AI said "bahis" - proceed with publishing
         await pool.query(
           `INSERT INTO published_matches 
            (fixture_id, home_team, away_team, home_logo, away_logo, league_name, league_logo, league_id,
@@ -313,66 +359,60 @@ async function publishMatchesForDate(dateStr: string, totalLimit: number = 70, m
         publishedCount++;
         console.log(`[AutoPublish] Published: ${homeTeam} vs ${awayTeam}`);
         
-        // Get the newly inserted match ID and generate AI predictions
+        // Get the newly inserted match ID and save prediction
         const insertedMatch = await pool.query(
           'SELECT id FROM published_matches WHERE fixture_id = $1',
           [match.fixture.id]
         );
         
-        if (insertedMatch.rows.length > 0) {
+        if (insertedMatch.rows.length > 0 && aiAnalysis.predictions && aiAnalysis.predictions.length > 0) {
           const matchId = insertedMatch.rows[0].id;
+          const prediction = aiAnalysis.predictions[0];
           
-          const matchData: MatchData = {
-            homeTeam,
-            awayTeam,
-            league: leagueName,
-            leagueId: leagueId,
-            comparison: comparison || undefined,
-            homeForm: teams?.home?.league?.form,
-            awayForm: teams?.away?.league?.form,
-            h2hResults: h2h?.map((h: any) => ({
-              homeGoals: h.homeGoals || h.goals?.home || 0,
-              awayGoals: h.awayGoals || h.goals?.away || 0
-            })),
-            homeWins: teams?.home?.league?.wins,
-            homeDraws: teams?.home?.league?.draws,
-            homeLosses: teams?.home?.league?.loses,
-            homeGoalsFor: teams?.home?.league?.goals?.for?.total,
-            homeGoalsAgainst: teams?.home?.league?.goals?.against?.total,
-            awayWins: teams?.away?.league?.wins,
-            awayDraws: teams?.away?.league?.draws,
-            awayLosses: teams?.away?.league?.loses,
-            awayGoalsFor: teams?.away?.league?.goals?.for?.total,
-            awayGoalsAgainst: teams?.away?.league?.goals?.against?.total,
-            odds: match.odds,
-          };
-          
+          // Save to best_bets
           try {
-            await generateAndSavePredictions(
-              matchId,
-              match.fixture.id,
-              homeTeam,
-              awayTeam,
-              homeLogo,
-              awayLogo,
-              leagueName,
-              leagueLogo,
-              matchDate,
-              matchTime,
-              matchData
+            await pool.query(
+              `INSERT INTO best_bets 
+               (match_id, fixture_id, home_team, away_team, home_logo, away_logo, 
+                league_name, league_logo, match_date, match_time,
+                bet_type, bet_description, confidence, risk_level, reasoning, result, date_for)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, 'pending', $16)
+               ON CONFLICT (fixture_id, date_for) DO NOTHING`,
+              [
+                matchId,
+                match.fixture.id,
+                homeTeam,
+                awayTeam,
+                homeLogo,
+                awayLogo,
+                leagueName,
+                leagueLogo,
+                matchDate,
+                matchTime,
+                prediction.bet,
+                '',
+                prediction.confidence,
+                aiAnalysis.singleBet?.riskLevel || 'orta',
+                prediction.reasoning,
+                matchDate
+              ]
             );
-            console.log(`[AutoPublish] AI predictions saved for ${homeTeam} vs ${awayTeam}`);
-          } catch (aiError: any) {
-            console.error(`[AutoPublish] AI generation failed:`, aiError.message);
+            console.log(`[AutoPublish] Saved prediction: ${prediction.bet} for ${homeTeam} vs ${awayTeam}`);
+          } catch (saveError: any) {
+            if (saveError.code !== '23505') {
+              console.error(`[AutoPublish] Error saving prediction:`, saveError.message);
+            }
           }
-          
-          await new Promise(resolve => setTimeout(resolve, 3000));
         }
+        
+        await new Promise(resolve => setTimeout(resolve, 3000));
         
       } catch (error) {
         console.error(`[AutoPublish] Error publishing match:`, error);
       }
     }
+    
+    console.log(`[AutoPublish] Summary: ${publishedCount} published, ${passedCount} passed (no confident prediction)`)
     
     console.log(`[AutoPublish] Completed! Published ${publishedCount} matches`);
     
@@ -549,6 +589,7 @@ export async function autoPublishTomorrowMatchesLegacy(targetCount: number = 70)
     console.log(`[AutoPublish] Publishing top ${matchesToPublish.length} matches...`);
     
     let publishedCount = 0;
+    let passedCount = 0;
     
     for (const match of matchesToPublish) {
       try {
@@ -583,6 +624,51 @@ export async function autoPublishTomorrowMatchesLegacy(targetCount: number = 70)
         const comparison = match.prediction?.comparison;
         const h2h = match.prediction?.h2h || [];
         
+        // Build match data for AI analysis
+        const matchData: MatchData = {
+          homeTeam,
+          awayTeam,
+          league: leagueName,
+          leagueId: leagueId,
+          comparison: comparison || undefined,
+          homeForm: teams?.home?.league?.form,
+          awayForm: teams?.away?.league?.form,
+          h2hResults: h2h?.map((h: any) => ({
+            homeGoals: h.homeGoals || h.goals?.home || 0,
+            awayGoals: h.awayGoals || h.goals?.away || 0
+          })),
+          homeWins: teams?.home?.league?.wins,
+          homeDraws: teams?.home?.league?.draws,
+          homeLosses: teams?.home?.league?.loses,
+          homeGoalsFor: teams?.home?.league?.goals?.for?.total,
+          homeGoalsAgainst: teams?.home?.league?.goals?.against?.total,
+          awayWins: teams?.away?.league?.wins,
+          awayDraws: teams?.away?.league?.draws,
+          awayLosses: teams?.away?.league?.loses,
+          awayGoalsFor: teams?.away?.league?.goals?.for?.total,
+          awayGoalsAgainst: teams?.away?.league?.goals?.against?.total,
+          odds: match.odds,
+        };
+        
+        // FIRST: Check AI decision before publishing
+        console.log(`[AutoPublish] Checking AI decision for ${homeTeam} vs ${awayTeam}...`);
+        let aiAnalysis;
+        try {
+          aiAnalysis = await generateMatchAnalysis(matchData);
+        } catch (aiError: any) {
+          console.error(`[AutoPublish] AI analysis failed for ${homeTeam} vs ${awayTeam}:`, aiError.message);
+          continue;
+        }
+        
+        // If AI says "pas", skip this match entirely
+        if (!aiAnalysis || aiAnalysis.karar === 'pas') {
+          passedCount++;
+          console.log(`[AutoPublish] SKIPPED (pas): ${homeTeam} vs ${awayTeam} - no confident prediction`);
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          continue;
+        }
+        
+        // AI said "bahis" - proceed with publishing
         await pool.query(
           `INSERT INTO published_matches 
            (fixture_id, home_team, away_team, home_logo, away_logo, league_name, league_logo, league_id,
@@ -627,72 +713,61 @@ export async function autoPublishTomorrowMatchesLegacy(targetCount: number = 70)
         publishedCount++;
         console.log(`[AutoPublish] Published: ${homeTeam} vs ${awayTeam} (score: ${match.statisticsScore})`);
         
-        // Get the newly inserted match ID
+        // Get the newly inserted match ID and save prediction
         const insertedMatch = await pool.query(
           'SELECT id FROM published_matches WHERE fixture_id = $1',
           [match.fixture.id]
         );
         
-        if (insertedMatch.rows.length > 0) {
+        if (insertedMatch.rows.length > 0 && aiAnalysis.predictions && aiAnalysis.predictions.length > 0) {
           const matchId = insertedMatch.rows[0].id;
+          const prediction = aiAnalysis.predictions[0];
           
-          // Prepare match data for AI analysis (with API-Football odds)
-          const matchData: MatchData = {
-            homeTeam,
-            awayTeam,
-            league: leagueName,
-            leagueId: leagueId,
-            comparison: comparison || undefined,
-            homeForm: teams?.home?.league?.form,
-            awayForm: teams?.away?.league?.form,
-            h2hResults: h2h?.map((h: any) => ({
-              homeGoals: h.homeGoals || h.goals?.home || 0,
-              awayGoals: h.awayGoals || h.goals?.away || 0
-            })),
-            homeWins: teams?.home?.league?.wins,
-            homeDraws: teams?.home?.league?.draws,
-            homeLosses: teams?.home?.league?.loses,
-            homeGoalsFor: teams?.home?.league?.goals?.for?.total,
-            homeGoalsAgainst: teams?.home?.league?.goals?.against?.total,
-            awayWins: teams?.away?.league?.wins,
-            awayDraws: teams?.away?.league?.draws,
-            awayLosses: teams?.away?.league?.loses,
-            awayGoalsFor: teams?.away?.league?.goals?.for?.total,
-            awayGoalsAgainst: teams?.away?.league?.goals?.against?.total,
-            odds: match.odds,
-          };
-          
-          // Generate AI analysis and save to best_bets
-          console.log(`[AutoPublish] Generating AI predictions for ${homeTeam} vs ${awayTeam}...`);
+          // Save to best_bets
           try {
-            await generateAndSavePredictions(
-              matchId,
-              match.fixture.id,
-              homeTeam,
-              awayTeam,
-              homeLogo,
-              awayLogo,
-              leagueName,
-              leagueLogo,
-              matchDate,
-              matchTime,
-              matchData
+            await pool.query(
+              `INSERT INTO best_bets 
+               (match_id, fixture_id, home_team, away_team, home_logo, away_logo, 
+                league_name, league_logo, match_date, match_time,
+                bet_type, bet_description, confidence, risk_level, reasoning, result, date_for)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, 'pending', $16)
+               ON CONFLICT (fixture_id, date_for) DO NOTHING`,
+              [
+                matchId,
+                match.fixture.id,
+                homeTeam,
+                awayTeam,
+                homeLogo,
+                awayLogo,
+                leagueName,
+                leagueLogo,
+                matchDate,
+                matchTime,
+                prediction.bet,
+                '',
+                prediction.confidence,
+                aiAnalysis.singleBet?.riskLevel || 'orta',
+                prediction.reasoning,
+                matchDate
+              ]
             );
-            console.log(`[AutoPublish] AI predictions saved for ${homeTeam} vs ${awayTeam}`);
-          } catch (aiError: any) {
-            console.error(`[AutoPublish] AI generation failed for ${homeTeam} vs ${awayTeam}:`, aiError.message);
+            console.log(`[AutoPublish] Saved prediction: ${prediction.bet} for ${homeTeam} vs ${awayTeam}`);
+          } catch (saveError: any) {
+            if (saveError.code !== '23505') {
+              console.error(`[AutoPublish] Error saving prediction:`, saveError.message);
+            }
           }
-          
-          // Wait between AI calls to avoid rate limiting
-          await new Promise(resolve => setTimeout(resolve, 3000));
         }
+        
+        // Wait between AI calls to avoid rate limiting
+        await new Promise(resolve => setTimeout(resolve, 3000));
         
       } catch (error) {
         console.error(`[AutoPublish] Error publishing match ${match.fixture.id}:`, error);
       }
     }
     
-    console.log(`[AutoPublish] Completed! Published ${publishedCount} of ${matchesToPublish.length} matches with AI predictions`);
+    console.log(`[AutoPublish] Completed! Published ${publishedCount}, Passed ${passedCount} of ${matchesToPublish.length} matches`);
     
     return { 
       published: publishedCount, 
@@ -870,6 +945,7 @@ export async function publishFromPrefetchedFixtures(dateStr: string, totalLimit:
   console.log(`[AutoPublish] Publishing ${matchesToPublish.length} matches...`);
   
   let publishedCount = 0;
+  let passedCount = 0;
   
   for (const match of matchesToPublish) {
     try {
@@ -901,6 +977,51 @@ export async function publishFromPrefetchedFixtures(dateStr: string, totalLimit:
       const comparison = match.prediction?.comparison;
       const h2h = match.prediction?.h2h || [];
       
+      // Build match data for AI analysis
+      const matchData: MatchData = {
+        homeTeam,
+        awayTeam,
+        league: leagueName,
+        leagueId,
+        comparison: comparison || undefined,
+        homeForm: teams?.home?.league?.form,
+        awayForm: teams?.away?.league?.form,
+        h2hResults: h2h?.map((h: any) => ({
+          homeGoals: h.homeGoals || h.goals?.home || 0,
+          awayGoals: h.awayGoals || h.goals?.away || 0
+        })),
+        homeWins: teams?.home?.league?.wins,
+        homeDraws: teams?.home?.league?.draws,
+        homeLosses: teams?.home?.league?.loses,
+        homeGoalsFor: teams?.home?.league?.goals?.for?.total,
+        homeGoalsAgainst: teams?.home?.league?.goals?.against?.total,
+        awayWins: teams?.away?.league?.wins,
+        awayDraws: teams?.away?.league?.draws,
+        awayLosses: teams?.away?.league?.loses,
+        awayGoalsFor: teams?.away?.league?.goals?.for?.total,
+        awayGoalsAgainst: teams?.away?.league?.goals?.against?.total,
+        odds: match.odds,
+      };
+      
+      // FIRST: Check AI decision before publishing
+      console.log(`[AutoPublish] Checking AI decision for ${homeTeam} vs ${awayTeam}...`);
+      let aiAnalysis;
+      try {
+        aiAnalysis = await generateMatchAnalysis(matchData);
+      } catch (aiError: any) {
+        console.error(`[AutoPublish] AI analysis failed for ${homeTeam} vs ${awayTeam}:`, aiError.message);
+        continue;
+      }
+      
+      // If AI says "pas", skip this match entirely
+      if (!aiAnalysis || aiAnalysis.karar === 'pas') {
+        passedCount++;
+        console.log(`[AutoPublish] SKIPPED (pas): ${homeTeam} vs ${awayTeam} - no confident prediction`);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        continue;
+      }
+      
+      // AI said "bahis" - proceed with publishing
       await pool.query(
         `INSERT INTO published_matches 
          (fixture_id, home_team, away_team, home_logo, away_logo, league_name, league_logo, league_id,
@@ -945,67 +1066,60 @@ export async function publishFromPrefetchedFixtures(dateStr: string, totalLimit:
       publishedCount++;
       console.log(`[AutoPublish] Published: ${homeTeam} vs ${awayTeam}`);
       
-      // Generate AI predictions
+      // Get the newly inserted match ID and save prediction
       const insertedMatch = await pool.query(
         'SELECT id FROM published_matches WHERE fixture_id = $1',
         [match.fixture.id]
       );
       
-      if (insertedMatch.rows.length > 0) {
+      if (insertedMatch.rows.length > 0 && aiAnalysis.predictions && aiAnalysis.predictions.length > 0) {
         const matchId = insertedMatch.rows[0].id;
+        const prediction = aiAnalysis.predictions[0];
         
-        const matchData: MatchData = {
-          homeTeam,
-          awayTeam,
-          league: leagueName,
-          leagueId,
-          comparison: comparison || undefined,
-          homeForm: teams?.home?.league?.form,
-          awayForm: teams?.away?.league?.form,
-          h2hResults: h2h?.map((h: any) => ({
-            homeGoals: h.homeGoals || h.goals?.home || 0,
-            awayGoals: h.awayGoals || h.goals?.away || 0
-          })),
-          homeWins: teams?.home?.league?.wins,
-          homeDraws: teams?.home?.league?.draws,
-          homeLosses: teams?.home?.league?.loses,
-          homeGoalsFor: teams?.home?.league?.goals?.for?.total,
-          homeGoalsAgainst: teams?.home?.league?.goals?.against?.total,
-          awayWins: teams?.away?.league?.wins,
-          awayDraws: teams?.away?.league?.draws,
-          awayLosses: teams?.away?.league?.loses,
-          awayGoalsFor: teams?.away?.league?.goals?.for?.total,
-          awayGoalsAgainst: teams?.away?.league?.goals?.against?.total,
-          odds: match.odds,
-        };
-        
+        // Save to best_bets
         try {
-          await generateAndSavePredictions(
-            matchId,
-            match.fixture.id,
-            homeTeam,
-            awayTeam,
-            homeLogo,
-            awayLogo,
-            leagueName,
-            leagueLogo,
-            matchDate,
-            matchTime,
-            matchData
+          await pool.query(
+            `INSERT INTO best_bets 
+             (match_id, fixture_id, home_team, away_team, home_logo, away_logo, 
+              league_name, league_logo, match_date, match_time,
+              bet_type, bet_description, confidence, risk_level, reasoning, result, date_for)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, 'pending', $16)
+             ON CONFLICT (fixture_id, date_for) DO NOTHING`,
+            [
+              matchId,
+              match.fixture.id,
+              homeTeam,
+              awayTeam,
+              homeLogo,
+              awayLogo,
+              leagueName,
+              leagueLogo,
+              matchDate,
+              matchTime,
+              prediction.bet,
+              '',
+              prediction.confidence,
+              aiAnalysis.singleBet?.riskLevel || 'orta',
+              prediction.reasoning,
+              matchDate
+            ]
           );
-        } catch (aiError: any) {
-          console.error(`[AutoPublish] AI generation failed:`, aiError.message);
+          console.log(`[AutoPublish] Saved prediction: ${prediction.bet} for ${homeTeam} vs ${awayTeam}`);
+        } catch (saveError: any) {
+          if (saveError.code !== '23505') {
+            console.error(`[AutoPublish] Error saving prediction:`, saveError.message);
+          }
         }
-        
-        await new Promise(resolve => setTimeout(resolve, 3000));
       }
+      
+      await new Promise(resolve => setTimeout(resolve, 3000));
       
     } catch (error) {
       console.error(`[AutoPublish] Error publishing match:`, error);
     }
   }
   
-  console.log(`[AutoPublish] Completed! Published ${publishedCount} matches`);
+  console.log(`[AutoPublish] Completed! Published ${publishedCount}, Passed ${passedCount} matches`);
   
   return { published: publishedCount, total: matchesToPublish.length, date: dateStr };
 }
