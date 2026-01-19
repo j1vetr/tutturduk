@@ -77,7 +77,8 @@ export default function WinnersPage() {
   const [, setLocation] = useLocation();
   const [data, setData] = useState<WinnersData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  // Default to today's date
+  const [selectedDate, setSelectedDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
   const [filter, setFilter] = useState<FilterType>('all');
   const { user } = useAuth();
   const { toast } = useToast();
@@ -113,9 +114,8 @@ export default function WinnersPage() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const url = selectedDate 
-        ? `/api/winners?date=${selectedDate}` 
-        : '/api/winners';
+      // Always include date parameter to ensure proper filtering
+      const url = `/api/winners?date=${selectedDate}`;
       const res = await fetch(url);
       if (res.ok) {
         const winnersData = await res.json();
@@ -196,16 +196,6 @@ export default function WinnersPage() {
         {/* Date Picker */}
         <div className="relative">
           <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-            <button
-              onClick={() => setSelectedDate(null)}
-              className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
-                selectedDate === null
-                  ? 'bg-purple-600 text-white shadow-md'
-                  : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
-              }`}
-            >
-              Tümü
-            </button>
             {displayDates.map((date) => (
               <button
                 key={date}

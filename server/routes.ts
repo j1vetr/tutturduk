@@ -2370,8 +2370,8 @@ export async function registerRoutes(
          LIMIT 30`
       );
 
-      // Filter by date if provided
-      const dateFilter = date ? `AND pm.match_date = $1` : '';
+      // Filter by date if provided - use explicit date comparison
+      const dateFilter = date ? `AND pm.match_date::date = $1::date` : '';
       const params = date ? [date] : [];
 
       // Get matches with predictions for the selected date (only finished matches with scores)
@@ -2395,7 +2395,7 @@ export async function registerRoutes(
          ) FROM best_bets bb WHERE bb.fixture_id = pm.fixture_id) as predictions
          FROM published_matches pm
          WHERE pm.status = 'finished' AND pm.final_score_home IS NOT NULL ${dateFilter}
-         ORDER BY pm.match_date DESC, pm.match_time DESC
+         ORDER BY pm.match_time DESC
          LIMIT 100`;
       
       const matches = await pool.query(matchesQuery, params);
@@ -2407,7 +2407,7 @@ export async function registerRoutes(
              COUNT(*) FILTER (WHERE result = 'lost') as lost,
              COUNT(*) FILTER (WHERE result = 'pending') as pending,
              COUNT(*) as total
-           FROM best_bets WHERE date_for = $1 AND risk_level = 'düşük'`
+           FROM best_bets WHERE date_for::date = $1::date AND risk_level = 'düşük'`
         : `SELECT 
              COUNT(*) FILTER (WHERE result = 'won') as won,
              COUNT(*) FILTER (WHERE result = 'lost') as lost,

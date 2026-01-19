@@ -146,67 +146,140 @@ async function evaluateMatchPredictions(fixtureId: number, homeScore: number, aw
 
 function evaluateBet(betType: string, homeScore: number, awayScore: number, totalGoals: number, bothTeamsScored: boolean): boolean {
   const bet = betType.toLowerCase().trim();
+  const betOriginal = betType.trim();
   
-  if (bet.includes('2.5 üst') || bet.includes('2.5 over') || bet === '2.5 üst') {
-    return totalGoals > 2.5;
-  }
-  if (bet.includes('2.5 alt') || bet.includes('2.5 under') || bet === '2.5 alt') {
-    return totalGoals < 2.5;
-  }
-  if (bet.includes('3.5 üst') || bet.includes('3.5 over')) {
-    return totalGoals > 3.5;
-  }
-  if (bet.includes('3.5 alt') || bet.includes('3.5 under')) {
-    return totalGoals < 3.5;
-  }
-  if (bet.includes('4.5 üst') || bet.includes('4.5 over')) {
-    return totalGoals > 4.5;
-  }
-  if (bet.includes('4.5 alt') || bet.includes('4.5 under')) {
-    return totalGoals < 4.5;
-  }
-  if (bet.includes('1.5 üst') || bet.includes('1.5 over')) {
-    return totalGoals > 1.5;
-  }
-  if (bet.includes('1.5 alt') || bet.includes('1.5 under')) {
-    return totalGoals < 1.5;
-  }
+  console.log(`[MatchStatus] Evaluating bet: "${betOriginal}" | Score: ${homeScore}-${awayScore} | Total: ${totalGoals} | BTS: ${bothTeamsScored}`);
   
-  if (bet.includes('kg var') || bet.includes('btts yes') || bet === 'kg var') {
-    return bothTeamsScored;
+  // Over/Under bets (Alt/Üst)
+  if (bet.includes('2.5 üst') || bet.includes('2,5 üst') || bet.includes('over 2.5')) {
+    const result = totalGoals > 2.5;
+    console.log(`[MatchStatus] 2.5 Üst: ${totalGoals} > 2.5 = ${result}`);
+    return result;
   }
-  if (bet.includes('kg yok') || bet.includes('btts no') || bet === 'kg yok') {
-    return !bothTeamsScored;
+  if (bet.includes('2.5 alt') || bet.includes('2,5 alt') || bet.includes('under 2.5')) {
+    const result = totalGoals < 2.5;
+    console.log(`[MatchStatus] 2.5 Alt: ${totalGoals} < 2.5 = ${result}`);
+    return result;
   }
-  
-  if (bet.includes('ev kazanır') || bet.includes('ev sahibi') || bet === '1' || bet === 'ms 1') {
-    return homeScore > awayScore;
+  if (bet.includes('3.5 üst') || bet.includes('3,5 üst') || bet.includes('over 3.5')) {
+    const result = totalGoals > 3.5;
+    console.log(`[MatchStatus] 3.5 Üst: ${totalGoals} > 3.5 = ${result}`);
+    return result;
   }
-  if (bet.includes('beraberlik') || bet === 'x' || bet === 'ms x') {
-    return homeScore === awayScore;
+  if (bet.includes('3.5 alt') || bet.includes('3,5 alt') || bet.includes('under 3.5')) {
+    const result = totalGoals < 3.5;
+    console.log(`[MatchStatus] 3.5 Alt: ${totalGoals} < 3.5 = ${result}`);
+    return result;
   }
-  if (bet.includes('deplasman kazanır') || bet.includes('deplasman') || bet === '2' || bet === 'ms 2') {
-    return homeScore < awayScore;
+  if (bet.includes('4.5 üst') || bet.includes('4,5 üst') || bet.includes('over 4.5')) {
+    const result = totalGoals > 4.5;
+    console.log(`[MatchStatus] 4.5 Üst: ${totalGoals} > 4.5 = ${result}`);
+    return result;
   }
-  
-  if (bet.includes('1x') || bet.includes('ev sahibi veya beraberlik')) {
-    return homeScore >= awayScore;
+  if (bet.includes('4.5 alt') || bet.includes('4,5 alt') || bet.includes('under 4.5')) {
+    const result = totalGoals < 4.5;
+    console.log(`[MatchStatus] 4.5 Alt: ${totalGoals} < 4.5 = ${result}`);
+    return result;
   }
-  if (bet.includes('x2') || bet.includes('beraberlik veya deplasman')) {
-    return homeScore <= awayScore;
+  if (bet.includes('1.5 üst') || bet.includes('1,5 üst') || bet.includes('over 1.5')) {
+    const result = totalGoals > 1.5;
+    console.log(`[MatchStatus] 1.5 Üst: ${totalGoals} > 1.5 = ${result}`);
+    return result;
   }
-  if (bet.includes('12') || bet.includes('ev sahibi veya deplasman')) {
-    return homeScore !== awayScore;
+  if (bet.includes('1.5 alt') || bet.includes('1,5 alt') || bet.includes('under 1.5')) {
+    const result = totalGoals < 1.5;
+    console.log(`[MatchStatus] 1.5 Alt: ${totalGoals} < 1.5 = ${result}`);
+    return result;
   }
   
-  const scoreMatch = bet.match(/(\d+)-(\d+)/);
+  // Both Teams to Score (KG)
+  if (bet.includes('kg var') || bet.includes('btts yes') || bet === 'kg var' || bet.includes('karşılıklı gol var')) {
+    const result = bothTeamsScored;
+    console.log(`[MatchStatus] KG Var: ${bothTeamsScored} = ${result}`);
+    return result;
+  }
+  if (bet.includes('kg yok') || bet.includes('btts no') || bet === 'kg yok' || bet.includes('karşılıklı gol yok')) {
+    const result = !bothTeamsScored;
+    console.log(`[MatchStatus] KG Yok: !${bothTeamsScored} = ${result}`);
+    return result;
+  }
+  
+  // Match Result (MS) - Home Win (MS1)
+  if (bet === 'ms1' || bet === 'ms 1' || bet === '1' || 
+      bet.includes('ev kazanır') || bet.includes('ev sahibi kazanır') || 
+      bet.includes('home win') || bet.includes('ev sahibi galibiyeti')) {
+    const result = homeScore > awayScore;
+    console.log(`[MatchStatus] MS1 (Ev Kazanır): ${homeScore} > ${awayScore} = ${result}`);
+    return result;
+  }
+  
+  // Match Result - Draw (MSX)
+  if (bet === 'msx' || bet === 'ms x' || bet === 'x' || 
+      bet.includes('beraberlik') || bet.includes('draw')) {
+    const result = homeScore === awayScore;
+    console.log(`[MatchStatus] MSX (Beraberlik): ${homeScore} === ${awayScore} = ${result}`);
+    return result;
+  }
+  
+  // Match Result - Away Win (MS2)
+  if (bet === 'ms2' || bet === 'ms 2' || bet === '2' || 
+      bet.includes('deplasman kazanır') || bet.includes('deplasman galibiyeti') || 
+      bet.includes('away win') || bet.includes('konuk kazanır')) {
+    const result = homeScore < awayScore;
+    console.log(`[MatchStatus] MS2 (Deplasman Kazanır): ${homeScore} < ${awayScore} = ${result}`);
+    return result;
+  }
+  
+  // Double Chance (1X, X2, 12)
+  if (bet === '1x' || bet.includes('1x') || bet.includes('ev veya beraberlik') || bet.includes('ev sahibi veya beraberlik')) {
+    const result = homeScore >= awayScore;
+    console.log(`[MatchStatus] 1X (Ev veya Beraberlik): ${homeScore} >= ${awayScore} = ${result}`);
+    return result;
+  }
+  if (bet === 'x2' || bet.includes('x2') || bet.includes('beraberlik veya deplasman')) {
+    const result = homeScore <= awayScore;
+    console.log(`[MatchStatus] X2 (Beraberlik veya Deplasman): ${homeScore} <= ${awayScore} = ${result}`);
+    return result;
+  }
+  if (bet === '12' || bet.includes('ev veya deplasman') || bet.includes('ev sahibi veya deplasman') || bet.includes('gol olur')) {
+    const result = homeScore !== awayScore;
+    console.log(`[MatchStatus] 12 (Ev veya Deplasman): ${homeScore} !== ${awayScore} = ${result}`);
+    return result;
+  }
+  
+  // Handicap bets
+  if (bet.includes('ev -1.5') || bet.includes('ev 1.5 üst') || bet.includes('ev -1,5')) {
+    const result = homeScore - awayScore > 1.5;
+    console.log(`[MatchStatus] Ev -1.5: ${homeScore - awayScore} > 1.5 = ${result}`);
+    return result;
+  }
+  if (bet.includes('ev +1.5') || bet.includes('ev +1,5')) {
+    const result = homeScore + 1.5 > awayScore;
+    console.log(`[MatchStatus] Ev +1.5: ${homeScore + 1.5} > ${awayScore} = ${result}`);
+    return result;
+  }
+  if (bet.includes('dep -1.5') || bet.includes('deplasman -1.5') || bet.includes('dep -1,5')) {
+    const result = awayScore - homeScore > 1.5;
+    console.log(`[MatchStatus] Dep -1.5: ${awayScore - homeScore} > 1.5 = ${result}`);
+    return result;
+  }
+  if (bet.includes('dep +1.5') || bet.includes('deplasman +1.5') || bet.includes('dep +1,5')) {
+    const result = awayScore + 1.5 > homeScore;
+    console.log(`[MatchStatus] Dep +1.5: ${awayScore + 1.5} > ${homeScore} = ${result}`);
+    return result;
+  }
+  
+  // Exact score
+  const scoreMatch = bet.match(/(\d+)\s*[-:]\s*(\d+)/);
   if (scoreMatch) {
     const predHome = parseInt(scoreMatch[1]);
     const predAway = parseInt(scoreMatch[2]);
-    return homeScore === predHome && awayScore === predAway;
+    const result = homeScore === predHome && awayScore === predAway;
+    console.log(`[MatchStatus] Skor Tahmini ${predHome}-${predAway}: ${homeScore}-${awayScore} = ${result}`);
+    return result;
   }
   
-  console.log(`[MatchStatus] Unknown bet type: ${betType}`);
+  console.log(`[MatchStatus] UNKNOWN bet type: "${betOriginal}" - marking as LOST`);
   return false;
 }
 
