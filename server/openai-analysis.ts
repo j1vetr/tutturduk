@@ -136,7 +136,8 @@ export interface SingleBetResult {
 }
 
 export interface AIAnalysisResult {
-  matchContext: {
+  karar: 'bahis' | 'pas';
+  matchContext?: {
     type: 'league' | 'cup' | 'derby' | 'friendly';
     significance: 'normal' | 'relegation' | 'title' | 'promotion' | 'final';
     homeLeagueLevel: number;
@@ -146,10 +147,10 @@ export interface AIAnalysisResult {
   };
   analysis: string;
   predictions: PredictionItem[];
-  singleBet?: SingleBetResult;
-  avoidBets: string[];
-  expertTip: string;
-  expectedGoalRange: string;
+  singleBet?: SingleBetResult | null;
+  avoidBets?: Record<string, string>;
+  expertTip?: string;
+  expectedGoalRange?: string;
 }
 
 function formatForm(form?: string): string {
@@ -272,38 +273,41 @@ export async function generateMatchAnalysis(matchData: MatchData): Promise<AIAna
   const expectedGoals = calculateExpectedGoals(matchData);
   const trends = analyzeTrends(matchData);
 
-  // NEW: Single Bet Value Betting System Prompt
-  const systemPrompt = `Sen profesyonel bir bahis analisti ve value betting uzmanısın. 
+  // Professional Value Betting System Prompt v2
+  const systemPrompt = `Sen profesyonel bir bahis tahmincisi ve value betting uzmanısın.
+Tahminlerin kendinden emin ve kararlı olmalı - koşullar sağlandığında net kararlar ver.
 
-🎯 GÖREV: Bu maç için EN İYİ TEK BAHİS önerisi üret.
+🚫 KESİN KURALLAR:
 
-📊 VALUE BETTING PRENSİBİ (ZORUNLU):
-Değer = (Tahmini Olasılık × Oran) - 1
-- Değer > 0 ise VALUE VAR (bahis değerli)
-- Değer > 0.10 ise GÜÇLÜ VALUE (çok değerli)
-- Değer < 0 ise VALUE YOK (bahis etme)
+1️⃣ MİNİMUM ORAN
+- 1.50 altı oran YASAKTIR, kesinlikle önerilmez
+- 1.5 Üst marketi SADECE oran ≥1.50 ise kullanılabilir
+- Düşük oranlı bahisleri yuvarlama veya zorla önerme
 
-Örnek: %55 olasılık, 1.90 oran → (0.55 × 1.90) - 1 = 0.045 → %4.5 value
+2️⃣ TAHMİN MANTIĞI
+- Her maç için SADECE 1 en iyi bahis öner
+- Güçlü tahmin yoksa "karar": "pas" döndür
+- Belirsiz veya volatil maçlarda zoraki tahmin YAPMA
 
-🎲 ORAN KURALLARI (ZORUNLU):
-- Minimum oran: 1.50 (altı YASAK)
-- İdeal aralık: 1.55 - 2.20
-- Value bahisi öncelikli
+3️⃣ VALUE BETTING
+Değer = (TahminiOlasılık / 100 × Oran) - 1
+- Değer ≤ 0 ise tahmin YAPMA
+- Olasılıklar gerçekçi ve tutarlı olmalı
+- Aşırı veya şişirilmiş olasılıklardan kaçın
 
-📋 SEÇİLEBİLECEK BAHİS TÜRLERİ:
-MAÇ SONUCU: MS1, MSX, MS2
-ÇİFTE ŞANS: 1X, X2, 12
-ALT/ÜST: 1.5 Üst, 2.5 Alt, 2.5 Üst, 3.5 Alt, 3.5 Üst
-KARŞILIKLI GOL: KG Var, KG Yok
-İLK YARI: İY 0.5 Üst, İY 0.5 Alt, İY 1.5 Alt, İY Beraberlik
-GALİBİYET/BERABERLİK YOK: DNB Ev, DNB Deplasman
+4️⃣ MARKET ÖNCELİK SIRASI
+1. 2.5 Üst / 2.5 Alt (eşit öncelik)
+2. KG Var (Karşılıklı Gol)
+3. Çifte Şans (1X, X2)
+4. DNB (Beraberlikte İade)
+5. 1.5 Üst (SADECE oran ≥1.50 ise)
+6. MS (Maç Sonucu) - sadece çok net senaryolarda
+7. İY (İlk Yarı) - son çare olarak
 
-🧠 ANALİZ METODOLOJİSİ:
-1. Form Analizi: Son 5 maç performansı
-2. H2H Geçmişi: Kafa kafaya sonuçlar
-3. İstatistiksel Karşılaştırma: Gol ortalaması, temiz kale oranı
-4. Oran Değeri: Piyasanın verdiği oran vs gerçek olasılık
-5. Risk Değerlendirmesi: Sürpriz potansiyeli
+5️⃣ GÜVEN & RİSK
+- Güven ≥70 → düşük risk
+- Güven 60-69 → orta risk
+- Güven <60 → yüksek risk
 
 Türkçe, profesyonel dilde yanıt ver. SADECE JSON formatında çıktı üret.`;
 
@@ -413,37 +417,12 @@ ${matchData.injuries?.home?.length ? `${matchData.homeTeam}: ${matchData.injurie
 ${matchData.injuries?.away?.length ? `${matchData.awayTeam}: ${matchData.injuries.away.map(i => `${i.player} (${i.reason})`).join(', ')}` : ''}` : ''}
 
 ================================
-⚠️ ZORUNLU KURALLAR
-================================
-
-1️⃣ TEK BAHİS KURALI
-   - Sadece 1 bahis öner (en değerli olan)
-   - Minimum oran: 1.50 (altı kabul edilmez!)
-   - Value betting zorunlu (değer hesapla)
-
-2️⃣ VALUE HESAPLAMA
-   Value % = ((Tahmini Olasılık × Oran) - 1) × 100
-   - Örnek: %55 olasılık, 1.90 oran → (0.55 × 1.90 - 1) × 100 = %4.5 value
-   - Value %5+ = İYİ
-   - Value %10+ = MÜKEMMEL
-
-3️⃣ RİSK SEVİYESİ
-   - düşük: %55-70 olasılık, 1.50-1.80 oran
-   - orta: %45-55 olasılık, 1.80-2.30 oran
-   - yüksek: %35-45 olasılık, 2.30+ oran
-
-4️⃣ BAHİS TİPİ SEÇİMİ
-   İstatistiklere göre en uygun bahis tipini seç:
-   - Gol beklentisi yüksek → 2.5 Üst veya KG Var
-   - Gol beklentisi düşük → 2.5 Alt veya KG Yok
-   - Ev sahibi çok favori → MS1 veya 1X
-   - Dengeli maç → İY X veya 2.5 Alt
-   - Defansif takımlar → İY 0.5 Alt
-
-================================
 📤 JSON ÇIKTI FORMATI (ZORUNLU)
 ================================
+
+GEÇERLİ TAHMİN VARSA:
 {
+  "karar": "bahis",
   "matchContext": {
     "type": "${matchType}",
     "significance": "normal|relegation|title|promotion|final",
@@ -452,31 +431,40 @@ ${matchData.injuries?.away?.length ? `${matchData.awayTeam}: ${matchData.injurie
     "isCupUpset": false,
     "isDerby": ${isDerby}
   },
-  "analysis": "5-8 cümlelik özlü analiz. Form durumu, taktiksel beklentiler ve tahmin gerekçesi.",
+  "analysis": "5-8 cümlelik maç analizi. Form, taktik ve tahmin gerekçesi.",
   
   "singleBet": {
-    "bet": "TAHMİN (örn: 2.5 Üst, KG Var, MS1, İY X, 1X)",
-    "odds": 1.75,
+    "bet": "2.5 Üst",
+    "odds": 1.72,
     "estimatedProbability": 58,
-    "valuePercentage": 1.5,
-    "confidence": 62,
-    "riskLevel": "düşük|orta|yüksek",
-    "isValueBet": true,
-    "reasoning": "DETAYLI YORUM (4-5 cümle): Gerçek bir spor yorumcusu gibi samimi ve akıcı bir dille yaz. İlk cümlede maçın genel havasını ve beklentiyi belirt. İkinci cümlede takımların form durumunu karşılaştır. Üçüncü cümlede istatistiksel verilere değin. Dördüncü cümlede bu tahmini neden seçtiğini açıkla. Son cümlede güven düzeyini ve risk faktörlerini belirt. Samimi, profesyonel ama anlaşılır bir dil kullan."
+    "valuePercentage": 0.5,
+    "confidence": 64,
+    "riskLevel": "orta",
+    "reasoning": "4-5 cümlelik detaylı yorum. Gerçek bir spor yorumcusu gibi samimi ve akıcı yaz. Maçın havası, takım formları, istatistikler ve bu tahminin neden en iyi seçenek olduğunu açıkla."
   },
   
-  "expertTip": "Profesyonel bahis uzmanı görüşü - bu maç için kritik uyarı veya ipucu.",
+  "avoidBets": {
+    "1.5 Üst": "Oran minimum eşiğin altında",
+    "MS1": "Ev avantajına rağmen değer düşük"
+  },
   
-  "avoidBets": ["Kaçınılması gereken bahis 1", "Kaçınılması gereken bahis 2"],
-  
-  "expectedGoalRange": "2-3 gol"
+  "expectedGoalRange": "2-3"
 }
 
-⚠️ HATIRLATMALAR:
-- singleBet.odds minimum 1.50 olmalı!
-- valuePercentage = ((estimatedProbability/100) × odds - 1) × 100
-- isValueBet: valuePercentage > 0 ise true
-- reasoning alanı 4-5 cümle olmalı, gerçek yorumcu gibi samimi dil kullan`;
+GEÇERLİ TAHMİN YOKSA:
+{
+  "karar": "pas",
+  "singleBet": null,
+  "analysis": "Bu maç için güvenilir bir tahmin yapılamıyor. [Kısa sebep açıkla]"
+}
+
+⚠️ KRİTİK KURALLAR:
+- karar: "bahis" veya "pas" olmalı
+- singleBet.odds minimum 1.50!
+- valuePercentage = ((estimatedProbability/100) × odds) - 1
+- Değer ≤ 0 ise "pas" döndür
+- Güven ≥70 → düşük risk, 60-69 → orta risk, <60 → yüksek risk
+- avoidBets obje formatında: {"bahis": "sebep"}`;
 
   try {
     const response = await openai.chat.completions.create({
@@ -508,44 +496,63 @@ ${matchData.injuries?.away?.length ? `${matchData.awayTeam}: ${matchData.injurie
       result.predictions = [];
     }
     
+    // Handle "pas" decision - no valid prediction
+    if (result.karar === 'pas' || (result as any).decision === 'pass') {
+      console.log(`[AI] Decision: PASS - No confident prediction for this match`);
+      result.karar = 'pas';
+      result.singleBet = null;
+      result.predictions = [];
+      return result;
+    }
+    
     // Process single bet for new format
     if (result.singleBet) {
       const bet = result.singleBet;
-      const betLower = bet.bet.toLowerCase();
       
       // Clamp estimatedProbability to valid range (0-100)
       if (typeof bet.estimatedProbability !== 'number' || isNaN(bet.estimatedProbability)) {
-        bet.estimatedProbability = 50; // Default to 50%
+        bet.estimatedProbability = 50;
       }
       bet.estimatedProbability = Math.max(0, Math.min(100, bet.estimatedProbability));
       
-      // Validate minimum odds (1.50) and ensure positive value
-      if (typeof bet.odds !== 'number' || isNaN(bet.odds) || bet.odds < 1.0) {
-        bet.odds = 1.50;
-      } else if (bet.odds < 1.50) {
-        console.log(`[AI] Warning: Bet odds ${bet.odds} below minimum 1.50, adjusting`);
-        bet.odds = 1.50;
+      // Validate minimum odds (1.50) - STRICT ENFORCEMENT
+      if (typeof bet.odds !== 'number' || isNaN(bet.odds) || bet.odds < 1.50) {
+        console.log(`[AI] REJECTED: Bet odds ${bet.odds} below minimum 1.50 threshold`);
+        result.karar = 'pas';
+        result.singleBet = null;
+        result.predictions = [];
+        return result;
       }
       
       // Recalculate value percentage with validated inputs
-      const calculatedValue = ((bet.estimatedProbability / 100) * bet.odds - 1) * 100;
-      bet.valuePercentage = Math.round(calculatedValue * 10) / 10;
-      bet.isValueBet = calculatedValue > 0;
+      const calculatedValue = ((bet.estimatedProbability / 100) * bet.odds) - 1;
+      bet.valuePercentage = Math.round(calculatedValue * 100) / 100;
       
-      // Assign risk level based on probability (covers all cases including <45%)
-      if (bet.estimatedProbability >= 55) {
+      // If value is not positive, reject the bet
+      if (calculatedValue <= 0) {
+        console.log(`[AI] REJECTED: No value (${bet.valuePercentage}) for ${bet.bet}`);
+        result.karar = 'pas';
+        result.singleBet = null;
+        result.predictions = [];
+        return result;
+      }
+      
+      // Assign risk level based on confidence (new thresholds)
+      if (typeof bet.confidence !== 'number' || isNaN(bet.confidence)) {
+        bet.confidence = bet.estimatedProbability;
+      }
+      bet.confidence = Math.max(0, Math.min(100, bet.confidence));
+      
+      if (bet.confidence >= 70) {
         bet.riskLevel = 'düşük';
-      } else if (bet.estimatedProbability >= 45) {
+      } else if (bet.confidence >= 60) {
         bet.riskLevel = 'orta';
       } else {
         bet.riskLevel = 'yüksek';
       }
       
-      // Ensure confidence is valid
-      if (typeof bet.confidence !== 'number' || isNaN(bet.confidence)) {
-        bet.confidence = bet.estimatedProbability;
-      }
-      bet.confidence = Math.max(0, Math.min(100, bet.confidence));
+      // Set karar to bahis for valid predictions
+      result.karar = 'bahis';
       
       // Convert singleBet to predictions array for backwards compatibility
       result.predictions = [{
@@ -554,11 +561,15 @@ ${matchData.injuries?.away?.length ? `${matchData.awayTeam}: ${matchData.injurie
         odds: bet.odds.toString(),
         confidence: bet.confidence,
         reasoning: bet.reasoning || '',
-        isValueBet: bet.isValueBet,
+        isValueBet: true,
         valuePercentage: bet.valuePercentage
       }];
       
-      console.log(`[AI] Single bet: ${bet.bet} @ ${bet.odds} | Value: ${bet.valuePercentage}% | Risk: ${bet.riskLevel}`);
+      console.log(`[AI] Decision: BET | ${bet.bet} @ ${bet.odds} | Value: ${(bet.valuePercentage * 100).toFixed(1)}% | Risk: ${bet.riskLevel}`);
+    } else {
+      // No singleBet provided, treat as pass
+      result.karar = 'pas';
+      result.predictions = [];
     }
     
     return result;
@@ -586,8 +597,14 @@ export async function generateAndSavePredictions(
     
     const analysis = await generateMatchAnalysis(matchData);
     
-    if (!analysis || !analysis.predictions || analysis.predictions.length === 0) {
-      console.log(`[AI+BestBets] No predictions generated for ${homeTeam} vs ${awayTeam}`);
+    // Handle "pas" decision - AI decided not to bet on this match
+    if (!analysis || analysis.karar === 'pas') {
+      console.log(`[AI+BestBets] PASS decision for ${homeTeam} vs ${awayTeam} - no confident prediction`);
+      return analysis || null;
+    }
+    
+    if (!analysis.predictions || analysis.predictions.length === 0) {
+      console.log(`[AI+BestBets] No predictions in result for ${homeTeam} vs ${awayTeam}`);
       return null;
     }
     
