@@ -63,6 +63,37 @@ function parseApiFootballOdds(oddsData: any[]): any {
         if (v.value === 'Home/Away' || v.value === '12') parsed.doubleChanceHomeOrAway = val;
       }
     }
+    
+    // First Half Result (İlk Yarı Sonucu)
+    if (betName.includes('first half') || betName.includes('1st half') || betName === 'ht result') {
+      for (const v of values) {
+        const val = parseFloat(v.odd) || 0;
+        if (v.value === 'Home' || v.value === '1') parsed.halfTimeHome = val;
+        if (v.value === 'Draw' || v.value === 'X') parsed.halfTimeDraw = val;
+        if (v.value === 'Away' || v.value === '2') parsed.halfTimeAway = val;
+      }
+    }
+    
+    // First Half Over/Under (İlk Yarı Alt/Üst)
+    if (betName.includes('first half over') || betName.includes('1st half goals') || betName.includes('ht over')) {
+      for (const v of values) {
+        const val = parseFloat(v.odd) || 0;
+        const line = v.value || '';
+        if (line.includes('Over 0.5')) parsed.htOver05 = val;
+        if (line.includes('Under 0.5')) parsed.htUnder05 = val;
+        if (line.includes('Over 1.5')) parsed.htOver15 = val;
+        if (line.includes('Under 1.5')) parsed.htUnder15 = val;
+      }
+    }
+    
+    // Draw No Bet
+    if (betName.includes('draw no bet')) {
+      for (const v of values) {
+        const val = parseFloat(v.odd) || 0;
+        if (v.value === 'Home' || v.value === '1') parsed.dnbHome = val;
+        if (v.value === 'Away' || v.value === '2') parsed.dnbAway = val;
+      }
+    }
   }
   
   return parsed;

@@ -81,7 +81,7 @@ Key entities include:
 
 ### Third-Party APIs
 - **API-Football (v3)**: Live match scores, fixtures, predictions, H2H data, betting odds (via API_FOOTBALL_KEY)
-- **OpenAI GPT-4o-mini**: AI-powered match analysis and predictions (via OPENAI_API_KEY)
+- **OpenAI GPT-4o**: AI-powered match analysis and predictions with value betting (via OPENAI_API_KEY)
 
 ### Key NPM Packages
 - `@tanstack/react-query`: Data fetching and caching
@@ -158,3 +158,18 @@ Key entities include:
   6. Maximum 40 matches published per day
 - **Collapsible Odds Display**: MatchDetailPage shows "Oranlar" with MS, Alt/Üst, KG, and Çifte Şans markets
 - **Quality Control**: Only matches with sufficient statistics (score 20+) are published
+
+### January 19, 2026 - AI Model Upgrade & Value Betting System
+- **GPT-4o Upgrade**: Switched AI model from GPT-4o-mini to GPT-4o for improved prediction accuracy (addressing 42% success rate issue)
+- **Single Bet Value Betting System**: Transformed from 3-tier predictions (düşük/orta/yüksek) to focused single-bet approach
+  - Value calculation: ((Probability × Odds) - 1) × 100
+  - Minimum odds requirement: 1.50 (bets below are rejected)
+  - Risk levels: düşük (55%+), orta (45-55%), yüksek (<45%)
+- **Enhanced Odds Parsing**: Added first half betting options and DNB (Draw No Bet)
+  - İY 0.5 Üst/Alt (First Half Over/Under 0.5)
+  - İY 1.5 Alt (First Half Under 1.5)
+  - İY Beraberlik (First Half Draw)
+  - DNB Ev/Deplasman (Draw No Bet)
+- **Simplified AI Prompt**: Streamlined prompt focusing on value betting principles
+- **Backwards Compatibility**: singleBet results converted to predictions array for existing UI
+- **Value Percentage Validation**: Post-processing ensures value calculations are accurate

@@ -103,6 +103,12 @@ interface MatchData {
     halfTimeHome?: number;
     halfTimeDraw?: number;
     halfTimeAway?: number;
+    htOver05?: number;
+    htUnder05?: number;
+    htOver15?: number;
+    htUnder15?: number;
+    dnbHome?: number;
+    dnbAway?: number;
   };
   homeLastMatches?: { opponent: string; result: string; score: string; home: boolean }[];
   awayLastMatches?: { opponent: string; result: string; score: string; home: boolean }[];
@@ -114,6 +120,20 @@ export interface PredictionItem {
   odds: string;
   confidence: number;
   reasoning: string;
+  consistentScores: string[];
+  isValueBet?: boolean;
+  valuePercentage?: number;
+}
+
+export interface SingleBetResult {
+  bet: string;
+  odds: number;
+  confidence: number;
+  reasoning: string;
+  isValueBet: boolean;
+  valuePercentage: number;
+  estimatedProbability: number;
+  riskLevel: 'düşük' | 'orta' | 'yüksek';
   consistentScores: string[];
 }
 
@@ -128,6 +148,7 @@ export interface AIAnalysisResult {
   };
   analysis: string;
   predictions: PredictionItem[];
+  singleBet?: SingleBetResult;
   avoidBets: string[];
   expertTip: string;
   expectedGoalRange: string;
@@ -253,41 +274,38 @@ export async function generateMatchAnalysis(matchData: MatchData): Promise<AIAna
   const expectedGoals = calculateExpectedGoals(matchData);
   const trends = analyzeTrends(matchData);
 
-  const systemPrompt = `Sen Türkiye'nin en başarılı bahis analisti "STAT MASTER"sın. 25 yıllık profesyonel tecrübe, %72 uzun vadeli başarı oranı.
+  // NEW: Single Bet Value Betting System Prompt
+  const systemPrompt = `Sen profesyonel bir bahis analisti ve value betting uzmanısın. 
 
-🎯 UZMANLIKLARIN:
-- İstatistiksel futbol analizi ve model kurma
-- Value betting (değer bahisi) tespiti
-- Psikolojik faktör analizi (motivasyon, baskı, derbi atmosferi)
-- Oran hareketleri ve piyasa analizi
-- Risk yönetimi ve bankroll stratejileri
+🎯 GÖREV: Bu maç için EN İYİ TEK BAHİS önerisi üret.
 
-📊 ANALİZ METODOLOJİN:
-1. TEMEL ANALİZ: Form, kadro, sakatlıklar, motivasyon
-2. İSTATİSTİKSEL ANALİZ: xG, gol beklentisi, temiz kale oranları
-3. PAZAR ANALİZİ: Oran değeri, piyasa beklentisi vs gerçek olasılık
-4. PSİKOLOJİK ANALİZ: Takım motivasyonu, taraftar baskısı, seri durumu
+📊 VALUE BETTING PRENSİBİ (ZORUNLU):
+Değer = (Tahmini Olasılık × Oran) - 1
+- Değer > 0 ise VALUE VAR (bahis değerli)
+- Değer > 0.10 ise GÜÇLÜ VALUE (çok değerli)
+- Değer < 0 ise VALUE YOK (bahis etme)
 
-🔢 GÜVENİLİRLİK KALİBRASYONU:
-BAŞLANGIÇ: %50 (her maç için)
-+ Form tutarlılığı güçlü: +12%
-+ H2H trendi destekliyor: +8%
-+ Ev sahibi avantajı belirgin: +7%
-+ Oranlar düşük (1.30-1.50): +5%
-+ Değer bahisi tespit edildi: +5%
-- Derbi/Kupa maçı: -12% (belirsizlik)
-- İlk karşılaşma: -10%
-- Sakatlık/ceza yoğunluğu: -8%
-- Son dakika form düşüşü: -6%
+Örnek: %55 olasılık, 1.90 oran → (0.55 × 1.90) - 1 = 0.045 → %4.5 value
 
-💡 DEĞER BAHİSİ PRENSİBİ:
-Oran > (100 / gerçek olasılık %) ise VALUE VAR!
-Örnek: %60 olasılık → 1.67 altı oran value YOK, üstü VALUE VAR
+🎲 ORAN KURALLARI (ZORUNLU):
+- Minimum oran: 1.50 (altı YASAK)
+- İdeal aralık: 1.55 - 2.20
+- Value bahisi öncelikli
 
-⚖️ RİSK/ÖDÜL DENGELEME:
-- BEKLENEN: %55-75 güven, 1.25-1.75 oran (güvenli seçim)
-- ORTA RİSK: %40-55 güven, 1.75-2.50 oran (dengeli risk)
-- RİSKLİ: %25-40 güven, 2.50+ oran (yüksek potansiyel)
+📋 SEÇİLEBİLECEK BAHİS TÜRLERİ:
+MAÇ SONUCU: MS1, MSX, MS2
+ÇİFTE ŞANS: 1X, X2, 12
+ALT/ÜST: 1.5 Üst, 2.5 Alt, 2.5 Üst, 3.5 Alt, 3.5 Üst
+KARŞILIKLI GOL: KG Var, KG Yok
+İLK YARI: İY 0.5 Üst, İY 0.5 Alt, İY 1.5 Alt, İY Beraberlik
+GALİBİYET/BERABERLİK YOK: DNB Ev, DNB Deplasman
+
+🧠 ANALİZ METODOLOJİSİ:
+1. Form Analizi: Son 5 maç performansı
+2. H2H Geçmişi: Kafa kafaya sonuçlar
+3. İstatistiksel Karşılaştırma: Gol ortalaması, temiz kale oranı
+4. Oran Değeri: Piyasanın verdiği oran vs gerçek olasılık
+5. Risk Değerlendirmesi: Sürpriz potansiyeli
 
 Türkçe, profesyonel dilde yanıt ver. SADECE JSON formatında çıktı üret.`;
 
@@ -369,83 +387,60 @@ ${trends.length > 0 ? `================================
 ${trends.map(t => `- ${t}`).join('\n')}` : ''}
 
 ${odds ? `================================
-💰 BAHİS ORANLARI (Türkiye İddaa)
+💰 BAHİS ORANLARI
 ================================
 MAÇ SONUCU:
-- Ev Kazanır (1): ${odds.home?.toFixed(2) || '-'}
-- Beraberlik (X): ${odds.draw?.toFixed(2) || '-'}
-- Deplasman (2): ${odds.away?.toFixed(2) || '-'}
+- MS1 (Ev): ${odds.home?.toFixed(2) || '-'} | MSX (Beraberlik): ${odds.draw?.toFixed(2) || '-'} | MS2 (Deplasman): ${odds.away?.toFixed(2) || '-'}
 
-ALT/ÜST GOLLER:
-- 1.5 Alt: ${odds.under15?.toFixed(2) || '-'} | 1.5 Üst: ${odds.over15?.toFixed(2) || '-'}
-- 2.5 Alt: ${odds.under25?.toFixed(2) || '-'} | 2.5 Üst: ${odds.over25?.toFixed(2) || '-'}
-- 3.5 Alt: ${odds.under35?.toFixed(2) || '-'} | 3.5 Üst: ${odds.over35?.toFixed(2) || '-'}
-- 4.5 Alt: ${odds.under45?.toFixed(2) || '-'} | 4.5 Üst: ${odds.over45?.toFixed(2) || '-'}
+ALT/ÜST:
+- 1.5 Üst: ${odds.over15?.toFixed(2) || '-'} | 2.5 Alt: ${odds.under25?.toFixed(2) || '-'} | 2.5 Üst: ${odds.over25?.toFixed(2) || '-'} | 3.5 Alt: ${odds.under35?.toFixed(2) || '-'} | 3.5 Üst: ${odds.over35?.toFixed(2) || '-'}
 
 KARŞILIKLI GOL:
 - KG Var: ${odds.bttsYes?.toFixed(2) || '-'} | KG Yok: ${odds.bttsNo?.toFixed(2) || '-'}
 
 ÇİFTE ŞANS:
-- 1-X (Ev veya Beraberlik): ${odds.doubleChanceHomeOrDraw?.toFixed(2) || '-'}
-- 1-2 (Ev veya Deplasman): ${odds.doubleChanceHomeOrAway?.toFixed(2) || '-'}
-- X-2 (Beraberlik veya Deplasman): ${odds.doubleChanceAwayOrDraw?.toFixed(2) || '-'}
+- 1X: ${odds.doubleChanceHomeOrDraw?.toFixed(2) || '-'} | 12: ${odds.doubleChanceHomeOrAway?.toFixed(2) || '-'} | X2: ${odds.doubleChanceAwayOrDraw?.toFixed(2) || '-'}
 
 İLK YARI:
-- İY Ev: ${odds.halfTimeHome?.toFixed(2) || '-'} | İY X: ${odds.halfTimeDraw?.toFixed(2) || '-'} | İY Deplasman: ${odds.halfTimeAway?.toFixed(2) || '-'}` : ''}
+- İY MS1: ${odds.halfTimeHome?.toFixed(2) || '-'} | İY X: ${odds.halfTimeDraw?.toFixed(2) || '-'} | İY MS2: ${odds.halfTimeAway?.toFixed(2) || '-'}
+- İY 0.5 Üst: ${odds.htOver05?.toFixed(2) || '-'} | İY 0.5 Alt: ${odds.htUnder05?.toFixed(2) || '-'} | İY 1.5 Alt: ${odds.htUnder15?.toFixed(2) || '-'}
+
+DNB (Beraberlik Yok):
+- DNB Ev: ${odds.dnbHome?.toFixed(2) || '-'} | DNB Deplasman: ${odds.dnbAway?.toFixed(2) || '-'}` : ''}
 
 ${matchData.injuries?.home?.length || matchData.injuries?.away?.length ? `================================
-🏥 SAKATLIK/CEZA BİLGİLERİ
+🏥 SAKATLIKLAR
 ================================
 ${matchData.injuries?.home?.length ? `${matchData.homeTeam}: ${matchData.injuries.home.map(i => `${i.player} (${i.reason})`).join(', ')}` : ''}
 ${matchData.injuries?.away?.length ? `${matchData.awayTeam}: ${matchData.injuries.away.map(i => `${i.player} (${i.reason})`).join(', ')}` : ''}` : ''}
 
 ================================
-⚠️ KRİTİK KURALLAR (ZORUNLU)
+⚠️ ZORUNLU KURALLAR
 ================================
 
-🔴 0️⃣ GLOBAL TUTARLILIK (EN ÖNEMLİ KURAL!)
-   ÜÇ TAHMİN BİRBİRİYLE ÇELİŞMEMELİ!
-   
-   Önce maç senaryosunu belirle:
-   - DÜŞÜK GOLLU SENARYO → Tüm tahminler düşük gol desteklemeli (2.5 Alt, KG Yok, 1-0, 0-0)
-   - YÜKSEK GOLLU SENARYO → Tüm tahminler yüksek gol desteklemeli (2.5 Üst, KG Var, 3.5 Üst)
-   - EV SAHİBİ ÜSTÜN → MS1, Ev -1.5, Ev 1.5 Üst (hep ev sahibi lehine)
-   - DEPLASMAN ÜSTÜN → MS2, Dep -1.5, Dep 1.5 Üst (hep deplasman lehine)
-   
-   ❌ YASAK KOMBİNASYONLAR (ASLA YAPMA!):
-   - Ana: "MS1" (3-0, 2-1) + Alternatif: "2.5 Alt" → ÇELİŞKİ!
-   - Ana: "2.5 Üst" + Alternatif: "KG Yok" (1-0, 2-0) → ÇELİŞKİ!
-   - Ana: "KG Var" + Alternatif: "2.5 Alt" → ÇELİŞKİ! (KG Var en az 2 gol demek)
-   
-   ✅ DOĞRU KOMBİNASYONLAR:
-   - DÜŞÜK GOL: "2.5 Alt" + "KG Yok" + "İY 0.5 Alt"
-   - YÜKSEK GOL: "2.5 Üst" + "KG Var" + "3.5 Üst"
-   - EV ÜSTÜN: "MS1" + "Ev -1.5" + "Ev 2.5 Üst" (hep ev sahibi)
-   - DEPLASMAN: "MS2" + "2.5 Üst" + "KG Var"
+1️⃣ TEK BAHİS KURALI
+   - Sadece 1 bahis öner (en değerli olan)
+   - Minimum oran: 1.50 (altı kabul edilmez!)
+   - Value betting zorunlu (değer hesapla)
 
-1️⃣ SKOR-GOL TUTARLILIĞI
-   - 2.5 ÜST → SADECE 3+ gollü skorlar: 2-1, 3-0, 2-2, 3-1, 1-3
-   - 2.5 ALT → SADECE 0-2 gollü skorlar: 1-0, 0-0, 1-1, 2-0, 0-1
-   - 3.5 ÜST → SADECE 4+ gollü skorlar: 3-1, 2-2, 4-0, 2-3
-   - KG VAR → Her iki takım gol atmalı: 1-1, 2-1, 1-2, 2-2
-   - KG YOK → En az bir takım gol atmamalı: 1-0, 0-0, 2-0, 3-0
+2️⃣ VALUE HESAPLAMA
+   Value % = ((Tahmini Olasılık × Oran) - 1) × 100
+   - Örnek: %55 olasılık, 1.90 oran → (0.55 × 1.90 - 1) × 100 = %4.5 value
+   - Value %5+ = İYİ
+   - Value %10+ = MÜKEMMEL
 
-2️⃣ RİSK SEVİYELERİ & GÜVENİLİRLİK
-   - BEKLENEN (expected): %55-70 güven, 1.30-1.70 oran
-   - ORTA RİSK (medium): %40-55 güven, 1.70-2.50 oran
-   - RİSKLİ (risky): %20-40 güven, 2.50+ oran
+3️⃣ RİSK SEVİYESİ
+   - düşük: %55-70 olasılık, 1.50-1.80 oran
+   - orta: %45-55 olasılık, 1.80-2.30 oran
+   - yüksek: %35-45 olasılık, 2.30+ oran
 
-3️⃣ DİNAMİK BAHİS ÖNERİLERİ
-   - Temiz kale oranı yüksekse → KG YOK veya 2.5 Alt düşün
-   - Gol atamayan takım varsa → Rakip "Gol Atar" düşün
-   - H2H gollüyse → 2.5 Üst veya KG Var düşün
-   - Derbi ise → İY 0.5 Alt veya Beraberlik düşün
-
-4️⃣ SON KONTROL (JSON döndürmeden önce)
-   Üç tahmini gözden geçir:
-   - Tüm "consistentScores" aynı gol bandında mı? (hepsi 0-2 veya hepsi 3+)
-   - Çelişen bahis var mı? (Üst+Alt, KG Var+KG Yok)
-   - Varsa, çelişen tahmini senaryo ile uyumlu bir bahisle değiştir!
+4️⃣ BAHİS TİPİ SEÇİMİ
+   İstatistiklere göre en uygun bahis tipini seç:
+   - Gol beklentisi yüksek → 2.5 Üst veya KG Var
+   - Gol beklentisi düşük → 2.5 Alt veya KG Yok
+   - Ev sahibi çok favori → MS1 veya 1X
+   - Dengeli maç → İY X veya 2.5 Alt
+   - Defansif takımlar → İY 0.5 Alt
 
 ================================
 📤 JSON ÇIKTI FORMATI (ZORUNLU)
@@ -459,77 +454,36 @@ ${matchData.injuries?.away?.length ? `${matchData.awayTeam}: ${matchData.injurie
     "isCupUpset": false,
     "isDerby": ${isDerby}
   },
-  "analysis": "8-12 cümlelik derinlemesine analiz. Her paragrafta: (1) Form ve momentum değerlendirmesi, (2) Taktiksel ve teknik karşılaştırma, (3) Psikolojik faktörler ve motivasyon, (4) Sonuç ve tahmin özeti. Profesyonel spor yazarı üslubuyla yaz.",
+  "analysis": "5-8 cümlelik özlü analiz. Form durumu, taktiksel beklentiler ve tahmin gerekçesi.",
   
-  "keyFactors": [
-    {"factor": "En önemli istatistiksel faktör", "impact": "positive|negative|neutral", "weight": 9},
-    {"factor": "İkinci önemli faktör", "impact": "positive|negative|neutral", "weight": 7},
-    {"factor": "Üçüncü faktör", "impact": "positive|negative|neutral", "weight": 5}
-  ],
-  
-  "predictions": [
-    {
-      "type": "expected",
-      "bet": "En güvenilir bahis (2.5 Alt/Üst, KG Var/Yok, MS1/X/2)",
-      "odds": "~1.55",
-      "confidence": 62,
-      "isValueBet": true,
-      "reasoning": "3-4 cümlelik detaylı gerekçe. Hangi istatistikler bu tahmini destekliyor? Neden bu oran değerli?",
-      "consistentScores": ["X-X", "X-X", "X-X"]
-    },
-    {
-      "type": "medium",
-      "bet": "Orta riskli bahis (Handikap, 3.5 Üst, Çifte Şans)",
-      "odds": "~2.10",
-      "confidence": 48,
-      "isValueBet": false,
-      "reasoning": "3-4 cümlelik detaylı gerekçe. Risk faktörleri neler? Hangi senaryoda kazanır?",
-      "consistentScores": ["X-X", "X-X"]
-    },
-    {
-      "type": "risky",
-      "bet": "Yüksek oranlı bahis (Tam Skor, İY-MS, 4.5 Üst)",
-      "odds": "~4.50",
-      "confidence": 28,
-      "isValueBet": true,
-      "reasoning": "3-4 cümlelik gerekçe. Bu yüksek oran neden değerli? Hangi koşulda gerçekleşir?",
-      "consistentScores": ["X-X"]
-    }
-  ],
-  
-  "expertCommentary": {
-    "headline": "Dikkat çekici 1 cümlelik başlık (tıklama çekici, profesyonel)",
-    "keyInsight": "Bu maçın en kritik noktası nedir? 2-3 cümle derinlemesine içgörü.",
-    "formAnalysis": "Her iki takımın form durumu hakkında 2-3 cümle profesyonel yorum.",
-    "tacticalView": "Taktiksel beklentiler ve olası oyun planları. 2-3 cümle.",
-    "riskWarning": "Bu maçta nelere dikkat edilmeli? Potansiyel tuzaklar neler? 2-3 cümle.",
-    "stakeSuggestion": "düşük|orta|yüksek (bankroll'un %1-5 arası önerisi)"
+  "singleBet": {
+    "bet": "TAHMİN (örn: 2.5 Üst, KG Var, MS1, İY X, 1X)",
+    "odds": 1.75,
+    "estimatedProbability": 58,
+    "valuePercentage": 1.5,
+    "confidence": 62,
+    "riskLevel": "düşük|orta|yüksek",
+    "isValueBet": true,
+    "reasoning": "3-4 cümlelik detaylı gerekçe. Hangi istatistikler bu tahmini destekliyor?",
+    "consistentScores": ["1-1", "2-1", "1-2"]
   },
   
-  "avoidBets": [
-    {"bet": "Kaçınılması gereken bahis 1", "reason": "Neden riskli?"},
-    {"bet": "Kaçınılması gereken bahis 2", "reason": "Neden riskli?"}
-  ],
+  "expertTip": "Profesyonel bahis uzmanı görüşü - bu maç için kritik uyarı veya ipucu.",
   
-  "matchPrediction": {
-    "mostLikelyScore": "X-X",
-    "expectedTotalGoals": "${expectedGoals.total.toFixed(1)}",
-    "winProbabilities": {"home": 45, "draw": 25, "away": 30},
-    "overUnderProbability": {"over25": 55, "under25": 45}
-  }
+  "avoidBets": ["Kaçınılması gereken bahis 1", "Kaçınılması gereken bahis 2"],
+  
+  "expectedGoalRange": "2-3 gol"
 }
 
-⚠️ KRİTİK HATIRLATMALAR:
-- consistentScores HER ZAMAN bet türüyle tutarlı olmalı!
-- keyFactors gerçek istatistiklere dayalı olmalı (uydurma yapma)
-- winProbabilities toplamı 100 olmalı
-- isValueBet: Oran gerçek olasılığa göre değerliyse true
-
-ÖNEMLİ: Tüm tahminler birbiriyle tutarlı olmalı. Aynı maç senaryosunu desteklemeli!`;
+⚠️ HATIRLATMALAR:
+- singleBet.odds minimum 1.50 olmalı!
+- valuePercentage = ((estimatedProbability/100) × odds - 1) × 100
+- isValueBet: valuePercentage > 0 ise true
+- consistentScores bahis türüyle tutarlı olmalı`;
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4o",
       messages: [
         {
           role: "system",
@@ -552,235 +506,119 @@ ${matchData.injuries?.away?.length ? `${matchData.awayTeam}: ${matchData.injurie
 
     const result = JSON.parse(content) as AIAnalysisResult;
     
-    for (const pred of result.predictions) {
-      const betLower = pred.bet.toLowerCase();
-      
-      if (betLower.includes('2.5 üst') || betLower.includes('2,5 üst')) {
-        pred.consistentScores = pred.consistentScores.filter(score => {
-          const parts = score.split('-').map(s => parseInt(s.trim()));
-          if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) return false;
-          return (parts[0] + parts[1]) >= 3;
-        });
-        if (pred.consistentScores.length === 0) {
-          pred.consistentScores = ['2-1', '1-2', '2-2'];
-        }
-      } else if (betLower.includes('2.5 alt') || betLower.includes('2,5 alt')) {
-        pred.consistentScores = pred.consistentScores.filter(score => {
-          const parts = score.split('-').map(s => parseInt(s.trim()));
-          if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) return false;
-          return (parts[0] + parts[1]) <= 2;
-        });
-        if (pred.consistentScores.length === 0) {
-          pred.consistentScores = ['1-0', '0-1', '1-1'];
-        }
-      } else if (betLower.includes('3.5 üst') || betLower.includes('3,5 üst')) {
-        pred.consistentScores = pred.consistentScores.filter(score => {
-          const parts = score.split('-').map(s => parseInt(s.trim()));
-          if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) return false;
-          return (parts[0] + parts[1]) >= 4;
-        });
-        if (pred.consistentScores.length === 0) {
-          pred.consistentScores = ['3-1', '2-2', '3-2'];
-        }
-      } else if (betLower.includes('3.5 alt') || betLower.includes('3,5 alt')) {
-        pred.consistentScores = pred.consistentScores.filter(score => {
-          const parts = score.split('-').map(s => parseInt(s.trim()));
-          if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) return false;
-          return (parts[0] + parts[1]) <= 3;
-        });
-        if (pred.consistentScores.length === 0) {
-          pred.consistentScores = ['2-1', '1-1', '2-0'];
-        }
-      } else if (betLower.includes('kg var') || betLower.includes('karşılıklı gol var')) {
-        pred.consistentScores = pred.consistentScores.filter(score => {
-          const parts = score.split('-').map(s => parseInt(s.trim()));
-          if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) return false;
-          return parts[0] > 0 && parts[1] > 0;
-        });
-        if (pred.consistentScores.length === 0) {
-          pred.consistentScores = ['1-1', '2-1', '1-2'];
-        }
-      } else if (betLower.includes('kg yok') || betLower.includes('karşılıklı gol yok')) {
-        pred.consistentScores = pred.consistentScores.filter(score => {
-          const parts = score.split('-').map(s => parseInt(s.trim()));
-          if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) return false;
-          return parts[0] === 0 || parts[1] === 0;
-        });
-        if (pred.consistentScores.length === 0) {
-          pred.consistentScores = ['1-0', '0-0', '2-0'];
-        }
-      }
+    // Initialize predictions array if not present
+    if (!result.predictions) {
+      result.predictions = [];
     }
     
-    // GLOBAL CONSISTENCY CHECK - Fix conflicting predictions
-    if (result.predictions.length >= 2) {
-      const mainPred = result.predictions[0];
-      const mainBet = mainPred.bet.toLowerCase();
+    // Process single bet for new format
+    if (result.singleBet) {
+      const bet = result.singleBet;
+      const betLower = bet.bet.toLowerCase();
       
-      // Determine main bet's goal expectation from scores
-      const mainScores = mainPred.consistentScores;
-      let mainTotalGoals = 0;
-      let mainHomeGoals = 0;
-      let mainAwayGoals = 0;
-      if (mainScores.length > 0) {
-        const scoreParts = mainScores.map(s => {
-          const parts = s.split('-').map(n => parseInt(n.trim()) || 0);
-          return { home: parts[0], away: parts[1], total: parts[0] + parts[1] };
-        });
-        mainTotalGoals = scoreParts.reduce((a, b) => a + b.total, 0) / scoreParts.length;
-        mainHomeGoals = scoreParts.reduce((a, b) => a + b.home, 0) / scoreParts.length;
-        mainAwayGoals = scoreParts.reduce((a, b) => a + b.away, 0) / scoreParts.length;
+      // Clamp estimatedProbability to valid range (0-100)
+      if (typeof bet.estimatedProbability !== 'number' || isNaN(bet.estimatedProbability)) {
+        bet.estimatedProbability = 50; // Default to 50%
+      }
+      bet.estimatedProbability = Math.max(0, Math.min(100, bet.estimatedProbability));
+      
+      // Validate minimum odds (1.50) and ensure positive value
+      if (typeof bet.odds !== 'number' || isNaN(bet.odds) || bet.odds < 1.0) {
+        bet.odds = 1.50;
+      } else if (bet.odds < 1.50) {
+        console.log(`[AI] Warning: Bet odds ${bet.odds} below minimum 1.50, adjusting`);
+        bet.odds = 1.50;
       }
       
-      // Classify main bet scenario - NUMERIC SCORE IS THE SOURCE OF TRUTH
-      // Use actual goal expectation from scores, not just text keywords
-      const hasExplicitHighKeyword = mainBet.includes('üst') || mainBet.includes('kg var');
-      const hasExplicitLowKeyword = mainBet.includes('alt') || mainBet.includes('kg yok');
+      // Recalculate value percentage with validated inputs
+      const calculatedValue = ((bet.estimatedProbability / 100) * bet.odds - 1) * 100;
+      bet.valuePercentage = Math.round(calculatedValue * 10) / 10;
+      bet.isValueBet = calculatedValue > 0;
       
-      // Numeric goal expectation takes priority over text keywords
-      // If scores show 2.5+ goals on average, it's high scoring regardless of text
-      const isHighScoring = mainTotalGoals >= 2.5 || (mainTotalGoals >= 2 && hasExplicitHighKeyword);
-      // Low scoring ONLY if numeric is low AND NOT explicitly high scoring
-      const isLowScoring = mainTotalGoals < 2 && !isHighScoring;
+      // Assign risk level based on probability (covers all cases including <45%)
+      if (bet.estimatedProbability >= 55) {
+        bet.riskLevel = 'düşük';
+      } else if (bet.estimatedProbability >= 45) {
+        bet.riskLevel = 'orta';
+      } else {
+        bet.riskLevel = 'yüksek';
+      }
       
-      const isHomeWin = mainBet.includes('ms1') || mainBet.includes('ev kazanır') || mainHomeGoals > mainAwayGoals + 0.5;
-      const isAwayWin = mainBet.includes('ms2') || mainBet.includes('deplasman') || mainAwayGoals > mainHomeGoals + 0.5;
-      const isBothScore = mainBet.includes('kg var') || (mainHomeGoals >= 1 && mainAwayGoals >= 1);
-      // Clean sheet detection - one team scored 0
-      const isCleanSheet = mainBet.includes('kg yok') || mainHomeGoals < 0.5 || mainAwayGoals < 0.5;
+      // Ensure confidence is valid
+      if (typeof bet.confidence !== 'number' || isNaN(bet.confidence)) {
+        bet.confidence = bet.estimatedProbability;
+      }
+      bet.confidence = Math.max(0, Math.min(100, bet.confidence));
       
-      console.log(`[AI Consistency] Main bet: "${mainPred.bet}", Avg goals: ${mainTotalGoals.toFixed(1)} (${mainHomeGoals.toFixed(1)}-${mainAwayGoals.toFixed(1)})`);
-      console.log(`[AI Consistency] Scenario: High=${isHighScoring}, Low=${isLowScoring}, Home=${isHomeWin}, Away=${isAwayWin}, BothScore=${isBothScore}`);
+      // Validate and fix consistent scores based on bet type
+      if (!bet.consistentScores || bet.consistentScores.length === 0) {
+        bet.consistentScores = ['1-1', '2-1', '1-0'];
+      }
       
-      // Check and fix conflicting predictions
-      for (let i = 1; i < result.predictions.length; i++) {
-        const pred = result.predictions[i];
+      // Score consistency validation
+      if (betLower.includes('2.5 üst') || betLower.includes('2,5 üst')) {
+        bet.consistentScores = bet.consistentScores.filter(s => {
+          const [h, a] = s.split('-').map(n => parseInt(n) || 0);
+          return h + a >= 3;
+        });
+        if (bet.consistentScores.length === 0) bet.consistentScores = ['2-1', '1-2', '2-2'];
+      } else if (betLower.includes('2.5 alt') || betLower.includes('2,5 alt')) {
+        bet.consistentScores = bet.consistentScores.filter(s => {
+          const [h, a] = s.split('-').map(n => parseInt(n) || 0);
+          return h + a <= 2;
+        });
+        if (bet.consistentScores.length === 0) bet.consistentScores = ['1-0', '0-1', '1-1'];
+      } else if (betLower.includes('kg var')) {
+        bet.consistentScores = bet.consistentScores.filter(s => {
+          const [h, a] = s.split('-').map(n => parseInt(n) || 0);
+          return h > 0 && a > 0;
+        });
+        if (bet.consistentScores.length === 0) bet.consistentScores = ['1-1', '2-1', '1-2'];
+      } else if (betLower.includes('kg yok')) {
+        bet.consistentScores = bet.consistentScores.filter(s => {
+          const [h, a] = s.split('-').map(n => parseInt(n) || 0);
+          return h === 0 || a === 0;
+        });
+        if (bet.consistentScores.length === 0) bet.consistentScores = ['1-0', '0-0', '2-0'];
+      }
+      
+      // Convert singleBet to predictions array for backwards compatibility
+      result.predictions = [{
+        type: 'expected',
+        bet: bet.bet,
+        odds: bet.odds.toString(),
+        confidence: bet.confidence,
+        reasoning: bet.reasoning,
+        consistentScores: bet.consistentScores,
+        isValueBet: bet.isValueBet,
+        valuePercentage: bet.valuePercentage
+      }];
+      
+      console.log(`[AI] Single bet: ${bet.bet} @ ${bet.odds} | Value: ${bet.valuePercentage}% | Risk: ${bet.riskLevel}`);
+    }
+    
+    // Legacy support: process predictions array if singleBet not present
+    if (!result.singleBet && result.predictions) {
+      for (const pred of result.predictions) {
         const betLower = pred.bet.toLowerCase();
-        let conflict = false;
         
-        // HIGH SCORING conflicts (avg goals ≥ 2.5, all replacement scores must be ≥3 total)
-        if (isHighScoring) {
-          // 2.5 Alt conflicts with high scoring
-          if (betLower.includes('2.5 alt') || betLower.includes('2,5 alt')) {
-            console.log(`[AI Consistency] Conflict: High scoring main + "2.5 Alt". Replacing...`);
-            // If clean sheet scenario, use team-specific over bets (with ≥3 total goals)
-            if (isCleanSheet) {
-              if (isHomeWin) {
-                pred.bet = pred.type === 'medium' ? 'Ev 1.5 Üst' : 'Ev -1.5';
-                pred.consistentScores = ['3-0', '4-0', '5-0']; // All ≥3 total, home 2+
-                pred.reasoning = 'Ev sahibi rahat kazanır, gollü bir performans bekleniyor.';
-              } else if (isAwayWin) {
-                pred.bet = pred.type === 'medium' ? 'Dep 1.5 Üst' : 'Dep -1.5';
-                pred.consistentScores = ['0-3', '0-4', '0-5']; // All ≥3 total, away 2+
-                pred.reasoning = 'Deplasman fark yapar, gollü bir galibiyet bekleniyor.';
-              } else {
-                pred.bet = pred.type === 'medium' ? '2.5 Üst' : '3.5 Üst';
-                pred.consistentScores = pred.type === 'medium' ? ['3-0', '0-3', '4-0'] : ['4-0', '0-4', '5-0'];
-                pred.reasoning = 'Tek taraflı ama gollü bir maç bekleniyor.';
-              }
-            } else {
-              // High-scoring BTTS: KG Var with ≥3 total goals
-              pred.bet = pred.type === 'medium' ? 'KG Var' : '3.5 Üst';
-              pred.consistentScores = pred.type === 'medium' ? ['2-1', '3-1', '2-2'] : ['3-1', '2-2', '3-2'];
-              pred.reasoning = 'Maçın gol potansiyeli yüksek, bu bahis ana tahminle uyumlu.';
-            }
-            conflict = true;
+        if (betLower.includes('2.5 üst') || betLower.includes('2,5 üst')) {
+          pred.consistentScores = pred.consistentScores?.filter(score => {
+            const parts = score.split('-').map(s => parseInt(s.trim()));
+            if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) return false;
+            return (parts[0] + parts[1]) >= 3;
+          }) || ['2-1', '1-2', '2-2'];
+          if (pred.consistentScores.length === 0) {
+            pred.consistentScores = ['2-1', '1-2', '2-2'];
           }
-          // KG Yok conflicts with high scoring - ONLY if not clean sheet scenario
-          if (!conflict && betLower.includes('kg yok') && !isCleanSheet) {
-            console.log(`[AI Consistency] Conflict: High scoring BTTS main + "KG Yok". Replacing...`);
-            // Replace with bets that support high-scoring BTTS scenario
-            pred.bet = pred.type === 'medium' ? '2.5 Üst' : 'KG Var';
-            pred.consistentScores = pred.type === 'medium' ? ['2-1', '3-1', '1-2'] : ['2-1', '3-1', '2-2']; // All ≥3 total
-            pred.reasoning = 'Gollü bir maç bekleniyor, her iki takımın da skorerlerini sahaya sürmesi muhtemel.';
-            conflict = true;
-          }
-          // High scoring clean sheet - KG Yok is actually OK, just needs goal-compatible replacement for other conflicts
-        }
-        
-        // LOW SCORING conflicts
-        if (isLowScoring && !conflict) {
-          // 2.5 Üst or 3.5 Üst conflicts with low scoring
-          if (betLower.includes('2.5 üst') || betLower.includes('2,5 üst') || betLower.includes('3.5 üst') || betLower.includes('3,5 üst')) {
-            console.log(`[AI Consistency] Conflict: Low scoring main + "Üst". Replacing...`);
-            pred.bet = pred.type === 'medium' ? 'KG Yok' : 'İY 0.5 Alt';
-            pred.consistentScores = pred.type === 'medium' ? ['1-0', '0-0', '2-0'] : ['0-0'];
-            pred.reasoning = 'Düşük gol beklentisi doğrultusunda temkinli bir seçim.';
-            conflict = true;
-          }
-          // KG Var conflicts with low scoring
-          if (!conflict && betLower.includes('kg var')) {
-            console.log(`[AI Consistency] Conflict: Low scoring main + "KG Var". Replacing...`);
-            pred.bet = pred.type === 'medium' ? '2.5 Alt' : '0-0';
-            pred.consistentScores = pred.type === 'medium' ? ['1-0', '0-1', '1-1'] : ['0-0'];
-            pred.reasoning = 'Düşük skorlu maç senaryosu ile uyumlu bir tercih.';
-            conflict = true;
-          }
-        }
-        
-        // BOTH TEAMS SCORE conflicts
-        if (isBothScore && !conflict) {
-          if (betLower.includes('kg yok')) {
-            console.log(`[AI Consistency] Conflict: BothScore main + "KG Yok". Replacing...`);
-            // Both teams score implies at least 2 goals, but high-scoring BTTS implies 3+
-            pred.bet = isHighScoring ? '2.5 Üst' : 'KG Var';
-            pred.consistentScores = isHighScoring ? ['2-1', '1-2', '3-1'] : ['1-1', '2-1', '1-2'];
-            pred.reasoning = 'Her iki takımın da gol atması bekleniyor, toplam gol yüksek olabilir.';
-            conflict = true;
-          }
-        }
-        
-        // CLEAN SHEET conflicts - respect goal expectation
-        if (isCleanSheet && !conflict) {
-          if (betLower.includes('kg var')) {
-            console.log(`[AI Consistency] Conflict: CleanSheet main + "KG Var". Replacing...`);
-            // If high scoring clean sheet (e.g. 3-0, 4-0), use goal-appropriate replacement with ≥3 total
-            if (isHighScoring || mainTotalGoals >= 2.5) {
-              // High scoring clean sheet - use team-specific over bets with ≥3 total goals
-              if (isHomeWin) {
-                pred.bet = pred.type === 'medium' ? 'Ev 1.5 Üst' : 'Ev -1.5';
-                pred.consistentScores = ['3-0', '4-0', '5-0']; // All ≥3 total, home 2+
-                pred.reasoning = 'Ev sahibi rahat kazanır, gollü bir performans bekleniyor.';
-              } else if (isAwayWin) {
-                pred.bet = pred.type === 'medium' ? 'Dep 1.5 Üst' : 'Dep -1.5';
-                pred.consistentScores = ['0-3', '0-4', '0-5']; // All ≥3 total, away 2+
-                pred.reasoning = 'Deplasman fark yapar, gollü bir galibiyet bekleniyor.';
-              } else {
-                pred.bet = pred.type === 'medium' ? '2.5 Üst' : '3.5 Üst';
-                pred.consistentScores = pred.type === 'medium' ? ['3-0', '0-3', '4-0'] : ['4-0', '0-4', '5-0'];
-                pred.reasoning = 'Tek taraflı ama gollü bir maç bekleniyor.';
-              }
-            } else {
-              // Low scoring clean sheet - use 2.5 Alt
-              pred.bet = '2.5 Alt';
-              pred.consistentScores = ['1-0', '0-0', '0-1'];
-              pred.reasoning = 'En az bir takımın gol atamayacağı bekleniyor.';
-            }
-            conflict = true;
-          }
-        }
-        
-        // HOME WIN conflicts
-        if (isHomeWin && !conflict) {
-          // MS2 or Deplasman Kazanır conflicts with home win
-          if (betLower.includes('ms2') || betLower.includes('deplasman kazanır')) {
-            console.log(`[AI Consistency] Conflict: Home win main + "MS2/Deplasman". Replacing...`);
-            pred.bet = pred.type === 'medium' ? 'Ev -0.5 Handikap' : 'Ev 1.5 Üst';
-            pred.consistentScores = pred.type === 'medium' ? ['2-0', '2-1', '3-1'] : ['2-0', '3-0', '2-1'];
-            pred.reasoning = 'Ev sahibi avantajlı konumda, galibiyeti destekleyen bir bahis.';
-            conflict = true;
-          }
-        }
-        
-        // AWAY WIN conflicts
-        if (isAwayWin && !conflict) {
-          // MS1 or Ev Kazanır conflicts with away win
-          if (betLower.includes('ms1') || betLower.includes('ev kazanır')) {
-            console.log(`[AI Consistency] Conflict: Away win main + "MS1/Ev". Replacing...`);
-            pred.bet = pred.type === 'medium' ? 'Dep -0.5 Handikap' : 'Dep 1.5 Üst';
-            pred.consistentScores = pred.type === 'medium' ? ['0-2', '1-2', '1-3'] : ['0-2', '0-3', '1-2'];
-            pred.reasoning = 'Deplasman takımı formda, galibiyeti destekleyen bir bahis.';
-            conflict = true;
+        } else if (betLower.includes('2.5 alt') || betLower.includes('2,5 alt')) {
+          pred.consistentScores = pred.consistentScores?.filter(score => {
+            const parts = score.split('-').map(s => parseInt(s.trim()));
+            if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) return false;
+            return (parts[0] + parts[1]) <= 2;
+          }) || ['1-0', '0-1', '1-1'];
+          if (pred.consistentScores.length === 0) {
+            pred.consistentScores = ['1-0', '0-1', '1-1'];
           }
         }
       }
