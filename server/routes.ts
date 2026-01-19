@@ -943,11 +943,11 @@ export async function registerRoutes(
         validated: true
       })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
       
-      // Cache for 60 minutes
+      // Cache for 6 hours (so admin doesn't reload on every visit)
       await pool.query(
         `INSERT INTO api_cache (key, value, expires_at)
-         VALUES ($1, $2, NOW() + INTERVAL '60 minutes')
-         ON CONFLICT (key) DO UPDATE SET value = $2, expires_at = NOW() + INTERVAL '60 minutes'`,
+         VALUES ($1, $2, NOW() + INTERVAL '6 hours')
+         ON CONFLICT (key) DO UPDATE SET value = $2, expires_at = NOW() + INTERVAL '6 hours'`,
         [cacheKey, JSON.stringify(formatted)]
       );
       
