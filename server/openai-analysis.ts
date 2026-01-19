@@ -200,36 +200,6 @@ function detectDerby(homeTeam: string, awayTeam: string): boolean {
   );
 }
 
-function detectUEFACompetition(league: string): { isUEFA: boolean; competition: string; note: string } {
-  const leagueLower = league.toLowerCase();
-  
-  if (leagueLower.includes('champions league') || leagueLower.includes('şampiyonlar ligi')) {
-    return {
-      isUEFA: true,
-      competition: 'Şampiyonlar Ligi',
-      note: '🏆 ŞAMPİYONLAR LİGİ: Avrupa\'nın en prestijli turnuvası. Takımlar en iyi kadrolarıyla sahada. Grup aşamasında puan hesabı kritik, eleme turlarında her dakika önemli. Genelde defansif başlangıçlar, temkinli oyunlar görülür.'
-    };
-  }
-  
-  if (leagueLower.includes('europa league') || leagueLower.includes('avrupa ligi')) {
-    return {
-      isUEFA: true,
-      competition: 'Avrupa Ligi',
-      note: '🥈 AVRUPA LİGİ: İkinci kademe UEFA turnuvası. Bazı takımlar rotasyon yapar, bazıları kupa için motive. Şampiyonlar Ligi\'nden düşenler genelde daha güçlü.'
-    };
-  }
-  
-  if (leagueLower.includes('conference') || leagueLower.includes('konferans')) {
-    return {
-      isUEFA: true,
-      competition: 'Konferans Ligi',
-      note: '🥉 KONFERANS LİGİ: UEFA\'nın en yeni turnuvası. Takım kalitesi değişken, sürpriz sonuçlar sık görülür. Büyük takımlar rotasyon yapabilir, küçük takımlar için prestij maçı.'
-    };
-  }
-  
-  return { isUEFA: false, competition: '', note: '' };
-}
-
 function calculateExpectedGoals(matchData: MatchData): { home: number; away: number; total: number } {
   const homeStats = matchData.homeTeamStats;
   const awayStats = matchData.awayTeamStats;
@@ -299,7 +269,6 @@ export async function generateMatchAnalysis(matchData: MatchData): Promise<AIAna
   const isDerby = detectDerby(matchData.homeTeam, matchData.awayTeam);
   const homeLeagueLevel = matchData.homeLeagueLevel || 1;
   const awayLeagueLevel = matchData.awayLeagueLevel || 1;
-  const uefaInfo = detectUEFACompetition(matchData.league);
   
   const expectedGoals = calculateExpectedGoals(matchData);
   const trends = analyzeTrends(matchData);
@@ -347,8 +316,7 @@ Türkçe, profesyonel dilde yanıt ver. SADECE JSON formatında çıktı üret.`
 🏟️ MAÇ BİLGİLERİ
 ================================
 Lig/Turnuva: ${matchData.league}
-${uefaInfo.isUEFA ? `${uefaInfo.note}` : ''}
-Maç Tipi: ${uefaInfo.isUEFA ? `🌟 UEFA ${uefaInfo.competition.toUpperCase()}` : matchType === 'cup' ? '🏆 KUPA MAÇI - Dikkat: Sürpriz riski yüksek!' : '⚽ LİG MAÇI'}
+Maç Tipi: ${matchType === 'cup' ? '🏆 KUPA MAÇI - Dikkat: Sürpriz riski yüksek!' : '⚽ LİG MAÇI'}
 ${isDerby ? '🔥 DERBİ MAÇI - İlk yarı genelde temkinli, duygusal atmosfer!' : ''}
 Ev Sahibi: ${matchData.homeTeam}${matchData.homeRank ? ` (Sıralama: ${matchData.homeRank}. - ${matchData.homePoints} puan)` : ''}
 Deplasman: ${matchData.awayTeam}${matchData.awayRank ? ` (Sıralama: ${matchData.awayRank}. - ${matchData.awayPoints} puan)` : ''}
@@ -472,13 +440,15 @@ GEÇERLİ TAHMİN VARSA:
     "valuePercentage": 0.5,
     "confidence": 64,
     "riskLevel": "orta",
-    "reasoning": "6-8 cümlelik profesyonel spor yorumu yaz. YAPI: 1) Maçın önemi ve atmosferi (turnuva aşaması, derbi mi, puan durumu). 2) Ev sahibi analizi: son performans, güçlü/zayıf yönler. 3) Deplasman analizi: form durumu, dış saha performansı. 4) İstatistiksel karşılaştırma: H2H geçmiş, gol ortalamaları. 5) Bu bahsi neden seçtiğini net açıkla. 6) Risk faktörleri ve dikkat edilecekler.${uefaInfo.isUEFA ? ` 7) UEFA turnuvası özelinde: takımların Avrupa deneyimi, kadro rotasyonu riski, motivasyon farklılıkları.` : ''} ÜSLUP: Türk spor yorumcusu gibi samimi, tutkulu ama profesyonel. Gerçek istatistiklere atıf yap, kesin ifadeler kullan."
+    "reasoning": "4-5 cümlelik detaylı yorum. Gerçek bir spor yorumcusu gibi samimi ve akıcı yaz. Maçın havası, takım formları, istatistikler ve bu tahminin neden en iyi seçenek olduğunu açıkla."
   },
   
   "avoidBets": {
     "1.5 Üst": "Oran minimum eşiğin altında",
     "MS1": "Ev avantajına rağmen değer düşük"
-  }
+  },
+  
+  "expectedGoalRange": "2-3"
 }
 
 GEÇERLİ TAHMİN YOKSA:
