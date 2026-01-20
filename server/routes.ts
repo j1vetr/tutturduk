@@ -1315,7 +1315,7 @@ export async function registerRoutes(
       const badges: Record<number, { bestBet?: string; riskLevel?: string; over25?: boolean; btts?: boolean; winner?: string }> = {};
       
       for (const match of matches) {
-        const cacheKey = `ai_analysis_v7_${match.fixture_id}`;
+        const cacheKey = `ai_analysis_v8_${match.fixture_id}`;
         const cachedResult = await pool.query(
           'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
           [cacheKey]
@@ -1424,7 +1424,7 @@ export async function registerRoutes(
         return res.status(404).json({ message: 'Maç bulunamadı' });
       }
 
-      const cacheKey = `ai_analysis_v7_${match.fixture_id}`;
+      const cacheKey = `ai_analysis_v8_${match.fixture_id}`;
       
       // Helper function to reconstruct analysis from best_bets
       const reconstructFromBestBets = async () => {
@@ -1492,38 +1492,8 @@ export async function registerRoutes(
         return res.json(reconstructed);
       }
       
-      // 3. Check if another process is already generating (wait up to 30 seconds)
-      console.log(`[AI Analysis] No cache or best_bets found for fixture ${match.fixture_id}, checking if generation in progress...`);
-      for (let i = 0; i < 6; i++) {
-        await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
-        
-        // Check cache again
-        const recheckCache = await pool.query(
-          'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
-          [cacheKey]
-        );
-        if (recheckCache.rows.length > 0) {
-          console.log(`[AI Analysis] Cache appeared while waiting for fixture ${match.fixture_id}`);
-          return res.json(JSON.parse(recheckCache.rows[0].value));
-        }
-        
-        // Check best_bets again
-        const recheckBets = await reconstructFromBestBets();
-        if (recheckBets) {
-          // Cache it
-          try {
-            await pool.query(
-              `INSERT INTO api_cache (key, value, expires_at)
-               VALUES ($1, $2, NOW() + INTERVAL '24 hours')
-               ON CONFLICT (key) DO UPDATE SET value = $2, expires_at = NOW() + INTERVAL '24 hours'`,
-              [cacheKey, JSON.stringify(recheckBets)]
-            );
-          } catch (e) { /* ignore */ }
-          return res.json(recheckBets);
-        }
-      }
-      
-      console.log(`[AI Analysis] No data found after waiting, generating new analysis for fixture ${match.fixture_id}...`);
+      // 3. No cache, no best_bets - generate new analysis immediately
+      console.log(`[AI Analysis] No cache or best_bets found for fixture ${match.fixture_id}, generating new analysis...`);
 
       // No cache, no existing bets - generate new analysis
       const analysis = await getCachedData(cacheKey, async () => {

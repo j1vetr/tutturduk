@@ -267,6 +267,28 @@ function evaluateBet(betType: string, homeScore: number, awayScore: number, tota
     return result;
   }
   
+  // DNB (Draw No Bet) - Beraberlikte İade
+  if (bet.includes('dnb ev') || bet.includes('dnb 1') || bet.includes('dnb home') || 
+      bet.includes('beraberlikte iade ev') || bet.includes('beraberlikte iade 1')) {
+    if (homeScore === awayScore) {
+      console.log(`[MatchStatus] DNB Ev: Draw - returning as WON (refund scenario)`);
+      return true; // DNB is void/refund on draw, we count as won
+    }
+    const result = homeScore > awayScore;
+    console.log(`[MatchStatus] DNB Ev: ${homeScore} > ${awayScore} = ${result}`);
+    return result;
+  }
+  if (bet.includes('dnb dep') || bet.includes('dnb deplasman') || bet.includes('dnb 2') || bet.includes('dnb away') ||
+      bet.includes('beraberlikte iade dep') || bet.includes('beraberlikte iade 2')) {
+    if (homeScore === awayScore) {
+      console.log(`[MatchStatus] DNB Deplasman: Draw - returning as WON (refund scenario)`);
+      return true; // DNB is void/refund on draw, we count as won
+    }
+    const result = homeScore < awayScore;
+    console.log(`[MatchStatus] DNB Deplasman: ${homeScore} < ${awayScore} = ${result}`);
+    return result;
+  }
+  
   // Handicap bets
   if (bet.includes('ev -1.5') || bet.includes('ev 1.5 üst') || bet.includes('ev -1,5')) {
     const result = homeScore - awayScore > 1.5;
