@@ -999,7 +999,7 @@ export default function AdminPage() {
       return;
     }
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Istanbul' });
       const res = await fetch('/api/admin/coupons', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1149,7 +1149,7 @@ export default function AdminPage() {
     setMatchPredictions(newPreds);
     setLoadingPredictions(false);
     
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Istanbul' });
     setExpandedDays(new Set([today]));
   };
 
@@ -1386,8 +1386,8 @@ export default function AdminPage() {
                   <div className="flex gap-3 flex-wrap">
                     <Button 
                       onClick={async () => {
-                        // Find today's matches with "bahis" AI decision
-                        const todayStr = new Date().toISOString().split('T')[0];
+                        // Find today's matches with "bahis" AI decision (Turkey timezone)
+                        const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Istanbul' });
                         
                         const bahisMatches = upcomingMatches.filter(m => {
                           const aiResult = aiCheckResults.get(m.id);
@@ -1792,7 +1792,7 @@ export default function AdminPage() {
                         {groupMatchesByDate(getAdvancedFilteredMatches()).map(({ date, displayDate, matches }) => {
                           const summary = getDaySummary(matches);
                           const isExpanded = expandedDays.has(date);
-                          const isToday = date === new Date().toISOString().split('T')[0];
+                          const isToday = date === new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Istanbul' });
                           
                           return (
                             <div key={date} className="border-b border-zinc-800 last:border-b-0">
