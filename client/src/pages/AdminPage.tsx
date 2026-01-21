@@ -486,55 +486,78 @@ export default function AdminPage() {
     }
   };
 
-  const runAICheck = async () => {
-    if (upcomingMatches.length === 0) {
-      toast({ variant: "destructive", description: "Önce maçları yükleyin" });
-      return;
-    }
+  const runAICheck = async (customFixtureIds?: number[]) => {
+    let fixtureIds = customFixtureIds;
     
-    const unpublishedMatches = upcomingMatches.filter(m => !isMatchPublished(m.id));
-    if (unpublishedMatches.length === 0) {
-      toast({ description: "Tüm maçlar zaten yayınlanmış" });
-      return;
+    if (!fixtureIds) {
+      if (upcomingMatches.length === 0) {
+        toast({ variant: "destructive", description: "Önce maçları yükleyin" });
+        return;
+      }
+      
+      const unpublishedMatches = upcomingMatches.filter(m => !isMatchPublished(m.id));
+      if (unpublishedMatches.length === 0) {
+        toast({ description: "Tüm maçlar zaten yayınlanmış" });
+        return;
+      }
+      fixtureIds = unpublishedMatches.map(m => m.id);
     }
     
     setAiCheckLoading(true);
-    setAiCheckProgress({ current: 0, total: unpublishedMatches.length });
-    setAiCheckResults(new Map());
+    setAiCheckProgress({ current: 0, total: fixtureIds.length });
+    setAiCheckResults(new Map()); // Clear previous results
     
-    const fixtureIds = unpublishedMatches.map(m => m.id);
+    const newResults = new Map<number, { karar: string; prediction?: any; reason?: string }>();
+    const BATCH_SIZE = 5; // Process 5 matches at a time
+    const BATCH_DELAY = 3000; // 3 seconds delay between batches for rate limiting
+    let hasError = false;
     
     try {
-      toast({ title: "AI Kontrol Başladı", description: `${fixtureIds.length} maç analiz ediliyor...` });
+      toast({ title: "AI Kontrol Başladı", description: `${fixtureIds.length} maç analiz edilecek (yaklaşık ${Math.ceil(fixtureIds.length * 3 / 60)} dakika)` });
       
-      const res = await fetch('/api/admin/matches/ai-check', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ fixtureIds })
-      });
-      
-      if (res.ok) {
-        const data = await res.json();
-        const newResults = new Map<number, { karar: string; prediction?: any; reason?: string }>();
+      for (let i = 0; i < fixtureIds.length; i += BATCH_SIZE) {
+        const batch = fixtureIds.slice(i, i + BATCH_SIZE);
         
-        for (const result of data.results) {
-          newResults.set(result.fixtureId, {
-            karar: result.karar,
-            prediction: result.prediction,
-            reason: result.reason
-          });
+        const res = await fetch('/api/admin/matches/ai-check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ fixtureIds: batch })
+        });
+        
+        if (res.ok) {
+          const data = await res.json();
+          for (const result of data.results) {
+            newResults.set(result.fixtureId, {
+              karar: result.karar,
+              prediction: result.prediction,
+              reason: result.reason
+            });
+          }
+          setAiCheckResults(new Map(newResults));
+          setAiCheckProgress({ current: Math.min(i + BATCH_SIZE, fixtureIds.length), total: fixtureIds.length });
+        } else {
+          hasError = true;
+          const err = await res.json().catch(() => ({ message: 'Bilinmeyen hata' }));
+          toast({ variant: "destructive", description: `Batch hata: ${err.message}` });
+          break; // Stop on error
         }
         
-        setAiCheckResults(newResults);
+        // Rate limiting: delay between batches
+        if (i + BATCH_SIZE < fixtureIds.length) {
+          await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
+        }
+      }
+      
+      if (!hasError) {
+        const bahisCount = Array.from(newResults.values()).filter(r => r.karar === 'bahis').length;
+        const pasCount = Array.from(newResults.values()).filter(r => r.karar === 'pas').length;
+        
         toast({ 
           title: "AI Kontrol Tamamlandı", 
-          description: `${data.summary.bahis} bahis, ${data.summary.pas} pas`,
-          className: data.summary.bahis > 0 ? 'bg-emerald-500 text-white border-none' : 'bg-amber-500 text-black border-none'
+          description: `${bahisCount} bahis, ${pasCount} pas`,
+          className: bahisCount > 0 ? 'bg-emerald-500 text-white border-none' : 'bg-amber-500 text-black border-none'
         });
-      } else {
-        const err = await res.json();
-        toast({ variant: "destructive", description: err.message });
       }
     } catch (error) {
       console.error('AI check failed:', error);
@@ -1390,28 +1413,53 @@ export default function AdminPage() {
                     </Button>
                     <Button 
                       onClick={async () => {
-                        toast({ title: 'Yarın yayınlanıyor...', description: 'Yarının maçları çekiliyor (saat başı 5 maç, max 70)...', className: 'bg-blue-500 text-white border-none' });
+                        setLoadingMatches(true);
+                        toast({ title: 'Yarının Maçları Çekiliyor...', description: 'Kaliteli maçlar filtreleniyor...', className: 'bg-blue-500 text-white border-none' });
                         try {
-                          const res = await fetch('/api/admin/auto-publish', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            credentials: 'include',
-                            body: JSON.stringify({ totalLimit: 70, perHour: 5 })
+                          // Fetch tomorrow's quality matches
+                          const tomorrow = new Date();
+                          tomorrow.setDate(tomorrow.getDate() + 1);
+                          const dateStr = tomorrow.toISOString().split('T')[0];
+                          
+                          const res = await fetch(`/api/football/fixtures-validated?date=${dateStr}`, {
+                            credentials: 'include'
                           });
-                          const data = await res.json();
+                          
                           if (res.ok) {
-                            toast({ title: 'Yarının Maçları', description: data.message, className: 'bg-blue-500 text-white border-none' });
-                            loadPublishedMatches();
+                            const data = await res.json();
+                            if (data.matches && data.matches.length > 0) {
+                              setUpcomingMatches(data.matches);
+                              toast({ 
+                                title: 'Yarının Maçları Yüklendi', 
+                                description: `${data.matches.length} kaliteli maç bulundu. AI Kontrol başlatılıyor...`,
+                                className: 'bg-blue-500 text-white border-none'
+                              });
+                              setLoadingMatches(false);
+                              // Run AI check on tomorrow's matches
+                              const fixtureIds = data.matches.map((m: UpcomingMatch) => m.id);
+                              await runAICheck(fixtureIds);
+                            } else {
+                              toast({ variant: 'destructive', description: 'Yarın için kaliteli maç bulunamadı' });
+                            }
                           } else {
-                            toast({ variant: 'destructive', description: data.message });
+                            toast({ variant: 'destructive', description: 'Maçlar yüklenemedi' });
                           }
                         } catch (e) {
                           toast({ variant: 'destructive', description: 'İşlem başarısız' });
+                        } finally {
+                          setLoadingMatches(false);
                         }
                       }}
+                      disabled={loadingMatches || aiCheckLoading}
                       className="bg-blue-500 text-white font-bold hover:bg-blue-400"
                     >
-                      <Zap className="w-4 h-4 mr-2" /> Yarının Maçları
+                      {loadingMatches ? (
+                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Yükleniyor...</>
+                      ) : aiCheckLoading ? (
+                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> AI Kontrol...</>
+                      ) : (
+                        <><Zap className="w-4 h-4 mr-2" /> Yarının Maçları</>
+                      )}
                     </Button>
                     <Button onClick={() => loadUpcomingMatches(true)} disabled={loadingMatches} className="bg-amber-500 text-black font-bold hover:bg-amber-400">
                       {loadingMatches ? (
@@ -1421,12 +1469,12 @@ export default function AdminPage() {
                       )}
                     </Button>
                     <Button 
-                      onClick={runAICheck} 
+                      onClick={() => runAICheck()} 
                       disabled={aiCheckLoading || upcomingMatches.length === 0} 
-                      className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold hover:from-purple-500 hover:to-indigo-500"
+                      className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold hover:from-purple-500 hover:to-indigo-500 min-w-[180px]"
                     >
                       {aiCheckLoading ? (
-                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> AI Analiz Yapılıyor...</>
+                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> {aiCheckProgress.current}/{aiCheckProgress.total} Analiz...</>
                       ) : (
                         <><Brain className="w-4 h-4 mr-2" /> AI Kontrol Et</>
                       )}
@@ -1440,6 +1488,8 @@ export default function AdminPage() {
                     </Button>
                     <Button 
                       onClick={async () => {
+                        const confirmed = confirm('⚠️ DİKKAT: Cache temizlenirse AI kontrol sonuçları da silinir!\n\nDevam etmek istiyor musunuz?');
+                        if (!confirmed) return;
                         try {
                           const res = await fetch('/api/admin/clear-cache', {
                             method: 'POST',
@@ -1447,6 +1497,7 @@ export default function AdminPage() {
                           });
                           const data = await res.json();
                           if (res.ok) {
+                            setAiCheckResults(new Map());
                             toast({ title: 'Cache Temizlendi', description: data.message, className: 'bg-purple-500 text-white border-none' });
                           } else {
                             toast({ variant: 'destructive', description: data.message });

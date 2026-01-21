@@ -821,12 +821,17 @@ export async function registerRoutes(
   // Validated fixtures - only returns matches with stats, odds, and H2H
   app.get('/api/football/fixtures-validated', async (req, res) => {
     try {
+      const dateParam = req.query.date as string | undefined;
       const today = new Date();
       const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
       const todayStr = today.toISOString().split('T')[0];
       const tomorrowStr = tomorrow.toISOString().split('T')[0];
       
-      const cacheKey = `fixtures_validated_${todayStr}`;
+      // If date parameter provided, only fetch that specific date
+      const fetchDates = dateParam ? [dateParam] : [todayStr, tomorrowStr];
+      const cacheKey = dateParam 
+        ? `fixtures_validated_${dateParam}` 
+        : `fixtures_validated_${todayStr}`;
       
       // Check cache first (60 min TTL)
       const cached = await pool.query(
@@ -839,14 +844,12 @@ export async function registerRoutes(
         return res.json(JSON.parse(cached.rows[0].value));
       }
       
-      console.log(`[ValidatedFixtures] Fetching fixtures for ${todayStr} and ${tomorrowStr}...`);
+      console.log(`[ValidatedFixtures] Fetching fixtures for ${fetchDates.join(', ')}...`);
       
-      const [todayFixtures, tomorrowFixtures] = await Promise.all([
-        apiFootball.getFixtures({ date: todayStr }),
-        apiFootball.getFixtures({ date: tomorrowStr })
-      ]);
+      const fixturePromises = fetchDates.map(date => apiFootball.getFixtures({ date }));
+      const fixtureResults = await Promise.all(fixturePromises);
       
-      const allFixtures = [...todayFixtures, ...tomorrowFixtures];
+      const allFixtures = fixtureResults.flat();
       console.log(`[ValidatedFixtures] Total: ${allFixtures.length} matches`);
       
       // Filter out U23, Women's, Reserve
@@ -974,15 +977,18 @@ export async function registerRoutes(
         validated: true
       })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
       
+      // Wrap in { matches } for frontend compatibility
+      const responseData = { matches: formatted, total: formatted.length };
+      
       // Cache for 6 hours (so admin doesn't reload on every visit)
       await pool.query(
         `INSERT INTO api_cache (key, value, expires_at)
          VALUES ($1, $2, NOW() + INTERVAL '6 hours')
          ON CONFLICT (key) DO UPDATE SET value = $2, expires_at = NOW() + INTERVAL '6 hours'`,
-        [cacheKey, JSON.stringify(formatted)]
+        [cacheKey, JSON.stringify(responseData)]
       );
       
-      res.json(formatted);
+      res.json(responseData);
     } catch (error: any) {
       console.error('[ValidatedFixtures] Error:', error);
       res.status(500).json({ message: error.message });
