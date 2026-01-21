@@ -823,15 +823,11 @@ export async function registerRoutes(
     try {
       const dateParam = req.query.date as string | undefined;
       const today = new Date();
-      const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
       const todayStr = today.toISOString().split('T')[0];
-      const tomorrowStr = tomorrow.toISOString().split('T')[0];
       
-      // If date parameter provided, only fetch that specific date
-      const fetchDates = dateParam ? [dateParam] : [todayStr, tomorrowStr];
-      const cacheKey = dateParam 
-        ? `fixtures_validated_${dateParam}` 
-        : `fixtures_validated_${todayStr}`;
+      // Only fetch the specified date or today (no tomorrow)
+      const fetchDate = dateParam || todayStr;
+      const cacheKey = `fixtures_validated_${fetchDate}`;
       
       // Check cache first (60 min TTL)
       const cached = await pool.query(
@@ -844,12 +840,9 @@ export async function registerRoutes(
         return res.json(JSON.parse(cached.rows[0].value));
       }
       
-      console.log(`[ValidatedFixtures] Fetching fixtures for ${fetchDates.join(', ')}...`);
+      console.log(`[ValidatedFixtures] Fetching fixtures for ${fetchDate}...`);
       
-      const fixturePromises = fetchDates.map(date => apiFootball.getFixtures({ date }));
-      const fixtureResults = await Promise.all(fixturePromises);
-      
-      const allFixtures = fixtureResults.flat();
+      const allFixtures = await apiFootball.getFixtures({ date: fetchDate });
       console.log(`[ValidatedFixtures] Total: ${allFixtures.length} matches`);
       
       // Filter out U23, Women's, Reserve
