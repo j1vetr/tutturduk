@@ -1303,7 +1303,27 @@ export async function registerRoutes(
   app.get('/api/matches', async (req, res) => {
     try {
       const matches = await storage.getPublishedMatches();
-      res.json(matches);
+      
+      // Enrich matches with best_bets predictions
+      const enrichedMatches = await Promise.all(matches.map(async (match) => {
+        const bestBetsResult = await pool.query(
+          `SELECT bet_type, confidence, risk_level, result FROM best_bets WHERE fixture_id = $1 ORDER BY confidence DESC LIMIT 1`,
+          [match.fixture_id]
+        );
+        
+        const bestBet = bestBetsResult.rows[0];
+        return {
+          ...match,
+          best_bet: bestBet ? {
+            bet_type: bestBet.bet_type,
+            confidence: bestBet.confidence,
+            risk_level: bestBet.risk_level,
+            result: bestBet.result
+          } : null
+        };
+      }));
+      
+      res.json(enrichedMatches);
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }

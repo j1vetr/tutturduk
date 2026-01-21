@@ -32,6 +32,12 @@ interface PublishedMatch {
     h2h?: { home: string; away: string };
   };
   is_featured?: boolean;
+  best_bet?: {
+    bet_type: string;
+    confidence: number;
+    risk_level: string;
+    result: string;
+  };
 }
 
 function getTimeInfo(matchDate: string, matchTime: string) {
@@ -264,13 +270,35 @@ export default function HomePage() {
                         </div>
                       </div>
 
-                      {/* CTA Button */}
+                      {/* Prediction Badge & CTA */}
                       <div className="mt-4 pt-3 border-t border-gray-100">
-                        <div className="flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100 rounded-xl py-2.5 group-hover:from-emerald-100 group-hover:to-teal-100 transition-all">
-                          <Sparkles className="w-4 h-4 text-emerald-600" />
-                          <span className="text-sm font-semibold text-emerald-700">Tahmini Gör</span>
-                          <ChevronRight className="w-4 h-4 text-emerald-600 group-hover:translate-x-1 transition-transform" />
-                        </div>
+                        {match.best_bet ? (
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-2">
+                              <div className={`px-3 py-1.5 rounded-lg font-bold text-sm ${
+                                match.best_bet.risk_level === 'düşük' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' :
+                                match.best_bet.risk_level === 'orta' ? 'bg-amber-100 text-amber-700 border border-amber-200' :
+                                'bg-red-100 text-red-700 border border-red-200'
+                              }`}>
+                                {match.best_bet.bet_type}
+                              </div>
+                              <span className={`text-xs font-medium ${
+                                match.best_bet.risk_level === 'düşük' ? 'text-emerald-600' :
+                                match.best_bet.risk_level === 'orta' ? 'text-amber-600' :
+                                'text-red-600'
+                              }`}>
+                                %{match.best_bet.confidence}
+                              </span>
+                            </div>
+                            <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-emerald-600 group-hover:translate-x-1 transition-all" />
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100 rounded-xl py-2.5 group-hover:from-emerald-100 group-hover:to-teal-100 transition-all">
+                            <Sparkles className="w-4 h-4 text-emerald-600" />
+                            <span className="text-sm font-semibold text-emerald-700">Tahmini Gör</span>
+                            <ChevronRight className="w-4 h-4 text-emerald-600 group-hover:translate-x-1 transition-transform" />
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
