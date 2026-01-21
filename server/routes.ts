@@ -2088,7 +2088,7 @@ export async function registerRoutes(
       const displayDate = matchDate.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Europe/Istanbul' });
       const localTime = matchDate.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Europe/Istanbul' });
 
-      // STEP 1: Generate AI analysis FIRST (before publishing)
+      // STEP 1: Check AI cache first, if not found then generate
       const homeTeamName = fixture.teams?.home?.name || '';
       const awayTeamName = fixture.teams?.away?.name || '';
       const homeLogo = fixture.teams?.home?.logo || '';
@@ -2097,38 +2097,56 @@ export async function registerRoutes(
       const leagueLogo = fixture.league?.logo || '';
       const leagueId = fixture.league?.id;
       
-      console.log(`[ManualPublish] Generating AI analysis for ${homeTeamName} vs ${awayTeamName}...`);
+      // Check AI cache first (from AI pre-check)
+      const aiCacheKey = `ai_analysis_v8_${fixtureId}`;
+      let aiAnalysis: any = null;
       
-      const teams = apiPrediction?.teams;
-      const h2h = apiPrediction?.h2h || [];
-      const comparison = apiPrediction?.comparison;
+      const cachedAI = await pool.query(
+        'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
+        [aiCacheKey]
+      );
       
-      const matchData = {
-        homeTeam: homeTeamName,
-        awayTeam: awayTeamName,
-        league: leagueName,
-        leagueId: leagueId,
-        comparison: comparison || undefined,
-        homeForm: teams?.home?.league?.form,
-        awayForm: teams?.away?.league?.form,
-        h2hResults: h2h?.slice(0, 5).map((h: any) => ({
-          homeGoals: h.goals?.home || 0,
-          awayGoals: h.goals?.away || 0
-        })),
-        homeWins: teams?.home?.league?.wins,
-        homeDraws: teams?.home?.league?.draws,
-        homeLosses: teams?.home?.league?.loses,
-        homeGoalsFor: teams?.home?.league?.goals?.for?.total,
-        homeGoalsAgainst: teams?.home?.league?.goals?.against?.total,
-        awayWins: teams?.away?.league?.wins,
-        awayDraws: teams?.away?.league?.draws,
-        awayLosses: teams?.away?.league?.loses,
-        awayGoalsFor: teams?.away?.league?.goals?.for?.total,
-        awayGoalsAgainst: teams?.away?.league?.goals?.against?.total,
-        odds: parsedOddsCheck,
-      };
-      
-      const aiAnalysis = await generateMatchAnalysis(matchData);
+      if (cachedAI.rows.length > 0) {
+        aiAnalysis = JSON.parse(cachedAI.rows[0].value);
+        console.log(`[ManualPublish] Using cached AI analysis for ${homeTeamName} vs ${awayTeamName}`);
+      } else {
+        console.log(`[ManualPublish] Generating AI analysis for ${homeTeamName} vs ${awayTeamName}...`);
+        
+        const teams = apiPrediction?.teams;
+        const h2h = apiPrediction?.h2h || [];
+        const comparison = apiPrediction?.comparison;
+        
+        const matchData = {
+          homeTeam: homeTeamName,
+          awayTeam: awayTeamName,
+          league: leagueName,
+          leagueId: leagueId,
+          comparison: comparison || undefined,
+          homeForm: teams?.home?.last_5?.form || teams?.home?.league?.form,
+          awayForm: teams?.away?.last_5?.form || teams?.away?.league?.form,
+          h2hResults: h2h?.slice(0, 5).map((h: any) => ({
+            homeGoals: h.goals?.home || 0,
+            awayGoals: h.goals?.away || 0
+          })),
+          homeGoalsFor: teams?.home?.last_5?.goals?.for?.total || teams?.home?.league?.goals?.for?.total,
+          homeGoalsAgainst: teams?.home?.last_5?.goals?.against?.total || teams?.home?.league?.goals?.against?.total,
+          awayGoalsFor: teams?.away?.last_5?.goals?.for?.total || teams?.away?.league?.goals?.for?.total,
+          awayGoalsAgainst: teams?.away?.last_5?.goals?.against?.total || teams?.away?.league?.goals?.against?.total,
+          odds: parsedOddsCheck,
+        };
+        
+        aiAnalysis = await generateMatchAnalysis(matchData);
+        
+        // Cache the new analysis
+        try {
+          await pool.query(
+            `INSERT INTO api_cache (key, value, expires_at)
+             VALUES ($1, $2, NOW() + INTERVAL '24 hours')
+             ON CONFLICT (key) DO UPDATE SET value = $2, expires_at = NOW() + INTERVAL '24 hours'`,
+            [aiCacheKey, JSON.stringify(aiAnalysis)]
+          );
+        } catch (e) { /* ignore cache errors */ }
+      }
       
       // STEP 2: Check if AI has a valid prediction
       if (!aiAnalysis || aiAnalysis.karar === 'pas' || !aiAnalysis.predictions || aiAnalysis.predictions.length === 0) {
@@ -2240,16 +2258,7 @@ export async function registerRoutes(
         client.release();
       }
       
-      // Cache the AI analysis (outside transaction - non-critical)
-      const aiCacheKey = `ai_analysis_v8_${fixtureId}`;
-      try {
-        await pool.query(
-          `INSERT INTO api_cache (key, value, expires_at)
-           VALUES ($1, $2, NOW() + INTERVAL '24 hours')
-           ON CONFLICT (key) DO UPDATE SET value = $2, expires_at = NOW() + INTERVAL '24 hours'`,
-          [aiCacheKey, JSON.stringify(aiAnalysis)]
-        );
-      } catch (e) { /* ignore cache errors */ }
+      // AI analysis is already cached in STEP 1
       
       console.log(`[ManualPublish] Successfully published ${homeTeamName} vs ${awayTeamName} with ${aiAnalysis.predictions.length} predictions`);
       res.json(published);
