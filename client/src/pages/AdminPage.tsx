@@ -648,6 +648,43 @@ export default function AdminPage() {
     setBulkPublishing(false);
   };
 
+  const loadCachedAIResults = async (fixtureIds: number[]) => {
+    if (fixtureIds.length === 0) return;
+    try {
+      const res = await fetch('/api/admin/matches/ai-cache', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ fixtureIds })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.results && data.results.length > 0) {
+          const newResults = new Map<number, { karar: string; prediction?: any; reason?: string }>();
+          for (const result of data.results) {
+            newResults.set(result.fixtureId, {
+              karar: result.karar,
+              prediction: result.prediction,
+              reason: result.reason
+            });
+          }
+          setAiCheckResults(newResults);
+          const bahisCount = data.results.filter((r: any) => r.karar === 'bahis').length;
+          const pasCount = data.results.filter((r: any) => r.karar === 'pas').length;
+          if (bahisCount > 0 || pasCount > 0) {
+            toast({ 
+              title: "AI sonuçları yüklendi", 
+              description: `${bahisCount} bahis, ${pasCount} pas (cache'den)`,
+              className: 'bg-purple-500 text-white border-none'
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load cached AI results:', error);
+    }
+  };
+
   const loadUpcomingMatches = async (validated: boolean = false) => {
     setLoadingMatches(true);
     try {
@@ -672,6 +709,11 @@ export default function AdminPage() {
             validated: true
           }));
           setUpcomingMatches(formatted);
+          
+          // Load cached AI results for unpublished matches
+          const unpublishedIds = formatted.filter((m: any) => !publishedMatches.some((p: any) => p.fixture_id === m.id)).map((m: any) => m.id);
+          loadCachedAIResults(unpublishedIds);
+          
           toast({ 
             title: "Kaliteli maçlar yüklendi", 
             description: `${data.length} maç (istatistik + H2H var)`,
