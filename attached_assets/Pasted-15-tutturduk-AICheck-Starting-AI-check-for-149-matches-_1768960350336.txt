@@ -1,0 +1,577 @@
+15|tutturduk  | [AICheck] Starting AI check for 149 matches
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1489105' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1489105: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1493289' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1493289: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1493290' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1493290: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1502435' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1502435: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1502436' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1502436: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1482325' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1482325: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1502337' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1502337: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1491530' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1491530: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1491532' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1491532: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1503953' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1503953: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1502437' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1502437: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1482270' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1482270: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1509365' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1509365: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1508355' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1508355: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1498968' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1498968: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1498969' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1498969: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1498970' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1498970: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1502338' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1502338: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1503559' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1503559: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1503959' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1503959: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1504662' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1504662: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1504664' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1504664: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1504667' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1504667: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1508148' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1508148: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1450961' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1450961: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1505819' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1505819: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1417363' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1417363: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1482326' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1482326: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1436063' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1436063: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1450967' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1450967: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1450968' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1450968: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1459620' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1459620: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1488242' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1488242: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1503562' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1503562: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1429587' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1429587: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1436065' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1436065: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1381003' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1381003: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1451137' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1451137: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1451138' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1451138: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1398106' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1398106: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1418898' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1418898: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1502519' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1502519: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1503758' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1503758: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1500974' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1500974: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1503732' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1503732: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1386884' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1386884: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1386885' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1386885: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1399729' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1399729: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1399730' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1399730: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1399731' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1399731: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1399732' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1399732: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1399733' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1399733: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1401798' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1401798: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1386886' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1386886: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1451139' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1451139: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1451140' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1451140: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1451141' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1451141: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1451142' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1451142: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1451143' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1451143: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1451144' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1451144: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1451145' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1451145: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1499120' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1499120: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1500868' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1500868: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1501539' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1501539: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1417498' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1417498: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1417499' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1417499: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1417500' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1417500: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1417504' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1417504: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1504838' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1504838: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1504839' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1504839: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1500445' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1500445: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1500597' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1500597: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1500714' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1500714: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1501029' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1501029: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1504835' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1504835: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1483586' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1483586: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1499121' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1499121: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1500535' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1500535: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1500634' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1500634: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1500635' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1500635: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1500713' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1500713: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1500715' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1500715: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1500764' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1500764: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1500766' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1500766: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1500865' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1500865: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1502520' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1502520: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1507961' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1507961: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1500666' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1500666: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1500595' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1500595: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1500596' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1500596: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1500976' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1500976: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1501220' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1502521' }
+15|tutturduk  | [AICheck] Error for fixture 1501220: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1502521: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1502522' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1502522: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1502523' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1502523: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1500636' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1500636: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1500716' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1500716: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1500823' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1500823: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1500824' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1500824: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1502524' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1502524: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1502526' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1502526: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1500593' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1500593: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1483653' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1483653: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1493291' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1493291: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1493292' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1493292: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1500538' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1500538: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1500717' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1500717: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1500761' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1500761: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1500763' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1500763: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1500822' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1500822: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1500866' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1500866: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1507515' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1507515: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1493293' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1493293: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1499123' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1499123: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1493294' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1493294: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1489104' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1489104: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1493295' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1493295: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1493296' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1493296: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1440884' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1440884: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1440885' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1440885: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1440887' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1445373' }
+15|tutturduk  | [AICheck] Error for fixture 1440887: z.getPredictions is not a function
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1445373: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1488691' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1488691: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1418900' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1418900: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1418901' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1418901: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1436061' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1436061: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1436064' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1436064: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1451267' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1451267: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1451268' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1451268: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1451269' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1451269: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1451270' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1451270: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1451271' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1451272' }
+15|tutturduk  | [AICheck] Error for fixture 1451271: z.getPredictions is not a function
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1451272: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1451273' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1451273: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1451274' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1451274: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1451275' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1451275: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1418902' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1418902: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1387431' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1387431: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1451276' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1451276: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1451278' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1451278: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1451280' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1451280: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1451281' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1451281: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1451283' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1451283: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1451284' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1451284: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1500867' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1500867: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1500718' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1500718: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1499124' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1499124: z.getPredictions is not a function
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1500765' }
+15|tutturduk  | [API-Football] API Errors: {
+15|tutturduk  |   rateLimit: 'Too many requests. You have exceeded the limit of requests per minute of your subscription.'
+15|tutturduk  | }
+15|tutturduk  | [AICheck] Error for fixture 1500765: API Error: {"rateLimit":"Too many requests. You have exceeded the limit of requests per minute of your subscription."}
+15|tutturduk  | [API-Football] Requesting: /fixtures { id: '1500539' }
+15|tutturduk  | [API-Football] Response: 1 results
+15|tutturduk  | [AICheck] Error for fixture 1500539: z.getPredictions is not a function
+15|tutturduk  | [AICheck] Completed: 0 bahis, 149 pas
+15|tutturduk  | 4:51:55 AM [express] POST /api/admin/matches/ai-check 200 in 4671ms :: {"results":[{"fixtureId":1489105,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1493289,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1493290,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1502435,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1502436,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1482325,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1502337,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1491530,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1491532,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1503953,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1502437,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1482270,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1509365,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1508355,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1498968,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1498969,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1498970,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1502338,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1503559,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1503959,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1504662,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1504664,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1504667,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1508148,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1450961,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1505819,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1417363,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1482326,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1436063,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1450967,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1450968,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1459620,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1488242,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1503562,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1429587,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1436065,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1381003,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1451137,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1451138,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1398106,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1418898,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1502519,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1503758,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1500974,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1503732,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1386884,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1386885,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1399729,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1399730,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1399731,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1399732,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1399733,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1401798,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1386886,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1451139,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1451140,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1451141,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1451142,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1451143,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1451144,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1451145,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1499120,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1500868,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1501539,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1417498,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1417499,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1417500,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1417504,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1504838,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1504839,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1500445,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1500597,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1500714,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1501029,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1504835,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1483586,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1499121,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1500535,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1500634,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1500635,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1500713,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1500715,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1500764,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1500766,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1500865,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1502520,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1507961,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1500666,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1500595,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1500596,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1500976,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1501220,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1502521,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1502522,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1502523,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1500636,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1500716,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1500823,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1500824,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1502524,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1502526,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1500593,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1483653,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1493291,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1493292,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1500538,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1500717,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1500761,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1500763,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1500822,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1500866,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1507515,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1493293,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1499123,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1493294,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1489104,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1493295,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1493296,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1440884,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1440885,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1440887,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1445373,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1488691,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1418900,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1418901,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1436061,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1436064,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1451267,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1451268,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1451269,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1451270,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1451271,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1451272,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1451273,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1451274,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1451275,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1418902,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1387431,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1451276,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1451278,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1451280,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1451281,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1451283,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1451284,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1500867,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1500718,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1499124,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false},{"fixtureId":1500765,"karar":"pas","reason":"Analiz hatası: API Error: {\"rateLimit\":\"Too many requests. You have exceeded the limit of requests per minute of your subscription.\"}","cached":false},{"fixtureId":1500539,"karar":"pas","reason":"Analiz hatası: z.getPredictions is not a function","cached":false}],"summary":{"total":149,"bahis":0,"pas":149}}
+

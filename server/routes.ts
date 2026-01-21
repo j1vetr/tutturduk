@@ -1930,14 +1930,17 @@ export async function registerRoutes(
           continue;
         }
         
+        // Add delay to avoid rate limiting (max 30 requests/min = 1 per 2 seconds)
+        await new Promise(resolve => setTimeout(resolve, 2500));
+        
         // Fetch prediction and odds data
         const [apiPrediction, oddsData] = await Promise.all([
-          apiFootball.getPredictions(fixtureId),
+          apiFootball.getPrediction(fixtureId),
           apiFootball.getOdds(fixtureId)
         ]);
         
         const teams = apiPrediction?.teams;
-        const h2h = apiPrediction?.h2h;
+        const h2h = (apiPrediction as any)?.h2h;
         const homeTeamName = fixture.teams?.home?.name || 'Ev Sahibi';
         const awayTeamName = fixture.teams?.away?.name || 'Deplasman';
         const leagueName = fixture.league?.name || 'Bilinmeyen Lig';
@@ -1945,28 +1948,22 @@ export async function registerRoutes(
         // Parse odds
         const parsedOdds = parseApiFootballOdds(oddsData);
         
-        // Prepare match data for AI
+        // Prepare match data for AI - use last_5 from prediction data
         const matchData = {
           homeTeam: homeTeamName,
           awayTeam: awayTeamName,
           league: leagueName,
           matchDate: fixture.fixture?.date,
-          homeForm: teams?.home?.league?.form,
-          awayForm: teams?.away?.league?.form,
+          homeForm: teams?.home?.last_5?.form,
+          awayForm: teams?.away?.last_5?.form,
           h2hResults: h2h?.slice(0, 5).map((h: any) => ({
             homeGoals: h.goals?.home || 0,
             awayGoals: h.goals?.away || 0
           })),
-          homeWins: teams?.home?.league?.wins,
-          homeDraws: teams?.home?.league?.draws,
-          homeLosses: teams?.home?.league?.loses,
-          homeGoalsFor: teams?.home?.league?.goals?.for?.total,
-          homeGoalsAgainst: teams?.home?.league?.goals?.against?.total,
-          awayWins: teams?.away?.league?.wins,
-          awayDraws: teams?.away?.league?.draws,
-          awayLosses: teams?.away?.league?.loses,
-          awayGoalsFor: teams?.away?.league?.goals?.for?.total,
-          awayGoalsAgainst: teams?.away?.league?.goals?.against?.total,
+          homeGoalsFor: teams?.home?.last_5?.goals?.for?.total,
+          homeGoalsAgainst: teams?.home?.last_5?.goals?.against?.total,
+          awayGoalsFor: teams?.away?.last_5?.goals?.for?.total,
+          awayGoalsAgainst: teams?.away?.last_5?.goals?.against?.total,
           odds: parsedOdds,
         };
         
