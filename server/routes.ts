@@ -1942,15 +1942,70 @@ export async function registerRoutes(
       const displayDate = matchDate.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Europe/Istanbul' });
       const localTime = matchDate.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Europe/Istanbul' });
 
+      // STEP 1: Generate AI analysis FIRST (before publishing)
+      const homeTeamName = fixture.teams?.home?.name || '';
+      const awayTeamName = fixture.teams?.away?.name || '';
+      const homeLogo = fixture.teams?.home?.logo || '';
+      const awayLogo = fixture.teams?.away?.logo || '';
+      const leagueName = fixture.league?.name || '';
+      const leagueLogo = fixture.league?.logo || '';
+      const leagueId = fixture.league?.id;
+      
+      console.log(`[ManualPublish] Generating AI analysis for ${homeTeamName} vs ${awayTeamName}...`);
+      
+      const teams = apiPrediction?.teams;
+      const h2h = apiPrediction?.h2h || [];
+      const comparison = apiPrediction?.comparison;
+      
+      const matchData = {
+        homeTeam: homeTeamName,
+        awayTeam: awayTeamName,
+        league: leagueName,
+        leagueId: leagueId,
+        comparison: comparison || undefined,
+        homeForm: teams?.home?.league?.form,
+        awayForm: teams?.away?.league?.form,
+        h2hResults: h2h?.slice(0, 5).map((h: any) => ({
+          homeGoals: h.goals?.home || 0,
+          awayGoals: h.goals?.away || 0
+        })),
+        homeWins: teams?.home?.league?.wins,
+        homeDraws: teams?.home?.league?.draws,
+        homeLosses: teams?.home?.league?.loses,
+        homeGoalsFor: teams?.home?.league?.goals?.for?.total,
+        homeGoalsAgainst: teams?.home?.league?.goals?.against?.total,
+        awayWins: teams?.away?.league?.wins,
+        awayDraws: teams?.away?.league?.draws,
+        awayLosses: teams?.away?.league?.loses,
+        awayGoalsFor: teams?.away?.league?.goals?.for?.total,
+        awayGoalsAgainst: teams?.away?.league?.goals?.against?.total,
+        odds: parsedOddsCheck,
+      };
+      
+      const aiAnalysis = await generateMatchAnalysis(matchData);
+      
+      // STEP 2: Check if AI has a valid prediction
+      if (!aiAnalysis || aiAnalysis.karar === 'pas' || !aiAnalysis.predictions || aiAnalysis.predictions.length === 0) {
+        console.log(`[ManualPublish] AI returned 'pas' for ${homeTeamName} vs ${awayTeamName} - NOT publishing`);
+        return res.status(400).json({ 
+          message: 'Bu maç için güvenilir bir tahmin bulunamadı. AI analizi "pas" kararı verdi.',
+          reason: aiAnalysis?.analysis || 'AI değer bulunamadığı için bahis önermiyor.',
+          karar: 'pas'
+        });
+      }
+      
+      console.log(`[ManualPublish] AI approved: ${aiAnalysis.predictions.map(p => p.bet).join(', ')}`);
+      
+      // STEP 3: Now publish the match (AI has valid predictions)
       const published = await storage.publishMatch({
         fixture_id: fixtureId,
-        home_team: fixture.teams?.home?.name,
-        away_team: fixture.teams?.away?.name,
-        home_logo: fixture.teams?.home?.logo,
-        away_logo: fixture.teams?.away?.logo,
-        league_id: fixture.league?.id,
-        league_name: fixture.league?.name,
-        league_logo: fixture.league?.logo,
+        home_team: homeTeamName,
+        away_team: awayTeamName,
+        home_logo: homeLogo,
+        away_logo: awayLogo,
+        league_id: leagueId,
+        league_name: leagueName,
+        league_logo: leagueLogo,
         match_date: isoDate,
         match_time: localTime,
         timestamp: fixture.fixture?.timestamp,
@@ -1975,85 +2030,63 @@ export async function registerRoutes(
         status: 'pending',
         is_featured: isFeatured || false,
       });
-
-      res.json(published);
       
-      // Generate AI analysis with API-Football odds (same as auto-publish)
-      (async () => {
+      // STEP 4: Save AI predictions to best_bets
+      const riskToLevel: Record<string, string> = {
+        'expected': 'düşük',
+        'medium': 'orta',
+        'risky': 'yüksek'
+      };
+      
+      for (const pred of aiAnalysis.predictions) {
         try {
-          const homeTeamName = fixture.teams?.home?.name || '';
-          const awayTeamName = fixture.teams?.away?.name || '';
-          const homeLogo = fixture.teams?.home?.logo || '';
-          const awayLogo = fixture.teams?.away?.logo || '';
-          const leagueName = fixture.league?.name || '';
-          const leagueLogo = fixture.league?.logo || '';
-          const leagueId = fixture.league?.id;
-          
-          // Fetch API-Football odds
-          console.log(`[ManualPublish] Fetching API-Football odds for ${homeTeamName} vs ${awayTeamName}...`);
-          let parsedOdds: any = undefined;
-          try {
-            const oddsData = await apiFootball.getOdds(fixtureId);
-            parsedOdds = parseApiFootballOdds(oddsData);
-            if (parsedOdds.home || parsedOdds.over25) {
-              console.log(`[ManualPublish] API-Football odds found for ${homeTeamName} vs ${awayTeamName}`);
-            } else {
-              console.log(`[ManualPublish] No odds available for ${homeTeamName} vs ${awayTeamName}`);
-            }
-          } catch (oddsErr: any) {
-            console.log(`[ManualPublish] Odds fetch error: ${oddsErr.message}`);
-          }
-          
-          const teams = apiPrediction?.teams;
-          const h2h = apiPrediction?.h2h || [];
-          const comparison = apiPrediction?.comparison;
-          
-          // Prepare match data for AI (matching autoPublishService format)
-          const matchData = {
-            homeTeam: homeTeamName,
-            awayTeam: awayTeamName,
-            league: leagueName,
-            leagueId: leagueId,
-            comparison: comparison || undefined,
-            homeForm: teams?.home?.league?.form,
-            awayForm: teams?.away?.league?.form,
-            h2hResults: h2h?.slice(0, 5).map((h: any) => ({
-              homeGoals: h.goals?.home || 0,
-              awayGoals: h.goals?.away || 0
-            })),
-            homeWins: teams?.home?.league?.wins,
-            homeDraws: teams?.home?.league?.draws,
-            homeLosses: teams?.home?.league?.loses,
-            homeGoalsFor: teams?.home?.league?.goals?.for?.total,
-            homeGoalsAgainst: teams?.home?.league?.goals?.against?.total,
-            awayWins: teams?.away?.league?.wins,
-            awayDraws: teams?.away?.league?.draws,
-            awayLosses: teams?.away?.league?.loses,
-            awayGoalsFor: teams?.away?.league?.goals?.for?.total,
-            awayGoalsAgainst: teams?.away?.league?.goals?.against?.total,
-            odds: parsedOdds,
-          };
-          
-          // Generate AI analysis and save to best_bets (same as auto-publish)
-          console.log(`[ManualPublish] Generating AI predictions for ${homeTeamName} vs ${awayTeamName}...`);
-          await generateAndSavePredictions(
-            published.id,
-            fixtureId,
-            homeTeamName,
-            awayTeamName,
-            homeLogo,
-            awayLogo,
-            leagueName,
-            leagueLogo,
-            isoDate,
-            localTime,
-            matchData
+          await pool.query(
+            `INSERT INTO best_bets 
+             (match_id, fixture_id, home_team, away_team, home_logo, away_logo, 
+              league_name, league_logo, match_date, match_time,
+              bet_type, bet_description, confidence, risk_level, reasoning, result, date_for)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, 'pending', $16)
+             ON CONFLICT (fixture_id, date_for) DO NOTHING`,
+            [
+              published.id,
+              fixtureId,
+              homeTeamName,
+              awayTeamName,
+              homeLogo,
+              awayLogo,
+              leagueName,
+              leagueLogo,
+              isoDate,
+              localTime,
+              pred.bet,
+              '',
+              pred.confidence,
+              riskToLevel[pred.type] || 'orta',
+              pred.reasoning,
+              isoDate
+            ]
           );
-          console.log(`[ManualPublish] AI predictions saved for ${homeTeamName} vs ${awayTeamName}`);
-        } catch (e: any) {
-          console.error(`[ManualPublish] AI generation failed:`, e.message);
+          console.log(`[ManualPublish] Saved prediction: ${pred.bet} for fixture ${fixtureId}`);
+        } catch (err: any) {
+          if (err.code !== '23505') {
+            console.error(`[ManualPublish] Error saving prediction:`, err.message);
+          }
         }
-      })();
+      }
+      
+      // Cache the AI analysis
+      const aiCacheKey = `ai_analysis_v8_${fixtureId}`;
+      try {
+        await pool.query(
+          `INSERT INTO api_cache (key, value, expires_at)
+           VALUES ($1, $2, NOW() + INTERVAL '24 hours')
+           ON CONFLICT (key) DO UPDATE SET value = $2, expires_at = NOW() + INTERVAL '24 hours'`,
+          [aiCacheKey, JSON.stringify(aiAnalysis)]
+        );
+      } catch (e) { /* ignore cache errors */ }
+      
+      console.log(`[ManualPublish] Successfully published ${homeTeamName} vs ${awayTeamName} with ${aiAnalysis.predictions.length} predictions`);
+      res.json(published);
     } catch (error: any) {
       console.error('Publish match error:', error);
       res.status(500).json({ message: error.message });

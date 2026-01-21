@@ -651,7 +651,7 @@ export async function generateAndSavePredictions(
       }
     }
     
-    const cacheKey = `ai_analysis_v7_${fixtureId}`;
+    const cacheKey = `ai_analysis_v8_${fixtureId}`;
     try {
       await pool.query(
         `INSERT INTO api_cache (key, value, expires_at)
