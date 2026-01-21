@@ -1062,10 +1062,35 @@ export default function AdminPage() {
     return { over25, under25, btts, kilit };
   };
 
+  // Football day: 06:00 - 05:59 next day (matches before 06:00 belong to previous day)
+  const getFootballDate = (matchDate: Date): string => {
+    const hour = matchDate.getHours();
+    const adjustedDate = new Date(matchDate);
+    if (hour < 6) {
+      // Before 06:00 = previous football day
+      adjustedDate.setDate(adjustedDate.getDate() - 1);
+    }
+    return adjustedDate.toISOString().split('T')[0];
+  };
+
+  const getTodayFootballDate = (): string => {
+    const now = new Date();
+    return getFootballDate(now);
+  };
+
+  const getTomorrowFootballDate = (): string => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    // For tomorrow, we want the next football day starting at 06:00
+    tomorrow.setHours(12, 0, 0, 0); // Set to noon to ensure correct date
+    return tomorrow.toISOString().split('T')[0];
+  };
+
   const groupMatchesByDate = (matches: UpcomingMatch[]) => {
     const groups: { [key: string]: UpcomingMatch[] } = {};
     matches.forEach(match => {
-      const dateKey = match.date.split('T')[0];
+      const matchDate = new Date(match.date);
+      const dateKey = getFootballDate(matchDate);
       if (!groups[dateKey]) groups[dateKey] = [];
       groups[dateKey].push(match);
     });
@@ -1386,17 +1411,13 @@ export default function AdminPage() {
                   <div className="flex gap-3 flex-wrap">
                     <Button 
                       onClick={async () => {
-                        // Find today's matches with "bahis" AI decision from current results
-                        // Use localDate for proper TZ comparison
-                        const today = new Date();
-                        const todayStr = today.toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' }).split('.').reverse().join('-');
+                        // Find today's matches with "bahis" AI decision using football day logic
+                        const todayFootball = getTodayFootballDate();
                         
                         const bahisMatches = upcomingMatches.filter(m => {
                           const aiResult = aiCheckResults.get(m.id);
-                          // Use localDate if available, otherwise parse from date
-                          const matchDate = m.localDate || new Date(m.date).toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' });
-                          const matchDateFormatted = matchDate.includes('-') ? matchDate : matchDate.split('.').reverse().join('-');
-                          return aiResult?.karar === 'bahis' && matchDateFormatted === todayStr && !isMatchPublished(m.id);
+                          const matchFootballDate = getFootballDate(new Date(m.date));
+                          return aiResult?.karar === 'bahis' && matchFootballDate === todayFootball && !isMatchPublished(m.id);
                         });
                         
                         if (bahisMatches.length === 0) {
@@ -1440,18 +1461,13 @@ export default function AdminPage() {
                     </Button>
                     <Button 
                       onClick={async () => {
-                        // Find tomorrow's matches with "bahis" AI decision from current results
-                        // Use localDate for proper TZ comparison
-                        const tomorrow = new Date();
-                        tomorrow.setDate(tomorrow.getDate() + 1);
-                        const tomorrowStr = tomorrow.toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' }).split('.').reverse().join('-');
+                        // Find tomorrow's matches with "bahis" AI decision using football day logic
+                        const tomorrowFootball = getTomorrowFootballDate();
                         
                         const bahisMatches = upcomingMatches.filter(m => {
                           const aiResult = aiCheckResults.get(m.id);
-                          // Use localDate if available, otherwise parse from date
-                          const matchDate = m.localDate || new Date(m.date).toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' });
-                          const matchDateFormatted = matchDate.includes('-') ? matchDate : matchDate.split('.').reverse().join('-');
-                          return aiResult?.karar === 'bahis' && matchDateFormatted === tomorrowStr && !isMatchPublished(m.id);
+                          const matchFootballDate = getFootballDate(new Date(m.date));
+                          return aiResult?.karar === 'bahis' && matchFootballDate === tomorrowFootball && !isMatchPublished(m.id);
                         });
                         
                         if (bahisMatches.length === 0) {
@@ -1851,7 +1867,7 @@ export default function AdminPage() {
                         {groupMatchesByDate(getAdvancedFilteredMatches()).map(({ date, displayDate, matches }) => {
                           const summary = getDaySummary(matches);
                           const isExpanded = expandedDays.has(date);
-                          const isToday = date === new Date().toISOString().split('T')[0];
+                          const isToday = date === getTodayFootballDate();
                           
                           return (
                             <div key={date} className="border-b border-zinc-800 last:border-b-0">
