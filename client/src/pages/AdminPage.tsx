@@ -1514,13 +1514,6 @@ export default function AdminPage() {
                         <><Brain className="w-4 h-4 mr-2" /> AI Kontrol Et</>
                       )}
                     </Button>
-                    <Button onClick={() => loadUpcomingMatches(false)} disabled={loadingMatches} variant="outline" className="border-zinc-500/30 bg-zinc-500/10 hover:bg-zinc-500/20 text-zinc-400">
-                      {loadingMatches ? (
-                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Yükleniyor...</>
-                      ) : (
-                        <>Tüm Maçlar</>
-                      )}
-                    </Button>
                     <Button 
                       onClick={async () => {
                         const confirmed = confirm('⚠️ DİKKAT: Cache temizlenirse AI kontrol sonuçları da silinir!\n\nDevam etmek istiyor musunuz?');
@@ -1673,7 +1666,7 @@ export default function AdminPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-1 h-6 bg-blue-500 rounded-full" />
-                    <h3 className="text-lg font-bold text-white">Tüm Maçlar</h3>
+                    <h3 className="text-lg font-bold text-white">Maç Listesi</h3>
                     {upcomingMatches.length > 0 && (
                       <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
                         {upcomingMatches.length} maç
