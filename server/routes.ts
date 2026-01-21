@@ -822,8 +822,8 @@ export async function registerRoutes(
   app.get('/api/football/fixtures-validated', async (req, res) => {
     try {
       const dateParam = req.query.date as string | undefined;
-      const today = new Date();
-      const todayStr = today.toISOString().split('T')[0];
+      // Get today's date in Turkey timezone (Europe/Istanbul)
+      const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Istanbul' });
       
       // Only fetch the specified date or today (no tomorrow)
       const fetchDate = dateParam || todayStr;
