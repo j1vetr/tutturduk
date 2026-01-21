@@ -2016,51 +2016,67 @@ export async function registerRoutes(
       
       console.log(`[ManualPublish] AI approved: ${aiAnalysis.predictions.map(p => p.bet).join(', ')}`);
       
-      // STEP 3: Now publish the match (AI has valid predictions)
-      const published = await storage.publishMatch({
-        fixture_id: fixtureId,
-        home_team: homeTeamName,
-        away_team: awayTeamName,
-        home_logo: homeLogo,
-        away_logo: awayLogo,
-        league_id: leagueId,
-        league_name: leagueName,
-        league_logo: leagueLogo,
-        match_date: isoDate,
-        match_time: localTime,
-        timestamp: fixture.fixture?.timestamp,
-        api_advice: apiPrediction?.predictions?.advice,
-        api_winner_name: apiPrediction?.predictions?.winner?.name,
-        api_winner_comment: apiPrediction?.predictions?.winner?.comment,
-        api_percent_home: apiPrediction?.predictions?.percent?.home,
-        api_percent_draw: apiPrediction?.predictions?.percent?.draw,
-        api_percent_away: apiPrediction?.predictions?.percent?.away,
-        api_under_over: apiPrediction?.predictions?.under_over,
-        api_goals_home: apiPrediction?.predictions?.goals?.home,
-        api_goals_away: apiPrediction?.predictions?.goals?.away,
-        api_comparison: apiPrediction?.comparison,
-        api_h2h: apiPrediction?.h2h?.slice(0, 5).map((h: any) => ({
-          date: h.fixture?.date,
-          homeTeam: h.teams?.home?.name,
-          awayTeam: h.teams?.away?.name,
-          homeGoals: h.goals?.home,
-          awayGoals: h.goals?.away,
-        })),
-        api_teams: apiPrediction?.teams,
-        status: 'pending',
-        is_featured: isFeatured || false,
-      });
+      // STEP 3: Use transaction to publish match and save predictions atomically
+      const client = await pool.connect();
+      let published: any;
       
-      // STEP 4: Save AI predictions to best_bets
-      const riskToLevel: Record<string, string> = {
-        'expected': 'düşük',
-        'medium': 'orta',
-        'risky': 'yüksek'
-      };
-      
-      for (const pred of aiAnalysis.predictions) {
-        try {
-          await pool.query(
+      try {
+        await client.query('BEGIN');
+        
+        // Insert published match
+        const publishResult = await client.query(
+          `INSERT INTO published_matches 
+           (fixture_id, home_team, away_team, home_logo, away_logo, league_id, league_name, league_logo,
+            match_date, match_time, timestamp, api_advice, api_winner_name, api_winner_comment,
+            api_percent_home, api_percent_draw, api_percent_away, api_under_over,
+            api_goals_home, api_goals_away, api_comparison, api_h2h, api_teams, status, is_featured)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
+           RETURNING *`,
+          [
+            fixtureId,
+            homeTeamName,
+            awayTeamName,
+            homeLogo,
+            awayLogo,
+            leagueId,
+            leagueName,
+            leagueLogo,
+            isoDate,
+            localTime,
+            fixture.fixture?.timestamp,
+            apiPrediction?.predictions?.advice || null,
+            apiPrediction?.predictions?.winner?.name || null,
+            apiPrediction?.predictions?.winner?.comment || null,
+            apiPrediction?.predictions?.percent?.home || null,
+            apiPrediction?.predictions?.percent?.draw || null,
+            apiPrediction?.predictions?.percent?.away || null,
+            apiPrediction?.predictions?.under_over || null,
+            apiPrediction?.predictions?.goals?.home || null,
+            apiPrediction?.predictions?.goals?.away || null,
+            apiPrediction?.comparison ? JSON.stringify(apiPrediction.comparison) : null,
+            apiPrediction?.h2h ? JSON.stringify(apiPrediction.h2h.slice(0, 5).map((h: any) => ({
+              date: h.fixture?.date,
+              homeTeam: h.teams?.home?.name,
+              awayTeam: h.teams?.away?.name,
+              homeGoals: h.goals?.home,
+              awayGoals: h.goals?.away,
+            }))) : null,
+            apiPrediction?.teams ? JSON.stringify(apiPrediction.teams) : null,
+            'pending',
+            isFeatured || false
+          ]
+        );
+        published = publishResult.rows[0];
+        
+        // Save predictions to best_bets
+        const riskToLevel: Record<string, string> = {
+          'expected': 'düşük',
+          'medium': 'orta',
+          'risky': 'yüksek'
+        };
+        
+        for (const pred of aiAnalysis.predictions) {
+          await client.query(
             `INSERT INTO best_bets 
              (match_id, fixture_id, home_team, away_team, home_logo, away_logo, 
               league_name, league_logo, match_date, match_time,
@@ -2087,14 +2103,18 @@ export async function registerRoutes(
             ]
           );
           console.log(`[ManualPublish] Saved prediction: ${pred.bet} for fixture ${fixtureId}`);
-        } catch (err: any) {
-          if (err.code !== '23505') {
-            console.error(`[ManualPublish] Error saving prediction:`, err.message);
-          }
         }
+        
+        await client.query('COMMIT');
+      } catch (txError: any) {
+        await client.query('ROLLBACK');
+        console.error(`[ManualPublish] Transaction failed:`, txError.message);
+        throw new Error('Maç yayınlanırken hata oluştu: ' + txError.message);
+      } finally {
+        client.release();
       }
       
-      // Cache the AI analysis
+      // Cache the AI analysis (outside transaction - non-critical)
       const aiCacheKey = `ai_analysis_v8_${fixtureId}`;
       try {
         await pool.query(
