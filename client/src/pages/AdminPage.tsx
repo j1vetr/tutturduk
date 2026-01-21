@@ -1384,9 +1384,6 @@ export default function AdminPage() {
                     <p className="text-sm text-zinc-400">Maçları yayınla, öne çıkar ve yönet</p>
                   </div>
                   <div className="flex gap-3 flex-wrap">
-                    <Button onClick={loadPublishedMatches} variant="outline" className="border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400">
-                      <RefreshCcw className="w-4 h-4 mr-2" /> Yenile
-                    </Button>
                     <Button 
                       onClick={async () => {
                         // Find today's matches with "bahis" AI decision from current results
