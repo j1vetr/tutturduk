@@ -441,6 +441,11 @@ export default function AdminPage() {
   const [selectedMatchIds, setSelectedMatchIds] = useState<Set<number>>(new Set());
   const [bulkPublishing, setBulkPublishing] = useState(false);
   
+  // AI Check states
+  const [aiCheckResults, setAiCheckResults] = useState<Map<number, { karar: string; prediction?: any; reason?: string }>>(new Map());
+  const [aiCheckLoading, setAiCheckLoading] = useState(false);
+  const [aiCheckProgress, setAiCheckProgress] = useState({ current: 0, total: 0 });
+  
   // Form states
   const [newCode, setNewCode] = useState({ code: "", type: "standard", maxUses: 1 });
   const [newPrediction, setNewPrediction] = useState({
@@ -478,6 +483,64 @@ export default function AdminPage() {
       if (res.ok) setPublishedMatches(await res.json());
     } catch (error) {
       console.error('Failed to load published matches:', error);
+    }
+  };
+
+  const runAICheck = async () => {
+    if (upcomingMatches.length === 0) {
+      toast({ variant: "destructive", description: "Önce maçları yükleyin" });
+      return;
+    }
+    
+    const unpublishedMatches = upcomingMatches.filter(m => !isMatchPublished(m.id));
+    if (unpublishedMatches.length === 0) {
+      toast({ description: "Tüm maçlar zaten yayınlanmış" });
+      return;
+    }
+    
+    setAiCheckLoading(true);
+    setAiCheckProgress({ current: 0, total: unpublishedMatches.length });
+    setAiCheckResults(new Map());
+    
+    const fixtureIds = unpublishedMatches.map(m => m.id);
+    
+    try {
+      toast({ title: "AI Kontrol Başladı", description: `${fixtureIds.length} maç analiz ediliyor...` });
+      
+      const res = await fetch('/api/admin/matches/ai-check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ fixtureIds })
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        const newResults = new Map<number, { karar: string; prediction?: any; reason?: string }>();
+        
+        for (const result of data.results) {
+          newResults.set(result.fixtureId, {
+            karar: result.karar,
+            prediction: result.prediction,
+            reason: result.reason
+          });
+        }
+        
+        setAiCheckResults(newResults);
+        toast({ 
+          title: "AI Kontrol Tamamlandı", 
+          description: `${data.summary.bahis} bahis, ${data.summary.pas} pas`,
+          className: data.summary.bahis > 0 ? 'bg-emerald-500 text-white border-none' : 'bg-amber-500 text-black border-none'
+        });
+      } else {
+        const err = await res.json();
+        toast({ variant: "destructive", description: err.message });
+      }
+    } catch (error) {
+      console.error('AI check failed:', error);
+      toast({ variant: "destructive", description: "AI kontrol başarısız" });
+    } finally {
+      setAiCheckLoading(false);
     }
   };
 
@@ -1315,6 +1378,17 @@ export default function AdminPage() {
                         <><Target className="w-4 h-4 mr-2" /> Kaliteli Maçlar</>
                       )}
                     </Button>
+                    <Button 
+                      onClick={runAICheck} 
+                      disabled={aiCheckLoading || upcomingMatches.length === 0} 
+                      className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold hover:from-purple-500 hover:to-indigo-500"
+                    >
+                      {aiCheckLoading ? (
+                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> AI Analiz Yapılıyor...</>
+                      ) : (
+                        <><Brain className="w-4 h-4 mr-2" /> AI Kontrol Et</>
+                      )}
+                    </Button>
                     <Button onClick={() => loadUpcomingMatches(false)} disabled={loadingMatches} variant="outline" className="border-zinc-500/30 bg-zinc-500/10 hover:bg-zinc-500/20 text-zinc-400">
                       {loadingMatches ? (
                         <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Yükleniyor...</>
@@ -1477,6 +1551,16 @@ export default function AdminPage() {
                         {upcomingMatches.length} maç
                       </Badge>
                     )}
+                    {aiCheckResults.size > 0 && (
+                      <>
+                        <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
+                          {Array.from(aiCheckResults.values()).filter(r => r.karar === 'bahis').length} bahis
+                        </Badge>
+                        <Badge className="bg-red-500/20 text-red-400 border-red-500/30">
+                          {Array.from(aiCheckResults.values()).filter(r => r.karar === 'pas').length} pas
+                        </Badge>
+                      </>
+                    )}
                   </div>
                   
                   {/* Bulk Actions */}
@@ -1504,6 +1588,22 @@ export default function AdminPage() {
                     >
                       Tümünü Seç
                     </Button>
+                    {aiCheckResults.size > 0 && (
+                      <Button
+                        onClick={() => {
+                          const bahisMatchIds = upcomingMatches
+                            .filter(m => !isMatchPublished(m.id) && aiCheckResults.get(m.id)?.karar === 'bahis')
+                            .map(m => m.id);
+                          setSelectedMatchIds(new Set(bahisMatchIds));
+                        }}
+                        variant="outline"
+                        size="sm"
+                        className="h-8 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+                      >
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        Bahis Olanları Seç
+                      </Button>
+                    )}
                     <Button
                       onClick={bulkPublishMatches}
                       disabled={selectedMatchIds.size === 0 || bulkPublishing}
@@ -1761,6 +1861,35 @@ export default function AdminPage() {
                                                 </span>
                                               )}
                                             </div>
+                                            
+                                            {/* AI Check Results */}
+                                            {aiCheckResults.has(match.id) && (
+                                              <div className="flex items-center gap-2 ml-2">
+                                                {aiCheckResults.get(match.id)?.karar === 'bahis' ? (
+                                                  <div className="flex items-center gap-1">
+                                                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-gradient-to-r from-emerald-500/30 to-green-500/30 text-emerald-300 border border-emerald-500/40 flex items-center gap-1">
+                                                      <CheckCircle className="w-3 h-3" />
+                                                      BAHİS
+                                                    </span>
+                                                    {aiCheckResults.get(match.id)?.prediction && (
+                                                      <span className="px-2 py-0.5 rounded text-[9px] font-medium bg-zinc-700/50 text-zinc-200">
+                                                        {aiCheckResults.get(match.id)?.prediction.bet} ({aiCheckResults.get(match.id)?.prediction.confidence}%)
+                                                      </span>
+                                                    )}
+                                                  </div>
+                                                ) : (
+                                                  <div className="flex items-center gap-1">
+                                                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-red-500/20 text-red-400 border border-red-500/30 flex items-center gap-1">
+                                                      <XCircle className="w-3 h-3" />
+                                                      PAS
+                                                    </span>
+                                                    <span className="text-[9px] text-zinc-500 max-w-[150px] truncate" title={aiCheckResults.get(match.id)?.reason}>
+                                                      {aiCheckResults.get(match.id)?.reason?.substring(0, 40)}...
+                                                    </span>
+                                                  </div>
+                                                )}
+                                              </div>
+                                            )}
                                           </div>
                                           
                                           {/* Status & Actions */}
@@ -1795,12 +1924,18 @@ export default function AdminPage() {
                                                 ) : null}
                                                 <Button 
                                                   onClick={() => publishMatch(match)}
-                                                  disabled={publishingId === match.id}
+                                                  disabled={publishingId === match.id || aiCheckResults.get(match.id)?.karar === 'pas'}
                                                   size="sm"
-                                                  className="h-8 bg-emerald-500 text-black font-bold hover:bg-emerald-400 text-xs"
+                                                  className={`h-8 font-bold text-xs ${
+                                                    aiCheckResults.get(match.id)?.karar === 'pas' 
+                                                      ? 'bg-zinc-700 text-zinc-500 cursor-not-allowed'
+                                                      : 'bg-emerald-500 text-black hover:bg-emerald-400'
+                                                  }`}
                                                 >
                                                   {publishingId === match.id ? (
                                                     <Loader2 className="w-3 h-3 animate-spin" />
+                                                  ) : aiCheckResults.get(match.id)?.karar === 'pas' ? (
+                                                    'Pas'
                                                   ) : (
                                                     'Yayınla'
                                                   )}

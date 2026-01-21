@@ -1884,6 +1884,135 @@ export async function registerRoutes(
     }
   });
 
+  // Admin: AI pre-check for multiple matches
+  app.post('/api/admin/matches/ai-check', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Yetkiniz yok' });
+    }
+    
+    const { fixtureIds } = req.body;
+    if (!fixtureIds || !Array.isArray(fixtureIds) || fixtureIds.length === 0) {
+      return res.status(400).json({ message: 'Fixture ID listesi gerekli' });
+    }
+    
+    console.log(`[AICheck] Starting AI check for ${fixtureIds.length} matches`);
+    const results: any[] = [];
+    
+    for (const fixtureId of fixtureIds) {
+      try {
+        // Check cache first
+        const aiCacheKey = `ai_analysis_v8_${fixtureId}`;
+        const cachedResult = await pool.query(
+          'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
+          [aiCacheKey]
+        );
+        
+        if (cachedResult.rows.length > 0) {
+          const cached = JSON.parse(cachedResult.rows[0].value);
+          results.push({
+            fixtureId,
+            karar: cached.karar || (cached.predictions?.length > 0 ? 'bahis' : 'pas'),
+            prediction: cached.predictions?.[0] || null,
+            reason: cached.karar === 'pas' ? (cached.analysis || 'Değer bulunamadı') : null,
+            cached: true
+          });
+          continue;
+        }
+        
+        // Fetch fixture data
+        const fixture = await apiFootball.getFixtureById(fixtureId);
+        if (!fixture) {
+          results.push({ fixtureId, karar: 'pas', reason: 'Maç bilgisi alınamadı', cached: false });
+          continue;
+        }
+        
+        // Fetch prediction and odds data
+        const [apiPrediction, oddsData] = await Promise.all([
+          apiFootball.getPredictions(fixtureId),
+          apiFootball.getOdds(fixtureId)
+        ]);
+        
+        const teams = apiPrediction?.teams;
+        const h2h = apiPrediction?.h2h;
+        const homeTeamName = fixture.teams?.home?.name || 'Ev Sahibi';
+        const awayTeamName = fixture.teams?.away?.name || 'Deplasman';
+        const leagueName = fixture.league?.name || 'Bilinmeyen Lig';
+        
+        // Parse odds
+        const parsedOdds = parseApiFootballOdds(oddsData);
+        
+        // Prepare match data for AI
+        const matchData = {
+          homeTeam: homeTeamName,
+          awayTeam: awayTeamName,
+          league: leagueName,
+          matchDate: fixture.fixture?.date,
+          homeForm: teams?.home?.league?.form,
+          awayForm: teams?.away?.league?.form,
+          h2hResults: h2h?.slice(0, 5).map((h: any) => ({
+            homeGoals: h.goals?.home || 0,
+            awayGoals: h.goals?.away || 0
+          })),
+          homeWins: teams?.home?.league?.wins,
+          homeDraws: teams?.home?.league?.draws,
+          homeLosses: teams?.home?.league?.loses,
+          homeGoalsFor: teams?.home?.league?.goals?.for?.total,
+          homeGoalsAgainst: teams?.home?.league?.goals?.against?.total,
+          awayWins: teams?.away?.league?.wins,
+          awayDraws: teams?.away?.league?.draws,
+          awayLosses: teams?.away?.league?.loses,
+          awayGoalsFor: teams?.away?.league?.goals?.for?.total,
+          awayGoalsAgainst: teams?.away?.league?.goals?.against?.total,
+          odds: parsedOdds,
+        };
+        
+        // Run AI analysis
+        const aiAnalysis = await generateMatchAnalysis(matchData);
+        
+        // Cache the result
+        try {
+          await pool.query(
+            `INSERT INTO api_cache (key, value, expires_at)
+             VALUES ($1, $2, NOW() + INTERVAL '24 hours')
+             ON CONFLICT (key) DO UPDATE SET value = $2, expires_at = NOW() + INTERVAL '24 hours'`,
+            [aiCacheKey, JSON.stringify(aiAnalysis)]
+          );
+        } catch (e) { /* ignore cache errors */ }
+        
+        const karar = (!aiAnalysis || aiAnalysis.karar === 'pas' || !aiAnalysis.predictions?.length) ? 'pas' : 'bahis';
+        
+        results.push({
+          fixtureId,
+          karar,
+          prediction: aiAnalysis?.predictions?.[0] || null,
+          reason: karar === 'pas' ? (aiAnalysis?.analysis || 'AI değer bulamadı') : null,
+          cached: false
+        });
+        
+        console.log(`[AICheck] ${homeTeamName} vs ${awayTeamName}: ${karar}`);
+        
+      } catch (error: any) {
+        console.error(`[AICheck] Error for fixture ${fixtureId}:`, error.message);
+        results.push({
+          fixtureId,
+          karar: 'pas',
+          reason: 'Analiz hatası: ' + error.message,
+          cached: false
+        });
+      }
+    }
+    
+    const bahisCount = results.filter(r => r.karar === 'bahis').length;
+    const pasCount = results.filter(r => r.karar === 'pas').length;
+    console.log(`[AICheck] Completed: ${bahisCount} bahis, ${pasCount} pas`);
+    
+    res.json({ results, summary: { total: results.length, bahis: bahisCount, pas: pasCount } });
+  });
+
   // Admin: publish a match
   app.post('/api/admin/matches/publish', async (req, res) => {
     if (!req.session.userId) {
