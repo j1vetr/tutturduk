@@ -2109,7 +2109,8 @@ export async function registerRoutes(
       const leagueId = fixture.league?.id;
       
       const matchDate = new Date(fixture.fixture?.date);
-      const isoDate = matchDate.toISOString().split('T')[0];
+      // Use Turkey timezone for the date (sv-SE gives YYYY-MM-DD format)
+      const isoDate = matchDate.toLocaleDateString('sv-SE', { timeZone: 'Europe/Istanbul' });
       const displayDate = matchDate.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Europe/Istanbul' });
       const localTime = matchDate.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Europe/Istanbul' });
 
