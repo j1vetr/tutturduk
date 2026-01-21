@@ -2072,7 +2072,32 @@ export async function registerRoutes(
         return res.status(400).json({ message: 'Bu maç zaten yayınlanmış' });
       }
 
-      // Get fixture details
+      // STEP 1: Check AI cache FIRST - if exists with "bahis", skip all validations
+      const aiCacheKey = `ai_analysis_v8_${fixtureId}`;
+      let aiAnalysis: any = null;
+      let hasCachedAI = false;
+      
+      const cachedAI = await pool.query(
+        'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
+        [aiCacheKey]
+      );
+      
+      if (cachedAI.rows.length > 0) {
+        aiAnalysis = JSON.parse(cachedAI.rows[0].value);
+        hasCachedAI = true;
+        console.log(`[ManualPublish] Found cached AI analysis for fixture ${fixtureId}`);
+        
+        // If cached analysis says "pas", reject immediately
+        if (aiAnalysis.karar === 'pas' || !aiAnalysis.predictions || aiAnalysis.predictions.length === 0) {
+          return res.status(400).json({ 
+            message: 'Bu maç için AI "pas" kararı vermiş.',
+            reason: aiAnalysis?.analysis || 'AI değer bulunamadığı için bahis önermiyor.',
+            karar: 'pas'
+          });
+        }
+      }
+
+      // Get fixture details (needed for publishing)
       const cacheKey = `fixture_${fixtureId}`;
       const fixture = await getCachedData(cacheKey, async () => {
         return apiFootball.getFixtureById(fixtureId);
@@ -2082,57 +2107,6 @@ export async function registerRoutes(
         return res.status(404).json({ message: 'Maç bulunamadı' });
       }
 
-      // Get API prediction
-      const predCacheKey = `predictions_${fixtureId}`;
-      let apiPrediction: any = null;
-      try {
-        apiPrediction = await getCachedData(predCacheKey, async () => {
-          return apiFootball.getPrediction(fixtureId);
-        }, 120);
-      } catch (e) {
-        console.log('No prediction available for fixture', fixtureId);
-      }
-
-      // Check if match has valid statistics
-      if (!hasValidStatistics(apiPrediction)) {
-        const statsScore = getStatisticsScore(apiPrediction);
-        console.log(`[Publish] Fixture ${fixtureId} has low statistics score: ${statsScore}`);
-        if (statsScore < 30) {
-          return res.status(400).json({ 
-            message: 'Bu maç için yeterli istatistik verisi yok. Sadece istatistik verisi olan maçlar yayınlanabilir.',
-            statsScore 
-          });
-        }
-      }
-
-      // Check if match has valid odds (same as auto-publish)
-      let parsedOddsCheck: any = {};
-      try {
-        const oddsData = await apiFootball.getOdds(fixtureId);
-        parsedOddsCheck = parseApiFootballOdds(oddsData);
-      } catch (e) {
-        console.log(`[Publish] No odds available for fixture ${fixtureId}`);
-      }
-      
-      const hasBasicOdds = parsedOddsCheck.home && parsedOddsCheck.draw && parsedOddsCheck.away;
-      const hasOverUnderOdds = parsedOddsCheck.over25 || parsedOddsCheck.over15 || parsedOddsCheck.over35;
-      const hasBttsOdds = parsedOddsCheck.bttsYes && parsedOddsCheck.bttsNo;
-      
-      if (!hasBasicOdds || (!hasOverUnderOdds && !hasBttsOdds)) {
-        return res.status(400).json({ 
-          message: 'Bu maç için yeterli oran verisi yok. MS oranları ve Alt/Üst veya KG oranları gereklidir.',
-          hasBasicOdds,
-          hasOverUnderOdds,
-          hasBttsOdds
-        });
-      }
-
-      const matchDate = new Date(fixture.fixture?.date);
-      const isoDate = matchDate.toISOString().split('T')[0]; // YYYY-MM-DD format for database
-      const displayDate = matchDate.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Europe/Istanbul' });
-      const localTime = matchDate.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Europe/Istanbul' });
-
-      // STEP 1: Check AI cache first, if not found then generate
       const homeTeamName = fixture.teams?.home?.name || '';
       const awayTeamName = fixture.teams?.away?.name || '';
       const homeLogo = fixture.teams?.home?.logo || '';
@@ -2141,19 +2115,62 @@ export async function registerRoutes(
       const leagueLogo = fixture.league?.logo || '';
       const leagueId = fixture.league?.id;
       
-      // Check AI cache first (from AI pre-check)
-      const aiCacheKey = `ai_analysis_v8_${fixtureId}`;
-      let aiAnalysis: any = null;
+      const matchDate = new Date(fixture.fixture?.date);
+      const isoDate = matchDate.toISOString().split('T')[0];
+      const displayDate = matchDate.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Europe/Istanbul' });
+      const localTime = matchDate.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Europe/Istanbul' });
+
+      // If we have cached AI with "bahis", skip all validations and API calls
+      let apiPrediction: any = null;
+      let parsedOddsCheck: any = {};
       
-      const cachedAI = await pool.query(
-        'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
-        [aiCacheKey]
-      );
-      
-      if (cachedAI.rows.length > 0) {
-        aiAnalysis = JSON.parse(cachedAI.rows[0].value);
-        console.log(`[ManualPublish] Using cached AI analysis for ${homeTeamName} vs ${awayTeamName}`);
-      } else {
+      if (!hasCachedAI) {
+        console.log(`[ManualPublish] No cached AI, running full validation for ${homeTeamName} vs ${awayTeamName}...`);
+        
+        // Get API prediction
+        const predCacheKey = `predictions_${fixtureId}`;
+        try {
+          apiPrediction = await getCachedData(predCacheKey, async () => {
+            return apiFootball.getPrediction(fixtureId);
+          }, 120);
+        } catch (e) {
+          console.log('No prediction available for fixture', fixtureId);
+        }
+
+        // Check if match has valid statistics
+        if (!hasValidStatistics(apiPrediction)) {
+          const statsScore = getStatisticsScore(apiPrediction);
+          console.log(`[Publish] Fixture ${fixtureId} has low statistics score: ${statsScore}`);
+          if (statsScore < 30) {
+            return res.status(400).json({ 
+              message: 'Bu maç için yeterli istatistik verisi yok. Sadece istatistik verisi olan maçlar yayınlanabilir.',
+              statsScore 
+            });
+          }
+        }
+
+        // Check if match has valid odds
+        try {
+          const oddsData = await apiFootball.getOdds(fixtureId);
+          parsedOddsCheck = parseApiFootballOdds(oddsData);
+        } catch (e) {
+          console.log(`[Publish] No odds available for fixture ${fixtureId}`);
+        }
+        
+        const hasBasicOdds = parsedOddsCheck.home && parsedOddsCheck.draw && parsedOddsCheck.away;
+        const hasOverUnderOdds = parsedOddsCheck.over25 || parsedOddsCheck.over15 || parsedOddsCheck.over35;
+        const hasBttsOdds = parsedOddsCheck.bttsYes && parsedOddsCheck.bttsNo;
+        
+        if (!hasBasicOdds || (!hasOverUnderOdds && !hasBttsOdds)) {
+          return res.status(400).json({ 
+            message: 'Bu maç için yeterli oran verisi yok. MS oranları ve Alt/Üst veya KG oranları gereklidir.',
+            hasBasicOdds,
+            hasOverUnderOdds,
+            hasBttsOdds
+          });
+        }
+
+        // Generate AI analysis
         console.log(`[ManualPublish] Generating AI analysis for ${homeTeamName} vs ${awayTeamName}...`);
         
         const teams = apiPrediction?.teams;
