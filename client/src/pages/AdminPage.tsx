@@ -1388,75 +1388,101 @@ export default function AdminPage() {
                     </Button>
                     <Button 
                       onClick={async () => {
-                        toast({ title: 'Bugün yayınlanıyor...', description: 'Bugünün maçları çekiliyor (saat başı 5 maç, max 70)...', className: 'bg-emerald-500 text-white border-none' });
-                        try {
-                          const res = await fetch('/api/admin/auto-publish-today', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            credentials: 'include',
-                            body: JSON.stringify({ totalLimit: 70, perHour: 5 })
-                          });
-                          const data = await res.json();
-                          if (res.ok) {
-                            toast({ title: 'Bugünün Maçları', description: data.message, className: 'bg-emerald-500 text-white border-none' });
-                            loadPublishedMatches();
-                          } else {
-                            toast({ variant: 'destructive', description: data.message });
-                          }
-                        } catch (e) {
-                          toast({ variant: 'destructive', description: 'İşlem başarısız' });
+                        // Find today's matches with "bahis" AI decision from current results
+                        const todayStr = new Date().toISOString().split('T')[0];
+                        const bahisMatches = upcomingMatches.filter(m => {
+                          const aiResult = aiCheckResults.get(m.id);
+                          const matchDate = new Date(m.date).toISOString().split('T')[0];
+                          return aiResult?.karar === 'bahis' && matchDate === todayStr && !isMatchPublished(m.id);
+                        });
+                        
+                        if (bahisMatches.length === 0) {
+                          toast({ variant: 'destructive', description: 'Bugün için AI onaylı (bahis) maç bulunamadı. Önce AI Kontrol yapın.' });
+                          return;
                         }
+                        
+                        setBulkPublishing(true);
+                        toast({ title: 'Bugünün Maçları Yayınlanıyor...', description: `${bahisMatches.length} AI onaylı maç yayınlanacak...`, className: 'bg-emerald-500 text-white border-none' });
+                        
+                        let success = 0, failed = 0;
+                        for (const match of bahisMatches) {
+                          try {
+                            const res = await fetch('/api/admin/matches/publish', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              credentials: 'include',
+                              body: JSON.stringify({ fixtureId: match.id, isFeatured: false })
+                            });
+                            if (res.ok) success++;
+                            else failed++;
+                          } catch { failed++; }
+                        }
+                        
+                        setBulkPublishing(false);
+                        loadPublishedMatches();
+                        toast({ 
+                          title: 'Bugünün Maçları', 
+                          description: `${success} maç yayınlandı${failed > 0 ? `, ${failed} başarısız` : ''}`,
+                          className: success > 0 ? 'bg-emerald-500 text-white border-none' : 'bg-red-500 text-white border-none'
+                        });
                       }}
+                      disabled={bulkPublishing || aiCheckResults.size === 0}
                       className="bg-emerald-500 text-black font-bold hover:bg-emerald-400"
                     >
-                      <Zap className="w-4 h-4 mr-2" /> Bugünün Maçları
+                      {bulkPublishing ? (
+                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Yayınlanıyor...</>
+                      ) : (
+                        <><Zap className="w-4 h-4 mr-2" /> Bugünün Maçları</>
+                      )}
                     </Button>
                     <Button 
                       onClick={async () => {
-                        setLoadingMatches(true);
-                        toast({ title: 'Yarının Maçları Çekiliyor...', description: 'Kaliteli maçlar filtreleniyor...', className: 'bg-blue-500 text-white border-none' });
-                        try {
-                          // Fetch tomorrow's quality matches
-                          const tomorrow = new Date();
-                          tomorrow.setDate(tomorrow.getDate() + 1);
-                          const dateStr = tomorrow.toISOString().split('T')[0];
-                          
-                          const res = await fetch(`/api/football/fixtures-validated?date=${dateStr}`, {
-                            credentials: 'include'
-                          });
-                          
-                          if (res.ok) {
-                            const data = await res.json();
-                            if (data.matches && data.matches.length > 0) {
-                              setUpcomingMatches(data.matches);
-                              toast({ 
-                                title: 'Yarının Maçları Yüklendi', 
-                                description: `${data.matches.length} kaliteli maç bulundu. AI Kontrol başlatılıyor...`,
-                                className: 'bg-blue-500 text-white border-none'
-                              });
-                              setLoadingMatches(false);
-                              // Run AI check on tomorrow's matches
-                              const fixtureIds = data.matches.map((m: UpcomingMatch) => m.id);
-                              await runAICheck(fixtureIds);
-                            } else {
-                              toast({ variant: 'destructive', description: 'Yarın için kaliteli maç bulunamadı' });
-                            }
-                          } else {
-                            toast({ variant: 'destructive', description: 'Maçlar yüklenemedi' });
-                          }
-                        } catch (e) {
-                          toast({ variant: 'destructive', description: 'İşlem başarısız' });
-                        } finally {
-                          setLoadingMatches(false);
+                        // Find tomorrow's matches with "bahis" AI decision from current results
+                        const tomorrow = new Date();
+                        tomorrow.setDate(tomorrow.getDate() + 1);
+                        const tomorrowStr = tomorrow.toISOString().split('T')[0];
+                        
+                        const bahisMatches = upcomingMatches.filter(m => {
+                          const aiResult = aiCheckResults.get(m.id);
+                          const matchDate = new Date(m.date).toISOString().split('T')[0];
+                          return aiResult?.karar === 'bahis' && matchDate === tomorrowStr && !isMatchPublished(m.id);
+                        });
+                        
+                        if (bahisMatches.length === 0) {
+                          toast({ variant: 'destructive', description: 'Yarın için AI onaylı (bahis) maç bulunamadı. Önce AI Kontrol yapın.' });
+                          return;
                         }
+                        
+                        setBulkPublishing(true);
+                        toast({ title: 'Yarının Maçları Yayınlanıyor...', description: `${bahisMatches.length} AI onaylı maç yayınlanacak...`, className: 'bg-blue-500 text-white border-none' });
+                        
+                        let success = 0, failed = 0;
+                        for (const match of bahisMatches) {
+                          try {
+                            const res = await fetch('/api/admin/matches/publish', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              credentials: 'include',
+                              body: JSON.stringify({ fixtureId: match.id, isFeatured: false })
+                            });
+                            if (res.ok) success++;
+                            else failed++;
+                          } catch { failed++; }
+                        }
+                        
+                        setBulkPublishing(false);
+                        loadPublishedMatches();
+                        toast({ 
+                          title: 'Yarının Maçları', 
+                          description: `${success} maç yayınlandı${failed > 0 ? `, ${failed} başarısız` : ''}`,
+                          className: success > 0 ? 'bg-blue-500 text-white border-none' : 'bg-red-500 text-white border-none'
+                        });
                       }}
-                      disabled={loadingMatches || aiCheckLoading}
+                      disabled={bulkPublishing || aiCheckResults.size === 0}
                       className="bg-blue-500 text-white font-bold hover:bg-blue-400"
                     >
-                      {loadingMatches ? (
-                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Yükleniyor...</>
-                      ) : aiCheckLoading ? (
-                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> AI Kontrol...</>
+                      {bulkPublishing ? (
+                        <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Yayınlanıyor...</>
                       ) : (
                         <><Zap className="w-4 h-4 mr-2" /> Yarının Maçları</>
                       )}
