@@ -717,7 +717,8 @@ export default function AdminPage() {
         const res = await fetch('/api/football/fixtures-validated');
         if (res.ok) {
           const data = await res.json();
-          const formatted = data.map((m: any) => ({
+          const matchesArray = data.matches || data; // Support both { matches } and raw array
+          const formatted = matchesArray.map((m: any) => ({
             id: m.id,
             date: m.date,
             timestamp: m.timestamp,
@@ -1389,15 +1390,20 @@ export default function AdminPage() {
                     <Button 
                       onClick={async () => {
                         // Find today's matches with "bahis" AI decision from current results
-                        const todayStr = new Date().toISOString().split('T')[0];
+                        // Use localDate for proper TZ comparison
+                        const today = new Date();
+                        const todayStr = today.toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' }).split('.').reverse().join('-');
+                        
                         const bahisMatches = upcomingMatches.filter(m => {
                           const aiResult = aiCheckResults.get(m.id);
-                          const matchDate = new Date(m.date).toISOString().split('T')[0];
-                          return aiResult?.karar === 'bahis' && matchDate === todayStr && !isMatchPublished(m.id);
+                          // Use localDate if available, otherwise parse from date
+                          const matchDate = m.localDate || new Date(m.date).toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' });
+                          const matchDateFormatted = matchDate.includes('-') ? matchDate : matchDate.split('.').reverse().join('-');
+                          return aiResult?.karar === 'bahis' && matchDateFormatted === todayStr && !isMatchPublished(m.id);
                         });
                         
                         if (bahisMatches.length === 0) {
-                          toast({ variant: 'destructive', description: 'Bugün için AI onaylı (bahis) maç bulunamadı. Önce AI Kontrol yapın.' });
+                          toast({ variant: 'destructive', description: 'Bugün için AI onaylı (bahis) maç bulunamadı. Önce "Kaliteli Maçlar" çekip "AI Kontrol Et" yapın.' });
                           return;
                         }
                         
@@ -1438,18 +1444,21 @@ export default function AdminPage() {
                     <Button 
                       onClick={async () => {
                         // Find tomorrow's matches with "bahis" AI decision from current results
+                        // Use localDate for proper TZ comparison
                         const tomorrow = new Date();
                         tomorrow.setDate(tomorrow.getDate() + 1);
-                        const tomorrowStr = tomorrow.toISOString().split('T')[0];
+                        const tomorrowStr = tomorrow.toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' }).split('.').reverse().join('-');
                         
                         const bahisMatches = upcomingMatches.filter(m => {
                           const aiResult = aiCheckResults.get(m.id);
-                          const matchDate = new Date(m.date).toISOString().split('T')[0];
-                          return aiResult?.karar === 'bahis' && matchDate === tomorrowStr && !isMatchPublished(m.id);
+                          // Use localDate if available, otherwise parse from date
+                          const matchDate = m.localDate || new Date(m.date).toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' });
+                          const matchDateFormatted = matchDate.includes('-') ? matchDate : matchDate.split('.').reverse().join('-');
+                          return aiResult?.karar === 'bahis' && matchDateFormatted === tomorrowStr && !isMatchPublished(m.id);
                         });
                         
                         if (bahisMatches.length === 0) {
-                          toast({ variant: 'destructive', description: 'Yarın için AI onaylı (bahis) maç bulunamadı. Önce AI Kontrol yapın.' });
+                          toast({ variant: 'destructive', description: 'Yarın için AI onaylı (bahis) maç bulunamadı. Önce "Kaliteli Maçlar" çekip "AI Kontrol Et" yapın.' });
                           return;
                         }
                         
