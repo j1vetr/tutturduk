@@ -807,7 +807,7 @@ export async function registerRoutes(
           round: f.league.round,
         },
         goals: f.goals,
-        localDate: new Date(f.fixture.date).toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' }),
+        localDate: new Date(f.fixture.date).toLocaleDateString('sv-SE', { timeZone: 'Europe/Istanbul' }),
         localTime: new Date(f.fixture.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Istanbul' }),
       }));
 
@@ -965,7 +965,7 @@ export async function registerRoutes(
           round: f.league.round,
         },
         goals: f.goals,
-        localDate: new Date(f.fixture.date).toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' }),
+        localDate: new Date(f.fixture.date).toLocaleDateString('sv-SE', { timeZone: 'Europe/Istanbul' }),
         localTime: new Date(f.fixture.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Istanbul' }),
         validated: true
       })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -1164,7 +1164,7 @@ export async function registerRoutes(
       const formatted = fixtures.map((f: any) => ({
         id: f.fixture.id,
         date: f.fixture.date,
-        localDate: new Date(f.fixture.date).toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' }),
+        localDate: new Date(f.fixture.date).toLocaleDateString('sv-SE', { timeZone: 'Europe/Istanbul' }),
         localTime: new Date(f.fixture.date).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Istanbul' }),
         homeTeam: {
           id: f.teams.home.id,
