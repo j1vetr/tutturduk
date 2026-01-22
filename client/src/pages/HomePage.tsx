@@ -248,7 +248,7 @@ export default function HomePage() {
                       background: match.best_bet?.result === 'won' 
                         ? 'white'
                         : isAlternate 
-                          ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.06) 0%, rgba(20, 184, 166, 0.04) 50%, rgba(255, 255, 255, 1) 100%)'
+                          ? '#f0fdf4'
                           : 'white',
                       ...(match.best_bet?.result === 'won' ? {
                         boxShadow: '0 0 20px rgba(251, 191, 36, 0.3), 0 0 40px rgba(251, 191, 36, 0.1)'
