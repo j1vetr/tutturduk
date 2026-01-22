@@ -227,26 +227,48 @@ export default function HomePage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {paginatedMatches.map(match => {
+              {paginatedMatches.map((match, index) => {
                 const timeInfo = getTimeInfo(match.match_date, match.match_time);
                 const liveScore = liveScores[match.fixture_id];
                 const isLiveFromAPI = liveScore && ['1H', '2H', 'HT', 'ET', 'P', 'BT'].includes(liveScore.statusShort);
                 const isFinishedFromAPI = liveScore && ['FT', 'AET', 'PEN'].includes(liveScore.statusShort);
+                const isAlternate = index % 2 === 0;
                 
                 return (
                   <div 
                     key={match.id} 
-                    className={`relative bg-white rounded-2xl overflow-hidden cursor-pointer active:scale-[0.98] transition-all duration-300 group shadow-sm hover:shadow-xl hover:-translate-y-1 ${
+                    className={`relative rounded-2xl overflow-hidden cursor-pointer active:scale-[0.98] transition-all duration-300 group shadow-sm hover:shadow-xl hover:-translate-y-1 ${
                       match.best_bet?.result === 'won' 
                         ? 'border-2 border-amber-400 shadow-amber-100 animate-[glow_2s_ease-in-out_infinite]' 
-                        : 'border border-gray-200 hover:border-emerald-300'
+                        : isAlternate
+                          ? 'border border-emerald-200/60 hover:border-emerald-400'
+                          : 'border border-gray-200 hover:border-emerald-300'
                     }`}
-                    style={match.best_bet?.result === 'won' ? {
-                      boxShadow: '0 0 20px rgba(251, 191, 36, 0.3), 0 0 40px rgba(251, 191, 36, 0.1)'
-                    } : undefined}
+                    style={{
+                      background: match.best_bet?.result === 'won' 
+                        ? 'white'
+                        : isAlternate 
+                          ? 'linear-gradient(135deg, rgba(16, 185, 129, 0.06) 0%, rgba(20, 184, 166, 0.04) 50%, rgba(255, 255, 255, 1) 100%)'
+                          : 'white',
+                      ...(match.best_bet?.result === 'won' ? {
+                        boxShadow: '0 0 20px rgba(251, 191, 36, 0.3), 0 0 40px rgba(251, 191, 36, 0.1)'
+                      } : {})
+                    }}
                     onClick={() => setLocation(`/match/${match.id}`)}
                     data-testid={`match-card-${match.id}`}
                   >
+                    {/* Decorative corner accent for alternate cards */}
+                    {isAlternate && !match.best_bet?.result && (
+                      <div className="absolute top-0 right-0 w-20 h-20 overflow-hidden">
+                        <div className="absolute -top-10 -right-10 w-20 h-20 bg-gradient-to-br from-emerald-400/20 to-teal-400/10 rotate-45 transform origin-bottom-left" />
+                      </div>
+                    )}
+                    
+                    {/* Subtle left accent bar for alternate cards */}
+                    {isAlternate && !match.best_bet?.result && (
+                      <div className="absolute left-0 top-4 bottom-4 w-1 bg-gradient-to-b from-emerald-400 via-teal-400 to-emerald-300 rounded-r-full opacity-60" />
+                    )}
+                    
                     {/* Animated border gradient */}
                     <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10 blur-sm" style={{ margin: '-2px' }} />
                     
