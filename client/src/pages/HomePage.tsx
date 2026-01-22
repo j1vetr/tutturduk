@@ -201,25 +201,35 @@ export default function HomePage() {
                 return (
                   <div 
                     key={match.id} 
-                    className="relative bg-white rounded-2xl border border-gray-200 overflow-hidden cursor-pointer active:scale-[0.98] transition-all duration-200 group shadow-sm hover:shadow-lg hover:border-emerald-200"
+                    className={`relative bg-white rounded-2xl overflow-hidden cursor-pointer active:scale-[0.98] transition-all duration-300 group shadow-sm hover:shadow-xl hover:-translate-y-1 ${
+                      match.best_bet?.result === 'won' 
+                        ? 'border-2 border-amber-400 shadow-amber-100 animate-[glow_2s_ease-in-out_infinite]' 
+                        : 'border border-gray-200 hover:border-emerald-300'
+                    }`}
+                    style={match.best_bet?.result === 'won' ? {
+                      boxShadow: '0 0 20px rgba(251, 191, 36, 0.3), 0 0 40px rgba(251, 191, 36, 0.1)'
+                    } : undefined}
                     onClick={() => setLocation(`/match/${match.id}`)}
                     data-testid={`match-card-${match.id}`}
                   >
-                    {/* Top gradient bar */}
-                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 via-emerald-500 to-teal-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    {/* Animated border gradient */}
+                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-emerald-400 via-teal-400 to-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10 blur-sm" style={{ margin: '-2px' }} />
                     
                     <div className="relative p-4">
                       {/* Header with league and timer */}
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
-                          {match.league_logo && <img src={match.league_logo} className="w-4 h-4" alt="" />}
+                          {match.league_logo && <img src={match.league_logo} className="w-4 h-4 opacity-0 animate-[fadeIn_0.5s_ease-out_forwards]" alt="" loading="lazy" />}
                           <span className="text-[11px] text-gray-500 font-medium truncate max-w-[140px]">{match.league_name}</span>
                         </div>
                         
                         {/* Time Badge */}
                         {timeInfo.isLive ? (
-                          <div className="flex items-center gap-1.5 bg-red-50 border border-red-200 px-2.5 py-1 rounded-full">
-                            <span className="inline-block w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                          <div className="flex items-center gap-1.5 bg-red-50 border border-red-200 px-2.5 py-1 rounded-full animate-pulse">
+                            <span className="relative flex h-2 w-2">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                            </span>
                             <span className="text-[11px] font-bold text-red-600">CANLI</span>
                           </div>
                         ) : timeInfo.isPast ? (
@@ -239,7 +249,7 @@ export default function HomePage() {
                         <div className="flex-1 flex flex-col items-center text-center">
                           <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-gray-50 to-white border border-gray-100 p-2 mb-2 shadow-sm group-hover:shadow-md transition-shadow">
                             {match.home_logo ? (
-                              <img src={match.home_logo} alt="" className="w-full h-full object-contain" />
+                              <img src={match.home_logo} alt="" className="w-full h-full object-contain opacity-0 animate-[fadeIn_0.4s_ease-out_0.1s_forwards]" loading="lazy" />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-sm font-bold text-gray-400">
                                 {match.home_team.substring(0, 2)}
@@ -259,7 +269,7 @@ export default function HomePage() {
                         <div className="flex-1 flex flex-col items-center text-center">
                           <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-gray-50 to-white border border-gray-100 p-2 mb-2 shadow-sm group-hover:shadow-md transition-shadow">
                             {match.away_logo ? (
-                              <img src={match.away_logo} alt="" className="w-full h-full object-contain" />
+                              <img src={match.away_logo} alt="" className="w-full h-full object-contain opacity-0 animate-[fadeIn_0.4s_ease-out_0.2s_forwards]" loading="lazy" />
                             ) : (
                               <div className="w-full h-full flex items-center justify-center text-sm font-bold text-gray-400">
                                 {match.away_team.substring(0, 2)}
@@ -274,21 +284,17 @@ export default function HomePage() {
                       <div className="mt-4 pt-3 border-t border-gray-100">
                         {match.best_bet ? (
                           <div className="flex items-center justify-between gap-3">
-                            <div className="flex items-center gap-2">
-                              <div className={`px-3 py-1.5 rounded-lg font-bold text-sm ${
-                                match.best_bet.risk_level === 'düşük' ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' :
-                                match.best_bet.risk_level === 'orta' ? 'bg-amber-100 text-amber-700 border border-amber-200' :
-                                'bg-red-100 text-red-700 border border-red-200'
-                              }`}>
-                                {match.best_bet.bet_type}
-                              </div>
-                              <span className={`text-xs font-medium ${
-                                match.best_bet.risk_level === 'düşük' ? 'text-emerald-600' :
-                                match.best_bet.risk_level === 'orta' ? 'text-amber-600' :
-                                'text-red-600'
-                              }`}>
-                                %{match.best_bet.confidence}
-                              </span>
+                            <div className={`px-4 py-2 rounded-xl font-bold text-sm transition-all duration-300 ${
+                              match.best_bet.result === 'won' 
+                                ? 'bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-700 border border-amber-300 shadow-sm' 
+                                : match.best_bet.risk_level === 'düşük' 
+                                  ? 'bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-700 border border-emerald-200' 
+                                  : match.best_bet.risk_level === 'orta' 
+                                    ? 'bg-gradient-to-r from-amber-50 to-orange-50 text-amber-700 border border-amber-200' 
+                                    : 'bg-gradient-to-r from-red-50 to-rose-50 text-red-700 border border-red-200'
+                            }`}>
+                              {match.best_bet.result === 'won' && <span className="mr-1">✓</span>}
+                              {match.best_bet.bet_type}
                             </div>
                             <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-emerald-600 group-hover:translate-x-1 transition-all" />
                           </div>
