@@ -229,6 +229,9 @@ export default function HomePage() {
             <div className="space-y-3">
               {paginatedMatches.map(match => {
                 const timeInfo = getTimeInfo(match.match_date, match.match_time);
+                const liveScore = liveScores[match.fixture_id];
+                const isLiveFromAPI = liveScore && ['1H', '2H', 'HT', 'ET', 'P', 'BT'].includes(liveScore.statusShort);
+                const isFinishedFromAPI = liveScore && ['FT', 'AET', 'PEN'].includes(liveScore.statusShort);
                 
                 return (
                   <div 
@@ -256,7 +259,7 @@ export default function HomePage() {
                         </div>
                         
                         {/* Time Badge */}
-                        {timeInfo.isLive ? (
+                        {isLiveFromAPI || timeInfo.isLive ? (
                           <div className="flex items-center gap-1.5 bg-red-50 border border-red-200 px-2.5 py-1 rounded-full animate-pulse">
                             <span className="relative flex h-2 w-2">
                               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
@@ -264,7 +267,7 @@ export default function HomePage() {
                             </span>
                             <span className="text-[11px] font-bold text-red-600">CANLI</span>
                           </div>
-                        ) : timeInfo.isPast ? (
+                        ) : isFinishedFromAPI || timeInfo.isPast ? (
                           <div className="flex items-center gap-1 bg-gray-100 px-2.5 py-1 rounded-full">
                             <span className="text-[11px] font-medium text-gray-500">Bitti</span>
                           </div>
@@ -292,30 +295,30 @@ export default function HomePage() {
                         </div>
 
                         <div className="flex-shrink-0 flex flex-col items-center gap-1">
-                          {liveScores[match.fixture_id] && ['1H', '2H', 'HT', 'ET', 'P', 'BT'].includes(liveScores[match.fixture_id].statusShort) ? (
+                          {isLiveFromAPI ? (
                             <>
                               <div className="flex items-center gap-2 bg-gradient-to-r from-red-500 to-rose-500 px-3 py-1.5 rounded-lg shadow-lg animate-pulse">
                                 <span className="text-lg font-black text-white">
-                                  {liveScores[match.fixture_id].homeGoals ?? 0}
+                                  {liveScore.homeGoals ?? 0}
                                 </span>
                                 <span className="text-xs font-bold text-white/70">-</span>
                                 <span className="text-lg font-black text-white">
-                                  {liveScores[match.fixture_id].awayGoals ?? 0}
+                                  {liveScore.awayGoals ?? 0}
                                 </span>
                               </div>
                               <span className="text-[10px] font-bold text-red-600">
-                                {liveScores[match.fixture_id].statusShort === 'HT' ? 'D.Arası' : `${liveScores[match.fixture_id].elapsed}'`}
+                                {liveScore.statusShort === 'HT' ? 'D.Arası' : `${liveScore.elapsed}'`}
                               </span>
                             </>
-                          ) : liveScores[match.fixture_id] && ['FT', 'AET', 'PEN'].includes(liveScores[match.fixture_id].statusShort) ? (
+                          ) : isFinishedFromAPI ? (
                             <>
                               <div className="flex items-center gap-2 bg-gray-200 px-3 py-1.5 rounded-lg">
                                 <span className="text-lg font-black text-gray-700">
-                                  {liveScores[match.fixture_id].homeGoals ?? 0}
+                                  {liveScore.homeGoals ?? 0}
                                 </span>
                                 <span className="text-xs font-bold text-gray-400">-</span>
                                 <span className="text-lg font-black text-gray-700">
-                                  {liveScores[match.fixture_id].awayGoals ?? 0}
+                                  {liveScore.awayGoals ?? 0}
                                 </span>
                               </div>
                               <span className="text-[10px] font-medium text-gray-500">MS</span>
