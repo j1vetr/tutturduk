@@ -100,15 +100,47 @@ function MatchCardSkeleton() {
   );
 }
 
+type LiveScore = {
+  homeGoals: number | null;
+  awayGoals: number | null;
+  elapsed: number | null;
+  status: string;
+  statusShort: string;
+};
+
 export default function HomePage() {
   const [, setLocation] = useLocation();
   const [matches, setMatches] = useState<PublishedMatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
+  const [liveScores, setLiveScores] = useState<Record<number, LiveScore>>({});
   const perPage = 10;
 
   useEffect(() => {
     loadData();
+  }, []);
+
+  // Poll live scores every 3 minutes
+  useEffect(() => {
+    const fetchLiveScores = async () => {
+      try {
+        const res = await fetch('/api/matches/live-scores');
+        if (res.ok) {
+          const data = await res.json();
+          setLiveScores(data.scores || {});
+        }
+      } catch (error) {
+        console.error('Failed to fetch live scores:', error);
+      }
+    };
+
+    // Initial fetch
+    fetchLiveScores();
+
+    // Poll every 3 minutes (180000ms)
+    const interval = setInterval(fetchLiveScores, 180000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const loadData = async () => {
@@ -260,10 +292,42 @@ export default function HomePage() {
                         </div>
 
                         <div className="flex-shrink-0 flex flex-col items-center gap-1">
-                          <span className="text-sm font-bold text-gray-800">{match.match_time}</span>
-                          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 border border-gray-200 flex items-center justify-center">
-                            <span className="text-[10px] font-black text-gray-400">VS</span>
-                          </div>
+                          {liveScores[match.fixture_id] && ['1H', '2H', 'HT', 'ET', 'P', 'BT'].includes(liveScores[match.fixture_id].statusShort) ? (
+                            <>
+                              <div className="flex items-center gap-2 bg-gradient-to-r from-red-500 to-rose-500 px-3 py-1.5 rounded-lg shadow-lg animate-pulse">
+                                <span className="text-lg font-black text-white">
+                                  {liveScores[match.fixture_id].homeGoals ?? 0}
+                                </span>
+                                <span className="text-xs font-bold text-white/70">-</span>
+                                <span className="text-lg font-black text-white">
+                                  {liveScores[match.fixture_id].awayGoals ?? 0}
+                                </span>
+                              </div>
+                              <span className="text-[10px] font-bold text-red-600">
+                                {liveScores[match.fixture_id].statusShort === 'HT' ? 'D.Arası' : `${liveScores[match.fixture_id].elapsed}'`}
+                              </span>
+                            </>
+                          ) : liveScores[match.fixture_id] && ['FT', 'AET', 'PEN'].includes(liveScores[match.fixture_id].statusShort) ? (
+                            <>
+                              <div className="flex items-center gap-2 bg-gray-200 px-3 py-1.5 rounded-lg">
+                                <span className="text-lg font-black text-gray-700">
+                                  {liveScores[match.fixture_id].homeGoals ?? 0}
+                                </span>
+                                <span className="text-xs font-bold text-gray-400">-</span>
+                                <span className="text-lg font-black text-gray-700">
+                                  {liveScores[match.fixture_id].awayGoals ?? 0}
+                                </span>
+                              </div>
+                              <span className="text-[10px] font-medium text-gray-500">MS</span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="text-sm font-bold text-gray-800">{match.match_time}</span>
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 border border-gray-200 flex items-center justify-center">
+                                <span className="text-[10px] font-black text-gray-400">VS</span>
+                              </div>
+                            </>
+                          )}
                         </div>
 
                         <div className="flex-1 flex flex-col items-center text-center">

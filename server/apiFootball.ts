@@ -336,6 +336,21 @@ export const apiFootball = {
     return response.response[0] || null;
   },
 
+  async getLiveScores(fixtureIds?: number[]): Promise<Fixture[]> {
+    // If specific fixture IDs provided, get their current status
+    if (fixtureIds && fixtureIds.length > 0) {
+      // API allows up to 20 IDs per request
+      const response = await apiRequest<Fixture>('/fixtures', { 
+        ids: fixtureIds.slice(0, 20).join('-') 
+      });
+      return response.response;
+    }
+    
+    // Otherwise get all live fixtures
+    const response = await apiRequest<Fixture>('/fixtures', { live: 'all' });
+    return response.response;
+  },
+
   async getStandings(leagueId: number, season: number): Promise<Standing[][]> {
     // Check cache first
     const cacheKey = `standings:${leagueId}:${season}`;

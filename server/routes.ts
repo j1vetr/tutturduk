@@ -1328,6 +1328,83 @@ export async function registerRoutes(
     }
   });
 
+  // Live scores endpoint - returns current scores for in-progress matches
+  app.get('/api/matches/live-scores', async (req, res) => {
+    try {
+      // Get all published matches that are in_progress or pending (within 3 hours of start)
+      const result = await pool.query(
+        `SELECT fixture_id, match_date, match_time, timestamp, status 
+         FROM published_matches 
+         WHERE status IN ('pending', 'in_progress')
+         ORDER BY timestamp ASC`
+      );
+      
+      const matches = result.rows;
+      if (matches.length === 0) {
+        return res.json({ scores: {}, hasLive: false });
+      }
+      
+      // Filter to only get matches that have started or about to start (within 5 minutes)
+      const now = Math.floor(Date.now() / 1000);
+      const relevantMatches = matches.filter(m => {
+        const matchStart = m.timestamp || 0;
+        return matchStart <= now + 300; // Started or starts within 5 minutes
+      });
+      
+      if (relevantMatches.length === 0) {
+        return res.json({ scores: {}, hasLive: false });
+      }
+      
+      // Get live scores from API-Football
+      const fixtureIds = relevantMatches.map(m => m.fixture_id);
+      const liveData = await apiFootball.getLiveScores(fixtureIds);
+      
+      // Format the response
+      const scores: Record<number, { 
+        homeGoals: number | null; 
+        awayGoals: number | null; 
+        elapsed: number | null;
+        status: string;
+        statusShort: string;
+      }> = {};
+      
+      let hasLive = false;
+      
+      for (const fixture of liveData) {
+        const isLive = ['1H', '2H', 'HT', 'ET', 'P', 'BT'].includes(fixture.fixture.status.short);
+        if (isLive) hasLive = true;
+        
+        scores[fixture.fixture.id] = {
+          homeGoals: fixture.goals?.home ?? null,
+          awayGoals: fixture.goals?.away ?? null,
+          elapsed: fixture.fixture.status.elapsed,
+          status: fixture.fixture.status.long,
+          statusShort: fixture.fixture.status.short
+        };
+        
+        // Update match status in database if it changed
+        const dbMatch = matches.find(m => m.fixture_id === fixture.fixture.id);
+        if (dbMatch) {
+          const newStatus = isLive ? 'in_progress' : 
+                           ['FT', 'AET', 'PEN'].includes(fixture.fixture.status.short) ? 'finished' : 
+                           dbMatch.status;
+          
+          if (newStatus !== dbMatch.status) {
+            await pool.query(
+              `UPDATE published_matches SET status = $1 WHERE fixture_id = $2`,
+              [newStatus, fixture.fixture.id]
+            );
+          }
+        }
+      }
+      
+      res.json({ scores, hasLive });
+    } catch (error: any) {
+      console.error('Live scores error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   app.get('/api/matches/ai-badges', async (req, res) => {
     try {
       const matches = await storage.getPublishedMatches();
