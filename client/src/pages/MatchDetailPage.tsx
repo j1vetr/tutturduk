@@ -92,12 +92,21 @@ function getBetComment(type: string, bet: string, confidence: number): { text: s
   return { text: 'Yüksek oran, dikkatli değerlendir', emoji: '🎯' };
 }
 
+type LiveScore = {
+  homeGoals: number | null;
+  awayGoals: number | null;
+  elapsed: number | null;
+  status: string;
+  statusShort: string;
+};
+
 export default function MatchDetailPage() {
   const { id } = useParams();
   const [, setLocation] = useLocation();
   const [match, setMatch] = useState<PublishedMatch | null>(null);
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysis | null>(null);
   const [turkishOdds, setTurkishOdds] = useState<TurkishOdds | null>(null);
+  const [liveScore, setLiveScore] = useState<LiveScore | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingAI, setLoadingAI] = useState(false);
   const [loadingOdds, setLoadingOdds] = useState(false);
@@ -109,6 +118,29 @@ export default function MatchDetailPage() {
   useEffect(() => {
     if (id) loadMatch();
   }, [id]);
+
+  // Poll live score every 3 minutes
+  useEffect(() => {
+    if (!match) return;
+
+    const fetchLiveScore = async () => {
+      try {
+        const res = await fetch('/api/matches/live-scores');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.scores && data.scores[match.fixture_id]) {
+            setLiveScore(data.scores[match.fixture_id]);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch live score:', error);
+      }
+    };
+
+    fetchLiveScore();
+    const interval = setInterval(fetchLiveScore, 180000);
+    return () => clearInterval(interval);
+  }, [match]);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsVisible(true), 100);
@@ -251,10 +283,42 @@ export default function MatchDetailPage() {
                 <span className="text-[10px] text-emerald-400 font-medium">EV SAHİBİ</span>
               </div>
               
-              <div className="px-4">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
-                  <span className="text-2xl font-black text-white">VS</span>
-                </div>
+              <div className="px-2 flex flex-col items-center gap-2">
+                {liveScore && ['1H', '2H', 'HT', 'ET', 'P', 'BT'].includes(liveScore.statusShort) ? (
+                  <>
+                    <div className="px-4 py-2 rounded-2xl bg-gradient-to-br from-red-500 to-rose-600 shadow-lg shadow-red-500/40 animate-pulse">
+                      <div className="flex items-center gap-3">
+                        <span className="text-3xl font-black text-white">{liveScore.homeGoals ?? 0}</span>
+                        <span className="text-lg font-bold text-white/60">-</span>
+                        <span className="text-3xl font-black text-white">{liveScore.awayGoals ?? 0}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/20 backdrop-blur">
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                      </span>
+                      <span className="text-xs font-bold text-red-300">
+                        {liveScore.statusShort === 'HT' ? 'DEVRE ARASI' : `${liveScore.elapsed}'`}
+                      </span>
+                    </div>
+                  </>
+                ) : liveScore && ['FT', 'AET', 'PEN'].includes(liveScore.statusShort) ? (
+                  <>
+                    <div className="px-4 py-2 rounded-2xl bg-white/20 backdrop-blur shadow-lg">
+                      <div className="flex items-center gap-3">
+                        <span className="text-3xl font-black text-white">{liveScore.homeGoals ?? 0}</span>
+                        <span className="text-lg font-bold text-white/40">-</span>
+                        <span className="text-3xl font-black text-white">{liveScore.awayGoals ?? 0}</span>
+                      </div>
+                    </div>
+                    <span className="text-xs font-medium text-gray-400">MAÇ SONU</span>
+                  </>
+                ) : (
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-500/30">
+                    <span className="text-2xl font-black text-white">VS</span>
+                  </div>
+                )}
               </div>
               
               <div className="flex-1 text-center">
