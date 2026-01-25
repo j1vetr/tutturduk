@@ -208,23 +208,15 @@ export default function WinnersPage() {
               <p className="text-xs text-gray-500">Ana tahmin sonuçları</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            {isAdmin && (
-              <button
-                onClick={clearHistory}
-                className="p-2 rounded-xl bg-red-50 border border-red-200 text-red-500 hover:bg-red-100 transition-colors"
-                title="Geçmişi Temizle"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            )}
-            {data && (
-              <div className="text-right bg-gradient-to-br from-emerald-50 to-green-50 border border-emerald-200 rounded-xl px-3 py-2">
-                <p className="text-xl font-black text-emerald-600">%{data.overallStats.winRate}</p>
-                <p className="text-[9px] text-emerald-700 font-medium">Başarı Oranı</p>
-              </div>
-            )}
-          </div>
+          {isAdmin && (
+            <button
+              onClick={clearHistory}
+              className="p-2 rounded-xl bg-red-50 border border-red-200 text-red-500 hover:bg-red-100 transition-colors"
+              title="Geçmişi Temizle"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          )}
         </div>
 
         {/* Date Picker */}
@@ -252,28 +244,60 @@ export default function WinnersPage() {
           </div>
         ) : data ? (
           <>
-            {/* Stats Cards */}
-            <div className="grid grid-cols-3 gap-2">
-              <div className="bg-gradient-to-br from-emerald-50 to-green-50 rounded-xl border border-emerald-200 p-3 text-center">
-                <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-1">
-                  <CheckCircle className="w-4 h-4 text-emerald-600" />
+            {/* Daily Stats - Selected Day */}
+            <div className="bg-white rounded-2xl border border-gray-200 p-4 shadow-sm">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-purple-500" />
+                  <span className="text-sm font-bold text-gray-800">{formatDateLabel(selectedDate)}</span>
                 </div>
-                <p className="text-xl font-black text-emerald-600">{data.overallStats.totalWon}</p>
-                <p className="text-[9px] text-emerald-700 font-medium">Tuttu</p>
+                <div className="px-3 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-bold">
+                  %{data.dailyStats.winRate} Başarı
+                </div>
               </div>
-              <div className="bg-gradient-to-br from-red-50 to-rose-50 rounded-xl border border-red-200 p-3 text-center">
-                <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-1">
-                  <XCircle className="w-4 h-4 text-red-500" />
+              <div className="grid grid-cols-4 gap-2">
+                <div className="bg-emerald-50 rounded-xl p-2 text-center">
+                  <p className="text-lg font-black text-emerald-600">{data.dailyStats.won}</p>
+                  <p className="text-[9px] text-emerald-700">Tuttu</p>
                 </div>
-                <p className="text-xl font-black text-red-500">{data.overallStats.totalLost}</p>
-                <p className="text-[9px] text-red-600 font-medium">Tutmadı</p>
+                <div className="bg-red-50 rounded-xl p-2 text-center">
+                  <p className="text-lg font-black text-red-500">{data.dailyStats.lost}</p>
+                  <p className="text-[9px] text-red-600">Tutmadı</p>
+                </div>
+                <div className="bg-amber-50 rounded-xl p-2 text-center">
+                  <p className="text-lg font-black text-amber-600">{data.dailyStats.pending}</p>
+                  <p className="text-[9px] text-amber-700">Bekliyor</p>
+                </div>
+                <div className="bg-gray-50 rounded-xl p-2 text-center">
+                  <p className="text-lg font-black text-gray-600">{data.dailyStats.total}</p>
+                  <p className="text-[9px] text-gray-500">Toplam</p>
+                </div>
               </div>
-              <div className="bg-gradient-to-br from-gray-50 to-slate-50 rounded-xl border border-gray-200 p-3 text-center">
-                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-1">
-                  <BarChart3 className="w-4 h-4 text-gray-500" />
+            </div>
+
+            {/* Overall Stats */}
+            <div className="bg-gradient-to-r from-slate-800 to-slate-900 rounded-2xl p-4 shadow-lg">
+              <div className="flex items-center gap-2 mb-3">
+                <BarChart3 className="w-4 h-4 text-emerald-400" />
+                <span className="text-sm font-bold text-white">Genel İstatistikler</span>
+              </div>
+              <div className="grid grid-cols-4 gap-2">
+                <div className="bg-white/10 backdrop-blur rounded-xl p-2 text-center">
+                  <p className="text-lg font-black text-emerald-400">{data.overallStats.totalWon}</p>
+                  <p className="text-[9px] text-gray-400">Tuttu</p>
                 </div>
-                <p className="text-xl font-black text-gray-700">{data.overallStats.totalEvaluated}</p>
-                <p className="text-[9px] text-gray-500 font-medium">Toplam</p>
+                <div className="bg-white/10 backdrop-blur rounded-xl p-2 text-center">
+                  <p className="text-lg font-black text-red-400">{data.overallStats.totalLost}</p>
+                  <p className="text-[9px] text-gray-400">Tutmadı</p>
+                </div>
+                <div className="bg-white/10 backdrop-blur rounded-xl p-2 text-center">
+                  <p className="text-lg font-black text-white">{data.overallStats.totalEvaluated}</p>
+                  <p className="text-[9px] text-gray-400">Toplam</p>
+                </div>
+                <div className="bg-emerald-500/20 backdrop-blur rounded-xl p-2 text-center border border-emerald-500/30">
+                  <p className="text-lg font-black text-emerald-400">%{data.overallStats.winRate}</p>
+                  <p className="text-[9px] text-emerald-300">Başarı</p>
+                </div>
               </div>
             </div>
 

@@ -114,7 +114,8 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [liveScores, setLiveScores] = useState<Record<number, LiveScore>>({});
-  const perPage = 10;
+  const [showAll, setShowAll] = useState(false);
+  const perPage = 20;
 
   useEffect(() => {
     loadData();
@@ -170,7 +171,10 @@ export default function HomePage() {
   });
 
   const totalPages = Math.ceil(sortedMatches.length / perPage);
-  const paginatedMatches = sortedMatches.slice((page - 1) * perPage, page * perPage);
+  const paginatedMatches = showAll 
+    ? sortedMatches 
+    : sortedMatches.slice((page - 1) * perPage, page * perPage);
+  const hasMoreMatches = sortedMatches.length > perPage && !showAll;
 
   return (
     <MobileLayout activeTab="home">
@@ -402,48 +406,28 @@ export default function HomePage() {
             </div>
           )}
 
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 mt-4">
-              <button
-                onClick={() => setPage(p => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="px-3 py-1.5 text-xs bg-gray-100 text-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 transition-colors"
-              >
-                Önceki
-              </button>
-              <div className="flex gap-1">
-                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                  let pageNum;
-                  if (totalPages <= 5) {
-                    pageNum = i + 1;
-                  } else if (page <= 3) {
-                    pageNum = i + 1;
-                  } else if (page >= totalPages - 2) {
-                    pageNum = totalPages - 4 + i;
-                  } else {
-                    pageNum = page - 2 + i;
-                  }
-                  return (
-                    <button
-                      key={pageNum}
-                      onClick={() => setPage(pageNum)}
-                      className={`w-8 h-8 text-xs rounded-lg transition-colors ${
-                        page === pageNum 
-                          ? 'bg-emerald-500 text-white font-bold shadow-sm' 
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
-                    >
-                      {pageNum}
-                    </button>
-                  );
-                })}
+          {/* Load More / Show All Button */}
+          {hasMoreMatches && (
+            <div className="flex flex-col items-center gap-3 mt-6">
+              <div className="text-xs text-gray-400">
+                {paginatedMatches.length} / {sortedMatches.length} maç gösteriliyor
               </div>
               <button
-                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                disabled={page === totalPages}
-                className="px-3 py-1.5 text-xs bg-gray-100 text-gray-600 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 transition-colors"
+                onClick={() => setShowAll(true)}
+                className="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 transition-all active:scale-[0.98]"
               >
-                Sonraki
+                Tüm Maçları Göster ({sortedMatches.length - paginatedMatches.length} maç daha)
+              </button>
+            </div>
+          )}
+          
+          {showAll && sortedMatches.length > perPage && (
+            <div className="flex justify-center mt-4">
+              <button
+                onClick={() => { setShowAll(false); setPage(1); }}
+                className="text-sm text-gray-500 underline hover:text-gray-700 transition-colors"
+              >
+                Daha az göster
               </button>
             </div>
           )}
