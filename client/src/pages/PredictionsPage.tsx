@@ -108,7 +108,7 @@ type LiveScore = {
   statusShort: string;
 };
 
-export default function HomePage() {
+export default function PredictionsPage() {
   const [, setLocation] = useLocation();
   const [matches, setMatches] = useState<PublishedMatch[]>([]);
   const [loading, setLoading] = useState(true);
@@ -177,7 +177,7 @@ export default function HomePage() {
   const hasMoreMatches = sortedMatches.length > perPage && !showAll;
 
   return (
-    <MobileLayout activeTab="home">
+    <MobileLayout activeTab="predictions">
       <div className="space-y-6 pb-6">
         <HeroPrediction />
 
@@ -258,7 +258,7 @@ export default function HomePage() {
                         boxShadow: '0 0 20px rgba(251, 191, 36, 0.3), 0 0 40px rgba(251, 191, 36, 0.1)'
                       } : {})
                     }}
-                    onClick={() => setLocation(`/match/${match.id}`)}
+                    onClick={() => setLocation(`/match/${match.fixture_id}`)}
                     data-testid={`match-card-${match.id}`}
                   >
                     {/* Decorative corner accent for alternate cards */}

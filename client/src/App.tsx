@@ -6,7 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import NotFound from "@/pages/not-found";
 import AuthPage from "@/pages/AuthPage";
-import HomePage from "@/pages/HomePage";
+import DashboardPage from "@/pages/DashboardPage";
+import PredictionsPage from "@/pages/PredictionsPage";
 import WinnersPage from "@/pages/WinnersPage";
 import ProfilePage from "@/pages/ProfilePage";
 import AdminPage from "@/pages/AdminPage";
@@ -14,8 +15,6 @@ import MatchDetailPage from "@/pages/MatchDetailPage";
 import LiveMatchesPage from "@/pages/LiveMatchesPage";
 import UpcomingMatchesPage from "@/pages/UpcomingMatchesPage";
 import AdminLoginPage from "@/pages/AdminLoginPage";
-import CouponDetailPage from "@/pages/CouponDetailPage";
-import CouponCreatorPage from "@/pages/CouponCreatorPage";
 import { useEffect } from "react";
 
 function ScrollToTop() {
@@ -54,7 +53,10 @@ function Router() {
       <Route path="/auth" component={AuthPage} />
       <Route path="/admin-login" component={AdminLoginPage} />
       <Route path="/">
-        {() => <ProtectedRoute component={HomePage} />}
+        {() => <ProtectedRoute component={DashboardPage} />}
+      </Route>
+      <Route path="/predictions">
+        {() => <ProtectedRoute component={PredictionsPage} />}
       </Route>
       <Route path="/match/:id">
         {() => <ProtectedRoute component={MatchDetailPage} />}
@@ -70,12 +72,6 @@ function Router() {
       </Route>
       <Route path="/upcoming">
         {() => <ProtectedRoute component={UpcomingMatchesPage} />}
-      </Route>
-      <Route path="/coupon/:id">
-        {() => <ProtectedRoute component={CouponDetailPage} />}
-      </Route>
-      <Route path="/coupons">
-        {() => <ProtectedRoute component={CouponCreatorPage} />}
       </Route>
       <Route path="/admin">
         {() => <ProtectedRoute component={AdminPage} />}
