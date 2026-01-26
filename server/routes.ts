@@ -2765,15 +2765,17 @@ export async function registerRoutes(
          (SELECT json_agg(json_build_object(
            'id', bb.id,
            'bet_type', bb.bet_type,
+           'bet_category', COALESCE(bb.bet_category, 'primary'),
+           'odds', bb.odds,
            'risk_level', bb.risk_level,
            'result', bb.result,
            'confidence', bb.confidence,
            'reasoning', bb.reasoning
          ) ORDER BY 
-           CASE bb.risk_level 
-             WHEN 'düşük' THEN 1 
-             WHEN 'orta' THEN 2 
-             WHEN 'yüksek' THEN 3 
+           CASE COALESCE(bb.bet_category, 'primary')
+             WHEN 'primary' THEN 1 
+             WHEN 'alternative' THEN 2 
+             ELSE 3
            END
          ) FROM best_bets bb WHERE bb.fixture_id = pm.fixture_id) as predictions
          FROM published_matches pm
@@ -2783,25 +2785,25 @@ export async function registerRoutes(
       
       const matches = await pool.query(matchesQuery, params);
 
-      // Get daily stats for selected date - MAIN BETS ONLY (risk_level = 'düşük')
+      // Get daily stats for selected date - PRIMARY BETS ONLY (bet_category = 'primary')
       const dailyStatsQuery = date 
         ? `SELECT 
              COUNT(*) FILTER (WHERE result = 'won') as won,
              COUNT(*) FILTER (WHERE result = 'lost') as lost,
              COUNT(*) FILTER (WHERE result = 'pending') as pending,
              COUNT(*) as total
-           FROM best_bets WHERE date_for::date = $1::date AND risk_level = 'düşük'`
+           FROM best_bets WHERE date_for::date = $1::date AND COALESCE(bet_category, 'primary') = 'primary'`
         : `SELECT 
              COUNT(*) FILTER (WHERE result = 'won') as won,
              COUNT(*) FILTER (WHERE result = 'lost') as lost,
              COUNT(*) FILTER (WHERE result = 'pending') as pending,
              COUNT(*) as total
-           FROM best_bets WHERE risk_level = 'düşük'`;
+           FROM best_bets WHERE COALESCE(bet_category, 'primary') = 'primary'`;
       
       const dailyStats = await pool.query(dailyStatsQuery, date ? [date] : []);
       const daily = dailyStats.rows[0];
 
-      // Calculate overall stats - MAIN BETS ONLY (risk_level = 'düşük' = Ana Tahmin)
+      // Calculate overall stats - PRIMARY BETS ONLY (bet_category = 'primary' = Ana Bahis)
       const overallStats = await pool.query(`
         SELECT 
           COUNT(*) FILTER (WHERE result = 'won') as total_won,
@@ -2809,7 +2811,7 @@ export async function registerRoutes(
           COUNT(*) FILTER (WHERE result != 'pending') as total_evaluated,
           COUNT(*) as total
         FROM best_bets
-        WHERE risk_level = 'düşük'
+        WHERE COALESCE(bet_category, 'primary') = 'primary'
       `);
       
       const overall = overallStats.rows[0];

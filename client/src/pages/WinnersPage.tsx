@@ -12,6 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 interface Prediction {
   id: number;
   bet_type: string;
+  bet_category?: string; // 'primary' = 2.5 Üst, 'alternative' = KG Var
+  odds?: number;
   risk_level: string;
   result: string;
   confidence: number;
@@ -146,12 +148,19 @@ export default function WinnersPage() {
 
   const getMainBet = (predictions: Prediction[] | undefined) => {
     if (!predictions || predictions.length === 0) return null;
-    return predictions.find(p => p.risk_level === 'düşük') || predictions[0];
+    // Primary bet is the main bet (2.5 Üst)
+    return predictions.find(p => p.bet_category === 'primary') || predictions[0];
+  };
+
+  const getAlternativeBet = (predictions: Prediction[] | undefined) => {
+    if (!predictions || predictions.length === 0) return null;
+    // Alternative bet is KG Var
+    return predictions.find(p => p.bet_category === 'alternative') || null;
   };
 
   const getOtherBets = (predictions: Prediction[] | undefined) => {
     if (!predictions || predictions.length === 0) return [];
-    return predictions.filter(p => p.risk_level !== 'düşük');
+    return predictions.filter(p => p.bet_category !== 'primary');
   };
 
   const getMatchResult = (match: Match): 'won' | 'lost' | 'pending' => {
@@ -436,78 +445,145 @@ export default function WinnersPage() {
                           </div>
                         </div>
 
-                        {/* Main Bet - Ana Tahmin */}
-                        {mainBet && (
-                          <div className={`rounded-xl p-3 mb-2 ${
-                            mainBet.result === 'won' ? 'bg-emerald-50 border border-emerald-200' :
-                            mainBet.result === 'lost' ? 'bg-red-50 border border-red-200' :
-                            'bg-gray-50 border border-gray-200'
-                          }`}>
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                                  mainBet.result === 'won' ? 'bg-emerald-100' :
-                                  mainBet.result === 'lost' ? 'bg-red-100' :
-                                  'bg-gray-100'
-                                }`}>
-                                  <Shield className={`w-4 h-4 ${
-                                    mainBet.result === 'won' ? 'text-emerald-600' :
-                                    mainBet.result === 'lost' ? 'text-red-500' :
-                                    'text-gray-500'
-                                  }`} />
+                        {/* Dual Bet Display - Ana + Alternatif */}
+                        <div className="space-y-2">
+                          {/* Primary Bet - Ana Tahmin (2.5 Üst) */}
+                          {mainBet && (
+                            <div className={`rounded-xl p-3 ${
+                              mainBet.result === 'won' ? 'bg-emerald-50 border border-emerald-200' :
+                              mainBet.result === 'lost' ? 'bg-red-50 border border-red-200' :
+                              'bg-gray-50 border border-gray-200'
+                            }`}>
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                                    mainBet.result === 'won' ? 'bg-emerald-100' :
+                                    mainBet.result === 'lost' ? 'bg-red-100' :
+                                    'bg-gray-100'
+                                  }`}>
+                                    <Target className={`w-4 h-4 ${
+                                      mainBet.result === 'won' ? 'text-emerald-600' :
+                                      mainBet.result === 'lost' ? 'text-red-500' :
+                                      'text-gray-500'
+                                    }`} />
+                                  </div>
+                                  <div>
+                                    <span className="text-[9px] font-bold text-emerald-600 uppercase">Ana Bahis</span>
+                                    <div className="flex items-center gap-2">
+                                      <p className="text-sm font-bold text-gray-800">{mainBet.bet_type}</p>
+                                      {mainBet.odds && (
+                                        <span className="text-xs font-semibold text-gray-500">@{Number(mainBet.odds).toFixed(2)}</span>
+                                      )}
+                                    </div>
+                                  </div>
                                 </div>
-                                <div>
-                                  <span className="text-[9px] font-bold text-gray-500 uppercase">Ana Tahmin</span>
-                                  <p className="text-sm font-bold text-gray-800">{mainBet.bet_type}</p>
+                                <div className="flex items-center gap-2">
+                                  {mainBet.result === 'won' ? (
+                                    <Badge className="bg-emerald-500 text-white border-0 text-xs font-bold">✓ Tuttu</Badge>
+                                  ) : mainBet.result === 'lost' ? (
+                                    <Badge className="bg-red-500 text-white border-0 text-xs font-bold">✗ Tutmadı</Badge>
+                                  ) : (
+                                    <Badge className="bg-gray-100 text-gray-500 border-0 text-xs">Bekliyor</Badge>
+                                  )}
                                 </div>
                               </div>
-                              <div className="flex items-center gap-2">
-                                {mainBet.result === 'won' ? (
-                                  <Badge className="bg-emerald-100 text-emerald-700 border-0 text-xs font-bold">Tuttu</Badge>
-                                ) : mainBet.result === 'lost' ? (
-                                  <Badge className="bg-red-100 text-red-700 border-0 text-xs font-bold">Tutmadı</Badge>
-                                ) : (
-                                  <Badge className="bg-gray-100 text-gray-500 border-0 text-xs">Bekliyor</Badge>
+                              {isAdmin && (
+                                <div className="flex gap-2 mt-2 pt-2 border-t border-gray-200">
+                                  <Button
+                                    size="sm"
+                                    variant={mainBet.result === 'won' ? 'default' : 'outline'}
+                                    className={`flex-1 h-7 text-xs ${mainBet.result === 'won' ? 'bg-emerald-500 hover:bg-emerald-600' : ''}`}
+                                    onClick={(e) => { e.stopPropagation(); updatePredictionResult(mainBet.id, 'won'); }}
+                                  >
+                                    <CheckCircle className="w-3 h-3 mr-1" />Kazandı
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant={mainBet.result === 'lost' ? 'default' : 'outline'}
+                                    className={`flex-1 h-7 text-xs ${mainBet.result === 'lost' ? 'bg-red-500 hover:bg-red-600' : ''}`}
+                                    onClick={(e) => { e.stopPropagation(); updatePredictionResult(mainBet.id, 'lost'); }}
+                                  >
+                                    <XCircle className="w-3 h-3 mr-1" />Kaybetti
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Alternative Bet - Alternatif Bahis (KG Var) */}
+                          {(() => {
+                            const altBet = getAlternativeBet(match.predictions);
+                            if (!altBet) return null;
+                            return (
+                              <div className={`rounded-xl p-3 ${
+                                altBet.result === 'won' ? 'bg-blue-50 border border-blue-200' :
+                                altBet.result === 'lost' ? 'bg-orange-50 border border-orange-200' :
+                                'bg-gray-50 border border-gray-200'
+                              }`}>
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                                      altBet.result === 'won' ? 'bg-blue-100' :
+                                      altBet.result === 'lost' ? 'bg-orange-100' :
+                                      'bg-gray-100'
+                                    }`}>
+                                      <Flame className={`w-4 h-4 ${
+                                        altBet.result === 'won' ? 'text-blue-600' :
+                                        altBet.result === 'lost' ? 'text-orange-500' :
+                                        'text-gray-500'
+                                      }`} />
+                                    </div>
+                                    <div>
+                                      <span className="text-[9px] font-bold text-blue-600 uppercase">Alternatif</span>
+                                      <div className="flex items-center gap-2">
+                                        <p className="text-sm font-bold text-gray-800">{altBet.bet_type}</p>
+                                        {altBet.odds && (
+                                          <span className="text-xs font-semibold text-gray-500">@{Number(altBet.odds).toFixed(2)}</span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    {altBet.result === 'won' ? (
+                                      <Badge className="bg-blue-500 text-white border-0 text-xs font-bold">✓ Tuttu</Badge>
+                                    ) : altBet.result === 'lost' ? (
+                                      <Badge className="bg-orange-500 text-white border-0 text-xs font-bold">✗ Tutmadı</Badge>
+                                    ) : (
+                                      <Badge className="bg-gray-100 text-gray-500 border-0 text-xs">Bekliyor</Badge>
+                                    )}
+                                  </div>
+                                </div>
+                                {isAdmin && (
+                                  <div className="flex gap-2 mt-2 pt-2 border-t border-gray-200">
+                                    <Button
+                                      size="sm"
+                                      variant={altBet.result === 'won' ? 'default' : 'outline'}
+                                      className={`flex-1 h-7 text-xs ${altBet.result === 'won' ? 'bg-blue-500 hover:bg-blue-600' : ''}`}
+                                      onClick={(e) => { e.stopPropagation(); updatePredictionResult(altBet.id, 'won'); }}
+                                    >
+                                      <CheckCircle className="w-3 h-3 mr-1" />Kazandı
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant={altBet.result === 'lost' ? 'default' : 'outline'}
+                                      className={`flex-1 h-7 text-xs ${altBet.result === 'lost' ? 'bg-orange-500 hover:bg-orange-600' : ''}`}
+                                      onClick={(e) => { e.stopPropagation(); updatePredictionResult(altBet.id, 'lost'); }}
+                                    >
+                                      <XCircle className="w-3 h-3 mr-1" />Kaybetti
+                                    </Button>
+                                  </div>
                                 )}
                               </div>
-                            </div>
-                            {isAdmin && (
-                              <div className="flex gap-2 mt-2 pt-2 border-t border-gray-200">
-                                <Button
-                                  size="sm"
-                                  variant={mainBet.result === 'won' ? 'default' : 'outline'}
-                                  className={`flex-1 h-7 text-xs ${mainBet.result === 'won' ? 'bg-emerald-500 hover:bg-emerald-600' : ''}`}
-                                  onClick={(e) => { e.stopPropagation(); updatePredictionResult(mainBet.id, 'won'); }}
-                                >
-                                  <CheckCircle className="w-3 h-3 mr-1" />Kazandı
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant={mainBet.result === 'lost' ? 'default' : 'outline'}
-                                  className={`flex-1 h-7 text-xs ${mainBet.result === 'lost' ? 'bg-red-500 hover:bg-red-600' : ''}`}
-                                  onClick={(e) => { e.stopPropagation(); updatePredictionResult(mainBet.id, 'lost'); }}
-                                >
-                                  <XCircle className="w-3 h-3 mr-1" />Kaybetti
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant={mainBet.result === 'pending' ? 'default' : 'outline'}
-                                  className={`flex-1 h-7 text-xs ${mainBet.result === 'pending' ? 'bg-gray-500 hover:bg-gray-600' : ''}`}
-                                  onClick={(e) => { e.stopPropagation(); updatePredictionResult(mainBet.id, 'pending'); }}
-                                >
-                                  <Clock className="w-3 h-3 mr-1" />Bekliyor
-                                </Button>
-                              </div>
-                            )}
-                          </div>
-                        )}
+                            );
+                          })()}
+                        </div>
 
-                        {/* Other Bets - Diğer Tahminler */}
-                        {otherBets.length > 0 && (
-                          <div className="space-y-1.5">
-                            <span className="text-[9px] font-semibold text-gray-400 uppercase">Diğer Tahminler</span>
+                        {/* Legacy Other Bets - for backwards compatibility */}
+                        {otherBets.filter(b => b.bet_category !== 'alternative').length > 0 && (
+                          <div className="space-y-1.5 mt-2">
+                            <span className="text-[9px] font-semibold text-gray-400 uppercase">Diğer</span>
                             <div className="grid grid-cols-1 gap-2">
-                              {otherBets.map((pred, idx) => (
+                              {otherBets.filter(b => b.bet_category !== 'alternative').map((pred, idx) => (
                                 <div 
                                   key={pred.id || idx}
                                   className={`p-2 rounded-lg text-xs ${
