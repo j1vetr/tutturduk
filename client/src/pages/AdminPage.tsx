@@ -828,6 +828,65 @@ export default function AdminPage() {
               </div>
             </div>
 
+            {/* Admin Utility Buttons */}
+            <div className="flex flex-wrap gap-2">
+              <Button 
+                onClick={async () => {
+                  try {
+                    const res = await fetch('/api/admin/re-evaluate', { method: 'POST', credentials: 'include' });
+                    const data = await res.json();
+                    if (res.ok) toast({ description: data.message });
+                    else toast({ variant: 'destructive', description: data.message });
+                  } catch { toast({ variant: 'destructive', description: 'Islem basarisiz' }); }
+                }}
+                variant="outline"
+                size="sm"
+                className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+              >
+                <RefreshCcw className="w-4 h-4 mr-1" /> Sonuclari Degerlendir
+              </Button>
+              <Button 
+                onClick={async () => {
+                  if (!confirm('Cache temizlensin mi? AI sonuclari silinecek.')) return;
+                  try {
+                    const res = await fetch('/api/admin/clear-cache', { method: 'POST', credentials: 'include' });
+                    const data = await res.json();
+                    if (res.ok) {
+                      setAiCheckResults(new Map());
+                      toast({ description: data.message });
+                    } else toast({ variant: 'destructive', description: data.message });
+                  } catch { toast({ variant: 'destructive', description: 'Islem basarisiz' }); }
+                }}
+                variant="outline"
+                size="sm"
+                className="border-purple-200 text-purple-700 hover:bg-purple-50"
+              >
+                <RefreshCcw className="w-4 h-4 mr-1" /> Cache Temizle
+              </Button>
+              <Button 
+                onClick={async () => {
+                  const code = prompt('Veritabanini sifirlamak icin "SIFIRLA" yazin:');
+                  if (code !== 'SIFIRLA') { toast({ variant: 'destructive', description: 'Onay kodu yanlis' }); return; }
+                  try {
+                    const res = await fetch('/api/admin/reset-database', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      credentials: 'include',
+                      body: JSON.stringify({ confirmReset: 'SIFIRLA' })
+                    });
+                    const data = await res.json();
+                    if (res.ok) { toast({ description: data.message }); loadPublishedMatches(); }
+                    else toast({ variant: 'destructive', description: data.message });
+                  } catch { toast({ variant: 'destructive', description: 'Islem basarisiz' }); }
+                }}
+                variant="outline"
+                size="sm"
+                className="border-red-200 text-red-700 hover:bg-red-50"
+              >
+                <Trash2 className="w-4 h-4 mr-1" /> DB Sifirla
+              </Button>
+            </div>
+
             {/* AI Stats */}
             {aiCheckResults.size > 0 && (
               <div className="flex gap-2">
