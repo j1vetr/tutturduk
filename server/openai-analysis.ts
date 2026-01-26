@@ -185,7 +185,8 @@ function formatGoalMinutes(minutes?: { [key: string]: number }): string {
 
 function formatLastMatches(matches?: { opponent: string; result: string; score: string; home: boolean }[]): string {
   if (!matches || matches.length === 0) return 'Veri yok';
-  return matches.slice(0, 5).map(m => 
+  // Show last 10 matches for better trend analysis
+  return matches.slice(0, 10).map(m => 
     `${m.home ? 'İç saha' : 'Deplasman'} vs ${m.opponent}: ${m.score} (${m.result === 'W' ? 'G' : m.result === 'D' ? 'B' : 'M'})`
   ).join('\n  ');
 }
@@ -349,7 +350,7 @@ Alt lig takımı genelde defansif oynar, sürpriz riski yüksek!` : ''}
 ================================
 📊 EV SAHİBİ: ${matchData.homeTeam}
 ================================
-Son 5 Maç:
+Son 10 Maç:
   ${formatLastMatches(matchData.homeLastMatches)}
   
 Form: ${formatForm(matchData.homeForm)}
@@ -367,7 +368,7 @@ ${homeStats ? `Detaylı İstatistikler:
 ================================
 📊 DEPLASMAN: ${matchData.awayTeam}
 ================================
-Son 5 Maç:
+Son 10 Maç:
   ${formatLastMatches(matchData.awayLastMatches)}
   
 Form: ${formatForm(matchData.awayForm)}

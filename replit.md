@@ -190,3 +190,23 @@ Key entities include:
 - **Simplified AI Prompt**: Streamlined prompt focusing on value betting principles
 - **Backwards Compatibility**: singleBet results converted to predictions array for existing UI
 - **Value Percentage Validation**: Post-processing ensures value calculations are accurate
+
+### January 26, 2026 - Enhanced AI Data Integration
+- **Extended API Data for AI**: Auto-publish now fetches additional data for each match:
+  - Injuries: Player injuries from API-Football `/injuries` endpoint
+  - Last 10 matches: Each team's recent form from `/fixtures?team=X&last=10`
+  - Season statistics: Goals average, clean sheets, failed to score from `/teams/statistics`
+- **AI Prompt Updates**:
+  - Now shows last 10 matches instead of 5 for deeper trend analysis
+  - Includes injury data when available (player name + reason)
+  - Enhanced psychological analysis based on form trends
+- **Dual Bet System**:
+  - Primary Bet: 2.5 Üst (over 2.5 goals)
+  - Alternative Bet: KG Var (both teams to score)
+  - 2.5 Alt and KG Yok are explicitly rejected
+  - `bet_category` field distinguishes primary/alternative in database
+  - WinnersPage displays both bets with distinct color coding (green=primary, blue=alternative)
+- **Database Schema Updates**:
+  - Added `bet_category` column to `best_bets` table ('primary' or 'alternative')
+  - Added `odds` column to store bet odds
+  - Stats now track primary bets using `bet_category` instead of `risk_level`

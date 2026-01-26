@@ -291,7 +291,97 @@ async function publishMatchesForDate(dateStr: string, totalLimit: number = 70, m
         const comparison = match.prediction?.comparison;
         const h2h = match.prediction?.h2h || [];
         
-        // Build match data for AI analysis
+        // Fetch additional data for enhanced AI analysis
+        const homeTeamId = match.teams?.home?.id;
+        const awayTeamId = match.teams?.away?.id;
+        const fixtureId = match.fixture?.id;
+        
+        let injuries: any = { home: [], away: [] };
+        let homeLastMatches: any[] = [];
+        let awayLastMatches: any[] = [];
+        let homeSeasonStats: any = null;
+        let awaySeasonStats: any = null;
+        
+        try {
+          // Fetch injuries for this fixture
+          if (fixtureId) {
+            const injuriesData = await apiFootball.getInjuries(fixtureId);
+            if (injuriesData && Array.isArray(injuriesData)) {
+              injuries.home = injuriesData
+                .filter((inj: any) => inj.team?.id === homeTeamId)
+                .map((inj: any) => ({
+                  player: inj.player?.name || 'Unknown',
+                  reason: inj.player?.reason || 'Injury',
+                  type: inj.player?.type || 'Missing'
+                }));
+              injuries.away = injuriesData
+                .filter((inj: any) => inj.team?.id === awayTeamId)
+                .map((inj: any) => ({
+                  player: inj.player?.name || 'Unknown',
+                  reason: inj.player?.reason || 'Injury',
+                  type: inj.player?.type || 'Missing'
+                }));
+            }
+          }
+        } catch (err: any) {
+          console.log(`[AutoPublish] Injuries fetch skipped: ${err.message}`);
+        }
+        
+        try {
+          // Fetch last 10 matches for home team
+          if (homeTeamId) {
+            const homeMatches = await apiFootball.getTeamLastMatches(homeTeamId, 10);
+            homeLastMatches = homeMatches?.map((m: any) => ({
+              opponent: m.teams?.home?.id === homeTeamId ? m.teams?.away?.name : m.teams?.home?.name,
+              result: m.teams?.home?.id === homeTeamId
+                ? (m.teams?.home?.winner ? 'W' : m.teams?.away?.winner ? 'L' : 'D')
+                : (m.teams?.away?.winner ? 'W' : m.teams?.home?.winner ? 'L' : 'D'),
+              score: `${m.goals?.home || 0}-${m.goals?.away || 0}`,
+              home: m.teams?.home?.id === homeTeamId
+            })) || [];
+          }
+        } catch (err: any) {
+          console.log(`[AutoPublish] Home last matches skipped: ${err.message}`);
+        }
+        
+        try {
+          // Fetch last 10 matches for away team
+          if (awayTeamId) {
+            const awayMatches = await apiFootball.getTeamLastMatches(awayTeamId, 10);
+            awayLastMatches = awayMatches?.map((m: any) => ({
+              opponent: m.teams?.home?.id === awayTeamId ? m.teams?.away?.name : m.teams?.home?.name,
+              result: m.teams?.home?.id === awayTeamId
+                ? (m.teams?.home?.winner ? 'W' : m.teams?.away?.winner ? 'L' : 'D')
+                : (m.teams?.away?.winner ? 'W' : m.teams?.home?.winner ? 'L' : 'D'),
+              score: `${m.goals?.home || 0}-${m.goals?.away || 0}`,
+              home: m.teams?.home?.id === awayTeamId
+            })) || [];
+          }
+        } catch (err: any) {
+          console.log(`[AutoPublish] Away last matches skipped: ${err.message}`);
+        }
+        
+        try {
+          // Fetch season statistics for home team
+          if (homeTeamId && leagueId) {
+            homeSeasonStats = await apiFootball.getTeamSeasonGoals(homeTeamId, leagueId, CURRENT_SEASON);
+          }
+        } catch (err: any) {
+          console.log(`[AutoPublish] Home season stats skipped: ${err.message}`);
+        }
+        
+        try {
+          // Fetch season statistics for away team
+          if (awayTeamId && leagueId) {
+            awaySeasonStats = await apiFootball.getTeamSeasonGoals(awayTeamId, leagueId, CURRENT_SEASON);
+          }
+        } catch (err: any) {
+          console.log(`[AutoPublish] Away season stats skipped: ${err.message}`);
+        }
+        
+        console.log(`[AutoPublish] Enhanced data: injuries=${injuries.home.length + injuries.away.length}, homeMatches=${homeLastMatches.length}, awayMatches=${awayLastMatches.length}`);
+        
+        // Build match data for AI analysis with all available data
         const matchData: MatchData = {
           homeTeam,
           awayTeam,
@@ -315,6 +405,30 @@ async function publishMatchesForDate(dateStr: string, totalLimit: number = 70, m
           awayGoalsFor: teams?.away?.league?.goals?.for?.total,
           awayGoalsAgainst: teams?.away?.league?.goals?.against?.total,
           odds: match.odds,
+          // Enhanced data from new API endpoints
+          injuries: injuries,
+          homeLastMatches: homeLastMatches,
+          awayLastMatches: awayLastMatches,
+          homeTeamStats: homeSeasonStats ? {
+            cleanSheets: homeSeasonStats.clean_sheet?.total || 0,
+            failedToScore: homeSeasonStats.failed_to_score?.total || 0,
+            avgGoalsHome: homeSeasonStats.goals?.for?.average?.home ? parseFloat(homeSeasonStats.goals.for.average.home) : undefined,
+            avgGoalsAway: homeSeasonStats.goals?.for?.average?.away ? parseFloat(homeSeasonStats.goals.for.average.away) : undefined,
+            avgGoalsConcededHome: homeSeasonStats.goals?.against?.average?.home ? parseFloat(homeSeasonStats.goals.against.average.home) : undefined,
+            avgGoalsConcededAway: homeSeasonStats.goals?.against?.average?.away ? parseFloat(homeSeasonStats.goals.against.average.away) : undefined,
+            biggestWinStreak: homeSeasonStats.biggest?.streak?.wins || 0,
+            biggestLoseStreak: homeSeasonStats.biggest?.streak?.loses || 0,
+          } : undefined,
+          awayTeamStats: awaySeasonStats ? {
+            cleanSheets: awaySeasonStats.clean_sheet?.total || 0,
+            failedToScore: awaySeasonStats.failed_to_score?.total || 0,
+            avgGoalsHome: awaySeasonStats.goals?.for?.average?.home ? parseFloat(awaySeasonStats.goals.for.average.home) : undefined,
+            avgGoalsAway: awaySeasonStats.goals?.for?.average?.away ? parseFloat(awaySeasonStats.goals.for.average.away) : undefined,
+            avgGoalsConcededHome: awaySeasonStats.goals?.against?.average?.home ? parseFloat(awaySeasonStats.goals.against.average.home) : undefined,
+            avgGoalsConcededAway: awaySeasonStats.goals?.against?.average?.away ? parseFloat(awaySeasonStats.goals.against.average.away) : undefined,
+            biggestWinStreak: awaySeasonStats.biggest?.streak?.wins || 0,
+            biggestLoseStreak: awaySeasonStats.biggest?.streak?.loses || 0,
+          } : undefined,
         };
         
         // Check AI decision before publishing
@@ -656,7 +770,80 @@ export async function autoPublishTomorrowMatchesLegacy(targetCount: number = 70)
         const comparison = match.prediction?.comparison;
         const h2h = match.prediction?.h2h || [];
         
-        // Build match data for AI analysis
+        // Fetch additional data for enhanced AI analysis
+        const homeTeamId = match.teams?.home?.id;
+        const awayTeamId = match.teams?.away?.id;
+        const fixtureId = match.fixture?.id;
+        
+        let injuries: any = { home: [], away: [] };
+        let homeLastMatches: any[] = [];
+        let awayLastMatches: any[] = [];
+        let homeSeasonStats: any = null;
+        let awaySeasonStats: any = null;
+        
+        try {
+          if (fixtureId) {
+            const injuriesData = await apiFootball.getInjuries(fixtureId);
+            if (injuriesData && Array.isArray(injuriesData)) {
+              injuries.home = injuriesData
+                .filter((inj: any) => inj.team?.id === homeTeamId)
+                .map((inj: any) => ({
+                  player: inj.player?.name || 'Unknown',
+                  reason: inj.player?.reason || 'Injury',
+                  type: inj.player?.type || 'Missing'
+                }));
+              injuries.away = injuriesData
+                .filter((inj: any) => inj.team?.id === awayTeamId)
+                .map((inj: any) => ({
+                  player: inj.player?.name || 'Unknown',
+                  reason: inj.player?.reason || 'Injury',
+                  type: inj.player?.type || 'Missing'
+                }));
+            }
+          }
+        } catch (err: any) { /* skip */ }
+        
+        try {
+          if (homeTeamId) {
+            const homeMatches = await apiFootball.getTeamLastMatches(homeTeamId, 10);
+            homeLastMatches = homeMatches?.map((m: any) => ({
+              opponent: m.teams?.home?.id === homeTeamId ? m.teams?.away?.name : m.teams?.home?.name,
+              result: m.teams?.home?.id === homeTeamId
+                ? (m.teams?.home?.winner ? 'W' : m.teams?.away?.winner ? 'L' : 'D')
+                : (m.teams?.away?.winner ? 'W' : m.teams?.home?.winner ? 'L' : 'D'),
+              score: `${m.goals?.home || 0}-${m.goals?.away || 0}`,
+              home: m.teams?.home?.id === homeTeamId
+            })) || [];
+          }
+        } catch (err: any) { /* skip */ }
+        
+        try {
+          if (awayTeamId) {
+            const awayMatches = await apiFootball.getTeamLastMatches(awayTeamId, 10);
+            awayLastMatches = awayMatches?.map((m: any) => ({
+              opponent: m.teams?.home?.id === awayTeamId ? m.teams?.away?.name : m.teams?.home?.name,
+              result: m.teams?.home?.id === awayTeamId
+                ? (m.teams?.home?.winner ? 'W' : m.teams?.away?.winner ? 'L' : 'D')
+                : (m.teams?.away?.winner ? 'W' : m.teams?.home?.winner ? 'L' : 'D'),
+              score: `${m.goals?.home || 0}-${m.goals?.away || 0}`,
+              home: m.teams?.home?.id === awayTeamId
+            })) || [];
+          }
+        } catch (err: any) { /* skip */ }
+        
+        try {
+          if (homeTeamId && leagueId) {
+            homeSeasonStats = await apiFootball.getTeamSeasonGoals(homeTeamId, leagueId, CURRENT_SEASON);
+          }
+        } catch (err: any) { /* skip */ }
+        
+        try {
+          if (awayTeamId && leagueId) {
+            awaySeasonStats = await apiFootball.getTeamSeasonGoals(awayTeamId, leagueId, CURRENT_SEASON);
+          }
+        } catch (err: any) { /* skip */ }
+        
+        // Build match data for AI analysis with all available data
         const matchData: MatchData = {
           homeTeam,
           awayTeam,
@@ -680,6 +867,30 @@ export async function autoPublishTomorrowMatchesLegacy(targetCount: number = 70)
           awayGoalsFor: teams?.away?.league?.goals?.for?.total,
           awayGoalsAgainst: teams?.away?.league?.goals?.against?.total,
           odds: match.odds,
+          // Enhanced data from new API endpoints
+          injuries: injuries,
+          homeLastMatches: homeLastMatches,
+          awayLastMatches: awayLastMatches,
+          homeTeamStats: homeSeasonStats ? {
+            cleanSheets: homeSeasonStats.clean_sheet?.total || 0,
+            failedToScore: homeSeasonStats.failed_to_score?.total || 0,
+            avgGoalsHome: homeSeasonStats.goals?.for?.average?.home ? parseFloat(homeSeasonStats.goals.for.average.home) : undefined,
+            avgGoalsAway: homeSeasonStats.goals?.for?.average?.away ? parseFloat(homeSeasonStats.goals.for.average.away) : undefined,
+            avgGoalsConcededHome: homeSeasonStats.goals?.against?.average?.home ? parseFloat(homeSeasonStats.goals.against.average.home) : undefined,
+            avgGoalsConcededAway: homeSeasonStats.goals?.against?.average?.away ? parseFloat(homeSeasonStats.goals.against.average.away) : undefined,
+            biggestWinStreak: homeSeasonStats.biggest?.streak?.wins || 0,
+            biggestLoseStreak: homeSeasonStats.biggest?.streak?.loses || 0,
+          } : undefined,
+          awayTeamStats: awaySeasonStats ? {
+            cleanSheets: awaySeasonStats.clean_sheet?.total || 0,
+            failedToScore: awaySeasonStats.failed_to_score?.total || 0,
+            avgGoalsHome: awaySeasonStats.goals?.for?.average?.home ? parseFloat(awaySeasonStats.goals.for.average.home) : undefined,
+            avgGoalsAway: awaySeasonStats.goals?.for?.average?.away ? parseFloat(awaySeasonStats.goals.for.average.away) : undefined,
+            avgGoalsConcededHome: awaySeasonStats.goals?.against?.average?.home ? parseFloat(awaySeasonStats.goals.against.average.home) : undefined,
+            avgGoalsConcededAway: awaySeasonStats.goals?.against?.average?.away ? parseFloat(awaySeasonStats.goals.against.average.away) : undefined,
+            biggestWinStreak: awaySeasonStats.biggest?.streak?.wins || 0,
+            biggestLoseStreak: awaySeasonStats.biggest?.streak?.loses || 0,
+          } : undefined,
         };
         
         // Check AI decision before publishing
@@ -1010,7 +1221,80 @@ export async function publishFromPrefetchedFixtures(dateStr: string, totalLimit:
       const comparison = match.prediction?.comparison;
       const h2h = match.prediction?.h2h || [];
       
-      // Build match data for AI analysis
+      // Fetch additional data for enhanced AI analysis
+      const homeTeamId = match.teams?.home?.id;
+      const awayTeamId = match.teams?.away?.id;
+      const fixtureId = match.fixture?.id;
+      
+      let injuries: any = { home: [], away: [] };
+      let homeLastMatches: any[] = [];
+      let awayLastMatches: any[] = [];
+      let homeSeasonStats: any = null;
+      let awaySeasonStats: any = null;
+      
+      try {
+        if (fixtureId) {
+          const injuriesData = await apiFootball.getInjuries(fixtureId);
+          if (injuriesData && Array.isArray(injuriesData)) {
+            injuries.home = injuriesData
+              .filter((inj: any) => inj.team?.id === homeTeamId)
+              .map((inj: any) => ({
+                player: inj.player?.name || 'Unknown',
+                reason: inj.player?.reason || 'Injury',
+                type: inj.player?.type || 'Missing'
+              }));
+            injuries.away = injuriesData
+              .filter((inj: any) => inj.team?.id === awayTeamId)
+              .map((inj: any) => ({
+                player: inj.player?.name || 'Unknown',
+                reason: inj.player?.reason || 'Injury',
+                type: inj.player?.type || 'Missing'
+              }));
+          }
+        }
+      } catch (err: any) { /* skip */ }
+      
+      try {
+        if (homeTeamId) {
+          const homeMatches = await apiFootball.getTeamLastMatches(homeTeamId, 10);
+          homeLastMatches = homeMatches?.map((m: any) => ({
+            opponent: m.teams?.home?.id === homeTeamId ? m.teams?.away?.name : m.teams?.home?.name,
+            result: m.teams?.home?.id === homeTeamId
+              ? (m.teams?.home?.winner ? 'W' : m.teams?.away?.winner ? 'L' : 'D')
+              : (m.teams?.away?.winner ? 'W' : m.teams?.home?.winner ? 'L' : 'D'),
+            score: `${m.goals?.home || 0}-${m.goals?.away || 0}`,
+            home: m.teams?.home?.id === homeTeamId
+          })) || [];
+        }
+      } catch (err: any) { /* skip */ }
+      
+      try {
+        if (awayTeamId) {
+          const awayMatches = await apiFootball.getTeamLastMatches(awayTeamId, 10);
+          awayLastMatches = awayMatches?.map((m: any) => ({
+            opponent: m.teams?.home?.id === awayTeamId ? m.teams?.away?.name : m.teams?.home?.name,
+            result: m.teams?.home?.id === awayTeamId
+              ? (m.teams?.home?.winner ? 'W' : m.teams?.away?.winner ? 'L' : 'D')
+              : (m.teams?.away?.winner ? 'W' : m.teams?.home?.winner ? 'L' : 'D'),
+            score: `${m.goals?.home || 0}-${m.goals?.away || 0}`,
+            home: m.teams?.home?.id === awayTeamId
+          })) || [];
+        }
+      } catch (err: any) { /* skip */ }
+      
+      try {
+        if (homeTeamId && leagueId) {
+          homeSeasonStats = await apiFootball.getTeamSeasonGoals(homeTeamId, leagueId, CURRENT_SEASON);
+        }
+      } catch (err: any) { /* skip */ }
+      
+      try {
+        if (awayTeamId && leagueId) {
+          awaySeasonStats = await apiFootball.getTeamSeasonGoals(awayTeamId, leagueId, CURRENT_SEASON);
+        }
+      } catch (err: any) { /* skip */ }
+      
+      // Build match data for AI analysis with all available data
       const matchData: MatchData = {
         homeTeam,
         awayTeam,
@@ -1034,6 +1318,30 @@ export async function publishFromPrefetchedFixtures(dateStr: string, totalLimit:
         awayGoalsFor: teams?.away?.league?.goals?.for?.total,
         awayGoalsAgainst: teams?.away?.league?.goals?.against?.total,
         odds: match.odds,
+        // Enhanced data from new API endpoints
+        injuries: injuries,
+        homeLastMatches: homeLastMatches,
+        awayLastMatches: awayLastMatches,
+        homeTeamStats: homeSeasonStats ? {
+          cleanSheets: homeSeasonStats.clean_sheet?.total || 0,
+          failedToScore: homeSeasonStats.failed_to_score?.total || 0,
+          avgGoalsHome: homeSeasonStats.goals?.for?.average?.home ? parseFloat(homeSeasonStats.goals.for.average.home) : undefined,
+          avgGoalsAway: homeSeasonStats.goals?.for?.average?.away ? parseFloat(homeSeasonStats.goals.for.average.away) : undefined,
+          avgGoalsConcededHome: homeSeasonStats.goals?.against?.average?.home ? parseFloat(homeSeasonStats.goals.against.average.home) : undefined,
+          avgGoalsConcededAway: homeSeasonStats.goals?.against?.average?.away ? parseFloat(homeSeasonStats.goals.against.average.away) : undefined,
+          biggestWinStreak: homeSeasonStats.biggest?.streak?.wins || 0,
+          biggestLoseStreak: homeSeasonStats.biggest?.streak?.loses || 0,
+        } : undefined,
+        awayTeamStats: awaySeasonStats ? {
+          cleanSheets: awaySeasonStats.clean_sheet?.total || 0,
+          failedToScore: awaySeasonStats.failed_to_score?.total || 0,
+          avgGoalsHome: awaySeasonStats.goals?.for?.average?.home ? parseFloat(awaySeasonStats.goals.for.average.home) : undefined,
+          avgGoalsAway: awaySeasonStats.goals?.for?.average?.away ? parseFloat(awaySeasonStats.goals.for.average.away) : undefined,
+          avgGoalsConcededHome: awaySeasonStats.goals?.against?.average?.home ? parseFloat(awaySeasonStats.goals.against.average.home) : undefined,
+          avgGoalsConcededAway: awaySeasonStats.goals?.against?.average?.away ? parseFloat(awaySeasonStats.goals.against.average.away) : undefined,
+          biggestWinStreak: awaySeasonStats.biggest?.streak?.wins || 0,
+          biggestLoseStreak: awaySeasonStats.biggest?.streak?.loses || 0,
+        } : undefined,
       };
       
       // FIRST: Check AI decision before publishing
