@@ -50,7 +50,7 @@ export default function MatchDetailPage() {
   const [liveScore, setLiveScore] = useState<LiveScore | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingAI, setLoadingAI] = useState(false);
-  const [showAnalysis, setShowAnalysis] = useState(false);
+  const [showAnalysis, setShowAnalysis] = useState(true);
   const [showAvoidBets, setShowAvoidBets] = useState(false);
 
   useEffect(() => {
@@ -363,12 +363,6 @@ export default function MatchDetailPage() {
                 {showAnalysis && (
                   <div className="px-4 pb-4 border-t border-slate-100 pt-3">
                     <p className="text-sm text-slate-600 leading-relaxed">{aiAnalysis.analysis}</p>
-                    {aiAnalysis.expectedGoalRange && (
-                      <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-100">
-                        <span className="text-xs text-slate-500">Beklenen gol araligi:</span>
-                        <span className="text-sm font-bold text-slate-700">{aiAnalysis.expectedGoalRange}</span>
-                      </div>
-                    )}
                   </div>
                 )}
               </div>
