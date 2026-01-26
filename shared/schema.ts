@@ -116,7 +116,9 @@ export const bestBets = pgTable("best_bets", {
   match_date: text("match_date"),
   match_time: text("match_time"),
   bet_type: text("bet_type").notNull(),
+  bet_category: text("bet_category").default("primary"), // 'primary' = 2.5 Üst, 'alternative' = KG Var
   bet_description: text("bet_description"),
+  odds: decimal("odds", { precision: 5, scale: 2 }),
   confidence: integer("confidence").default(70),
   risk_level: text("risk_level").default("orta"),
   reasoning: text("reasoning"),
@@ -124,7 +126,7 @@ export const bestBets = pgTable("best_bets", {
   date_for: text("date_for").notNull(),
   created_at: timestamp("created_at").defaultNow(),
 }, (table) => [
-  uniqueIndex("best_bets_fixture_date_unique").on(table.fixture_id, table.date_for)
+  uniqueIndex("best_bets_fixture_date_category_unique").on(table.fixture_id, table.date_for, table.bet_category)
 ]);
 
 export const userCoupons = pgTable("user_coupons", {

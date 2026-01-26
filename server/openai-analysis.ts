@@ -135,6 +135,16 @@ export interface SingleBetResult {
   riskLevel: 'düşük' | 'orta' | 'yüksek';
 }
 
+export interface BetResult {
+  bet: string;
+  odds: number;
+  confidence: number;
+  reasoning: string;
+  valuePercentage: number;
+  estimatedProbability: number;
+  riskLevel: 'düşük' | 'orta' | 'yüksek';
+}
+
 export interface AIAnalysisResult {
   karar: 'bahis' | 'pas';
   matchContext?: {
@@ -146,6 +156,14 @@ export interface AIAnalysisResult {
     isDerby: boolean;
   };
   analysis: string;
+  psychologicalAnalysis?: {
+    homeTeamMorale: 'yüksek' | 'orta' | 'düşük';
+    awayTeamMorale: 'yüksek' | 'orta' | 'düşük';
+    matchPressure: 'yüksek' | 'normal' | 'düşük';
+    motivationFactor: string;
+  };
+  primaryBet?: BetResult | null;  // 2.5 Üst
+  alternativeBet?: BetResult | null;  // KG Var
   predictions: PredictionItem[];
   singleBet?: SingleBetResult | null;
   avoidBets?: Record<string, string>;
@@ -273,36 +291,38 @@ export async function generateMatchAnalysis(matchData: MatchData): Promise<AIAna
   const expectedGoals = calculateExpectedGoals(matchData);
   const trends = analyzeTrends(matchData);
 
-  // Professional Value Betting System Prompt v2
-  const systemPrompt = `Sen profesyonel bir bahis tahmincisi ve value betting uzmanısın.
-Tahminlerin kendinden emin ve kararlı olmalı - koşullar sağlandığında net kararlar ver.
+  // Professional Value Betting System Prompt v3 - 2.5 Üst + KG Var Focus
+  const systemPrompt = `Sen tutturduk.com için çalışan profesyonel bir bahis tahmincisi ve value betting uzmanısın.
+Hem istatistiksel hem psikolojik analiz yaparak tahmin üretiyorsun.
+
+🎯 ODAK MARKETLER (SADECE BU İKİSİ):
+1. Ana Bahis: 2.5 ÜST (3+ gol beklentisi)
+2. Alternatif Bahis: KG VAR (her iki takım da gol atar)
+
+⚠️ 2.5 Alt ve KG Yok bahisleri YASAKTIR - asla önerme!
 
 🚫 KESİN KURALLAR:
 
-1️⃣ MİNİMUM ORAN
-- 1.50 altı oran YASAKTIR, kesinlikle önerilmez
-- 1.5 Üst marketi SADECE oran ≥1.50 ise kullanılabilir
+1️⃣ MİNİMUM ORAN: 1.50
+- Her iki bahis için de oran ≥1.50 olmalı
 - Düşük oranlı bahisleri yuvarlama veya zorla önerme
 
-2️⃣ TAHMİN MANTIĞI
-- Her maç için SADECE 1 en iyi bahis öner
-- Güçlü tahmin yoksa "karar": "pas" döndür
-- Belirsiz veya volatil maçlarda zoraki tahmin YAPMA
-
-3️⃣ VALUE BETTING
+2️⃣ DEĞER HESABI
 Değer = (TahminiOlasılık / 100 × Oran) - 1
-- Değer ≤ 0 ise tahmin YAPMA
-- Olasılıklar gerçekçi ve tutarlı olmalı
-- Aşırı veya şişirilmiş olasılıklardan kaçın
+- Her iki bahis için de değer > 0 olmalı
+- Değer yoksa o bahis için null döndür
 
-4️⃣ MARKET ÖNCELİK SIRASI
-1. 2.5 Üst / 2.5 Alt (eşit öncelik)
-2. KG Var (Karşılıklı Gol)
-3. Çifte Şans (1X, X2)
-4. DNB (Beraberlikte İade)
-5. 1.5 Üst (SADECE oran ≥1.50 ise)
-6. MS (Maç Sonucu) - sadece çok net senaryolarda
-7. İY (İlk Yarı) - son çare olarak
+3️⃣ KARAR MEKANİZMASI
+- 2.5 Üst VE KG Var ikisi de değerliyse → "bahis"
+- Sadece biri değerliyse de → "bahis" (diğeri null)
+- İkisi de değersizse → "pas"
+
+4️⃣ PSİKOLOJİK ANALİZ (ÇOK ÖNEMLİ)
+- Takım morali (son maç sonuçları, galibiyet/mağlubiyet serisi)
+- Motivasyon (şampiyonluk, küme düşme, derbi, kupa finali)
+- Baskı faktörü (büyük takım beklentisi, taraftar baskısı)
+- Form trendi (yükselen mi düşen mi?)
+- Kilit oyuncu eksikliği etkisi
 
 5️⃣ GÜVEN & RİSK
 - Güven ≥70 → düşük risk
@@ -420,7 +440,7 @@ ${matchData.injuries?.away?.length ? `${matchData.awayTeam}: ${matchData.injurie
 📤 JSON ÇIKTI FORMATI (ZORUNLU)
 ================================
 
-GEÇERLİ TAHMİN VARSA:
+GEÇERLİ TAHMİN VARSA (en az biri değerli):
 {
   "karar": "bahis",
   "matchContext": {
@@ -431,40 +451,70 @@ GEÇERLİ TAHMİN VARSA:
     "isCupUpset": false,
     "isDerby": ${isDerby}
   },
-  "analysis": "5-8 cümlelik maç analizi. Form, taktik ve tahmin gerekçesi.",
+  "analysis": "5-8 cümlelik detaylı maç analizi. Form, taktik, istatistik ve psikolojik değerlendirme.",
   
-  "singleBet": {
-    "bet": "2.5 Üst",
-    "odds": 1.72,
-    "estimatedProbability": 58,
-    "valuePercentage": 0.5,
-    "confidence": 64,
-    "riskLevel": "orta",
-    "reasoning": "4-5 cümlelik detaylı yorum. Gerçek bir spor yorumcusu gibi samimi ve akıcı yaz. Maçın havası, takım formları, istatistikler ve bu tahminin neden en iyi seçenek olduğunu açıkla."
+  "psychologicalAnalysis": {
+    "homeTeamMorale": "yüksek|orta|düşük",
+    "awayTeamMorale": "yüksek|orta|düşük",
+    "matchPressure": "yüksek|normal|düşük",
+    "motivationFactor": "Kısa motivasyon açıklaması (şampiyonluk yarışı, küme düşme mücadelesi, rahat konum vb.)"
   },
   
-  "avoidBets": {
-    "1.5 Üst": "Oran minimum eşiğin altında",
-    "MS1": "Ev avantajına rağmen değer düşük"
+  "primaryBet": {
+    "bet": "2.5 Üst",
+    "odds": 1.72,
+    "estimatedProbability": 62,
+    "valuePercentage": 0.07,
+    "confidence": 68,
+    "riskLevel": "orta",
+    "reasoning": "5-6 cümlelik profesyonel yorum. Neden 3+ gol beklediğini, takımların gol atma eğilimini, son maçlardaki gol ortalamalarını ve H2H verilerini kullanarak açıkla."
+  },
+  
+  "alternativeBet": {
+    "bet": "KG Var",
+    "odds": 1.85,
+    "estimatedProbability": 58,
+    "valuePercentage": 0.07,
+    "confidence": 64,
+    "riskLevel": "orta",
+    "reasoning": "5-6 cümlelik profesyonel yorum. Her iki takımın gol atma kapasitesini, savunma zafiyetlerini ve karşılıklı gol geçmişini açıkla."
   },
   
   "expectedGoalRange": "2-3"
 }
 
-GEÇERLİ TAHMİN YOKSA:
+SADECE 2.5 ÜST DEĞERLİ İSE:
+{
+  "karar": "bahis",
+  "primaryBet": { ... },
+  "alternativeBet": null,
+  ...
+}
+
+SADECE KG VAR DEĞERLİ İSE:
+{
+  "karar": "bahis",
+  "primaryBet": null,
+  "alternativeBet": { ... },
+  ...
+}
+
+HİÇBİRİ DEĞERLİ DEĞİLSE:
 {
   "karar": "pas",
-  "singleBet": null,
-  "analysis": "Bu maç için güvenilir bir tahmin yapılamıyor. [Kısa sebep açıkla]"
+  "primaryBet": null,
+  "alternativeBet": null,
+  "analysis": "Bu maçta ne 2.5 Üst ne de KG Var için yeterli değer bulunamadı. [Sebep açıkla]"
 }
 
 ⚠️ KRİTİK KURALLAR:
-- karar: "bahis" veya "pas" olmalı
-- singleBet.odds minimum 1.50!
+- SADECE "2.5 Üst" ve "KG Var" bahislerini değerlendir
+- 2.5 Alt ve KG Yok YASAK!
+- Her bahis için minimum oran 1.50!
 - valuePercentage = ((estimatedProbability/100) × odds) - 1
-- Değer ≤ 0 ise "pas" döndür
-- Güven ≥70 → düşük risk, 60-69 → orta risk, <60 → yüksek risk
-- avoidBets obje formatında: {"bahis": "sebep"}`;
+- Değer ≤ 0 ise o bahis null olmalı
+- İkisi de değersizse karar: "pas"
+- Güven ≥70 → düşük risk, 60-69 → orta risk, <60 → yüksek risk`;
 
   try {
     const response = await openai.chat.completions.create({
@@ -496,18 +546,9 @@ GEÇERLİ TAHMİN YOKSA:
       result.predictions = [];
     }
     
-    // Handle "pas" decision - no valid prediction
-    if (result.karar === 'pas' || (result as any).decision === 'pass') {
-      console.log(`[AI] Decision: PASS - No confident prediction for this match`);
-      result.karar = 'pas';
-      result.singleBet = null;
-      result.predictions = [];
-      return result;
-    }
-    
-    // Process single bet for new format
-    if (result.singleBet) {
-      const bet = result.singleBet;
+    // Helper function to validate and process a bet
+    const validateBet = (bet: BetResult | null | undefined, betName: string): BetResult | null => {
+      if (!bet) return null;
       
       // Clamp estimatedProbability to valid range (0-100)
       if (typeof bet.estimatedProbability !== 'number' || isNaN(bet.estimatedProbability)) {
@@ -515,34 +556,29 @@ GEÇERLİ TAHMİN YOKSA:
       }
       bet.estimatedProbability = Math.max(0, Math.min(100, bet.estimatedProbability));
       
-      // Validate minimum odds (1.50) - STRICT ENFORCEMENT
+      // Validate minimum odds (1.50)
       if (typeof bet.odds !== 'number' || isNaN(bet.odds) || bet.odds < 1.50) {
-        console.log(`[AI] REJECTED: Bet odds ${bet.odds} below minimum 1.50 threshold`);
-        result.karar = 'pas';
-        result.singleBet = null;
-        result.predictions = [];
-        return result;
+        console.log(`[AI] REJECTED ${betName}: Odds ${bet.odds} below 1.50`);
+        return null;
       }
       
-      // Recalculate value percentage with validated inputs
+      // Recalculate value percentage
       const calculatedValue = ((bet.estimatedProbability / 100) * bet.odds) - 1;
       bet.valuePercentage = Math.round(calculatedValue * 100) / 100;
       
-      // If value is not positive, reject the bet
+      // If value is not positive, reject
       if (calculatedValue <= 0) {
-        console.log(`[AI] REJECTED: No value (${bet.valuePercentage}) for ${bet.bet}`);
-        result.karar = 'pas';
-        result.singleBet = null;
-        result.predictions = [];
-        return result;
+        console.log(`[AI] REJECTED ${betName}: No value (${bet.valuePercentage})`);
+        return null;
       }
       
-      // Assign risk level based on confidence (new thresholds)
+      // Clamp and set confidence
       if (typeof bet.confidence !== 'number' || isNaN(bet.confidence)) {
         bet.confidence = bet.estimatedProbability;
       }
       bet.confidence = Math.max(0, Math.min(100, bet.confidence));
       
+      // Assign risk level based on confidence
       if (bet.confidence >= 70) {
         bet.riskLevel = 'düşük';
       } else if (bet.confidence >= 60) {
@@ -551,25 +587,67 @@ GEÇERLİ TAHMİN YOKSA:
         bet.riskLevel = 'yüksek';
       }
       
-      // Set karar to bahis for valid predictions
-      result.karar = 'bahis';
-      
-      // Convert singleBet to predictions array for backwards compatibility
-      result.predictions = [{
-        type: 'expected',
-        bet: bet.bet,
-        odds: bet.odds.toString(),
-        confidence: bet.confidence,
-        reasoning: bet.reasoning || '',
-        isValueBet: true,
-        valuePercentage: bet.valuePercentage
-      }];
-      
-      console.log(`[AI] Decision: BET | ${bet.bet} @ ${bet.odds} | Value: ${(bet.valuePercentage * 100).toFixed(1)}% | Risk: ${bet.riskLevel}`);
-    } else {
-      // No singleBet provided, treat as pass
+      return bet;
+    };
+    
+    // Process primaryBet (2.5 Üst) and alternativeBet (KG Var)
+    result.primaryBet = validateBet(result.primaryBet, '2.5 Üst');
+    result.alternativeBet = validateBet(result.alternativeBet, 'KG Var');
+    
+    // Determine final decision
+    const hasPrimary = result.primaryBet !== null;
+    const hasAlternative = result.alternativeBet !== null;
+    
+    if (!hasPrimary && !hasAlternative) {
+      // Neither bet has value - pass
+      console.log(`[AI] Decision: PAS - Neither 2.5 Üst nor KG Var has value`);
       result.karar = 'pas';
       result.predictions = [];
+      return result;
+    }
+    
+    // At least one bet has value - bahis
+    result.karar = 'bahis';
+    result.predictions = [];
+    
+    if (result.primaryBet) {
+      result.predictions.push({
+        type: 'expected',
+        bet: result.primaryBet.bet,
+        odds: result.primaryBet.odds.toString(),
+        confidence: result.primaryBet.confidence,
+        reasoning: result.primaryBet.reasoning || '',
+        isValueBet: true,
+        valuePercentage: result.primaryBet.valuePercentage
+      });
+      console.log(`[AI] PRIMARY: ${result.primaryBet.bet} @ ${result.primaryBet.odds} | Value: ${(result.primaryBet.valuePercentage * 100).toFixed(1)}% | Risk: ${result.primaryBet.riskLevel}`);
+    }
+    
+    if (result.alternativeBet) {
+      result.predictions.push({
+        type: 'medium',
+        bet: result.alternativeBet.bet,
+        odds: result.alternativeBet.odds.toString(),
+        confidence: result.alternativeBet.confidence,
+        reasoning: result.alternativeBet.reasoning || '',
+        isValueBet: true,
+        valuePercentage: result.alternativeBet.valuePercentage
+      });
+      console.log(`[AI] ALTERNATIVE: ${result.alternativeBet.bet} @ ${result.alternativeBet.odds} | Value: ${(result.alternativeBet.valuePercentage * 100).toFixed(1)}% | Risk: ${result.alternativeBet.riskLevel}`);
+    }
+    
+    // Backwards compatibility with singleBet (use primaryBet if available, else alternativeBet)
+    if (result.primaryBet) {
+      result.singleBet = {
+        bet: result.primaryBet.bet,
+        odds: result.primaryBet.odds,
+        confidence: result.primaryBet.confidence,
+        reasoning: result.primaryBet.reasoning,
+        isValueBet: true,
+        valuePercentage: result.primaryBet.valuePercentage,
+        estimatedProbability: result.primaryBet.estimatedProbability,
+        riskLevel: result.primaryBet.riskLevel
+      };
     }
     
     return result;
@@ -603,26 +681,21 @@ export async function generateAndSavePredictions(
       return analysis || null;
     }
     
-    if (!analysis.predictions || analysis.predictions.length === 0) {
-      console.log(`[AI+BestBets] No predictions in result for ${homeTeam} vs ${awayTeam}`);
-      return null;
-    }
-    
-    const riskToLevel: Record<string, string> = {
-      'expected': 'düşük',
-      'medium': 'orta',
-      'risky': 'yüksek'
-    };
-    
-    for (const pred of analysis.predictions) {
+    // Save primaryBet (2.5 Üst) if available
+    if (analysis.primaryBet) {
       try {
         await pool.query(
           `INSERT INTO best_bets 
            (match_id, fixture_id, home_team, away_team, home_logo, away_logo, 
             league_name, league_logo, match_date, match_time,
-            bet_type, bet_description, confidence, risk_level, reasoning, result, date_for)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, 'pending', $16)
-           ON CONFLICT (fixture_id, date_for) DO NOTHING`,
+            bet_type, bet_category, odds, confidence, risk_level, reasoning, result, date_for)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, 'pending', $17)
+           ON CONFLICT (fixture_id, date_for, bet_category) DO UPDATE SET
+             bet_type = EXCLUDED.bet_type,
+             odds = EXCLUDED.odds,
+             confidence = EXCLUDED.confidence,
+             risk_level = EXCLUDED.risk_level,
+             reasoning = EXCLUDED.reasoning`,
           [
             matchId,
             fixtureId,
@@ -634,24 +707,64 @@ export async function generateAndSavePredictions(
             leagueLogo,
             matchDate,
             matchTime,
-            pred.bet,
-            '',
-            pred.confidence,
-            riskToLevel[pred.type] || 'orta',
-            pred.reasoning,
+            analysis.primaryBet.bet,
+            'primary',
+            analysis.primaryBet.odds,
+            analysis.primaryBet.confidence,
+            analysis.primaryBet.riskLevel,
+            analysis.primaryBet.reasoning,
             matchDate
           ]
         );
-        
-        console.log(`[AI+BestBets] Saved prediction: ${pred.bet} (${pred.type}) for fixture ${fixtureId}`);
+        console.log(`[AI+BestBets] Saved PRIMARY: ${analysis.primaryBet.bet} @ ${analysis.primaryBet.odds}`);
       } catch (err: any) {
-        if (err.code !== '23505') {
-          console.error(`[AI+BestBets] Error saving prediction:`, err.message);
-        }
+        console.error(`[AI+BestBets] Error saving primary bet:`, err.message);
       }
     }
     
-    const cacheKey = `ai_analysis_v8_${fixtureId}`;
+    // Save alternativeBet (KG Var) if available
+    if (analysis.alternativeBet) {
+      try {
+        await pool.query(
+          `INSERT INTO best_bets 
+           (match_id, fixture_id, home_team, away_team, home_logo, away_logo, 
+            league_name, league_logo, match_date, match_time,
+            bet_type, bet_category, odds, confidence, risk_level, reasoning, result, date_for)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, 'pending', $17)
+           ON CONFLICT (fixture_id, date_for, bet_category) DO UPDATE SET
+             bet_type = EXCLUDED.bet_type,
+             odds = EXCLUDED.odds,
+             confidence = EXCLUDED.confidence,
+             risk_level = EXCLUDED.risk_level,
+             reasoning = EXCLUDED.reasoning`,
+          [
+            matchId,
+            fixtureId,
+            homeTeam,
+            awayTeam,
+            homeLogo,
+            awayLogo,
+            leagueName,
+            leagueLogo,
+            matchDate,
+            matchTime,
+            analysis.alternativeBet.bet,
+            'alternative',
+            analysis.alternativeBet.odds,
+            analysis.alternativeBet.confidence,
+            analysis.alternativeBet.riskLevel,
+            analysis.alternativeBet.reasoning,
+            matchDate
+          ]
+        );
+        console.log(`[AI+BestBets] Saved ALTERNATIVE: ${analysis.alternativeBet.bet} @ ${analysis.alternativeBet.odds}`);
+      } catch (err: any) {
+        console.error(`[AI+BestBets] Error saving alternative bet:`, err.message);
+      }
+    }
+    
+    // Cache the analysis
+    const cacheKey = `ai_analysis_v9_${fixtureId}`;
     try {
       await pool.query(
         `INSERT INTO api_cache (key, value, expires_at)
@@ -659,12 +772,12 @@ export async function generateAndSavePredictions(
          ON CONFLICT (key) DO UPDATE SET value = $2, expires_at = NOW() + INTERVAL '24 hours'`,
         [cacheKey, JSON.stringify(analysis)]
       );
-      console.log(`[AI+BestBets] Cached analysis for fixture ${fixtureId}`);
     } catch (err: any) {
       console.error(`[AI+BestBets] Error caching analysis:`, err.message);
     }
     
-    console.log(`[AI+BestBets] Completed for ${homeTeam} vs ${awayTeam}: ${analysis.predictions.length} predictions saved`);
+    const savedCount = (analysis.primaryBet ? 1 : 0) + (analysis.alternativeBet ? 1 : 0);
+    console.log(`[AI+BestBets] Completed for ${homeTeam} vs ${awayTeam}: ${savedCount} predictions saved`);
     return analysis;
     
   } catch (error: any) {

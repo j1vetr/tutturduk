@@ -417,6 +417,43 @@ export const apiFootball = {
     // Cache the result
     setToCache(cacheKey, response.response, CACHE_TTL.odds);
     return response.response;
+  },
+
+  async getInjuries(fixtureId: number) {
+    const cacheKey = `injuries:${fixtureId}`;
+    const cached = getFromCache(cacheKey);
+    if (cached) return cached;
+    
+    const response = await apiRequest<any>('/injuries', { fixture: fixtureId.toString() });
+    setToCache(cacheKey, response.response, 60); // 1 hour cache
+    return response.response;
+  },
+
+  async getTeamLastMatches(teamId: number, last: number = 10) {
+    const cacheKey = `team_last:${teamId}:${last}`;
+    const cached = getFromCache(cacheKey);
+    if (cached) return cached;
+    
+    const response = await apiRequest<Fixture>('/fixtures', {
+      team: teamId.toString(),
+      last: last.toString()
+    });
+    setToCache(cacheKey, response.response, 60); // 1 hour cache
+    return response.response;
+  },
+
+  async getTeamSeasonGoals(teamId: number, leagueId: number, season: number) {
+    const cacheKey = `team_goals:${teamId}:${leagueId}:${season}`;
+    const cached = getFromCache(cacheKey);
+    if (cached) return cached;
+    
+    const response = await apiRequest<any>('/teams/statistics', {
+      team: teamId.toString(),
+      league: leagueId.toString(),
+      season: season.toString()
+    });
+    setToCache(cacheKey, response.response, 120); // 2 hour cache
+    return response.response;
   }
 };
 
