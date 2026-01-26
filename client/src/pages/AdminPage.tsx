@@ -802,7 +802,7 @@ export default function AdminPage() {
                   className="bg-slate-800 text-white hover:bg-slate-700"
                 >
                   {loadingMatches ? <Loader2 className="w-4 h-4 animate-spin" /> : <Target className="w-4 h-4 mr-1" />}
-                  Maclari Cek
+                  Kaliteli Maclar
                 </Button>
                 <Button 
                   onClick={runAICheck}
