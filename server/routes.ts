@@ -1472,11 +1472,32 @@ export async function registerRoutes(
   app.get('/api/matches/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const match = await storage.getPublishedMatchById(id);
+      // First try by fixture_id (for frontend navigation), then by internal id
+      let match = await storage.getPublishedMatchByFixtureId(id);
+      if (!match) {
+        match = await storage.getPublishedMatchById(id);
+      }
       if (!match) {
         return res.status(404).json({ message: 'Maç bulunamadı' });
       }
-      res.json(match);
+      
+      // Add predictions with bet_category
+      const bestBetsResult = await pool.query(
+        `SELECT bet_type, confidence, risk_level, result, bet_category, odds 
+         FROM best_bets WHERE fixture_id = $1 ORDER BY bet_category ASC, confidence DESC`,
+        [match.fixture_id]
+      );
+      
+      const predictions = bestBetsResult.rows.map(row => ({
+        bet_type: row.bet_type,
+        confidence: row.confidence,
+        risk_level: row.risk_level,
+        result: row.result,
+        bet_category: row.bet_category || 'primary',
+        odds: row.odds
+      }));
+      
+      res.json({ ...match, predictions });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
@@ -1485,7 +1506,8 @@ export async function registerRoutes(
   app.get('/api/matches/:id/lineups', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const match = await storage.getPublishedMatchById(id);
+      let match = await storage.getPublishedMatchByFixtureId(id);
+      if (!match) match = await storage.getPublishedMatchById(id);
       if (!match) {
         return res.status(404).json({ message: 'Maç bulunamadı' });
       }
@@ -1500,7 +1522,8 @@ export async function registerRoutes(
   app.get('/api/matches/:id/odds', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const match = await storage.getPublishedMatchById(id);
+      let match = await storage.getPublishedMatchByFixtureId(id);
+      if (!match) match = await storage.getPublishedMatchById(id);
       if (!match) {
         return res.status(404).json({ message: 'Maç bulunamadı' });
       }
@@ -1539,7 +1562,8 @@ export async function registerRoutes(
   app.get('/api/matches/:id/ai-analysis', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const match = await storage.getPublishedMatchById(id);
+      let match = await storage.getPublishedMatchByFixtureId(id);
+      if (!match) match = await storage.getPublishedMatchById(id);
       if (!match) {
         return res.status(404).json({ message: 'Maç bulunamadı' });
       }
