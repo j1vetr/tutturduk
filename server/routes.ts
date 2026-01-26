@@ -287,7 +287,13 @@ export async function registerRoutes(
     }
 
     const codes = await storage.getAllInvitationCodes();
-    res.json(codes);
+    // Map database fields to frontend expected format
+    const mappedCodes = codes.map(code => ({
+      ...code,
+      uses: code.current_uses,
+      status: code.is_active ? 'active' : 'inactive'
+    }));
+    res.json(mappedCodes);
   });
 
   app.post('/api/admin/invitations', async (req, res) => {
