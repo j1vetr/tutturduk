@@ -2344,21 +2344,21 @@ export async function registerRoutes(
         );
         published = publishResult.rows[0];
         
-        // Save predictions to best_bets
-        const riskToLevel: Record<string, string> = {
-          'expected': 'düşük',
-          'medium': 'orta',
-          'risky': 'yüksek'
-        };
-        
-        for (const pred of aiAnalysis.predictions) {
+        // Save predictions to best_bets using the new dual-bet system
+        // Primary bet (2.5 Üst)
+        if (aiAnalysis.primaryBet) {
           await client.query(
             `INSERT INTO best_bets 
              (match_id, fixture_id, home_team, away_team, home_logo, away_logo, 
               league_name, league_logo, match_date, match_time,
-              bet_type, bet_description, confidence, risk_level, reasoning, result, date_for)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, 'pending', $16)
-             ON CONFLICT (fixture_id, date_for) DO NOTHING`,
+              bet_type, bet_category, odds, confidence, risk_level, reasoning, result, date_for)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, 'pending', $17)
+             ON CONFLICT (fixture_id, date_for, bet_category) DO UPDATE SET
+               bet_type = EXCLUDED.bet_type,
+               odds = EXCLUDED.odds,
+               confidence = EXCLUDED.confidence,
+               risk_level = EXCLUDED.risk_level,
+               reasoning = EXCLUDED.reasoning`,
             [
               published.id,
               fixtureId,
@@ -2370,15 +2370,94 @@ export async function registerRoutes(
               leagueLogo,
               isoDate,
               localTime,
-              pred.bet,
-              '',
-              pred.confidence,
-              riskToLevel[pred.type] || 'orta',
-              pred.reasoning,
+              aiAnalysis.primaryBet.bet,
+              'primary',
+              aiAnalysis.primaryBet.odds,
+              aiAnalysis.primaryBet.confidence,
+              aiAnalysis.primaryBet.riskLevel,
+              aiAnalysis.primaryBet.reasoning,
               isoDate
             ]
           );
-          console.log(`[ManualPublish] Saved prediction: ${pred.bet} for fixture ${fixtureId}`);
+          console.log(`[ManualPublish] Saved PRIMARY: ${aiAnalysis.primaryBet.bet} for fixture ${fixtureId}`);
+        }
+        
+        // Alternative bet (KG Var)
+        if (aiAnalysis.alternativeBet) {
+          await client.query(
+            `INSERT INTO best_bets 
+             (match_id, fixture_id, home_team, away_team, home_logo, away_logo, 
+              league_name, league_logo, match_date, match_time,
+              bet_type, bet_category, odds, confidence, risk_level, reasoning, result, date_for)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, 'pending', $17)
+             ON CONFLICT (fixture_id, date_for, bet_category) DO UPDATE SET
+               bet_type = EXCLUDED.bet_type,
+               odds = EXCLUDED.odds,
+               confidence = EXCLUDED.confidence,
+               risk_level = EXCLUDED.risk_level,
+               reasoning = EXCLUDED.reasoning`,
+            [
+              published.id,
+              fixtureId,
+              homeTeamName,
+              awayTeamName,
+              homeLogo,
+              awayLogo,
+              leagueName,
+              leagueLogo,
+              isoDate,
+              localTime,
+              aiAnalysis.alternativeBet.bet,
+              'alternative',
+              aiAnalysis.alternativeBet.odds,
+              aiAnalysis.alternativeBet.confidence,
+              aiAnalysis.alternativeBet.riskLevel,
+              aiAnalysis.alternativeBet.reasoning,
+              isoDate
+            ]
+          );
+          console.log(`[ManualPublish] Saved ALTERNATIVE: ${aiAnalysis.alternativeBet.bet} for fixture ${fixtureId}`);
+        }
+        
+        // Fallback: save from predictions array if no primaryBet/alternativeBet
+        if (!aiAnalysis.primaryBet && !aiAnalysis.alternativeBet && aiAnalysis.predictions?.length > 0) {
+          const riskToLevel: Record<string, string> = {
+            'expected': 'düşük',
+            'medium': 'orta',
+            'risky': 'yüksek'
+          };
+          
+          for (let i = 0; i < aiAnalysis.predictions.length; i++) {
+            const pred = aiAnalysis.predictions[i];
+            const category = i === 0 ? 'primary' : 'alternative';
+            await client.query(
+              `INSERT INTO best_bets 
+               (match_id, fixture_id, home_team, away_team, home_logo, away_logo, 
+                league_name, league_logo, match_date, match_time,
+                bet_type, bet_category, confidence, risk_level, reasoning, result, date_for)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, 'pending', $16)
+               ON CONFLICT (fixture_id, date_for, bet_category) DO NOTHING`,
+              [
+                published.id,
+                fixtureId,
+                homeTeamName,
+                awayTeamName,
+                homeLogo,
+                awayLogo,
+                leagueName,
+                leagueLogo,
+                isoDate,
+                localTime,
+                pred.bet,
+                category,
+                pred.confidence,
+                riskToLevel[pred.type] || 'orta',
+                pred.reasoning,
+                isoDate
+              ]
+            );
+            console.log(`[ManualPublish] Saved prediction (fallback): ${pred.bet} for fixture ${fixtureId}`);
+          }
         }
         
         await client.query('COMMIT');
