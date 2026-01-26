@@ -95,11 +95,26 @@ function parseApiFootballOdds(oddsData: any[]): ParsedOdds {
 }
 
 // Core function for publishing matches - used by both tomorrow and today functions
-async function publishMatchesForDate(dateStr: string, totalLimit: number = 70, matchesPerHour: number = 5) {
-  console.log(`[AutoPublish] Publishing matches for ${dateStr} (limit: ${totalLimit}, per hour: ${matchesPerHour})...`);
+async function publishMatchesForDate(dateStr: string, totalLimit: number = 70, matchesPerHour: number = 10) {
+  console.log(`\n[AutoPublish] ==========================================`);
+  console.log(`[AutoPublish] STARTING PUBLISH FOR: ${dateStr}`);
+  console.log(`[AutoPublish] Limit: ${totalLimit} matches, Per hour: ${matchesPerHour}`);
+  console.log(`[AutoPublish] ==========================================\n`);
+  
+  const stats = {
+    fetched: 0,
+    filtered: 0,
+    withStats: 0,
+    withOdds: 0,
+    aiChecked: 0,
+    aiBahis: 0,
+    aiPas: 0,
+    published: 0
+  };
   
   try {
-    // Fetch ALL fixtures for the date
+    // Step 1: Fetch ALL fixtures for the date
+    console.log(`[AutoPublish] Step 1: Fetching all matches...`);
     let allMatches: any[] = [];
     
     try {
@@ -109,18 +124,21 @@ async function publishMatchesForDate(dateStr: string, totalLimit: number = 70, m
       
       if (fixtures && fixtures.length > 0) {
         allMatches = fixtures;
-        console.log(`[AutoPublish] Found ${allMatches.length} total matches for ${dateStr}`);
+        stats.fetched = allMatches.length;
+        console.log(`[AutoPublish] -> Found ${allMatches.length} total matches`);
       }
     } catch (error: any) {
-      console.log(`[AutoPublish] Error fetching fixtures:`, error?.message || error);
-      return { published: 0, total: 0, date: dateStr };
+      console.log(`[AutoPublish] ERROR fetching fixtures:`, error?.message || error);
+      return { published: 0, total: 0, date: dateStr, stats };
     }
     
     if (allMatches.length === 0) {
-      console.log('[AutoPublish] No matches found');
-      return { published: 0, total: 0, date: dateStr };
+      console.log('[AutoPublish] -> No matches found for this date');
+      return { published: 0, total: 0, date: dateStr, stats };
     }
     
+    // Step 2: Filter matches (remove U23, women's, etc.)
+    console.log(`[AutoPublish] Step 2: Filtering matches (removing U23, women's, amateur)...`);
     const formattedMatches = allMatches.map(f => ({
       fixture: f.fixture,
       league: f.league,
@@ -129,7 +147,8 @@ async function publishMatchesForDate(dateStr: string, totalLimit: number = 70, m
     }));
     
     const filteredMatches = filterMatches(formattedMatches);
-    console.log(`[AutoPublish] After filtering: ${filteredMatches.length} matches`);
+    stats.filtered = filteredMatches.length;
+    console.log(`[AutoPublish] -> After filtering: ${filteredMatches.length} quality matches`);
     
     // Group matches by hour
     const matchesByHour: Map<number, any[]> = new Map();
@@ -241,7 +260,9 @@ async function publishMatchesForDate(dateStr: string, totalLimit: number = 70, m
       }
     }
     
-    console.log(`[AutoPublish] Total valid matches collected: ${scoredMatches.length}`);
+    stats.withStats = scoredMatches.length;
+    console.log(`\n[AutoPublish] Step 4: AI Analysis & Publishing...`);
+    console.log(`[AutoPublish] -> ${scoredMatches.length} matches ready for AI analysis`);
     
     // Publish all collected matches - but first check AI decision
     let publishedCount = 0;
@@ -296,25 +317,26 @@ async function publishMatchesForDate(dateStr: string, totalLimit: number = 70, m
           odds: match.odds,
         };
         
-        // FIRST: Check AI decision before publishing
-        console.log(`[AutoPublish] Checking AI decision for ${homeTeam} vs ${awayTeam}...`);
+        // Check AI decision before publishing
+        console.log(`[AutoPublish] AI analyzing: ${homeTeam} vs ${awayTeam}...`);
         let aiAnalysis;
         try {
           aiAnalysis = await generateMatchAnalysis(matchData);
         } catch (aiError: any) {
-          console.error(`[AutoPublish] AI analysis failed for ${homeTeam} vs ${awayTeam}:`, aiError.message);
+          console.error(`[AutoPublish] AI HATA: ${homeTeam} vs ${awayTeam} - ${aiError.message}`);
           continue;
         }
         
         // If AI says "pas", skip this match entirely
         if (!aiAnalysis || aiAnalysis.karar === 'pas') {
           passedCount++;
-          console.log(`[AutoPublish] SKIPPED (pas): ${homeTeam} vs ${awayTeam} - no confident prediction`);
+          console.log(`[AutoPublish] PAS: ${homeTeam} vs ${awayTeam} - belirsiz maç`);
           await new Promise(resolve => setTimeout(resolve, 2000));
           continue;
         }
         
         // AI said "bahis" - proceed with publishing
+        console.log(`[AutoPublish] BAHİS: ${homeTeam} vs ${awayTeam} - yayınlanıyor`);
         await pool.query(
           `INSERT INTO published_matches 
            (fixture_id, home_team, away_team, home_logo, away_logo, league_name, league_logo, league_id,
@@ -412,14 +434,24 @@ async function publishMatchesForDate(dateStr: string, totalLimit: number = 70, m
       }
     }
     
-    console.log(`[AutoPublish] Summary: ${publishedCount} published, ${passedCount} passed (no confident prediction)`)
+    stats.published = publishedCount;
     
-    console.log(`[AutoPublish] Completed! Published ${publishedCount} matches`);
+    console.log(`\n[AutoPublish] ==========================================`);
+    console.log(`[AutoPublish] ÖZET - ${dateStr}`);
+    console.log(`[AutoPublish] ==========================================`);
+    console.log(`[AutoPublish] Çekilen maç: ${stats.fetched}`);
+    console.log(`[AutoPublish] Filtre sonrası: ${stats.filtered}`);
+    console.log(`[AutoPublish] İstatistik+Oran geçen: ${stats.withStats}`);
+    console.log(`[AutoPublish] AI Bahis: ${publishedCount}`);
+    console.log(`[AutoPublish] AI Pas: ${passedCount}`);
+    console.log(`[AutoPublish] YAYINLANAN: ${publishedCount}`);
+    console.log(`[AutoPublish] ==========================================\n`);
     
     return { 
       published: publishedCount, 
       total: scoredMatches.length,
-      date: dateStr 
+      date: dateStr,
+      stats
     };
     
   } catch (error) {
@@ -650,25 +682,26 @@ export async function autoPublishTomorrowMatchesLegacy(targetCount: number = 70)
           odds: match.odds,
         };
         
-        // FIRST: Check AI decision before publishing
-        console.log(`[AutoPublish] Checking AI decision for ${homeTeam} vs ${awayTeam}...`);
+        // Check AI decision before publishing
+        console.log(`[AutoPublish] AI analyzing: ${homeTeam} vs ${awayTeam}...`);
         let aiAnalysis;
         try {
           aiAnalysis = await generateMatchAnalysis(matchData);
         } catch (aiError: any) {
-          console.error(`[AutoPublish] AI analysis failed for ${homeTeam} vs ${awayTeam}:`, aiError.message);
+          console.error(`[AutoPublish] AI HATA: ${homeTeam} vs ${awayTeam} - ${aiError.message}`);
           continue;
         }
         
         // If AI says "pas", skip this match entirely
         if (!aiAnalysis || aiAnalysis.karar === 'pas') {
           passedCount++;
-          console.log(`[AutoPublish] SKIPPED (pas): ${homeTeam} vs ${awayTeam} - no confident prediction`);
+          console.log(`[AutoPublish] PAS: ${homeTeam} vs ${awayTeam} - belirsiz maç`);
           await new Promise(resolve => setTimeout(resolve, 2000));
           continue;
         }
         
         // AI said "bahis" - proceed with publishing
+        console.log(`[AutoPublish] BAHİS: ${homeTeam} vs ${awayTeam} - yayınlanıyor`);
         await pool.query(
           `INSERT INTO published_matches 
            (fixture_id, home_team, away_team, home_logo, away_logo, league_name, league_logo, league_id,
@@ -1142,39 +1175,45 @@ export async function autoPublishTodayMatchesValidated(totalLimit: number = 70, 
   return publishFromPrefetchedFixtures(todayStr, totalLimit, matchesPerHour);
 }
 
-export function startAutoPublishService(prefetchHour: number = 21, publishHour: number = 22) {
-  console.log(`[AutoPublish] Service scheduled: prefetch at ${prefetchHour}:00, publish at ${publishHour}:00`);
+export function startAutoPublishService() {
+  console.log(`[AutoPublish] Service scheduled: daily publish at 00:10 (Turkey time)`);
   
   const checkAndRun = async () => {
+    // Get current time in Turkey timezone
     const now = new Date();
-    const currentHour = now.getHours();
-    const currentMinute = now.getMinutes();
+    const turkeyTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Istanbul' }));
+    const currentHour = turkeyTime.getHours();
+    const currentMinute = turkeyTime.getMinutes();
     
-    // Pre-fetch at 21:00
-    if (currentHour === prefetchHour && currentMinute < 5) {
-      console.log('[AutoPublish] Prefetch triggered for tomorrow');
+    // Run at 00:10 Turkey time
+    if (currentHour === 0 && currentMinute >= 10 && currentMinute < 15) {
+      console.log('[AutoPublish] ========================================');
+      console.log('[AutoPublish] Daily auto-publish triggered at 00:10');
+      console.log('[AutoPublish] ========================================');
+      
       try {
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        const tomorrowStr = tomorrow.toISOString().split('T')[0];
-        await prefetchValidatedFixtures(tomorrowStr);
+        // Get today's date in Turkey timezone
+        const todayStr = now.toLocaleDateString('sv-SE', { timeZone: 'Europe/Istanbul' });
+        console.log(`[AutoPublish] Publishing matches for TODAY: ${todayStr}`);
+        
+        // Run the full publish flow for today
+        const result = await publishMatchesForDate(todayStr, 70, 10);
+        
+        console.log('[AutoPublish] ========================================');
+        console.log(`[AutoPublish] COMPLETED: ${result.published} matches published`);
+        console.log(`[AutoPublish] Date: ${result.date}`);
+        console.log('[AutoPublish] ========================================');
       } catch (error) {
-        console.error('[AutoPublish] Prefetch failed:', error);
-      }
-    }
-    
-    // Publish at 22:00
-    if (currentHour === publishHour && currentMinute < 5) {
-      console.log('[AutoPublish] Publish triggered');
-      try {
-        await autoPublishTomorrowMatchesValidated(70, 5);
-      } catch (error) {
-        console.error('[AutoPublish] Publish failed:', error);
+        console.error('[AutoPublish] Daily publish failed:', error);
       }
     }
   };
   
+  // Check every 5 minutes
   autoPublishInterval = setInterval(checkAndRun, 5 * 60 * 1000);
+  
+  // Also run immediately on startup to check if we're in the window
+  checkAndRun();
 }
 
 export function stopAutoPublishService() {

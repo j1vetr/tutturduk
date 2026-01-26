@@ -100,8 +100,8 @@ app.use((req, res, next) => {
       startMatchStatusService(15);
       log('Match status service started (15 min interval)');
       
-      startAutoPublishService(21, 22); // Prefetch at 21:00, publish at 22:00
-      log('Auto-publish service started (prefetch 21:00, publish 22:00)');
+      startAutoPublishService();
+      log('Auto-publish service started (daily at 00:10 Turkey time)');
     },
   );
 })();
