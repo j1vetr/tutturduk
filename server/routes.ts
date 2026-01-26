@@ -1303,22 +1303,29 @@ export async function registerRoutes(
     try {
       const matches = await storage.getPublishedMatches();
       
-      // Enrich matches with best_bets predictions
+      // Enrich matches with best_bets predictions (all predictions with bet_category)
       const enrichedMatches = await Promise.all(matches.map(async (match) => {
         const bestBetsResult = await pool.query(
-          `SELECT bet_type, confidence, risk_level, result FROM best_bets WHERE fixture_id = $1 ORDER BY confidence DESC LIMIT 1`,
+          `SELECT bet_type, confidence, risk_level, result, bet_category, odds 
+           FROM best_bets WHERE fixture_id = $1 ORDER BY bet_category ASC, confidence DESC`,
           [match.fixture_id]
         );
         
-        const bestBet = bestBetsResult.rows[0];
+        const predictions = bestBetsResult.rows.map(row => ({
+          bet_type: row.bet_type,
+          confidence: row.confidence,
+          risk_level: row.risk_level,
+          result: row.result,
+          bet_category: row.bet_category || 'primary',
+          odds: row.odds
+        }));
+        
+        const primaryBet = predictions.find(p => p.bet_category === 'primary');
+        
         return {
           ...match,
-          best_bet: bestBet ? {
-            bet_type: bestBet.bet_type,
-            confidence: bestBet.confidence,
-            risk_level: bestBet.risk_level,
-            result: bestBet.result
-          } : null
+          predictions,
+          best_bet: primaryBet || predictions[0] || null
         };
       }));
       
@@ -1439,7 +1446,24 @@ export async function registerRoutes(
   app.get('/api/matches/featured', async (req, res) => {
     try {
       const match = await storage.getFeaturedMatch();
-      res.json(match || null);
+      if (!match) {
+        return res.json(null);
+      }
+      
+      // Add predictions with bet_category
+      const bestBetsResult = await pool.query(
+        `SELECT bet_type, confidence, risk_level, result, bet_category, odds 
+         FROM best_bets WHERE fixture_id = $1 ORDER BY bet_category ASC, confidence DESC`,
+        [match.fixture_id]
+      );
+      
+      const predictions = bestBetsResult.rows.map(row => ({
+        bet_type: row.bet_type,
+        confidence: row.confidence,
+        bet_category: row.bet_category || 'primary'
+      }));
+      
+      res.json({ ...match, predictions });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
@@ -1849,6 +1873,35 @@ export async function registerRoutes(
     try {
       const bets = await storage.getTodaysBestBets();
       res.json(bets);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Best bets statistics (must be before :date route)
+  app.get('/api/best-bets/stats', async (req, res) => {
+    try {
+      const result = await pool.query(`
+        SELECT 
+          COUNT(*) FILTER (WHERE result = 'won' AND bet_category = 'primary') as won,
+          COUNT(*) FILTER (WHERE result = 'lost' AND bet_category = 'primary') as lost,
+          COUNT(*) FILTER (WHERE result = 'pending' AND bet_category = 'primary') as pending,
+          COUNT(*) FILTER (WHERE bet_category = 'primary') as total
+        FROM best_bets
+      `);
+      const row = result.rows[0];
+      const won = parseInt(row.won) || 0;
+      const lost = parseInt(row.lost) || 0;
+      const total = won + lost;
+      const successRate = total > 0 ? Math.round((won / total) * 100) : 0;
+      
+      res.json({
+        won,
+        lost,
+        pending: parseInt(row.pending) || 0,
+        total: parseInt(row.total) || 0,
+        successRate
+      });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }

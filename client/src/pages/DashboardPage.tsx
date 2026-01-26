@@ -80,8 +80,8 @@ export default function DashboardPage() {
   async function fetchData() {
     try {
       const [statsRes, matchesRes] = await Promise.all([
-        fetch("/api/best-bets/stats"),
-        fetch("/api/published-matches")
+        fetch("/api/best-bets/stats", { credentials: 'include' }),
+        fetch("/api/matches", { credentials: 'include' })
       ]);
       
       if (statsRes.ok) {
@@ -94,8 +94,10 @@ export default function DashboardPage() {
         const now = new Date();
         const upcoming = data
           .filter((m: any) => {
-            const matchDateTime = new Date(`${m.match_date}T${m.match_time}:00+03:00`);
-            return matchDateTime > now && m.status !== 'finished';
+            if (m.status === 'finished') return false;
+            const timeStr = m.match_time?.padStart(5, '0') || '00:00';
+            const matchDateTime = new Date(`${m.match_date}T${timeStr}:00+03:00`);
+            return matchDateTime > now;
           })
           .slice(0, 4);
         setTodayMatches(upcoming);
