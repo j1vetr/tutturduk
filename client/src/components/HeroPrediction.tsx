@@ -17,6 +17,11 @@ interface FeaturedMatch {
   api_percent_home?: string;
   api_percent_draw?: string;
   api_percent_away?: string;
+  predictions?: Array<{
+    bet_type: string;
+    confidence: number;
+    bet_category: string;
+  }>;
 }
 
 export function HeroPrediction() {
@@ -76,7 +81,7 @@ export function HeroPrediction() {
   return (
     <div 
       className="w-full rounded-2xl overflow-hidden cursor-pointer bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow" 
-      onClick={() => setLocation(`/match/${match.id}`)}
+      onClick={() => setLocation(`/match/${match.fixture_id}`)}
     >
       <div className="px-4 py-3 flex items-center justify-between border-b border-gray-100 bg-gradient-to-r from-emerald-50/50 to-white">
         <div className="flex items-center gap-2">
@@ -150,11 +155,20 @@ export function HeroPrediction() {
           </div>
         )}
 
-        {match.api_winner_name && (
-          <div className="mt-4 px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-100">
-            <p className="text-sm text-emerald-600 font-medium text-center">
-              {match.api_winner_name} kazanır
-            </p>
+        {match.predictions && match.predictions.length > 0 && (
+          <div className="mt-4 flex gap-2">
+            {match.predictions.filter(p => p.bet_category === 'primary').map((pred, i) => (
+              <div key={i} className="flex-1 px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-100">
+                <p className="text-[10px] text-emerald-500 font-semibold uppercase tracking-wide mb-0.5">Ana Tahmin</p>
+                <p className="text-sm text-emerald-700 font-bold">{pred.bet_type}</p>
+              </div>
+            ))}
+            {match.predictions.filter(p => p.bet_category === 'alternative').map((pred, i) => (
+              <div key={i} className="flex-1 px-4 py-3 rounded-xl bg-blue-50 border border-blue-100">
+                <p className="text-[10px] text-blue-500 font-semibold uppercase tracking-wide mb-0.5">Alternatif</p>
+                <p className="text-sm text-blue-700 font-bold">{pred.bet_type}</p>
+              </div>
+            ))}
           </div>
         )}
       </div>
