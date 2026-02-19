@@ -1484,43 +1484,235 @@ export async function autoPublishTodayMatchesValidated(totalLimit: number = 70, 
 }
 
 export function startAutoPublishService() {
-  console.log(`[AutoPublish] Service scheduled: daily publish at 00:10 (Turkey time)`);
+  console.log(`[AutoPublish] Service scheduled: daily 3-step publish at 01:00 (Turkey time)`);
+  
+  let lastRunDate = '';
   
   const checkAndRun = async () => {
-    // Get current time in Turkey timezone
     const now = new Date();
     const turkeyTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Istanbul' }));
     const currentHour = turkeyTime.getHours();
     const currentMinute = turkeyTime.getMinutes();
+    const todayStr = now.toLocaleDateString('sv-SE', { timeZone: 'Europe/Istanbul' });
     
-    // Run at 00:10 Turkey time
-    if (currentHour === 0 && currentMinute >= 10 && currentMinute < 15) {
+    if (currentHour === 1 && currentMinute >= 0 && currentMinute < 5 && lastRunDate !== todayStr) {
+      lastRunDate = todayStr;
+      
       console.log('[AutoPublish] ========================================');
-      console.log('[AutoPublish] Daily auto-publish triggered at 00:10');
+      console.log('[AutoPublish] GUNLUK OTOMATIK SISTEM BASLADI - 01:00');
+      console.log(`[AutoPublish] Tarih: ${todayStr}`);
       console.log('[AutoPublish] ========================================');
       
       try {
-        // Get today's date in Turkey timezone
-        const todayStr = now.toLocaleDateString('sv-SE', { timeZone: 'Europe/Istanbul' });
-        console.log(`[AutoPublish] Publishing matches for TODAY: ${todayStr}`);
+        // ADIM 1: Kaliteli maclari cek (fetch + filter + validate stats/odds)
+        console.log('[AutoPublish] ADIM 1/3: Kaliteli maclar cekiliyoro...');
+        const validatedFixtures = await prefetchValidatedFixtures(todayStr);
+        console.log(`[AutoPublish] ADIM 1 TAMAM: ${validatedFixtures?.length || 0} kaliteli mac bulundu`);
         
-        // Run the full publish flow for today
-        const result = await publishMatchesForDate(todayStr, 70, 10);
+        if (!validatedFixtures || validatedFixtures.length === 0) {
+          console.log('[AutoPublish] Kaliteli mac bulunamadi, islem iptal');
+          return;
+        }
+        
+        // ADIM 2: AI kontrol - her mac icin bahis/pas karari al
+        console.log(`[AutoPublish] ADIM 2/3: AI kontrol basliyor (${validatedFixtures.length} mac)...`);
+        let bahisCount = 0;
+        let pasCount = 0;
+        const bahisMatches: MatchWithScore[] = [];
+        
+        for (const match of validatedFixtures) {
+          const homeTeam = match.teams?.home?.name || 'Unknown';
+          const awayTeam = match.teams?.away?.name || 'Unknown';
+          const leagueName = match.league?.name || '';
+          const leagueId = match.league?.id;
+          const homeTeamId = match.teams?.home?.id;
+          const awayTeamId = match.teams?.away?.id;
+          const fixtureId = match.fixture?.id;
+          
+          try {
+            const existing = await pool.query(
+              'SELECT id FROM published_matches WHERE fixture_id = $1',
+              [match.fixture.id]
+            );
+            if (existing.rows.length > 0) {
+              console.log(`[AutoPublish] ${homeTeam} vs ${awayTeam} zaten yayinda, atlaniyor`);
+              continue;
+            }
+            
+            const pred = match.prediction?.predictions;
+            const teams = match.prediction?.teams;
+            const comparison = match.prediction?.comparison;
+            const h2h = match.prediction?.h2h || [];
+            
+            let injuries: any = { home: [], away: [] };
+            let homeLastMatches: any[] = [];
+            let awayLastMatches: any[] = [];
+            let homeSeasonStats: any = null;
+            let awaySeasonStats: any = null;
+            
+            try {
+              if (fixtureId) {
+                const injuriesData = await apiFootball.getInjuries(fixtureId);
+                if (injuriesData && Array.isArray(injuriesData)) {
+                  injuries.home = injuriesData.filter((inj: any) => inj.team?.id === homeTeamId).map((inj: any) => ({ player: inj.player?.name || 'Unknown', reason: inj.player?.reason || 'Injury', type: inj.player?.type || 'Missing' }));
+                  injuries.away = injuriesData.filter((inj: any) => inj.team?.id === awayTeamId).map((inj: any) => ({ player: inj.player?.name || 'Unknown', reason: inj.player?.reason || 'Injury', type: inj.player?.type || 'Missing' }));
+                }
+              }
+            } catch (err: any) { /* skip */ }
+            
+            try {
+              if (homeTeamId) {
+                const homeMatches = await apiFootball.getTeamLastMatches(homeTeamId, 10);
+                homeLastMatches = homeMatches?.map((m: any) => ({ opponent: m.teams?.home?.id === homeTeamId ? m.teams?.away?.name : m.teams?.home?.name, result: m.teams?.home?.id === homeTeamId ? (m.teams?.home?.winner ? 'W' : m.teams?.away?.winner ? 'L' : 'D') : (m.teams?.away?.winner ? 'W' : m.teams?.home?.winner ? 'L' : 'D'), score: `${m.goals?.home || 0}-${m.goals?.away || 0}`, home: m.teams?.home?.id === homeTeamId })) || [];
+              }
+            } catch (err: any) { /* skip */ }
+            
+            try {
+              if (awayTeamId) {
+                const awayMatches = await apiFootball.getTeamLastMatches(awayTeamId, 10);
+                awayLastMatches = awayMatches?.map((m: any) => ({ opponent: m.teams?.home?.id === awayTeamId ? m.teams?.away?.name : m.teams?.home?.name, result: m.teams?.home?.id === awayTeamId ? (m.teams?.home?.winner ? 'W' : m.teams?.away?.winner ? 'L' : 'D') : (m.teams?.away?.winner ? 'W' : m.teams?.home?.winner ? 'L' : 'D'), score: `${m.goals?.home || 0}-${m.goals?.away || 0}`, home: m.teams?.home?.id === awayTeamId })) || [];
+              }
+            } catch (err: any) { /* skip */ }
+            
+            try { if (homeTeamId && leagueId) homeSeasonStats = await apiFootball.getTeamSeasonGoals(homeTeamId, leagueId, CURRENT_SEASON); } catch { /* skip */ }
+            try { if (awayTeamId && leagueId) awaySeasonStats = await apiFootball.getTeamSeasonGoals(awayTeamId, leagueId, CURRENT_SEASON); } catch { /* skip */ }
+            
+            const matchData: MatchData = {
+              homeTeam, awayTeam, league: leagueName, leagueId,
+              comparison: comparison || undefined,
+              homeForm: teams?.home?.league?.form, awayForm: teams?.away?.league?.form,
+              h2hResults: h2h?.map((h: any) => ({ homeGoals: h.homeGoals || h.goals?.home || 0, awayGoals: h.awayGoals || h.goals?.away || 0 })),
+              homeWins: teams?.home?.league?.wins, homeDraws: teams?.home?.league?.draws, homeLosses: teams?.home?.league?.loses,
+              homeGoalsFor: teams?.home?.league?.goals?.for?.total, homeGoalsAgainst: teams?.home?.league?.goals?.against?.total,
+              awayWins: teams?.away?.league?.wins, awayDraws: teams?.away?.league?.draws, awayLosses: teams?.away?.league?.loses,
+              awayGoalsFor: teams?.away?.league?.goals?.for?.total, awayGoalsAgainst: teams?.away?.league?.goals?.against?.total,
+              odds: match.odds,
+              injuries, homeLastMatches, awayLastMatches,
+              homeTeamStats: homeSeasonStats ? { cleanSheets: homeSeasonStats.clean_sheet?.total || 0, failedToScore: homeSeasonStats.failed_to_score?.total || 0, avgGoalsHome: homeSeasonStats.goals?.for?.average?.home ? parseFloat(homeSeasonStats.goals.for.average.home) : undefined, avgGoalsAway: homeSeasonStats.goals?.for?.average?.away ? parseFloat(homeSeasonStats.goals.for.average.away) : undefined, avgGoalsConcededHome: homeSeasonStats.goals?.against?.average?.home ? parseFloat(homeSeasonStats.goals.against.average.home) : undefined, avgGoalsConcededAway: homeSeasonStats.goals?.against?.average?.away ? parseFloat(homeSeasonStats.goals.against.average.away) : undefined, biggestWinStreak: homeSeasonStats.biggest?.streak?.wins || 0, biggestLoseStreak: homeSeasonStats.biggest?.streak?.loses || 0 } : undefined,
+              awayTeamStats: awaySeasonStats ? { cleanSheets: awaySeasonStats.clean_sheet?.total || 0, failedToScore: awaySeasonStats.failed_to_score?.total || 0, avgGoalsHome: awaySeasonStats.goals?.for?.average?.home ? parseFloat(awaySeasonStats.goals.for.average.home) : undefined, avgGoalsAway: awaySeasonStats.goals?.for?.average?.away ? parseFloat(awaySeasonStats.goals.for.average.away) : undefined, avgGoalsConcededHome: awaySeasonStats.goals?.against?.average?.home ? parseFloat(awaySeasonStats.goals.against.average.home) : undefined, avgGoalsConcededAway: awaySeasonStats.goals?.against?.average?.away ? parseFloat(awaySeasonStats.goals.against.average.away) : undefined, biggestWinStreak: awaySeasonStats.biggest?.streak?.wins || 0, biggestLoseStreak: awaySeasonStats.biggest?.streak?.loses || 0 } : undefined,
+            };
+            
+            const aiAnalysis = await generateMatchAnalysis(matchData);
+            
+            // Cache AI analysis result for admin panel display
+            if (aiAnalysis && fixtureId) {
+              try {
+                const aiCacheKey = `ai_analysis_v9_${fixtureId}`;
+                await pool.query(
+                  `INSERT INTO api_cache (key, value, expires_at)
+                   VALUES ($1, $2, NOW() + INTERVAL '24 hours')
+                   ON CONFLICT (key) DO UPDATE SET value = $2, expires_at = NOW() + INTERVAL '24 hours'`,
+                  [aiCacheKey, JSON.stringify(aiAnalysis)]
+                );
+              } catch (cacheErr: any) { /* skip */ }
+            }
+            
+            if (!aiAnalysis || aiAnalysis.karar === 'pas') {
+              pasCount++;
+              console.log(`[AutoPublish] PAS: ${homeTeam} vs ${awayTeam}`);
+            } else {
+              bahisCount++;
+              console.log(`[AutoPublish] BAHIS: ${homeTeam} vs ${awayTeam}`);
+              (match as any).aiAnalysis = aiAnalysis;
+              bahisMatches.push(match);
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, 3000));
+          } catch (error: any) {
+            console.error(`[AutoPublish] AI hata ${homeTeam} vs ${awayTeam}: ${error.message}`);
+          }
+        }
+        
+        console.log(`[AutoPublish] ADIM 2 TAMAM: ${bahisCount} bahis, ${pasCount} pas`);
+        
+        // ADIM 3: Bahis olan tum maclari yayina al
+        console.log(`[AutoPublish] ADIM 3/3: ${bahisMatches.length} bahis mac yayinlaniyor...`);
+        let publishedCount = 0;
+        
+        for (const match of bahisMatches) {
+          try {
+            const homeTeam = match.teams?.home?.name || 'Unknown';
+            const awayTeam = match.teams?.away?.name || 'Unknown';
+            const homeLogo = match.teams?.home?.logo || '';
+            const awayLogo = match.teams?.away?.logo || '';
+            const leagueName = match.league?.name || '';
+            const leagueLogo = match.league?.logo || '';
+            const leagueId = match.league?.id;
+            const matchDate = match.fixture.date?.split('T')[0];
+            const matchDateTime = new Date(match.fixture.date);
+            const matchTime = matchDateTime.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Istanbul' });
+            
+            const pred = match.prediction?.predictions;
+            const teams = match.prediction?.teams;
+            const comparison = match.prediction?.comparison;
+            const h2h = match.prediction?.h2h || [];
+            const aiAnalysis = (match as any).aiAnalysis;
+            
+            await pool.query(
+              `INSERT INTO published_matches 
+               (fixture_id, home_team, away_team, home_logo, away_logo, league_name, league_logo, league_id,
+                match_date, match_time, timestamp, status, is_featured,
+                api_advice, api_winner_name, api_winner_comment, api_percent_home, api_percent_draw, api_percent_away,
+                api_under_over, api_goals_home, api_goals_away, api_comparison, api_h2h, api_teams)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'pending', FALSE,
+                       $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
+               ON CONFLICT (fixture_id) DO NOTHING`,
+              [
+                match.fixture.id, homeTeam, awayTeam, homeLogo, awayLogo, leagueName, leagueLogo, leagueId,
+                matchDate, matchTime, match.fixture.timestamp,
+                pred?.advice || null, pred?.winner?.name || null, pred?.winner?.comment || null,
+                pred?.percent?.home || null, pred?.percent?.draw || null, pred?.percent?.away || null,
+                pred?.under_over || null, pred?.goals?.home || null, pred?.goals?.away || null,
+                comparison ? JSON.stringify(comparison) : null,
+                h2h.length > 0 ? JSON.stringify(h2h.slice(0, 5).map((h: any) => ({ date: h.fixture?.date, homeTeam: h.teams?.home?.name, awayTeam: h.teams?.away?.name, homeGoals: h.goals?.home, awayGoals: h.goals?.away }))) : null,
+                teams ? JSON.stringify(teams) : null
+              ]
+            );
+            
+            publishedCount++;
+            
+            const insertedMatch = await pool.query('SELECT id FROM published_matches WHERE fixture_id = $1', [match.fixture.id]);
+            
+            if (insertedMatch.rows.length > 0 && aiAnalysis?.predictions?.length > 0) {
+              const matchId = insertedMatch.rows[0].id;
+              const prediction = aiAnalysis.predictions[0];
+              
+              try {
+                await pool.query(
+                  `INSERT INTO best_bets 
+                   (match_id, fixture_id, home_team, away_team, home_logo, away_logo, 
+                    league_name, league_logo, match_date, match_time,
+                    bet_type, bet_description, confidence, risk_level, reasoning, result, date_for)
+                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, 'pending', $16)
+                   ON CONFLICT (fixture_id, date_for) DO NOTHING`,
+                  [matchId, match.fixture.id, homeTeam, awayTeam, homeLogo, awayLogo, leagueName, leagueLogo, matchDate, matchTime,
+                   prediction.bet, '', prediction.confidence, aiAnalysis.singleBet?.riskLevel || 'orta', prediction.reasoning, matchDate]
+                );
+              } catch (saveError: any) {
+                if (saveError.code !== '23505') console.error(`[AutoPublish] Tahmin kayit hatasi:`, saveError.message);
+              }
+            }
+            
+            console.log(`[AutoPublish] Yayinlandi: ${homeTeam} vs ${awayTeam}`);
+          } catch (error: any) {
+            console.error(`[AutoPublish] Yayinlama hatasi:`, error.message);
+          }
+        }
         
         console.log('[AutoPublish] ========================================');
-        console.log(`[AutoPublish] COMPLETED: ${result.published} matches published`);
-        console.log(`[AutoPublish] Date: ${result.date}`);
+        console.log(`[AutoPublish] TAMAMLANDI!`);
+        console.log(`[AutoPublish] Kaliteli mac: ${validatedFixtures.length}`);
+        console.log(`[AutoPublish] AI Bahis: ${bahisCount} | AI Pas: ${pasCount}`);
+        console.log(`[AutoPublish] YAYINLANAN: ${publishedCount}`);
         console.log('[AutoPublish] ========================================');
+        
       } catch (error) {
-        console.error('[AutoPublish] Daily publish failed:', error);
+        console.error('[AutoPublish] Gunluk islem hatasi:', error);
       }
     }
   };
   
-  // Check every 5 minutes
   autoPublishInterval = setInterval(checkAndRun, 5 * 60 * 1000);
-  
-  // Also run immediately on startup to check if we're in the window
   checkAndRun();
 }
 
