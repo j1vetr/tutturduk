@@ -13,19 +13,9 @@ export async function checkAndUpdateMatchStatuses() {
   console.log('[MatchStatus] Starting match status check...');
   
   try {
-    // First, auto-mark very old matches (>4 hours) as finished
-    const fourHoursAgo = Math.floor(Date.now() / 1000) - (4 * 60 * 60);
-    await pool.query(
-      `UPDATE published_matches 
-       SET status = 'finished' 
-       WHERE status IN ('pending', 'in_progress') 
-       AND timestamp IS NOT NULL 
-       AND timestamp < $1`,
-      [fourHoursAgo]
-    );
-    
     const result = await pool.query(
-      `SELECT id, fixture_id, home_team, away_team, match_date, match_time, status, timestamp 
+      `SELECT id, fixture_id, home_team, away_team, match_date, match_time, status, timestamp,
+              final_score_home, final_score_away
        FROM published_matches 
        WHERE status IN ('pending', 'in_progress')
        ORDER BY timestamp ASC`
@@ -49,13 +39,20 @@ export async function checkAndUpdateMatchStatuses() {
         
         if (!fixture) {
           console.log(`[MatchStatus] Fixture ${match.fixture_id} not found in API`);
+          const fourHoursAgo = Math.floor(Date.now() / 1000) - (4 * 60 * 60);
+          if (match.timestamp && match.timestamp < fourHoursAgo) {
+            await pool.query(
+              `UPDATE published_matches SET status = 'finished' WHERE id = $1`,
+              [match.id]
+            );
+            console.log(`[MatchStatus] Auto-finished old match (no API data): ${match.home_team} vs ${match.away_team}`);
+          }
           continue;
         }
         
         const apiStatus = fixture.fixture.status.short;
-        const homeScore = fixture.goals?.home;
-        const awayScore = fixture.goals?.away;
-        const elapsed = fixture.fixture.status.elapsed;
+        const homeScore = fixture.goals?.home ?? null;
+        const awayScore = fixture.goals?.away ?? null;
         
         let newStatus = match.status;
         
@@ -67,7 +64,12 @@ export async function checkAndUpdateMatchStatuses() {
           newStatus = 'cancelled';
         }
         
-        if (newStatus !== match.status || (newStatus === 'finished' && homeScore !== null)) {
+        const statusChanged = newStatus !== match.status;
+        const scoreChanged = homeScore !== null && (
+          match.final_score_home !== homeScore || match.final_score_away !== awayScore
+        );
+        
+        if (statusChanged || scoreChanged) {
           await pool.query(
             `UPDATE published_matches 
              SET status = $1, final_score_home = $2, final_score_away = $3
@@ -105,19 +107,32 @@ async function evaluateMatchPredictions(fixtureId: number, homeScore: number, aw
   const totalGoals = homeScore + awayScore;
   const bothTeamsScored = homeScore > 0 && awayScore > 0;
   
+  console.log(`[MatchStatus] Evaluating predictions for fixture ${fixtureId} | Score: ${homeScore}-${awayScore} | Total: ${totalGoals} | BTS: ${bothTeamsScored}`);
+  
   const bestBetsResult = await pool.query(
-    `SELECT id, bet_type FROM best_bets WHERE fixture_id = $1`,
+    `SELECT id, bet_type, bet_category, result FROM best_bets WHERE fixture_id = $1`,
     [fixtureId]
   );
   
+  if (bestBetsResult.rows.length === 0) {
+    console.log(`[MatchStatus] No best_bets found for fixture ${fixtureId}`);
+    return 0;
+  }
+  
+  console.log(`[MatchStatus] Found ${bestBetsResult.rows.length} best_bets for fixture ${fixtureId}`);
+  
   for (const bet of bestBetsResult.rows) {
+    if (bet.result !== 'pending') {
+      console.log(`[MatchStatus] Skipping already evaluated bet ${bet.id} (${bet.bet_type}): ${bet.result}`);
+      continue;
+    }
     const won = evaluateBet(bet.bet_type, homeScore, awayScore, totalGoals, bothTeamsScored);
     await pool.query(
       `UPDATE best_bets SET result = $1 WHERE id = $2`,
       [won ? 'won' : 'lost', bet.id]
     );
     evaluatedCount++;
-    console.log(`[MatchStatus] Best bet ${bet.bet_type}: ${won ? 'WON' : 'LOST'}`);
+    console.log(`[MatchStatus] Best bet #${bet.id} "${bet.bet_type}" (${bet.bet_category}): ${won ? 'WON ✓' : 'LOST ✗'}`);
   }
   
   const predictionsResult = await pool.query(
@@ -325,14 +340,12 @@ function evaluateBet(betType: string, homeScore: number, awayScore: number, tota
   return false;
 }
 
-// Re-evaluate all finished matches with pending predictions
 export async function reEvaluateAllFinishedMatches(): Promise<{ evaluated: number; scoresFetched: number }> {
   console.log('[MatchStatus] Re-evaluating all finished matches...');
   
   try {
-    // STEP 1: Find matches that should be finished but don't have scores yet
-    // These are matches older than 2.5 hours that might have finished
-    const twoAndHalfHoursAgo = Math.floor(Date.now() / 1000) - (2.5 * 60 * 60);
+    // STEP 1: Find ALL matches without scores that should be finished (>2 hours old)
+    const twoHoursAgo = Math.floor(Date.now() / 1000) - (2 * 60 * 60);
     
     const matchesWithoutScores = await pool.query(
       `SELECT id, fixture_id, home_team, away_team, status
@@ -341,7 +354,7 @@ export async function reEvaluateAllFinishedMatches(): Promise<{ evaluated: numbe
        AND timestamp IS NOT NULL 
        AND timestamp < $1
        AND status != 'cancelled'`,
-      [twoAndHalfHoursAgo]
+      [twoHoursAgo]
     );
     
     let scoresFetched = 0;
@@ -358,7 +371,6 @@ export async function reEvaluateAllFinishedMatches(): Promise<{ evaluated: numbe
             const homeScore = fixture.goals?.home;
             const awayScore = fixture.goals?.away;
             
-            // Only update if match is actually finished
             if (['FT', 'AET', 'PEN'].includes(apiStatus) && homeScore !== null && awayScore !== null) {
               await pool.query(
                 `UPDATE published_matches 
@@ -368,12 +380,19 @@ export async function reEvaluateAllFinishedMatches(): Promise<{ evaluated: numbe
               );
               console.log(`[MatchStatus] Fetched score: ${match.home_team} ${homeScore}-${awayScore} ${match.away_team}`);
               scoresFetched++;
+              
+              await evaluateMatchPredictions(match.fixture_id, homeScore, awayScore);
             } else if (['PST', 'CANC', 'ABD', 'AWD', 'WO'].includes(apiStatus)) {
               await pool.query(
                 `UPDATE published_matches SET status = 'cancelled' WHERE id = $1`,
                 [match.id]
               );
               console.log(`[MatchStatus] Match cancelled: ${match.home_team} vs ${match.away_team}`);
+            } else if (['1H', '2H', 'HT', 'ET', 'P', 'BT', 'LIVE'].includes(apiStatus)) {
+              await pool.query(
+                `UPDATE published_matches SET status = 'in_progress' WHERE id = $1`,
+                [match.id]
+              );
             }
           }
           
@@ -384,7 +403,7 @@ export async function reEvaluateAllFinishedMatches(): Promise<{ evaluated: numbe
       }
     }
     
-    // STEP 2: Now evaluate all finished matches with scores and pending predictions
+    // STEP 2: Evaluate ALL finished matches that have scores but still have pending predictions
     const finishedMatches = await pool.query(
       `SELECT pm.id, pm.fixture_id, pm.home_team, pm.away_team, pm.final_score_home, pm.final_score_away
        FROM published_matches pm
