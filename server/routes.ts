@@ -1424,7 +1424,7 @@ export async function registerRoutes(
       const badges: Record<number, { bestBet?: string; riskLevel?: string; over25?: boolean; btts?: boolean; winner?: string }> = {};
       
       for (const match of matches) {
-        const cacheKey = `ai_analysis_v8_${match.fixture_id}`;
+        const cacheKey = `ai_analysis_v9_${match.fixture_id}`;
         const cachedResult = await pool.query(
           'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
           [cacheKey]
@@ -1574,7 +1574,7 @@ export async function registerRoutes(
         return res.status(404).json({ message: 'Maç bulunamadı' });
       }
 
-      const cacheKey = `ai_analysis_v8_${match.fixture_id}`;
+      const cacheKey = `ai_analysis_v9_${match.fixture_id}`;
       
       // Helper function to reconstruct analysis from best_bets
       const reconstructFromBestBets = async () => {
@@ -2061,7 +2061,7 @@ export async function registerRoutes(
     const results: any[] = [];
     
     for (const fixtureId of fixtureIds) {
-      const aiCacheKey = `ai_analysis_v8_${fixtureId}`;
+      const aiCacheKey = `ai_analysis_v9_${fixtureId}`;
       const cachedResult = await pool.query(
         'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
         [aiCacheKey]
@@ -2331,7 +2331,7 @@ export async function registerRoutes(
       }
 
       // STEP 1: Check AI cache FIRST - if exists with "bahis", skip all validations
-      const aiCacheKey = `ai_analysis_v8_${fixtureId}`;
+      const aiCacheKey = `ai_analysis_v9_${fixtureId}`;
       let aiAnalysis: any = null;
       let hasCachedAI = false;
       
@@ -2379,93 +2379,12 @@ export async function registerRoutes(
       const displayDate = matchDate.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Europe/Istanbul' });
       const localTime = matchDate.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Europe/Istanbul' });
 
-      // If we have cached AI with "bahis", skip all validations and API calls
-      let apiPrediction: any = null;
-      let parsedOddsCheck: any = {};
-      
       if (!hasCachedAI) {
-        console.log(`[ManualPublish] No cached AI, running full validation for ${homeTeamName} vs ${awayTeamName}...`);
-        
-        // Get API prediction
-        const predCacheKey = `predictions_${fixtureId}`;
-        try {
-          apiPrediction = await getCachedData(predCacheKey, async () => {
-            return apiFootball.getPrediction(fixtureId);
-          }, 120);
-        } catch (e) {
-          console.log('No prediction available for fixture', fixtureId);
-        }
-
-        // Check if match has valid statistics
-        if (!hasValidStatistics(apiPrediction)) {
-          const statsScore = getStatisticsScore(apiPrediction);
-          console.log(`[Publish] Fixture ${fixtureId} has low statistics score: ${statsScore}`);
-          if (statsScore < 30) {
-            return res.status(400).json({ 
-              message: 'Bu maç için yeterli istatistik verisi yok. Sadece istatistik verisi olan maçlar yayınlanabilir.',
-              statsScore 
-            });
-          }
-        }
-
-        // Check if match has valid odds
-        try {
-          const oddsData = await apiFootball.getOdds(fixtureId);
-          parsedOddsCheck = parseApiFootballOdds(oddsData);
-        } catch (e) {
-          console.log(`[Publish] No odds available for fixture ${fixtureId}`);
-        }
-        
-        const hasBasicOdds = parsedOddsCheck.home && parsedOddsCheck.draw && parsedOddsCheck.away;
-        const hasOverUnderOdds = parsedOddsCheck.over25 || parsedOddsCheck.over15 || parsedOddsCheck.over35;
-        const hasBttsOdds = parsedOddsCheck.bttsYes && parsedOddsCheck.bttsNo;
-        
-        if (!hasBasicOdds || (!hasOverUnderOdds && !hasBttsOdds)) {
-          return res.status(400).json({ 
-            message: 'Bu maç için yeterli oran verisi yok. MS oranları ve Alt/Üst veya KG oranları gereklidir.',
-            hasBasicOdds,
-            hasOverUnderOdds,
-            hasBttsOdds
-          });
-        }
-
-        // Generate AI analysis
-        console.log(`[ManualPublish] Generating AI analysis for ${homeTeamName} vs ${awayTeamName}...`);
-        
-        const teams = apiPrediction?.teams;
-        const h2h = apiPrediction?.h2h || [];
-        const comparison = apiPrediction?.comparison;
-        
-        const matchData = {
-          homeTeam: homeTeamName,
-          awayTeam: awayTeamName,
-          league: leagueName,
-          leagueId: leagueId,
-          comparison: comparison || undefined,
-          homeForm: teams?.home?.last_5?.form || teams?.home?.league?.form,
-          awayForm: teams?.away?.last_5?.form || teams?.away?.league?.form,
-          h2hResults: h2h?.slice(0, 5).map((h: any) => ({
-            homeGoals: h.goals?.home || 0,
-            awayGoals: h.goals?.away || 0
-          })),
-          homeGoalsFor: teams?.home?.last_5?.goals?.for?.total || teams?.home?.league?.goals?.for?.total,
-          homeGoalsAgainst: teams?.home?.last_5?.goals?.against?.total || teams?.home?.league?.goals?.against?.total,
-          awayGoalsFor: teams?.away?.last_5?.goals?.for?.total || teams?.away?.league?.goals?.for?.total,
-          awayGoalsAgainst: teams?.away?.last_5?.goals?.against?.total || teams?.away?.league?.goals?.against?.total,
-          odds: parsedOddsCheck,
-        };
-        
-        aiAnalysis = await generateMatchAnalysis(matchData);
-        
-        // Cache the new analysis
-        try {
-          await pool.query(
-            `INSERT INTO api_cache (key, value, expires_at)
-             VALUES ($1, $2, NOW() + INTERVAL '24 hours')
-             ON CONFLICT (key) DO UPDATE SET value = $2, expires_at = NOW() + INTERVAL '24 hours'`,
-            [aiCacheKey, JSON.stringify(aiAnalysis)]
-          );
-        } catch (e) { /* ignore cache errors */ }
+        console.log(`[ManualPublish] No cached AI for fixture ${fixtureId} - must run AI check first`);
+        return res.status(400).json({ 
+          message: 'Bu maç için henüz AI analizi yapılmamış. Önce "AI Kontrol Et" butonunu kullanın.',
+          requiresAICheck: true
+        });
       }
       
       // STEP 2: Check if AI has a valid prediction
