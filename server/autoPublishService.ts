@@ -4,6 +4,74 @@ import { filterMatches, getStatisticsScore } from './matchFilter';
 import { generateAndSavePredictions, generateMatchAnalysis } from './openai-analysis';
 import type { MatchData } from './openai-analysis';
 
+async function saveBestBetsFromAnalysis(
+  matchId: number, fixtureId: number,
+  homeTeam: string, awayTeam: string,
+  homeLogo: string, awayLogo: string,
+  leagueName: string, leagueLogo: string,
+  matchDate: string, matchTime: string,
+  aiAnalysis: any
+) {
+  if (!aiAnalysis) return;
+
+  const saveBet = async (betData: any, category: string) => {
+    if (!betData) return;
+    try {
+      await pool.query(
+        `INSERT INTO best_bets 
+         (match_id, fixture_id, home_team, away_team, home_logo, away_logo, 
+          league_name, league_logo, match_date, match_time,
+          bet_type, bet_category, odds, confidence, risk_level, reasoning, result, date_for)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, 'pending', $17)
+         ON CONFLICT (fixture_id, date_for, bet_category) DO UPDATE SET
+           bet_type = EXCLUDED.bet_type,
+           odds = EXCLUDED.odds,
+           confidence = EXCLUDED.confidence,
+           risk_level = EXCLUDED.risk_level,
+           reasoning = EXCLUDED.reasoning`,
+        [
+          matchId, fixtureId, homeTeam, awayTeam, homeLogo, awayLogo,
+          leagueName, leagueLogo, matchDate, matchTime,
+          betData.bet, category, betData.odds || null,
+          betData.confidence, betData.riskLevel || 'orta',
+          betData.reasoning || '', matchDate
+        ]
+      );
+      console.log(`[AutoPublish] Saved ${category}: ${betData.bet} @ ${betData.odds || 'N/A'} for ${homeTeam} vs ${awayTeam}`);
+    } catch (saveError: any) {
+      if (saveError.code !== '23505') {
+        console.error(`[AutoPublish] Error saving ${category} bet:`, saveError.message);
+      }
+    }
+  };
+
+  if (aiAnalysis.primaryBet) {
+    await saveBet(aiAnalysis.primaryBet, 'primary');
+  } else if (aiAnalysis.predictions?.length > 0) {
+    const pred = aiAnalysis.predictions[0];
+    await saveBet({
+      bet: pred.bet,
+      odds: pred.odds,
+      confidence: pred.confidence,
+      riskLevel: aiAnalysis.singleBet?.riskLevel || 'orta',
+      reasoning: pred.reasoning
+    }, 'primary');
+  }
+
+  if (aiAnalysis.alternativeBet) {
+    await saveBet(aiAnalysis.alternativeBet, 'alternative');
+  } else if (aiAnalysis.predictions?.length > 1) {
+    const pred = aiAnalysis.predictions[1];
+    await saveBet({
+      bet: pred.bet,
+      odds: pred.odds,
+      confidence: pred.confidence,
+      riskLevel: 'orta',
+      reasoning: pred.reasoning
+    }, 'alternative');
+  }
+}
+
 interface ParsedOdds {
   home?: number;
   draw?: number;
@@ -501,44 +569,9 @@ async function publishMatchesForDate(dateStr: string, totalLimit: number = 70, m
           [match.fixture.id]
         );
         
-        if (insertedMatch.rows.length > 0 && aiAnalysis.predictions && aiAnalysis.predictions.length > 0) {
+        if (insertedMatch.rows.length > 0) {
           const matchId = insertedMatch.rows[0].id;
-          const prediction = aiAnalysis.predictions[0];
-          
-          // Save to best_bets
-          try {
-            await pool.query(
-              `INSERT INTO best_bets 
-               (match_id, fixture_id, home_team, away_team, home_logo, away_logo, 
-                league_name, league_logo, match_date, match_time,
-                bet_type, bet_description, confidence, risk_level, reasoning, result, date_for)
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, 'pending', $16)
-               ON CONFLICT (fixture_id, date_for) DO NOTHING`,
-              [
-                matchId,
-                match.fixture.id,
-                homeTeam,
-                awayTeam,
-                homeLogo,
-                awayLogo,
-                leagueName,
-                leagueLogo,
-                matchDate,
-                matchTime,
-                prediction.bet,
-                '',
-                prediction.confidence,
-                aiAnalysis.singleBet?.riskLevel || 'orta',
-                prediction.reasoning,
-                matchDate
-              ]
-            );
-            console.log(`[AutoPublish] Saved prediction: ${prediction.bet} for ${homeTeam} vs ${awayTeam}`);
-          } catch (saveError: any) {
-            if (saveError.code !== '23505') {
-              console.error(`[AutoPublish] Error saving prediction:`, saveError.message);
-            }
-          }
+          await saveBestBetsFromAnalysis(matchId, match.fixture.id, homeTeam, awayTeam, homeLogo, awayLogo, leagueName, leagueLogo, matchDate, matchTime, aiAnalysis);
         }
         
         await new Promise(resolve => setTimeout(resolve, 3000));
@@ -963,44 +996,9 @@ export async function autoPublishTomorrowMatchesLegacy(targetCount: number = 70)
           [match.fixture.id]
         );
         
-        if (insertedMatch.rows.length > 0 && aiAnalysis.predictions && aiAnalysis.predictions.length > 0) {
+        if (insertedMatch.rows.length > 0) {
           const matchId = insertedMatch.rows[0].id;
-          const prediction = aiAnalysis.predictions[0];
-          
-          // Save to best_bets
-          try {
-            await pool.query(
-              `INSERT INTO best_bets 
-               (match_id, fixture_id, home_team, away_team, home_logo, away_logo, 
-                league_name, league_logo, match_date, match_time,
-                bet_type, bet_description, confidence, risk_level, reasoning, result, date_for)
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, 'pending', $16)
-               ON CONFLICT (fixture_id, date_for) DO NOTHING`,
-              [
-                matchId,
-                match.fixture.id,
-                homeTeam,
-                awayTeam,
-                homeLogo,
-                awayLogo,
-                leagueName,
-                leagueLogo,
-                matchDate,
-                matchTime,
-                prediction.bet,
-                '',
-                prediction.confidence,
-                aiAnalysis.singleBet?.riskLevel || 'orta',
-                prediction.reasoning,
-                matchDate
-              ]
-            );
-            console.log(`[AutoPublish] Saved prediction: ${prediction.bet} for ${homeTeam} vs ${awayTeam}`);
-          } catch (saveError: any) {
-            if (saveError.code !== '23505') {
-              console.error(`[AutoPublish] Error saving prediction:`, saveError.message);
-            }
-          }
+          await saveBestBetsFromAnalysis(matchId, match.fixture.id, homeTeam, awayTeam, homeLogo, awayLogo, leagueName, leagueLogo, matchDate, matchTime, aiAnalysis);
         }
         
         // Wait between AI calls to avoid rate limiting
@@ -1413,44 +1411,9 @@ export async function publishFromPrefetchedFixtures(dateStr: string, totalLimit:
         [match.fixture.id]
       );
       
-      if (insertedMatch.rows.length > 0 && aiAnalysis.predictions && aiAnalysis.predictions.length > 0) {
+      if (insertedMatch.rows.length > 0) {
         const matchId = insertedMatch.rows[0].id;
-        const prediction = aiAnalysis.predictions[0];
-        
-        // Save to best_bets
-        try {
-          await pool.query(
-            `INSERT INTO best_bets 
-             (match_id, fixture_id, home_team, away_team, home_logo, away_logo, 
-              league_name, league_logo, match_date, match_time,
-              bet_type, bet_description, confidence, risk_level, reasoning, result, date_for)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, 'pending', $16)
-             ON CONFLICT (fixture_id, date_for) DO NOTHING`,
-            [
-              matchId,
-              match.fixture.id,
-              homeTeam,
-              awayTeam,
-              homeLogo,
-              awayLogo,
-              leagueName,
-              leagueLogo,
-              matchDate,
-              matchTime,
-              prediction.bet,
-              '',
-              prediction.confidence,
-              aiAnalysis.singleBet?.riskLevel || 'orta',
-              prediction.reasoning,
-              matchDate
-            ]
-          );
-          console.log(`[AutoPublish] Saved prediction: ${prediction.bet} for ${homeTeam} vs ${awayTeam}`);
-        } catch (saveError: any) {
-          if (saveError.code !== '23505') {
-            console.error(`[AutoPublish] Error saving prediction:`, saveError.message);
-          }
-        }
+        await saveBestBetsFromAnalysis(matchId, match.fixture.id, homeTeam, awayTeam, homeLogo, awayLogo, leagueName, leagueLogo, matchDate, matchTime, aiAnalysis);
       }
       
       await new Promise(resolve => setTimeout(resolve, 3000));
@@ -1673,24 +1636,9 @@ export function startAutoPublishService() {
             
             const insertedMatch = await pool.query('SELECT id FROM published_matches WHERE fixture_id = $1', [match.fixture.id]);
             
-            if (insertedMatch.rows.length > 0 && aiAnalysis?.predictions?.length > 0) {
+            if (insertedMatch.rows.length > 0) {
               const matchId = insertedMatch.rows[0].id;
-              const prediction = aiAnalysis.predictions[0];
-              
-              try {
-                await pool.query(
-                  `INSERT INTO best_bets 
-                   (match_id, fixture_id, home_team, away_team, home_logo, away_logo, 
-                    league_name, league_logo, match_date, match_time,
-                    bet_type, bet_description, confidence, risk_level, reasoning, result, date_for)
-                   VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, 'pending', $16)
-                   ON CONFLICT (fixture_id, date_for) DO NOTHING`,
-                  [matchId, match.fixture.id, homeTeam, awayTeam, homeLogo, awayLogo, leagueName, leagueLogo, matchDate, matchTime,
-                   prediction.bet, '', prediction.confidence, aiAnalysis.singleBet?.riskLevel || 'orta', prediction.reasoning, matchDate]
-                );
-              } catch (saveError: any) {
-                if (saveError.code !== '23505') console.error(`[AutoPublish] Tahmin kayit hatasi:`, saveError.message);
-              }
+              await saveBestBetsFromAnalysis(matchId, match.fixture.id, homeTeam, awayTeam, homeLogo, awayLogo, leagueName, leagueLogo, matchDate, matchTime, aiAnalysis);
             }
             
             console.log(`[AutoPublish] Yayinlandi: ${homeTeam} vs ${awayTeam}`);
