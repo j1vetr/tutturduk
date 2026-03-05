@@ -1970,7 +1970,7 @@ export async function registerRoutes(
       
       for (const match of todayMatches.slice(0, 10)) {
         try {
-          const cacheKey = `ai_analysis_${match.fixture_id}`;
+          const cacheKey = `ai_analysis_v9_${match.fixture_id}`;
           const analysis = await getCachedData(cacheKey, async () => {
             const homeTeam = match.api_teams?.home;
             const awayTeam = match.api_teams?.away;
@@ -2528,16 +2528,21 @@ export async function registerRoutes(
             'risky': 'yüksek'
           };
           
-          for (let i = 0; i < aiAnalysis.predictions.length; i++) {
+          for (let i = 0; i < Math.min(aiAnalysis.predictions.length, 2); i++) {
             const pred = aiAnalysis.predictions[i];
             const category = i === 0 ? 'primary' : 'alternative';
             await client.query(
               `INSERT INTO best_bets 
                (match_id, fixture_id, home_team, away_team, home_logo, away_logo, 
                 league_name, league_logo, match_date, match_time,
-                bet_type, bet_category, confidence, risk_level, reasoning, result, date_for)
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, 'pending', $16)
-               ON CONFLICT (fixture_id, date_for, bet_category) DO NOTHING`,
+                bet_type, bet_category, odds, confidence, risk_level, reasoning, result, date_for)
+               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, 'pending', $17)
+               ON CONFLICT (fixture_id, date_for, bet_category) DO UPDATE SET
+                 bet_type = EXCLUDED.bet_type,
+                 odds = EXCLUDED.odds,
+                 confidence = EXCLUDED.confidence,
+                 risk_level = EXCLUDED.risk_level,
+                 reasoning = EXCLUDED.reasoning`,
               [
                 published.id,
                 fixtureId,
@@ -2551,6 +2556,7 @@ export async function registerRoutes(
                 localTime,
                 pred.bet,
                 category,
+                pred.odds || null,
                 pred.confidence,
                 riskToLevel[pred.type] || 'orta',
                 pred.reasoning,
