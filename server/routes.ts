@@ -99,7 +99,7 @@ function parseApiFootballOdds(oddsData: any[]): any {
   return parsed;
 }
 
-import { autoPublishTomorrowMatchesValidated, autoPublishTodayMatchesValidated, prefetchValidatedFixtures } from './autoPublishService';
+import { autoPublishTomorrowMatchesValidated, autoPublishTodayMatchesValidated, prefetchValidatedFixtures, autoCreateDailyCoupon } from './autoPublishService';
 import { generatePredictionsForAllPendingMatches } from './openai-analysis';
 
 const PgSession = connectPgSimple(session);
@@ -1937,6 +1937,56 @@ export async function registerRoutes(
     }
   });
 
+  app.get('/api/featured-bet', async (req, res) => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const result = await pool.query(
+        `SELECT bb.*, pm.home_logo, pm.away_logo, pm.league_name, pm.league_logo
+         FROM best_bets bb
+         LEFT JOIN published_matches pm ON bb.fixture_id = pm.fixture_id
+         WHERE bb.date_for = $1 AND bb.bet_category = 'primary' AND bb.result = 'pending'
+         ORDER BY bb.confidence DESC
+         LIMIT 5`,
+        [today]
+      );
+      if (result.rows.length === 0) {
+        return res.json(null);
+      }
+      const randomIndex = Math.floor(Math.random() * result.rows.length);
+      res.json(result.rows[randomIndex]);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.get('/api/daily-coupon', async (req, res) => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const couponResult = await pool.query(
+        'SELECT * FROM coupons WHERE coupon_date = $1 ORDER BY created_at DESC LIMIT 1',
+        [today]
+      );
+      if (couponResult.rows.length === 0) {
+        return res.json(null);
+      }
+      const coupon = couponResult.rows[0];
+      const predsResult = await pool.query(
+        `SELECT bb.id, bb.home_team, bb.away_team, bb.home_logo, bb.away_logo,
+                bb.league_name, bb.match_date, bb.match_time,
+                bb.bet_type, bb.confidence, bb.odds, bb.result, bb.risk_level
+         FROM best_bets bb
+         INNER JOIN coupon_predictions cp ON bb.id = cp.best_bet_id
+         WHERE cp.coupon_id = $1
+         ORDER BY bb.match_time ASC`,
+        [coupon.id]
+      );
+      coupon.predictions = predsResult.rows;
+      res.json(coupon);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   app.get('/api/best-bets/:date', async (req, res) => {
     try {
       const bets = await storage.getBestBetsForDate(req.params.date);
@@ -2741,6 +2791,27 @@ export async function registerRoutes(
         message: `${result.published} kaliteli maç yayınlandı (bugün ${result.date} için)`,
         ...result 
       });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post('/api/admin/auto-coupon', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Yetkiniz yok' });
+    }
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const result = await autoCreateDailyCoupon(today);
+      if (result) {
+        res.json({ success: true, message: `Günün kuponu oluşturuldu (${result.matchCount} maç)`, ...result });
+      } else {
+        res.json({ success: false, message: 'Kupon oluşturulamadı. Zaten mevcut olabilir veya yeterli tahmin yok.' });
+      }
     } catch (error: any) {
       res.status(500).json({ message: error.message });
     }

@@ -594,6 +594,17 @@ async function publishMatchesForDate(dateStr: string, totalLimit: number = 70, m
     console.log(`[AutoPublish] YAYINLANAN: ${publishedCount}`);
     console.log(`[AutoPublish] ==========================================\n`);
     
+    if (publishedCount > 0) {
+      try {
+        const couponResult = await autoCreateDailyCoupon(dateStr);
+        if (couponResult) {
+          console.log(`[AutoPublish] Günün kuponu otomatik oluşturuldu: ${couponResult.matchCount} maç`);
+        }
+      } catch (couponError) {
+        console.error('[AutoPublish] Kupon oluşturma hatası:', couponError);
+      }
+    }
+
     return { 
       published: publishedCount, 
       total: scoredMatches.length,
@@ -604,6 +615,64 @@ async function publishMatchesForDate(dateStr: string, totalLimit: number = 70, m
   } catch (error) {
     console.error('[AutoPublish] Error:', error);
     throw error;
+  }
+}
+
+export async function autoCreateDailyCoupon(dateStr: string): Promise<{ couponId: number; matchCount: number } | null> {
+  try {
+    const existing = await pool.query(
+      'SELECT id FROM coupons WHERE coupon_date = $1',
+      [dateStr]
+    );
+    if (existing.rows.length > 0) {
+      console.log(`[AutoCoupon] ${dateStr} için kupon zaten mevcut (ID: ${existing.rows[0].id})`);
+      return null;
+    }
+
+    const betsResult = await pool.query(
+      `SELECT id, home_team, away_team, bet_type, confidence, odds, fixture_id
+       FROM best_bets 
+       WHERE date_for = $1 AND bet_category = 'primary' AND result = 'pending'
+       ORDER BY confidence DESC, odds DESC`,
+      [dateStr]
+    );
+
+    if (betsResult.rows.length < 2) {
+      console.log(`[AutoCoupon] ${dateStr} için yeterli tahmin yok (${betsResult.rows.length})`);
+      return null;
+    }
+
+    const selectedBets = betsResult.rows.slice(0, 3);
+
+    const couponResult = await pool.query(
+      'INSERT INTO coupons (name, coupon_date) VALUES ($1, $2) RETURNING *',
+      [`Günün Kuponu`, dateStr]
+    );
+    const couponId = couponResult.rows[0].id;
+
+    let totalOdds = 1;
+    for (const bet of selectedBets) {
+      await pool.query(
+        'INSERT INTO coupon_predictions (coupon_id, best_bet_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+        [couponId, bet.id]
+      );
+      const odds = parseFloat(bet.odds);
+      if (odds && odds > 1) totalOdds *= odds;
+      else totalOdds *= 1.65;
+    }
+
+    await pool.query(
+      'UPDATE coupons SET combined_odds = $1 WHERE id = $2',
+      [totalOdds.toFixed(2), couponId]
+    );
+
+    console.log(`[AutoCoupon] Kupon oluşturuldu: ${selectedBets.length} maç, toplam oran: ${totalOdds.toFixed(2)}`);
+    selectedBets.forEach(b => console.log(`  - ${b.home_team} vs ${b.away_team}: ${b.bet_type} @${b.odds}`));
+
+    return { couponId, matchCount: selectedBets.length };
+  } catch (error) {
+    console.error('[AutoCoupon] Hata:', error);
+    return null;
   }
 }
 

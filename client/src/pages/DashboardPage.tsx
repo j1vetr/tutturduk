@@ -13,7 +13,9 @@ import {
   Activity,
   Star,
   Shield,
-  BarChart3
+  BarChart3,
+  Flame,
+  Ticket
 } from "lucide-react";
 
 interface Stats {
@@ -41,10 +43,49 @@ interface TodayMatch {
   }>;
 }
 
+interface FeaturedBet {
+  id: number;
+  fixture_id: number;
+  home_team: string;
+  away_team: string;
+  home_logo?: string;
+  away_logo?: string;
+  league_name?: string;
+  match_time: string;
+  match_date: string;
+  bet_type: string;
+  confidence: number;
+  odds: string;
+  risk_level: string;
+}
+
+interface DailyCoupon {
+  id: number;
+  name: string;
+  coupon_date: string;
+  combined_odds: string;
+  result: string;
+  predictions: Array<{
+    id: number;
+    home_team: string;
+    away_team: string;
+    home_logo?: string;
+    away_logo?: string;
+    league_name?: string;
+    match_time: string;
+    bet_type: string;
+    odds: string;
+    confidence: number;
+    result: string;
+  }>;
+}
+
 export default function DashboardPage() {
   const [, setLocation] = useLocation();
   const [stats, setStats] = useState<Stats | null>(null);
   const [todayMatches, setTodayMatches] = useState<TodayMatch[]>([]);
+  const [featuredBet, setFeaturedBet] = useState<FeaturedBet | null>(null);
+  const [dailyCoupon, setDailyCoupon] = useState<DailyCoupon | null>(null);
   const [loading, setLoading] = useState(true);
   const [animatedStats, setAnimatedStats] = useState({ won: 0, total: 0, rate: 0 });
 
@@ -79,9 +120,11 @@ export default function DashboardPage() {
 
   async function fetchData() {
     try {
-      const [statsRes, matchesRes] = await Promise.all([
+      const [statsRes, matchesRes, featuredRes, couponRes] = await Promise.all([
         fetch("/api/best-bets/stats", { credentials: 'include' }),
-        fetch("/api/matches", { credentials: 'include' })
+        fetch("/api/matches", { credentials: 'include' }),
+        fetch("/api/featured-bet", { credentials: 'include' }),
+        fetch("/api/daily-coupon", { credentials: 'include' })
       ]);
       
       if (statsRes.ok) {
@@ -102,6 +145,16 @@ export default function DashboardPage() {
           .slice(0, 4);
         setTodayMatches(upcoming);
       }
+
+      if (featuredRes.ok) {
+        const data = await featuredRes.json();
+        setFeaturedBet(data);
+      }
+
+      if (couponRes.ok) {
+        const data = await couponRes.json();
+        setDailyCoupon(data);
+      }
     } catch (err) {
       console.error("Dashboard fetch error:", err);
     } finally {
@@ -113,21 +166,15 @@ export default function DashboardPage() {
     <MobileLayout activeTab="home">
       <div className="space-y-5 pb-4">
         
-        {/* Hero Section with Floating Elements */}
+        {/* Hero Section */}
         <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 shadow-2xl">
-          {/* Animated Background Elements */}
           <div className="absolute inset-0 overflow-hidden">
-            {/* Floating Orbs */}
             <div className="absolute top-4 right-8 w-24 h-24 bg-emerald-500/20 rounded-full blur-2xl animate-pulse" />
             <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-blue-500/15 rounded-full blur-3xl" />
             <div className="absolute top-1/2 right-1/4 w-16 h-16 bg-purple-500/10 rounded-full blur-xl animate-pulse" style={{ animationDelay: '1s' }} />
-            
-            {/* Geometric Patterns */}
             <div className="absolute top-6 left-6 w-20 h-20 border border-white/5 rounded-full" />
             <div className="absolute top-10 left-10 w-12 h-12 border border-white/5 rounded-full" />
             <div className="absolute bottom-8 right-8 w-16 h-16 border border-emerald-500/10 rounded-2xl rotate-45" />
-            
-            {/* Grid Pattern */}
             <div className="absolute inset-0 opacity-[0.03]" style={{
               backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
               backgroundSize: '32px 32px'
@@ -135,7 +182,6 @@ export default function DashboardPage() {
           </div>
           
           <div className="relative z-10">
-            {/* Badge */}
             <div className="inline-flex items-center gap-2 bg-emerald-500/20 backdrop-blur-sm border border-emerald-500/30 rounded-full px-3 py-1.5 mb-4">
               <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
               <span className="text-emerald-300 text-[11px] font-semibold tracking-wide">Yapay Zeka Destekli</span>
@@ -160,7 +206,78 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Stats Grid with Premium Design */}
+        {/* Featured Bet Card */}
+        {featuredBet && (
+          <button
+            onClick={() => setLocation(`/match/${featuredBet.fixture_id}`)}
+            className="w-full relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 p-[1px] shadow-lg shadow-orange-500/20 active:scale-[0.99] transition-all"
+            data-testid="card-featured-bet"
+          >
+            <div className="relative rounded-[15px] bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-5 overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-amber-500/15 to-transparent rounded-bl-[60px]" />
+              <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-orange-500/10 to-transparent rounded-tr-[40px]" />
+              
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/30">
+                      <Flame className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-white">Günün En İyi Bahisi</h3>
+                      <p className="text-[10px] text-amber-300/80 font-medium">{featuredBet.league_name}</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className="text-xs font-bold text-white bg-white/10 backdrop-blur-sm px-2.5 py-1 rounded-lg">
+                      {featuredBet.match_time}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2.5 flex-1">
+                    <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center overflow-hidden p-1.5">
+                      {featuredBet.home_logo ? (
+                        <img src={featuredBet.home_logo} alt="" className="w-full h-full object-contain" />
+                      ) : (
+                        <span className="text-xs font-bold text-white">{featuredBet.home_team.slice(0, 2)}</span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-white truncate">{featuredBet.home_team}</p>
+                      <p className="text-sm font-bold text-white truncate">{featuredBet.away_team}</p>
+                    </div>
+                    <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center overflow-hidden p-1.5">
+                      {featuredBet.away_logo ? (
+                        <img src={featuredBet.away_logo} alt="" className="w-full h-full object-contain" />
+                      ) : (
+                        <span className="text-xs font-bold text-white">{featuredBet.away_team.slice(0, 2)}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 bg-gradient-to-r from-amber-500/20 to-orange-500/20 backdrop-blur-sm border border-amber-500/30 rounded-xl px-3.5 py-2.5">
+                    <p className="text-[10px] text-amber-300/70 font-semibold uppercase tracking-wider mb-0.5">Tahmin</p>
+                    <p className="text-sm font-black text-white">{featuredBet.bet_type}</p>
+                  </div>
+                  <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl px-3.5 py-2.5 text-center">
+                    <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-0.5">Oran</p>
+                    <p className="text-sm font-black text-amber-400">{parseFloat(featuredBet.odds).toFixed(2)}</p>
+                  </div>
+                  <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl px-3.5 py-2.5 text-center">
+                    <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-0.5">Güven</p>
+                    <p className="text-sm font-black text-emerald-400">%{featuredBet.confidence}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </button>
+        )}
+
+        {/* Stats Grid */}
         <div className="grid grid-cols-3 gap-3">
           <div className="relative bg-white rounded-2xl p-4 border border-slate-100 shadow-sm overflow-hidden group" data-testid="stat-won">
             <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-emerald-100 to-transparent rounded-bl-[40px] opacity-60" />
@@ -237,6 +354,77 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {/* Daily Coupon Card */}
+        {dailyCoupon && dailyCoupon.predictions && dailyCoupon.predictions.length > 0 && (
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet-500 via-purple-600 to-indigo-700 p-[1px] shadow-lg shadow-purple-500/20">
+            <div className="relative rounded-[15px] bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 overflow-hidden">
+              <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-purple-500/15 to-transparent rounded-bl-[80px]" />
+              <div className="absolute bottom-0 left-0 w-28 h-28 bg-gradient-to-tr from-indigo-500/10 to-transparent rounded-tr-[50px]" />
+              
+              <div className="relative z-10 p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-400 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
+                      <Ticket className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-white">Günün Kuponu</h3>
+                      <p className="text-[10px] text-purple-300/80 font-medium">{dailyCoupon.predictions.length} maç kombinasyonu</p>
+                    </div>
+                  </div>
+                  <div className="bg-gradient-to-r from-amber-400 to-orange-500 rounded-xl px-3 py-1.5">
+                    <p className="text-[9px] text-amber-900 font-bold uppercase tracking-wider">Toplam Oran</p>
+                    <p className="text-lg font-black text-white text-center leading-tight">{parseFloat(dailyCoupon.combined_odds).toFixed(2)}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-2.5 mb-4">
+                  {dailyCoupon.predictions.map((pred, idx) => (
+                    <div 
+                      key={pred.id}
+                      className="flex items-center gap-3 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl px-3.5 py-2.5"
+                    >
+                      <span className="text-[10px] font-bold text-purple-400 w-4">{idx + 1}</span>
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <div className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center overflow-hidden p-0.5 flex-shrink-0">
+                          {pred.home_logo ? (
+                            <img src={pred.home_logo} alt="" className="w-full h-full object-contain" />
+                          ) : (
+                            <span className="text-[8px] font-bold text-white">{pred.home_team.slice(0, 2)}</span>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-semibold text-white truncate">
+                            {pred.home_team} - {pred.away_team}
+                          </p>
+                          <p className="text-[10px] text-slate-400">{pred.match_time}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className="text-xs font-bold text-amber-400 bg-amber-500/10 px-2 py-1 rounded-lg">
+                          {pred.bet_type}
+                        </span>
+                        <span className="text-xs font-bold text-slate-300">
+                          {pred.odds ? parseFloat(pred.odds).toFixed(2) : '-'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => setLocation("/coupons")}
+                  className="w-full bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-400 hover:to-purple-500 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
+                  data-testid="button-view-coupon"
+                >
+                  <span className="text-sm">Kuponu Görüntüle</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Upcoming Matches */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
@@ -282,7 +470,6 @@ export default function DashboardPage() {
                     className="w-full bg-white rounded-2xl p-4 border border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200 active:scale-[0.99] transition-all text-left relative overflow-hidden group"
                     data-testid={`card-match-${match.fixture_id}`}
                   >
-                    {/* Decorative corner */}
                     {index === 0 && (
                       <div className="absolute top-0 right-0 bg-gradient-to-bl from-emerald-500/10 to-transparent w-20 h-20 rounded-bl-[40px]" />
                     )}
@@ -346,7 +533,6 @@ export default function DashboardPage() {
             className="group relative bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 text-white rounded-2xl p-5 text-left overflow-hidden active:scale-[0.98] transition-all shadow-lg shadow-emerald-500/20"
             data-testid="card-predictions"
           >
-            {/* Decorative Elements */}
             <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full blur-2xl -mr-8 -mt-8" />
             <div className="absolute bottom-0 left-0 w-16 h-16 bg-black/10 rounded-full blur-xl -ml-4 -mb-4" />
             <div className="absolute top-4 right-4 w-8 h-8 border border-white/20 rounded-full" />
@@ -365,7 +551,6 @@ export default function DashboardPage() {
             className="group relative bg-gradient-to-br from-violet-500 via-purple-600 to-indigo-600 text-white rounded-2xl p-5 text-left overflow-hidden active:scale-[0.98] transition-all shadow-lg shadow-purple-500/20"
             data-testid="card-winners"
           >
-            {/* Decorative Elements */}
             <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full blur-2xl -mr-8 -mt-8" />
             <div className="absolute bottom-0 left-0 w-16 h-16 bg-black/10 rounded-full blur-xl -ml-4 -mb-4" />
             <div className="absolute top-4 right-4 w-8 h-8 border border-white/20 rounded-full" />
@@ -382,7 +567,6 @@ export default function DashboardPage() {
 
         {/* Info Card */}
         <div className="relative bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 rounded-2xl p-5 border border-amber-200/50 overflow-hidden">
-          {/* Decorative */}
           <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-amber-200/30 to-transparent rounded-bl-[60px]" />
           
           <div className="flex items-start gap-4 relative z-10">

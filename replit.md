@@ -210,3 +210,14 @@ Key entities include:
   - Added `bet_category` column to `best_bets` table ('primary' or 'alternative')
   - Added `odds` column to store bet odds
   - Stats now track primary bets using `bet_category` instead of `risk_level`
+
+### March 2026
+- **Dashboard "Günün En İyi Bahisi" Card**: Featured bet card showing a random top prediction from today's best bets (highest confidence primary bets)
+- **Dashboard "Günün Kuponu" Card**: Daily coupon card showing auto-created 2-3 match combination with combined odds
+- **Auto-Coupon System**: `autoCreateDailyCoupon()` in autoPublishService.ts automatically creates a daily coupon after matches are published
+  - Picks top 2-3 highest confidence primary bets
+  - Uses real odds from AI analysis
+  - Runs automatically after auto-publish completes
+  - Admin can also trigger via `/api/admin/auto-coupon` endpoint
+- **API Endpoints**: `/api/featured-bet` (random top bet), `/api/daily-coupon` (today's coupon with predictions)
+- **Coupon Odds Fix**: `updateCouponOdds()` now uses real odds from `best_bets.odds` column instead of risk-level approximation

@@ -489,32 +489,28 @@ export class PostgresStorage implements IStorage {
   }
 
   async updateCouponOdds(couponId: number): Promise<Coupon> {
-    // Calculate combined odds from best_bets (using confidence as odds placeholder)
-    // Note: best_bets.confidence is 0-100, we use a fixed odds value for now
-    const countResult = await pool.query(
-      'SELECT COUNT(*) as cnt FROM coupon_predictions WHERE coupon_id = $1 AND best_bet_id IS NOT NULL',
+    const oddsResult = await pool.query(
+      `SELECT bb.odds, bb.risk_level FROM best_bets bb 
+       INNER JOIN coupon_predictions cp ON bb.id = cp.best_bet_id 
+       WHERE cp.coupon_id = $1`,
       [couponId]
     );
-    const bestBetCount = parseInt(countResult.rows[0].cnt);
     
     let combinedOdds = '1.00';
-    if (bestBetCount > 0) {
-      // Use approximate odds based on risk level (stored in best_bets)
-      const oddsResult = await pool.query(
-        `SELECT bb.risk_level FROM best_bets bb 
-         INNER JOIN coupon_predictions cp ON bb.id = cp.best_bet_id 
-         WHERE cp.coupon_id = $1`,
-        [couponId]
-      );
+    if (oddsResult.rows.length > 0) {
       let totalOdds = 1;
       for (const row of oddsResult.rows) {
-        if (row.risk_level === 'düşük') totalOdds *= 1.5;
-        else if (row.risk_level === 'orta') totalOdds *= 2.0;
-        else totalOdds *= 3.5;
+        const realOdds = parseFloat(row.odds);
+        if (realOdds && realOdds > 1) {
+          totalOdds *= realOdds;
+        } else {
+          if (row.risk_level === 'düşük') totalOdds *= 1.5;
+          else if (row.risk_level === 'orta') totalOdds *= 2.0;
+          else totalOdds *= 3.5;
+        }
       }
       combinedOdds = totalOdds.toFixed(2);
     } else {
-      // Fallback to old predictions table
       const result = await pool.query(
         `SELECT COALESCE(
           (SELECT EXP(SUM(LN(CAST(p.odds AS DECIMAL)))) 
