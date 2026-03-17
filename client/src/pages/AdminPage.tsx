@@ -139,6 +139,7 @@ export default function AdminPage() {
   const [aiCheckLoading, setAiCheckLoading] = useState(false);
   const [aiCheckProgress, setAiCheckProgress] = useState({ current: 0, total: 0 });
   const [bulkPublishing, setBulkPublishing] = useState(false);
+  const [autoPublishing, setAutoPublishing] = useState(false);
   
   // Form states
   const [newCode, setNewCode] = useState({ code: "", type: "standard", maxUses: 1 });
@@ -152,8 +153,8 @@ export default function AdminPage() {
   }, [user, setLocation]);
 
   useEffect(() => {
-    if (activeTab === "predictions" && upcomingMatches.length === 0) {
-      loadUpcomingMatches(true);
+    if (activeTab === "predictions") {
+      loadPublishedMatches();
     }
   }, [activeTab]);
 
@@ -372,6 +373,30 @@ export default function AdminPage() {
     setBulkPublishing(false);
     loadPublishedMatches();
     toast({ description: `${success} mac yayinlandi` });
+  };
+
+  const autoPublishToday = async () => {
+    setAutoPublishing(true);
+    try {
+      toast({ description: "Otomatik yayinlama baslatildi... Bu islem birkaç dakika sürebilir." });
+      const res = await fetch('/api/admin/auto-publish-today', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ totalLimit: 70, perHour: 5 })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast({ description: data.message });
+        loadPublishedMatches();
+      } else {
+        toast({ variant: 'destructive', description: data.message });
+      }
+    } catch {
+      toast({ variant: 'destructive', description: 'Otomatik yayinlama basarisiz' });
+    } finally {
+      setAutoPublishing(false);
+    }
   };
 
   const loadCoupons = async () => {
@@ -794,7 +819,33 @@ export default function AdminPage() {
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <h2 className="text-lg font-bold text-slate-800">Mac Yonetimi</h2>
-              <div className="flex flex-wrap gap-2">
+            </div>
+
+            {/* Tek Tik Otomatik Yayinla */}
+            <div className="bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-xl p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-800">Otomatik Yayinla</h3>
+                  <p className="text-[11px] text-slate-500 mt-0.5">Macları cek → AI analiz → Yayinla (tek tik)</p>
+                </div>
+                <Button 
+                  onClick={autoPublishToday}
+                  disabled={autoPublishing}
+                  size="sm"
+                  className="bg-emerald-600 text-white hover:bg-emerald-500 shadow-md"
+                >
+                  {autoPublishing ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" />Islem devam ediyor...</> : <><Zap className="w-4 h-4 mr-1" />Bugunu Yayinla</>}
+                </Button>
+              </div>
+            </div>
+
+            {/* Manuel Kontrol */}
+            <details className="group">
+              <summary className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer select-none py-1">
+                <ChevronRight className="w-3 h-3 transition-transform group-open:rotate-90" />
+                Manuel Kontrol
+              </summary>
+              <div className="flex flex-wrap gap-2 mt-2">
                 <Button 
                   onClick={() => loadUpcomingMatches(true)} 
                   disabled={loadingMatches}
@@ -823,10 +874,10 @@ export default function AdminPage() {
                   className="bg-emerald-500 text-white hover:bg-emerald-400"
                 >
                   {bulkPublishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4 mr-1" />}
-                  Bugunu Yayinla
+                  Secilenleri Yayinla
                 </Button>
               </div>
-            </div>
+            </details>
 
             {/* Admin Utility Buttons */}
             <div className="flex flex-wrap gap-2">
