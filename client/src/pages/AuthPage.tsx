@@ -161,9 +161,9 @@ export default function AuthPage() {
   };
 
   const features = [
-    { icon: TrendingUp, text: "Yapay zekâ tahminleri" },
-    { icon: BarChart3, text: "Detaylı maç analizi" },
-    { icon: Trophy, text: "Günlük kazanan kuponlar" },
+    { icon: TrendingUp, text: "Yapay Zekâ Tahminleri" },
+    { icon: BarChart3, text: "Detaylı Maç Analizi" },
+    { icon: Trophy, text: "Günlük Kazanan Kuponlar" },
   ];
 
   return (
@@ -205,7 +205,7 @@ export default function AuthPage() {
                 }`}
               >
                 <LogIn className="w-4 h-4" />
-                Giriş yap
+                Giriş Yap
                 {isLogin && <div className="absolute bottom-0 left-4 right-4 h-0.5 bg-emerald-500 rounded-full" />}
               </button>
               <button 
@@ -216,7 +216,7 @@ export default function AuthPage() {
                 }`}
               >
                 <UserPlus className="w-4 h-4" />
-                Kayıt ol
+                Kayıt Ol
                 {!isLogin && <div className="absolute bottom-0 left-4 right-4 h-0.5 bg-emerald-500 rounded-full" />}
               </button>
             </div>
@@ -232,7 +232,7 @@ export default function AuthPage() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                    Kullanıcı adı
+                    Kullanıcı Adı
                   </label>
                   <Input 
                     placeholder="Örnek: ahmet1905" 
@@ -273,7 +273,7 @@ export default function AuthPage() {
                   <div className="space-y-3 pt-1">
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        Davet kodu
+                        Davet Kodu
                       </label>
                       <Input 
                         placeholder="Davet kodunuzu girin" 
@@ -292,7 +292,7 @@ export default function AuthPage() {
                             <Gift className="w-4 h-4 text-amber-600" />
                           </div>
                           <div>
-                            <h4 className="text-sm font-bold text-slate-800">Davet kodunuz yok mu?</h4>
+                            <h4 className="text-sm font-bold text-slate-800">Davet Kodunuz Yok Mu?</h4>
                             <p className="text-[10px] text-slate-500">Aşağıdaki adımları takip edin</p>
                           </div>
                         </div>
@@ -303,7 +303,7 @@ export default function AuthPage() {
                           <div className="flex items-start gap-3">
                             <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold text-[11px] flex-shrink-0">1</div>
                             <div className="flex-1">
-                              <p className="text-xs font-bold text-slate-800 mb-1">iddaa.com'a üye olun</p>
+                              <p className="text-xs font-bold text-slate-800 mb-1">iddaa.com'a Üye Olun</p>
                               <p className="text-[11px] text-slate-600 leading-relaxed">
                                 Üyelik oluştururken <strong>Bayi Kodu</strong> alanına aşağıdaki kodu yazın:
                               </p>
@@ -331,7 +331,7 @@ export default function AuthPage() {
                           <div className="flex items-start gap-3">
                             <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold text-[11px] flex-shrink-0">2</div>
                             <div className="flex-1">
-                              <p className="text-xs font-bold text-slate-800 mb-1">Bize ulaşın</p>
+                              <p className="text-xs font-bold text-slate-800 mb-1">Bize Ulaşın</p>
                               <p className="text-[11px] text-slate-600 leading-relaxed">
                                 Üyelik sonrası Instagram hesabımıza mesaj atın. Size özel davet kodunuzu hemen iletiyoruz.
                               </p>
@@ -343,7 +343,7 @@ export default function AuthPage() {
                           <div className="flex items-start gap-3">
                             <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold text-[11px] flex-shrink-0">3</div>
                             <div className="flex-1">
-                              <p className="text-xs font-bold text-slate-800 mb-1">Kayıt olun</p>
+                              <p className="text-xs font-bold text-slate-800 mb-1">Kayıt Olun</p>
                               <p className="text-[11px] text-slate-600 leading-relaxed">
                                 Aldığınız davet kodunu yukarıdaki alana girin ve kayıt işlemini tamamlayın.
                               </p>
@@ -357,7 +357,7 @@ export default function AuthPage() {
                           onClick={() => window.open('https://instagram.com', '_blank')}
                         >
                           <Instagram className="w-5 h-5" />
-                          Instagram'dan bize yazın
+                          Instagram'dan Bize Yazın
                           <ExternalLink className="w-3.5 h-3.5 opacity-70" />
                         </button>
                       </div>
@@ -376,7 +376,7 @@ export default function AuthPage() {
                       <Loader2 className="w-5 h-5 animate-spin" />
                     ) : (
                       <>
-                        {isLogin ? "Giriş yap" : "Kayıt ol"}
+                        {isLogin ? "Giriş Yap" : "Kayıt Ol"}
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </>
                     )}
@@ -394,7 +394,7 @@ export default function AuthPage() {
                     className="text-emerald-600 font-bold hover:text-emerald-700 transition-colors"
                     data-testid="button-switch-mode"
                   >
-                    {isLogin ? "Kayıt ol" : "Giriş yap"}
+                    {isLogin ? "Kayıt Ol" : "Giriş Yap"}
                   </button>
                 </p>
               </div>
@@ -404,7 +404,7 @@ export default function AuthPage() {
           <div className="flex items-center justify-center gap-4 mt-6">
             <div className="flex items-center gap-1.5 text-slate-500">
               <Shield className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="text-[10px] font-medium">Güvenli giriş</span>
+              <span className="text-[10px] font-medium">Güvenli Giriş</span>
             </div>
             <div className="w-1 h-1 bg-slate-600 rounded-full" />
             <div className="flex items-center gap-1.5 text-slate-500">
