@@ -3,7 +3,7 @@ import { useAuth, BAYI_KODU } from "@/lib/auth";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, Instagram, Eye, EyeOff, Loader2, Shield, TrendingUp, BarChart3, Trophy, UserPlus, LogIn, AlertCircle, CheckCircle2, Sparkles, Gift, Copy, Check, ExternalLink, MessageCircle } from "lucide-react";
+import { ArrowRight, Instagram, Eye, EyeOff, Loader2, Shield, TrendingUp, BarChart3, Trophy, UserPlus, LogIn, AlertCircle, CheckCircle2, Sparkles, Gift, Copy, Check, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import logoIcon from "@assets/generated_images/minimalist_sports_betting_logo_icon.png";
 
@@ -90,7 +90,6 @@ export default function AuthPage() {
 
       <div className="relative z-10 flex flex-col flex-1">
         
-        {/* Üst Bölüm */}
         <div className="flex flex-col items-center pt-12 pb-6 px-6">
           <div className="relative mb-5">
             <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/30 rotate-3">
@@ -118,11 +117,9 @@ export default function AuthPage() {
           </div>
         </div>
 
-        {/* Giriş / Kayıt Kartı */}
         <div className="flex-1 px-4 pb-8">
           <div className="bg-white rounded-t-3xl rounded-b-2xl max-w-md mx-auto shadow-2xl shadow-black/20 overflow-hidden">
             
-            {/* Sekmeler */}
             <div className="flex border-b border-slate-100">
               <button 
                 data-testid="button-tab-login"
@@ -132,7 +129,7 @@ export default function AuthPage() {
                 }`}
               >
                 <LogIn className="w-4 h-4" />
-                Giriş Yap
+                Giriş yap
                 {isLogin && <div className="absolute bottom-0 left-4 right-4 h-0.5 bg-emerald-500 rounded-full" />}
               </button>
               <button 
@@ -143,13 +140,12 @@ export default function AuthPage() {
                 }`}
               >
                 <UserPlus className="w-4 h-4" />
-                Kayıt Ol
+                Kayıt ol
                 {!isLogin && <div className="absolute bottom-0 left-4 right-4 h-0.5 bg-emerald-500 rounded-full" />}
               </button>
             </div>
 
             <div className="p-5">
-              {/* Hata Mesajı */}
               {errorMsg && (
                 <div data-testid="text-error" className="flex items-start gap-2.5 bg-red-50 border border-red-200 text-red-700 px-3.5 py-3 rounded-xl mb-4 text-sm">
                   <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
@@ -160,7 +156,7 @@ export default function AuthPage() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                    Kullanıcı Adı
+                    Kullanıcı adı
                   </label>
                   <Input 
                     placeholder="Örnek: ahmet1905" 
@@ -197,12 +193,11 @@ export default function AuthPage() {
                   </div>
                 </div>
 
-                {/* Davet Kodu - Sadece Kayıt */}
                 {!isLogin && (
                   <div className="space-y-3 pt-1">
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                        Davet Kodu
+                        Davet kodu
                       </label>
                       <Input 
                         placeholder="Davet kodunuzu girin" 
@@ -214,7 +209,6 @@ export default function AuthPage() {
                       />
                     </div>
 
-                    {/* Davet Kodu Bilgilendirme */}
                     <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/80 rounded-2xl overflow-hidden">
                       <div className="px-4 pt-4 pb-3">
                         <div className="flex items-center gap-2 mb-2.5">
@@ -222,19 +216,18 @@ export default function AuthPage() {
                             <Gift className="w-4 h-4 text-amber-600" />
                           </div>
                           <div>
-                            <h4 className="text-sm font-bold text-slate-800">Davet Kodunuz Yok mu?</h4>
+                            <h4 className="text-sm font-bold text-slate-800">Davet kodunuz yok mu?</h4>
                             <p className="text-[10px] text-slate-500">Aşağıdaki adımları takip edin</p>
                           </div>
                         </div>
                       </div>
 
                       <div className="px-4 pb-4 space-y-3">
-                        {/* Adım 1 */}
                         <div className="bg-white rounded-xl p-3 border border-amber-100">
                           <div className="flex items-start gap-3">
                             <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold text-[11px] flex-shrink-0">1</div>
                             <div className="flex-1">
-                              <p className="text-xs font-bold text-slate-800 mb-1">iddaa.com'a Üye Olun</p>
+                              <p className="text-xs font-bold text-slate-800 mb-1">iddaa.com'a üye olun</p>
                               <p className="text-[11px] text-slate-600 leading-relaxed">
                                 Üyelik oluştururken <strong>Bayi Kodu</strong> alanına aşağıdaki kodu yazın:
                               </p>
@@ -258,12 +251,11 @@ export default function AuthPage() {
                           </div>
                         </div>
 
-                        {/* Adım 2 */}
                         <div className="bg-white rounded-xl p-3 border border-amber-100">
                           <div className="flex items-start gap-3">
                             <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold text-[11px] flex-shrink-0">2</div>
                             <div className="flex-1">
-                              <p className="text-xs font-bold text-slate-800 mb-1">Bize Ulaşın</p>
+                              <p className="text-xs font-bold text-slate-800 mb-1">Bize ulaşın</p>
                               <p className="text-[11px] text-slate-600 leading-relaxed">
                                 Üyelik sonrası Instagram hesabımıza mesaj atın. Size özel davet kodunuzu hemen iletiyoruz.
                               </p>
@@ -271,12 +263,11 @@ export default function AuthPage() {
                           </div>
                         </div>
 
-                        {/* Adım 3 */}
                         <div className="bg-white rounded-xl p-3 border border-amber-100">
                           <div className="flex items-start gap-3">
                             <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold text-[11px] flex-shrink-0">3</div>
                             <div className="flex-1">
-                              <p className="text-xs font-bold text-slate-800 mb-1">Kayıt Olun</p>
+                              <p className="text-xs font-bold text-slate-800 mb-1">Kayıt olun</p>
                               <p className="text-[11px] text-slate-600 leading-relaxed">
                                 Aldığınız davet kodunu yukarıdaki alana girin ve kayıt işlemini tamamlayın.
                               </p>
@@ -284,14 +275,13 @@ export default function AuthPage() {
                           </div>
                         </div>
 
-                        {/* Instagram Butonu */}
                         <button 
                           type="button"
                           className="w-full flex items-center justify-center gap-2.5 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 text-white font-bold py-3 rounded-xl text-sm hover:opacity-90 transition-all shadow-lg shadow-purple-500/20"
                           onClick={() => window.open('https://instagram.com', '_blank')}
                         >
                           <Instagram className="w-5 h-5" />
-                          Instagram'dan Bize Yazın
+                          Instagram'dan bize yazın
                           <ExternalLink className="w-3.5 h-3.5 opacity-70" />
                         </button>
                       </div>
@@ -299,7 +289,6 @@ export default function AuthPage() {
                   </div>
                 )}
 
-                {/* Gönder Butonu */}
                 <div className="pt-2">
                   <Button 
                     type="submit" 
@@ -311,7 +300,7 @@ export default function AuthPage() {
                       <Loader2 className="w-5 h-5 animate-spin" />
                     ) : (
                       <>
-                        {isLogin ? "Giriş Yap" : "Kayıt Ol"}
+                        {isLogin ? "Giriş yap" : "Kayıt ol"}
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </>
                     )}
@@ -329,7 +318,7 @@ export default function AuthPage() {
                     className="text-emerald-600 font-bold hover:text-emerald-700 transition-colors"
                     data-testid="button-switch-mode"
                   >
-                    {isLogin ? "Kayıt Ol" : "Giriş Yap"}
+                    {isLogin ? "Kayıt ol" : "Giriş yap"}
                   </button>
                 </p>
               </div>
@@ -339,7 +328,7 @@ export default function AuthPage() {
           <div className="flex items-center justify-center gap-4 mt-6">
             <div className="flex items-center gap-1.5 text-slate-500">
               <Shield className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="text-[10px] font-medium">Güvenli Giriş</span>
+              <span className="text-[10px] font-medium">Güvenli giriş</span>
             </div>
             <div className="w-1 h-1 bg-slate-600 rounded-full" />
             <div className="flex items-center gap-1.5 text-slate-500">
@@ -349,7 +338,7 @@ export default function AuthPage() {
           </div>
 
           <p className="text-center text-[11px] text-slate-600 mt-4">
-            &copy; 2025 Tutturduk.com - Tüm hakları saklıdır.
+            &copy; 2025 Tutturduk.com &mdash; Tüm hakları saklıdır.
           </p>
         </div>
       </div>
