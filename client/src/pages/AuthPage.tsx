@@ -3,7 +3,7 @@ import { useAuth, BAYI_KODU } from "@/lib/auth";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, Instagram, Eye, EyeOff, Loader2, Shield, TrendingUp, BarChart3, Trophy, UserPlus, LogIn, AlertCircle, CheckCircle2, Sparkles } from "lucide-react";
+import { ArrowRight, Instagram, Eye, EyeOff, Loader2, Shield, TrendingUp, BarChart3, Trophy, UserPlus, LogIn, AlertCircle, CheckCircle2, Sparkles, Gift, Copy, Check, ExternalLink, MessageCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import logoIcon from "@assets/generated_images/minimalist_sports_betting_logo_icon.png";
 
@@ -15,7 +15,7 @@ export default function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const [showReferralHelp, setShowReferralHelp] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
   const { login } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -24,27 +24,34 @@ export default function AuthPage() {
     setErrorMsg("");
   }, [isLogin]);
 
+  const copyBayiCode = () => {
+    navigator.clipboard.writeText(BAYI_KODU);
+    setCopiedCode(true);
+    toast({ description: "Bayi kodu kopyalandı!" });
+    setTimeout(() => setCopiedCode(false), 2000);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
     
     if (!username.trim() || !password.trim()) {
-      setErrorMsg("Kullanici adi ve sifre zorunludur.");
+      setErrorMsg("Kullanıcı adı ve şifre zorunludur.");
       return;
     }
 
     if (username.trim().length < 3) {
-      setErrorMsg("Kullanici adi en az 3 karakter olmalidir.");
+      setErrorMsg("Kullanıcı adı en az 3 karakter olmalıdır.");
       return;
     }
 
     if (password.trim().length < 4) {
-      setErrorMsg("Sifre en az 4 karakter olmalidir.");
+      setErrorMsg("Şifre en az 4 karakter olmalıdır.");
       return;
     }
 
     if (!isLogin && !referralCode.trim()) {
-      setErrorMsg("Kayit olmak icin davet kodu zorunludur.");
+      setErrorMsg("Kayıt olmak için davet kodu zorunludur.");
       return;
     }
 
@@ -55,12 +62,12 @@ export default function AuthPage() {
 
       if (result.success) {
         toast({
-          description: isLogin ? "Giris basarili! Hosgeldiniz." : "Kayit basarili! Hosgeldiniz.",
+          description: isLogin ? "Giriş başarılı! Hoş geldiniz." : "Kayıt başarılı! Hoş geldiniz.",
           className: "bg-emerald-500 text-white border-none font-semibold",
         });
         setLocation("/");
       } else {
-        setErrorMsg(result.error || (isLogin ? "Kullanici adi veya sifre hatali." : "Kayit yapilamadi."));
+        setErrorMsg(result.error || (isLogin ? "Kullanıcı adı veya şifre hatalı." : "Kayıt yapılamadı."));
       }
     } finally {
       setIsLoading(false);
@@ -68,28 +75,23 @@ export default function AuthPage() {
   };
 
   const features = [
-    { icon: TrendingUp, text: "AI destekli tahminler" },
-    { icon: BarChart3, text: "Detayli mac analizi" },
-    { icon: Trophy, text: "Gunluk kazanan kuponlar" },
+    { icon: TrendingUp, text: "Yapay zekâ tahminleri" },
+    { icon: BarChart3, text: "Detaylı maç analizi" },
+    { icon: Trophy, text: "Günlük kazanan kuponlar" },
   ];
 
   return (
     <div className="min-h-screen bg-slate-900 flex flex-col relative overflow-hidden">
-      {/* Background pattern */}
       <div className="absolute inset-0 opacity-[0.03]" style={{
         backgroundImage: `radial-gradient(circle at 1px 1px, white 1px, transparent 0)`,
         backgroundSize: '32px 32px'
       }} />
-      
-      {/* Top gradient glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-emerald-500/10 rounded-full blur-[120px]" />
 
-      {/* Content */}
       <div className="relative z-10 flex flex-col flex-1">
         
-        {/* Hero Section */}
+        {/* Üst Bölüm */}
         <div className="flex flex-col items-center pt-12 pb-6 px-6">
-          {/* Logo */}
           <div className="relative mb-5">
             <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/30 rotate-3">
               <img src={logoIcon} alt="Logo" className="w-10 h-10 object-contain -rotate-3 brightness-0 invert" />
@@ -103,10 +105,9 @@ export default function AuthPage() {
             TUTTURDUK<span className="text-emerald-400">.COM</span>
           </h1>
           <p className="text-slate-400 text-sm mt-1.5 text-center">
-            Yapay zeka destekli spor tahmin platformu
+            Yapay zekâ destekli spor tahmin platformu
           </p>
 
-          {/* Feature badges */}
           <div className="flex flex-wrap justify-center gap-2 mt-5">
             {features.map((f, i) => (
               <div key={i} className="flex items-center gap-1.5 bg-white/5 border border-white/10 rounded-full px-3 py-1.5">
@@ -117,47 +118,38 @@ export default function AuthPage() {
           </div>
         </div>
 
-        {/* Auth Card */}
+        {/* Giriş / Kayıt Kartı */}
         <div className="flex-1 px-4 pb-8">
           <div className="bg-white rounded-t-3xl rounded-b-2xl max-w-md mx-auto shadow-2xl shadow-black/20 overflow-hidden">
             
-            {/* Tabs */}
+            {/* Sekmeler */}
             <div className="flex border-b border-slate-100">
               <button 
                 data-testid="button-tab-login"
                 onClick={() => setIsLogin(true)}
                 className={`flex-1 py-4 text-sm font-bold transition-all relative flex items-center justify-center gap-2 ${
-                  isLogin 
-                    ? 'text-slate-800' 
-                    : 'text-slate-400 hover:text-slate-500'
+                  isLogin ? 'text-slate-800' : 'text-slate-400 hover:text-slate-500'
                 }`}
               >
                 <LogIn className="w-4 h-4" />
-                Giris Yap
-                {isLogin && (
-                  <div className="absolute bottom-0 left-4 right-4 h-0.5 bg-emerald-500 rounded-full" />
-                )}
+                Giriş Yap
+                {isLogin && <div className="absolute bottom-0 left-4 right-4 h-0.5 bg-emerald-500 rounded-full" />}
               </button>
               <button 
                 data-testid="button-tab-register"
                 onClick={() => setIsLogin(false)}
                 className={`flex-1 py-4 text-sm font-bold transition-all relative flex items-center justify-center gap-2 ${
-                  !isLogin 
-                    ? 'text-slate-800' 
-                    : 'text-slate-400 hover:text-slate-500'
+                  !isLogin ? 'text-slate-800' : 'text-slate-400 hover:text-slate-500'
                 }`}
               >
                 <UserPlus className="w-4 h-4" />
-                Kayit Ol
-                {!isLogin && (
-                  <div className="absolute bottom-0 left-4 right-4 h-0.5 bg-emerald-500 rounded-full" />
-                )}
+                Kayıt Ol
+                {!isLogin && <div className="absolute bottom-0 left-4 right-4 h-0.5 bg-emerald-500 rounded-full" />}
               </button>
             </div>
 
-            {/* Form */}
             <div className="p-5">
-              {/* Error Message */}
+              {/* Hata Mesajı */}
               {errorMsg && (
                 <div data-testid="text-error" className="flex items-start gap-2.5 bg-red-50 border border-red-200 text-red-700 px-3.5 py-3 rounded-xl mb-4 text-sm">
                   <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
@@ -166,13 +158,12 @@ export default function AuthPage() {
               )}
 
               <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Username */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                    Kullanici Adi
+                    Kullanıcı Adı
                   </label>
                   <Input 
-                    placeholder="ornek: ahmet1905" 
+                    placeholder="Örnek: ahmet1905" 
                     value={username}
                     onChange={(e) => { setUsername(e.target.value); setErrorMsg(""); }}
                     className="h-12 rounded-xl bg-slate-50 border-slate-200 focus:border-emerald-500 focus:bg-white text-slate-800 placeholder:text-slate-400 text-sm font-medium transition-colors"
@@ -181,10 +172,9 @@ export default function AuthPage() {
                   />
                 </div>
                 
-                {/* Password */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                    Sifre
+                    Şifre
                   </label>
                   <div className="relative">
                     <Input 
@@ -207,65 +197,109 @@ export default function AuthPage() {
                   </div>
                 </div>
 
-                {/* Referral Code - Registration Only */}
+                {/* Davet Kodu - Sadece Kayıt */}
                 {!isLogin && (
-                  <div className="space-y-1.5 pt-1">
-                    <div className="flex items-center justify-between">
+                  <div className="space-y-3 pt-1">
+                    <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
                         Davet Kodu
                       </label>
-                      <button 
-                        type="button"
-                        onClick={() => setShowReferralHelp(!showReferralHelp)}
-                        className="text-[11px] text-emerald-600 hover:text-emerald-700 font-semibold"
-                      >
-                        {showReferralHelp ? 'Gizle' : 'Kodum yok'}
-                      </button>
+                      <Input 
+                        placeholder="Davet kodunuzu girin" 
+                        value={referralCode}
+                        onChange={(e) => { setReferralCode(e.target.value.toUpperCase()); setErrorMsg(""); }}
+                        className="h-12 rounded-xl bg-slate-50 border-slate-200 focus:border-emerald-500 focus:bg-white text-slate-800 placeholder:text-slate-400 font-mono tracking-widest text-sm font-bold transition-colors"
+                        data-testid="input-referral"
+                        autoComplete="off"
+                      />
                     </div>
-                    <Input 
-                      placeholder="Davet kodunuzu girin" 
-                      value={referralCode}
-                      onChange={(e) => { setReferralCode(e.target.value.toUpperCase()); setErrorMsg(""); }}
-                      className="h-12 rounded-xl bg-slate-50 border-slate-200 focus:border-emerald-500 focus:bg-white text-slate-800 placeholder:text-slate-400 font-mono tracking-widest text-sm font-bold transition-colors"
-                      data-testid="input-referral"
-                      autoComplete="off"
-                    />
 
-                    {/* Referral Help */}
-                    {showReferralHelp && (
-                      <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 space-y-3 mt-2">
-                        <p className="text-xs font-bold text-emerald-800">Davet Kodu Nasil Alinir?</p>
-                        
-                        <div className="space-y-2.5">
-                          <div className="flex gap-2.5 items-start">
-                            <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold text-[10px] flex-shrink-0 mt-0.5">1</div>
-                            <p className="text-xs text-slate-700 leading-relaxed">
-                              <span className="font-bold text-slate-800">iddaa.com</span> uzerinden uyelik olustururken Bayi Kodu alanina <span className="font-black text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">{BAYI_KODU}</span> yazin.
-                            </p>
+                    {/* Davet Kodu Bilgilendirme */}
+                    <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/80 rounded-2xl overflow-hidden">
+                      <div className="px-4 pt-4 pb-3">
+                        <div className="flex items-center gap-2 mb-2.5">
+                          <div className="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center">
+                            <Gift className="w-4 h-4 text-amber-600" />
                           </div>
-                          
-                          <div className="flex gap-2.5 items-start">
-                            <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold text-[10px] flex-shrink-0 mt-0.5">2</div>
-                            <p className="text-xs text-slate-700 leading-relaxed">
-                              Instagram uzerinden bize ulasin, ozel davet kodunuzu gonderelim.
-                            </p>
+                          <div>
+                            <h4 className="text-sm font-bold text-slate-800">Davet Kodunuz Yok mu?</h4>
+                            <p className="text-[10px] text-slate-500">Aşağıdaki adımları takip edin</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="px-4 pb-4 space-y-3">
+                        {/* Adım 1 */}
+                        <div className="bg-white rounded-xl p-3 border border-amber-100">
+                          <div className="flex items-start gap-3">
+                            <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold text-[11px] flex-shrink-0">1</div>
+                            <div className="flex-1">
+                              <p className="text-xs font-bold text-slate-800 mb-1">iddaa.com'a Üye Olun</p>
+                              <p className="text-[11px] text-slate-600 leading-relaxed">
+                                Üyelik oluştururken <strong>Bayi Kodu</strong> alanına aşağıdaki kodu yazın:
+                              </p>
+                              <div className="flex items-center gap-2 mt-2">
+                                <div className="flex-1 bg-emerald-50 border-2 border-emerald-200 border-dashed rounded-lg px-3 py-2 flex items-center justify-center">
+                                  <span className="font-black text-lg text-emerald-700 tracking-wider font-mono">{BAYI_KODU}</span>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={copyBayiCode}
+                                  className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all ${
+                                    copiedCode 
+                                      ? 'bg-emerald-500 text-white' 
+                                      : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                                  }`}
+                                >
+                                  {copiedCode ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                                </button>
+                              </div>
+                            </div>
                           </div>
                         </div>
 
+                        {/* Adım 2 */}
+                        <div className="bg-white rounded-xl p-3 border border-amber-100">
+                          <div className="flex items-start gap-3">
+                            <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold text-[11px] flex-shrink-0">2</div>
+                            <div className="flex-1">
+                              <p className="text-xs font-bold text-slate-800 mb-1">Bize Ulaşın</p>
+                              <p className="text-[11px] text-slate-600 leading-relaxed">
+                                Üyelik sonrası Instagram hesabımıza mesaj atın. Size özel davet kodunuzu hemen iletiyoruz.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Adım 3 */}
+                        <div className="bg-white rounded-xl p-3 border border-amber-100">
+                          <div className="flex items-start gap-3">
+                            <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white font-bold text-[11px] flex-shrink-0">3</div>
+                            <div className="flex-1">
+                              <p className="text-xs font-bold text-slate-800 mb-1">Kayıt Olun</p>
+                              <p className="text-[11px] text-slate-600 leading-relaxed">
+                                Aldığınız davet kodunu yukarıdaki alana girin ve kayıt işlemini tamamlayın.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Instagram Butonu */}
                         <button 
                           type="button"
-                          className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold py-2.5 rounded-lg text-xs hover:from-purple-700 hover:to-pink-700 transition-all"
+                          className="w-full flex items-center justify-center gap-2.5 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 text-white font-bold py-3 rounded-xl text-sm hover:opacity-90 transition-all shadow-lg shadow-purple-500/20"
                           onClick={() => window.open('https://instagram.com', '_blank')}
                         >
-                          <Instagram className="w-4 h-4" />
-                          Instagram'dan Yaz
+                          <Instagram className="w-5 h-5" />
+                          Instagram'dan Bize Yazın
+                          <ExternalLink className="w-3.5 h-3.5 opacity-70" />
                         </button>
                       </div>
-                    )}
+                    </div>
                   </div>
                 )}
 
-                {/* Submit Button */}
+                {/* Gönder Butonu */}
                 <div className="pt-2">
                   <Button 
                     type="submit" 
@@ -277,7 +311,7 @@ export default function AuthPage() {
                       <Loader2 className="w-5 h-5 animate-spin" />
                     ) : (
                       <>
-                        {isLogin ? "Giris Yap" : "Kayit Ol"}
+                        {isLogin ? "Giriş Yap" : "Kayıt Ol"}
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </>
                     )}
@@ -285,10 +319,9 @@ export default function AuthPage() {
                 </div>
               </form>
 
-              {/* Divider + Switch */}
               <div className="mt-5 pt-5 border-t border-slate-100 text-center">
                 <p className="text-sm text-slate-500">
-                  {isLogin ? "Hesabiniz yok mu?" : "Zaten hesabiniz var mi?"}
+                  {isLogin ? "Hesabınız yok mu?" : "Zaten hesabınız var mı?"}
                   {' '}
                   <button 
                     type="button"
@@ -296,18 +329,17 @@ export default function AuthPage() {
                     className="text-emerald-600 font-bold hover:text-emerald-700 transition-colors"
                     data-testid="button-switch-mode"
                   >
-                    {isLogin ? "Kayit Ol" : "Giris Yap"}
+                    {isLogin ? "Kayıt Ol" : "Giriş Yap"}
                   </button>
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Trust badges */}
           <div className="flex items-center justify-center gap-4 mt-6">
             <div className="flex items-center gap-1.5 text-slate-500">
               <Shield className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="text-[10px] font-medium">Guvenli Giris</span>
+              <span className="text-[10px] font-medium">Güvenli Giriş</span>
             </div>
             <div className="w-1 h-1 bg-slate-600 rounded-full" />
             <div className="flex items-center gap-1.5 text-slate-500">
@@ -316,9 +348,8 @@ export default function AuthPage() {
             </div>
           </div>
 
-          {/* Footer */}
           <p className="text-center text-[11px] text-slate-600 mt-4">
-            &copy; 2025 Tutturduk.com • Tum haklari saklidir
+            &copy; 2025 Tutturduk.com - Tüm hakları saklıdır.
           </p>
         </div>
       </div>

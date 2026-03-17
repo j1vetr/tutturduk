@@ -136,9 +136,9 @@ export default function MatchDetailPage() {
           <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center">
             <Info className="w-8 h-8 text-slate-400" />
           </div>
-          <p className="text-slate-500 text-center">Mac bulunamadi</p>
+          <p className="text-slate-500 text-center">Maç bulunamadı</p>
           <Button variant="outline" onClick={() => setLocation('/predictions')} className="rounded-xl">
-            <ArrowLeft className="w-4 h-4 mr-2" /> Geri don
+            <ArrowLeft className="w-4 h-4 mr-2" /> Geri Dön
           </Button>
         </div>
       </MobileLayout>
@@ -317,7 +317,7 @@ export default function MatchDetailPage() {
           <div className="mt-4 bg-white rounded-2xl border border-slate-200 p-8">
             <div className="flex flex-col items-center gap-3">
               <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
-              <p className="text-sm text-slate-500">Analiz yukleniyor...</p>
+              <p className="text-sm text-slate-500">Analiz yükleniyor...</p>
             </div>
           </div>
         )}

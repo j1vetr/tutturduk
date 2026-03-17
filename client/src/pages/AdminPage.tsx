@@ -90,10 +90,10 @@ interface BestBet {
 }
 
 const tabs = [
-  { id: "dashboard", icon: LayoutDashboard, label: "Bakis" },
-  { id: "predictions", icon: Trophy, label: "Maclar" },
+  { id: "dashboard", icon: LayoutDashboard, label: "Bakış" },
+  { id: "predictions", icon: Trophy, label: "Maçlar" },
   { id: "coupons", icon: Ticket, label: "Kuponlar" },
-  { id: "users", icon: Users, label: "Uyeler" },
+  { id: "users", icon: Users, label: "Üyeler" },
   { id: "invitations", icon: Award, label: "Davetiyeler" },
 ];
 
@@ -179,7 +179,7 @@ export default function AdminPage() {
     setLoadingMatches(true);
     try {
       if (validated) {
-        toast({ description: "Kaliteli maclar yukleniyor..." });
+        toast({ description: "Kaliteli maçlar yükleniyor..." });
         const res = await fetch('/api/football/fixtures-validated');
         if (res.ok) {
           const data = await res.json();
@@ -202,12 +202,12 @@ export default function AdminPage() {
           const unpublishedIds = formatted.filter((m: any) => !publishedMatches.some((p: any) => p.fixture_id === m.id)).map((m: any) => m.id);
           loadCachedAIResults(unpublishedIds);
           
-          toast({ description: `${matchesArray.length} mac yuklendi` });
+          toast({ description: `${matchesArray.length} maç yüklendi` });
         }
       }
     } catch (error) {
       console.error('Failed to load predictions:', error);
-      toast({ variant: "destructive", description: "Maclar yuklenemedi" });
+      toast({ variant: "destructive", description: "Maçlar yüklenemedi" });
     } finally {
       setLoadingMatches(false);
     }
@@ -243,13 +243,13 @@ export default function AdminPage() {
 
   const runAICheck = async () => {
     if (upcomingMatches.length === 0) {
-      toast({ variant: "destructive", description: "Once maclari yukleyin" });
+      toast({ variant: "destructive", description: "Önce maçları yükleyin" });
       return;
     }
     
     const unpublishedMatches = upcomingMatches.filter(m => !isMatchPublished(m.id));
     if (unpublishedMatches.length === 0) {
-      toast({ description: "Tum maclar zaten yayinlanmis" });
+      toast({ description: "Tüm maçlar zaten yayınlanmış" });
       return;
     }
     
@@ -263,7 +263,7 @@ export default function AdminPage() {
     const BATCH_DELAY = 3000;
     
     try {
-      toast({ description: `${fixtureIds.length} mac analiz edilecek` });
+      toast({ description: `${fixtureIds.length} maç analiz edilecek` });
       
       for (let i = 0; i < fixtureIds.length; i += BATCH_SIZE) {
         const batch = fixtureIds.slice(i, i + BATCH_SIZE);
@@ -296,7 +296,7 @@ export default function AdminPage() {
       const bahisCount = Array.from(newResults.values()).filter(r => r.karar === 'bahis').length;
       toast({ description: `${bahisCount} bahis bulundu` });
     } catch (error) {
-      toast({ variant: "destructive", description: "AI kontrol basarisiz" });
+      toast({ variant: "destructive", description: "AI kontrol başarısız" });
     } finally {
       setAiCheckLoading(false);
     }
@@ -312,14 +312,14 @@ export default function AdminPage() {
         body: JSON.stringify({ fixtureId: match.id, isFeatured: false })
       });
       if (res.ok) {
-        toast({ description: `${match.homeTeam.name} vs ${match.awayTeam.name} yayinlandi` });
+        toast({ description: `${match.homeTeam.name} vs ${match.awayTeam.name} yayınlandı` });
         loadPublishedMatches();
       } else {
         const err = await res.json();
         toast({ variant: "destructive", description: err.message });
       }
     } catch (error) {
-      toast({ variant: "destructive", description: "Mac yayinlanamadi" });
+      toast({ variant: "destructive", description: "Maç yayınlanamadı" });
     } finally {
       setPublishingId(null);
     }
@@ -329,11 +329,11 @@ export default function AdminPage() {
     try {
       const res = await fetch(`/api/admin/matches/${id}`, { method: 'DELETE', credentials: 'include' });
       if (res.ok) {
-        toast({ description: "Mac kaldirildi" });
+        toast({ description: "Maç kaldırıldı" });
         loadPublishedMatches();
       }
     } catch (error) {
-      toast({ variant: "destructive", description: "Mac kaldirilamadi" });
+      toast({ variant: "destructive", description: "Maç kaldırılamadı" });
     }
   };
 
@@ -351,7 +351,7 @@ export default function AdminPage() {
     });
     
     if (bahisMatches.length === 0) {
-      toast({ variant: 'destructive', description: 'Bugun icin AI onayli mac bulunamadi' });
+      toast({ variant: 'destructive', description: 'Bugün için AI onaylı maç bulunamadı' });
       return;
     }
     
@@ -372,13 +372,13 @@ export default function AdminPage() {
     
     setBulkPublishing(false);
     loadPublishedMatches();
-    toast({ description: `${success} mac yayinlandi` });
+    toast({ description: `${success} maç yayınlandı` });
   };
 
   const autoPublishToday = async () => {
     setAutoPublishing(true);
     try {
-      toast({ description: "Otomatik yayinlama baslatildi... Bu islem birkaç dakika sürebilir." });
+      toast({ description: "Otomatik yayınlama başlatıldı... Bu işlem birkaç dakika sürebilir." });
       const res = await fetch('/api/admin/auto-publish-today', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -393,7 +393,7 @@ export default function AdminPage() {
         toast({ variant: 'destructive', description: data.message });
       }
     } catch {
-      toast({ variant: 'destructive', description: 'Otomatik yayinlama basarisiz' });
+      toast({ variant: 'destructive', description: 'Otomatik yayınlama başarısız' });
     } finally {
       setAutoPublishing(false);
     }
@@ -487,7 +487,7 @@ export default function AdminPage() {
 
   const handleCreateCoupon = async () => {
     if (!newCouponName) {
-      toast({ variant: "destructive", description: "Kupon adi gerekli" });
+      toast({ variant: "destructive", description: "Kupon adı gerekli" });
       return;
     }
     try {
@@ -499,12 +499,12 @@ export default function AdminPage() {
         credentials: 'include'
       });
       if (res.ok) {
-        toast({ description: "Kupon olusturuldu" });
+        toast({ description: "Kupon oluşturuldu" });
         setNewCouponName("");
         loadCoupons();
       }
     } catch (error) {
-      toast({ variant: "destructive", description: "Kupon olusturulamadi" });
+      toast({ variant: "destructive", description: "Kupon oluşturulamadı" });
     }
   };
 
@@ -553,12 +553,12 @@ export default function AdminPage() {
         credentials: 'include'
       });
       if (res.ok) {
-        toast({ description: "Davetiye kodu olusturuldu" });
+        toast({ description: "Davetiye kodu oluşturuldu" });
         setNewCode({ code: "", type: "standard", maxUses: 1 });
         loadInvitationCodes();
       }
     } catch (error) {
-      toast({ variant: "destructive", description: "Kod olusturulamadi" });
+      toast({ variant: "destructive", description: "Kod oluşturulamadı" });
     }
   };
 
@@ -696,7 +696,7 @@ export default function AdminPage() {
         {activeTab === "dashboard" && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-slate-800">Genel Bakis</h2>
+              <h2 className="text-lg font-bold text-slate-800">Genel Bakış</h2>
               <Button variant="outline" size="sm" onClick={loadAllData} className="text-slate-600">
                 <RefreshCcw className="w-4 h-4 mr-1" /> Yenile
               </Button>
@@ -726,7 +726,7 @@ export default function AdminPage() {
                     </div>
                     <div>
                       <p className="text-2xl font-bold text-slate-800">{publishedMatches.length}</p>
-                      <p className="text-xs text-slate-500">Yayindaki Mac</p>
+                      <p className="text-xs text-slate-500">Yayındaki Maç</p>
                     </div>
                   </div>
                 </CardContent>
@@ -765,7 +765,7 @@ export default function AdminPage() {
             <Card className="bg-white border-slate-200">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-emerald-500" /> Son Yayinlanan Maclar
+                  <Clock className="w-4 h-4 text-emerald-500" /> Son Yayınlanan Maçlar
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
@@ -784,7 +784,7 @@ export default function AdminPage() {
                   </div>
                 ))}
                 {publishedMatches.length === 0 && (
-                  <p className="text-slate-400 text-center py-4 text-sm">Henuz yayinlanmis mac yok</p>
+                  <p className="text-slate-400 text-center py-4 text-sm">Henüz yayınlanmış maç yok</p>
                 )}
               </CardContent>
             </Card>
@@ -818,15 +818,15 @@ export default function AdminPage() {
         {activeTab === "predictions" && (
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <h2 className="text-lg font-bold text-slate-800">Mac Yonetimi</h2>
+              <h2 className="text-lg font-bold text-slate-800">Maç Yönetimi</h2>
             </div>
 
             {/* Tek Tik Otomatik Yayinla */}
             <div className="bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-xl p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-800">Otomatik Yayinla</h3>
-                  <p className="text-[11px] text-slate-500 mt-0.5">Macları cek → AI analiz → Yayinla (tek tik)</p>
+                  <h3 className="text-sm font-bold text-slate-800">Otomatik Yayınla</h3>
+                  <p className="text-[11px] text-slate-500 mt-0.5">Maçları çek → AI analiz → Yayınla (tek tık)</p>
                 </div>
                 <Button 
                   onClick={autoPublishToday}
@@ -834,7 +834,7 @@ export default function AdminPage() {
                   size="sm"
                   className="bg-emerald-600 text-white hover:bg-emerald-500 shadow-md"
                 >
-                  {autoPublishing ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" />Islem devam ediyor...</> : <><Zap className="w-4 h-4 mr-1" />Bugunu Yayinla</>}
+                  {autoPublishing ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" />İşlem devam ediyor...</> : <><Zap className="w-4 h-4 mr-1" />Bugünü Yayınla</>}
                 </Button>
               </div>
             </div>
@@ -853,7 +853,7 @@ export default function AdminPage() {
                   className="bg-slate-800 text-white hover:bg-slate-700"
                 >
                   {loadingMatches ? <Loader2 className="w-4 h-4 animate-spin" /> : <Target className="w-4 h-4 mr-1" />}
-                  Kaliteli Maclar
+                  Kaliteli Maçlar
                 </Button>
                 <Button 
                   onClick={runAICheck}
@@ -874,7 +874,7 @@ export default function AdminPage() {
                   className="bg-emerald-500 text-white hover:bg-emerald-400"
                 >
                   {bulkPublishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4 mr-1" />}
-                  Secilenleri Yayinla
+                  Seçilenleri Yayınla
                 </Button>
               </div>
             </details>
@@ -888,17 +888,17 @@ export default function AdminPage() {
                     const data = await res.json();
                     if (res.ok) toast({ description: data.message });
                     else toast({ variant: 'destructive', description: data.message });
-                  } catch { toast({ variant: 'destructive', description: 'Islem basarisiz' }); }
+                  } catch { toast({ variant: 'destructive', description: 'İşlem başarısız' }); }
                 }}
                 variant="outline"
                 size="sm"
                 className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
               >
-                <RefreshCcw className="w-4 h-4 mr-1" /> Sonuclari Degerlendir
+                <RefreshCcw className="w-4 h-4 mr-1" /> Sonuçları Değerlendir
               </Button>
               <Button 
                 onClick={async () => {
-                  if (!confirm('Cache temizlensin mi? AI sonuclari silinecek.')) return;
+                  if (!confirm('Cache temizlensin mi? AI sonuçları silinecek.')) return;
                   try {
                     const res = await fetch('/api/admin/clear-cache', { method: 'POST', credentials: 'include' });
                     const data = await res.json();
@@ -906,18 +906,18 @@ export default function AdminPage() {
                       setAiCheckResults(new Map());
                       toast({ description: data.message });
                     } else toast({ variant: 'destructive', description: data.message });
-                  } catch { toast({ variant: 'destructive', description: 'Islem basarisiz' }); }
+                  } catch { toast({ variant: 'destructive', description: 'İşlem başarısız' }); }
                 }}
                 variant="outline"
                 size="sm"
                 className="border-purple-200 text-purple-700 hover:bg-purple-50"
               >
-                <RefreshCcw className="w-4 h-4 mr-1" /> Cache Temizle
+                <RefreshCcw className="w-4 h-4 mr-1" /> Önbellek Temizle
               </Button>
               <Button 
                 onClick={async () => {
-                  const code = prompt('Veritabanini sifirlamak icin "SIFIRLA" yazin:');
-                  if (code !== 'SIFIRLA') { toast({ variant: 'destructive', description: 'Onay kodu yanlis' }); return; }
+                  const code = prompt('Veritabanını sıfırlamak için "SIFIRLA" yazın:');
+                  if (code !== 'SIFIRLA') { toast({ variant: 'destructive', description: 'Onay kodu yanlış' }); return; }
                   try {
                     const res = await fetch('/api/admin/reset-database', {
                       method: 'POST',
@@ -928,13 +928,13 @@ export default function AdminPage() {
                     const data = await res.json();
                     if (res.ok) { toast({ description: data.message }); loadPublishedMatches(); }
                     else toast({ variant: 'destructive', description: data.message });
-                  } catch { toast({ variant: 'destructive', description: 'Islem basarisiz' }); }
+                  } catch { toast({ variant: 'destructive', description: 'İşlem başarısız' }); }
                 }}
                 variant="outline"
                 size="sm"
                 className="border-red-200 text-red-700 hover:bg-red-50"
               >
-                <Trash2 className="w-4 h-4 mr-1" /> DB Sifirla
+                <Trash2 className="w-4 h-4 mr-1" /> DB Sıfırla
               </Button>
             </div>
 
@@ -954,7 +954,7 @@ export default function AdminPage() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <Input
-                placeholder="Mac ara..."
+                placeholder="Maç ara..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 className="pl-9 bg-white border-slate-200"
@@ -970,7 +970,7 @@ export default function AdminPage() {
                 >
                   <div className="flex items-center gap-2">
                     <div className="w-1 h-4 bg-emerald-500 rounded-full" />
-                    <span className="text-sm font-semibold text-slate-700">Yayindaki Maclar</span>
+                    <span className="text-sm font-semibold text-slate-700">Yayındaki Maçlar</span>
                     <Badge className="bg-emerald-100 text-emerald-700 border-0 text-xs">{publishedMatches.length}</Badge>
                   </div>
                   <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${expandedDays.has('published') ? 'rotate-180' : ''}`} />
@@ -1008,13 +1008,13 @@ export default function AdminPage() {
               {loadingMatches ? (
                 <div className="flex flex-col items-center justify-center py-12">
                   <Loader2 className="w-8 h-8 animate-spin text-slate-400 mb-3" />
-                  <p className="text-sm text-slate-500">Maclar yukleniyor...</p>
+                  <p className="text-sm text-slate-500">Maçlar yükleniyor...</p>
                 </div>
               ) : getFilteredMatches().length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12">
                   <Calendar className="w-10 h-10 text-slate-300 mb-3" />
-                  <p className="text-sm text-slate-500">Mac bulunamadi</p>
-                  <p className="text-xs text-slate-400 mt-1">Yukariyi kullanarak maclari cekin</p>
+                  <p className="text-sm text-slate-500">Maç bulunamadı</p>
+                  <p className="text-xs text-slate-400 mt-1">Yukarıyı kullanarak maçları çekin</p>
                 </div>
               ) : (
                 <div className="divide-y divide-slate-100">
@@ -1073,7 +1073,7 @@ export default function AdminPage() {
                                       )}
                                       
                                       {published ? (
-                                        <Badge className="bg-emerald-100 text-emerald-700 border-0 text-[10px]">Yayinda</Badge>
+                                        <Badge className="bg-emerald-100 text-emerald-700 border-0 text-[10px]">Yayında</Badge>
                                       ) : (
                                         <Button 
                                           onClick={() => publishMatch(match)}
@@ -1085,7 +1085,7 @@ export default function AdminPage() {
                                               : 'bg-emerald-500 text-white hover:bg-emerald-400'
                                           }`}
                                         >
-                                          {publishingId === match.id ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Yayinla'}
+                                          {publishingId === match.id ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Yayınla'}
                                         </Button>
                                       )}
                                     </div>
@@ -1107,7 +1107,7 @@ export default function AdminPage() {
         {/* Coupons */}
         {activeTab === "coupons" && (
           <div className="space-y-4">
-            <h2 className="text-lg font-bold text-slate-800">Kupon Yonetimi</h2>
+            <h2 className="text-lg font-bold text-slate-800">Kupon Yönetimi</h2>
 
             {/* Create Coupon */}
             <Card className="bg-white border-slate-200">
@@ -1116,11 +1116,11 @@ export default function AdminPage() {
                   <Input 
                     value={newCouponName}
                     onChange={e => setNewCouponName(e.target.value)}
-                    placeholder="Kupon adi"
+                    placeholder="Kupon adı"
                     className="flex-1 bg-white border-slate-200"
                   />
                   <Button onClick={handleCreateCoupon} className="bg-emerald-500 text-white hover:bg-emerald-400">
-                    <Plus className="w-4 h-4 mr-1" /> Olustur
+                    <Plus className="w-4 h-4 mr-1" /> Oluştur
                   </Button>
                 </div>
               </CardContent>
@@ -1164,7 +1164,7 @@ export default function AdminPage() {
                 </Card>
               ))}
               {coupons.length === 0 && (
-                <p className="text-slate-400 text-center py-8 text-sm">Henuz kupon olusturulmamis</p>
+                <p className="text-slate-400 text-center py-8 text-sm">Henüz kupon oluşturulmamış</p>
               )}
             </div>
 
@@ -1200,7 +1200,7 @@ export default function AdminPage() {
 
                   {/* Available Best Bets */}
                   <div className="space-y-2">
-                    <p className="text-xs text-slate-500">Mevcut tahminler (eklemek icin tikla):</p>
+                    <p className="text-xs text-slate-500">Mevcut tahminler (eklemek için tıkla):</p>
                     {loadingBestBets ? (
                       <div className="flex justify-center py-4">
                         <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
@@ -1234,7 +1234,7 @@ export default function AdminPage() {
         {/* Users */}
         {activeTab === "users" && (
           <div className="space-y-4">
-            <h2 className="text-lg font-bold text-slate-800">Kullanici Yonetimi</h2>
+            <h2 className="text-lg font-bold text-slate-800">Kullanıcı Yönetimi</h2>
 
             <Card className="bg-white border-slate-200">
               <CardContent className="p-0 divide-y divide-slate-100">
@@ -1251,7 +1251,7 @@ export default function AdminPage() {
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge className={u.role === 'admin' ? 'bg-red-100 text-red-700 border-0' : 'bg-slate-100 text-slate-600 border-0'}>
-                        {u.role === 'admin' ? 'Admin' : 'Uye'}
+                        {u.role === 'admin' ? 'Admin' : 'Üye'}
                       </Badge>
                       <span className="text-xs text-slate-400">{formatDate(u.created_at)}</span>
                     </div>
@@ -1268,7 +1268,7 @@ export default function AdminPage() {
         {/* Invitations */}
         {activeTab === "invitations" && (
           <div className="space-y-4">
-            <h2 className="text-lg font-bold text-slate-800">Davetiye Kodlari</h2>
+            <h2 className="text-lg font-bold text-slate-800">Davetiye Kodları</h2>
 
             {/* Create Code */}
             <Card className="bg-white border-slate-200">
