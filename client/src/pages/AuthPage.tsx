@@ -3,9 +3,95 @@ import { useAuth, BAYI_KODU } from "@/lib/auth";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, Instagram, Eye, EyeOff, Loader2, Shield, TrendingUp, BarChart3, Trophy, UserPlus, LogIn, AlertCircle, CheckCircle2, Sparkles, Gift, Copy, Check, ExternalLink } from "lucide-react";
+import { ArrowRight, Instagram, Eye, EyeOff, Loader2, Shield, TrendingUp, BarChart3, Trophy, UserPlus, LogIn, AlertCircle, CheckCircle2, Gift, Copy, Check, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import logoIcon from "@assets/generated_images/minimalist_sports_betting_logo_icon.png";
+
+function AnimatedLogo() {
+  const letters = "TUTTURDUK".split("");
+  
+  return (
+    <div className="flex flex-col items-center mb-2">
+      <div className="relative">
+        <div className="absolute -inset-8 bg-emerald-500/20 rounded-full blur-3xl animate-pulse" />
+        
+        <div className="relative flex items-baseline gap-[2px]">
+          {letters.map((letter, i) => (
+            <span
+              key={i}
+              className="inline-block text-4xl font-black text-white"
+              style={{
+                animation: `letterBounce 2.5s ease-in-out ${i * 0.08}s infinite`,
+                textShadow: '0 0 20px rgba(16, 185, 129, 0.4)',
+              }}
+            >
+              {letter}
+            </span>
+          ))}
+          <span
+            className="inline-block text-4xl font-black text-emerald-400"
+            style={{
+              animation: `dotPulse 2.5s ease-in-out 0.72s infinite`,
+              textShadow: '0 0 25px rgba(16, 185, 129, 0.6)',
+            }}
+          >
+            .
+          </span>
+          <span
+            className="inline-block text-4xl font-black text-emerald-400"
+            style={{
+              animation: `letterBounce 2.5s ease-in-out 0.85s infinite`,
+              textShadow: '0 0 25px rgba(16, 185, 129, 0.6)',
+            }}
+          >
+            C
+          </span>
+          <span
+            className="inline-block text-4xl font-black text-emerald-400"
+            style={{
+              animation: `letterBounce 2.5s ease-in-out 0.93s infinite`,
+              textShadow: '0 0 25px rgba(16, 185, 129, 0.6)',
+            }}
+          >
+            O
+          </span>
+          <span
+            className="inline-block text-4xl font-black text-emerald-400"
+            style={{
+              animation: `letterBounce 2.5s ease-in-out 1.01s infinite`,
+              textShadow: '0 0 25px rgba(16, 185, 129, 0.6)',
+            }}
+          >
+            M
+          </span>
+        </div>
+
+        <div 
+          className="h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent rounded-full mt-2 mx-auto"
+          style={{
+            animation: 'underlineGlow 2.5s ease-in-out infinite',
+          }}
+        />
+      </div>
+
+      <style>{`
+        @keyframes letterBounce {
+          0%, 100% { transform: translateY(0); }
+          15% { transform: translateY(-6px); }
+          30% { transform: translateY(0); }
+        }
+        @keyframes dotPulse {
+          0%, 100% { transform: scale(1); opacity: 1; }
+          15% { transform: scale(1.5); opacity: 0.8; }
+          30% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes underlineGlow {
+          0%, 100% { width: 40%; opacity: 0.3; }
+          50% { width: 90%; opacity: 0.8; }
+        }
+      `}</style>
+    </div>
+  );
+}
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(false);
@@ -90,20 +176,10 @@ export default function AuthPage() {
 
       <div className="relative z-10 flex flex-col flex-1">
         
-        <div className="flex flex-col items-center pt-12 pb-6 px-6">
-          <div className="relative mb-5">
-            <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/30 rotate-3">
-              <img src={logoIcon} alt="Logo" className="w-10 h-10 object-contain -rotate-3 brightness-0 invert" />
-            </div>
-            <div className="absolute -top-1 -right-1 w-5 h-5 bg-emerald-400 rounded-full flex items-center justify-center">
-              <Sparkles className="w-3 h-3 text-slate-900" />
-            </div>
-          </div>
+        <div className="flex flex-col items-center pt-10 pb-5 px-6">
+          <AnimatedLogo />
 
-          <h1 className="text-2xl font-black text-white tracking-tight">
-            TUTTURDUK<span className="text-emerald-400">.COM</span>
-          </h1>
-          <p className="text-slate-400 text-sm mt-1.5 text-center">
+          <p className="text-slate-400 text-sm mt-2 text-center">
             Yapay zekâ destekli spor tahmin platformu
           </p>
 
