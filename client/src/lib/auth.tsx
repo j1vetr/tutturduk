@@ -9,7 +9,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (username: string, password: string, isRegister?: boolean, referralCode?: string) => Promise<boolean>;
+  login: (username: string, password: string, isRegister?: boolean, referralCode?: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   isLoading: boolean;
 }
@@ -24,7 +24,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [, setLocation] = useLocation();
 
   useEffect(() => {
-    // Check session on mount
     fetch('/api/auth/me', { credentials: 'include' })
       .then(res => res.ok ? res.json() : null)
       .then(data => {
@@ -34,7 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setIsLoading(false));
   }, []);
 
-  const login = async (username: string, password: string, isRegister = false, referralCode = '') => {
+  const login = async (username: string, password: string, isRegister = false, referralCode = ''): Promise<{ success: boolean; error?: string }> => {
     try {
       const endpoint = isRegister ? '/api/auth/register' : '/api/auth/login';
       const body = isRegister 
@@ -50,15 +49,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.message);
+        return { success: false, error: data.message || 'Bir hata olustu' };
       }
 
       const userData = await res.json();
       setUser(userData);
-      return true;
-    } catch (error) {
+      return { success: true };
+    } catch (error: any) {
       console.error('Auth error:', error);
-      return false;
+      return { success: false, error: 'Baglanti hatasi. Lutfen tekrar deneyin.' };
     }
   };
 
