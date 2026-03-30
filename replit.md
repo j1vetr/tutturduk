@@ -221,3 +221,12 @@ Key entities include:
   - Admin can also trigger via `/api/admin/auto-coupon` endpoint
 - **API Endpoints**: `/api/featured-bet` (random top bet), `/api/daily-coupon` (today's coupon with predictions)
 - **Coupon Odds Fix**: `updateCouponOdds()` now uses real odds from `best_bets.odds` column instead of risk-level approximation
+
+### March 2026 - Quality Improvement (Confidence & Filter Tightening)
+- **AI Confidence Threshold Raised**: Minimum confidence increased from 60 → 70 (post-processing hard reject)
+- **Minimum Value Percentage**: Changed from >0 to ≥5% (0.05) — micro-value bets rejected
+- **Risk Levels Updated**: düşük ≥75, orta 70-74 (was 70/60)
+- **AI Prompt Strengthened**: Added strict selectivity rule — if confidence <70 → always "pas", no forced predictions
+- **Statistics Score Threshold**: Raised from 20 → 35 in all 3 publish flows
+- **League Filter Enhanced**: Added Friendlies, Club Friendly, Hazırlık, IV/V/VI divisions
+- **Cache Key**: Updated to v10 (v9 results cleared, fresh analysis with new rules)

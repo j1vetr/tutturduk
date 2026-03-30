@@ -1,12 +1,23 @@
 const EXCLUDED_KEYWORDS = [
+  // Youth leagues
   'U23', 'U21', 'U20', 'U19', 'U18', 'U17', 'U16', 'U15',
   'Under 23', 'Under 21', 'Under 20', 'Under 19', 'Under 18',
-  'Women', 'Kadın', 'Feminin', 'Femenino', 'Frauen',
-  'Reserve', 'Reserves', 'Rezerv',
-  'Youth', 'Gençler', 'Juvenil',
-  'Amateur', 'Amatör',
-  'B Team', 'II', 'B ',
-  'Primavera',
+  // Women's leagues
+  'Women', 'Kadın', 'Feminin', 'Femenino', 'Frauen', "Women's",
+  // Reserve teams
+  'Reserve', 'Reserves', 'Rezerv', 'Reservas',
+  // Youth categories
+  'Youth', 'Gençler', 'Juvenil', 'Juveniles', 'Junior', 'Juniors',
+  // Amateur
+  'Amateur', 'Amatör', 'Amateurs',
+  // Lower division signals
+  'B Team', 'Primavera',
+  // Friendlies (highly unreliable)
+  'Friendly', 'Friendlies', 'Hazırlık', 'Hazırlik', 'Test Match',
+  'International Friendly', 'Club Friendly',
+  // Very low tier divisions
+  ' IV ', ' V ', ' VI ', '4th Division', '5th Division',
+  'Division 4', 'Division 5',
 ];
 
 const EXCLUDED_LEAGUE_IDS = [

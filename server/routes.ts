@@ -1424,7 +1424,7 @@ export async function registerRoutes(
       const badges: Record<number, { bestBet?: string; riskLevel?: string; over25?: boolean; btts?: boolean; winner?: string }> = {};
       
       for (const match of matches) {
-        const cacheKey = `ai_analysis_v9_${match.fixture_id}`;
+        const cacheKey = `ai_analysis_v10_${match.fixture_id}`;
         const cachedResult = await pool.query(
           'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
           [cacheKey]
@@ -1574,7 +1574,7 @@ export async function registerRoutes(
         return res.status(404).json({ message: 'Maç bulunamadı' });
       }
 
-      const cacheKey = `ai_analysis_v9_${match.fixture_id}`;
+      const cacheKey = `ai_analysis_v10_${match.fixture_id}`;
       
       // Helper function to reconstruct analysis from best_bets
       const reconstructFromBestBets = async () => {
@@ -2020,7 +2020,7 @@ export async function registerRoutes(
       
       for (const match of todayMatches.slice(0, 10)) {
         try {
-          const cacheKey = `ai_analysis_v9_${match.fixture_id}`;
+          const cacheKey = `ai_analysis_v10_${match.fixture_id}`;
           const analysis = await getCachedData(cacheKey, async () => {
             const homeTeam = match.api_teams?.home;
             const awayTeam = match.api_teams?.away;
@@ -2111,7 +2111,7 @@ export async function registerRoutes(
     const results: any[] = [];
     
     for (const fixtureId of fixtureIds) {
-      const aiCacheKey = `ai_analysis_v9_${fixtureId}`;
+      const aiCacheKey = `ai_analysis_v10_${fixtureId}`;
       const cachedResult = await pool.query(
         'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
         [aiCacheKey]
@@ -2152,7 +2152,7 @@ export async function registerRoutes(
     for (const fixtureId of fixtureIds) {
       try {
         // Check cache first (v9 = enhanced data with injuries, last 10 matches, season stats)
-        const aiCacheKey = `ai_analysis_v9_${fixtureId}`;
+        const aiCacheKey = `ai_analysis_v10_${fixtureId}`;
         const cachedResult = await pool.query(
           'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
           [aiCacheKey]
@@ -2381,7 +2381,7 @@ export async function registerRoutes(
       }
 
       // STEP 1: Check AI cache FIRST - if exists with "bahis", skip all validations
-      const aiCacheKey = `ai_analysis_v9_${fixtureId}`;
+      const aiCacheKey = `ai_analysis_v10_${fixtureId}`;
       let aiAnalysis: any = null;
       let hasCachedAI = false;
       

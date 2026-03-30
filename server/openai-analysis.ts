@@ -326,9 +326,16 @@ Değer = (TahminiOlasılık / 100 × Oran) - 1
 - Kilit oyuncu eksikliği etkisi
 
 5️⃣ GÜVEN & RİSK
-- Güven ≥70 → düşük risk
-- Güven 60-69 → orta risk
-- Güven <60 → yüksek risk
+- Güven ≥75 → düşük risk
+- Güven 70-74 → orta risk
+- Güven <70 → KABUL EDİLMEZ → karar: "pas"
+
+6️⃣ SEÇİCİLİK KURALI — ÇOK ÖNEMLİ!
+- Güven skoru 70'in altındaysa her zaman "pas" döndür, kesinlikle bahis açma
+- Değer yüzdesi en az %5 (0.05) olmalı — "0.01 değer var, açayım" yaklaşımı YASAK
+- Kupa maçları, derbiler, farklı lig seviyeleri → eşiği 5 puan yükselt (min 75+ güven)
+- "İstatistik yeterince güçlü değil ama açayım" kesinlikle YASAK — şüphe = pas
+- Zorla tahmin üretme: eğer net görüş yoksa "pas" döndür
 
 Türkçe, profesyonel dilde yanıt ver. SADECE JSON formatında çıktı üret.`;
 
@@ -465,8 +472,8 @@ GEÇERLİ TAHMİN VARSA (en az biri değerli):
     "bet": "2.5 Üst",
     "odds": 1.72,
     "estimatedProbability": 62,
-    "valuePercentage": 0.07,
-    "confidence": 68,
+    "valuePercentage": 0.12,
+    "confidence": 74,
     "riskLevel": "orta",
     "reasoning": "5-6 cümlelik profesyonel yorum. Neden 3+ gol beklediğini, takımların gol atma eğilimini, son maçlardaki gol ortalamalarını ve H2H verilerini kullanarak açıkla."
   },
@@ -474,9 +481,9 @@ GEÇERLİ TAHMİN VARSA (en az biri değerli):
   "alternativeBet": {
     "bet": "KG Var",
     "odds": 1.85,
-    "estimatedProbability": 58,
-    "valuePercentage": 0.07,
-    "confidence": 64,
+    "estimatedProbability": 62,
+    "valuePercentage": 0.09,
+    "confidence": 71,
     "riskLevel": "orta",
     "reasoning": "5-6 cümlelik profesyonel yorum. Her iki takımın gol atma kapasitesini, savunma zafiyetlerini ve karşılıklı gol geçmişini açıkla."
   },
@@ -513,9 +520,11 @@ HİÇBİRİ DEĞERLİ DEĞİLSE:
 - 2.5 Alt ve KG Yok YASAK!
 - Her bahis için minimum oran 1.50!
 - valuePercentage = ((estimatedProbability/100) × odds) - 1
-- Değer ≤ 0 ise o bahis null olmalı
+- Değer < 0.05 (%5) ise o bahis null olmalı — sadece "biraz değer var" yetmez!
 - İkisi de değersizse karar: "pas"
-- Güven ≥70 → düşük risk, 60-69 → orta risk, <60 → yüksek risk`;
+- Güven < 70 → KESİNLİKLE "pas", bahis açılmaz
+- Güven ≥75 → düşük risk, 70-74 → orta risk
+- Kupa/derbi/farklı lig → min 75 güven şart`;
 
   try {
     const response = await openai.chat.completions.create({
@@ -567,9 +576,9 @@ HİÇBİRİ DEĞERLİ DEĞİLSE:
       const calculatedValue = ((bet.estimatedProbability / 100) * bet.odds) - 1;
       bet.valuePercentage = Math.round(calculatedValue * 100) / 100;
       
-      // If value is not positive, reject
-      if (calculatedValue <= 0) {
-        console.log(`[AI] REJECTED ${betName}: No value (${bet.valuePercentage})`);
+      // Minimum value: 5% — micro-value bets rejected
+      if (calculatedValue < 0.05) {
+        console.log(`[AI] REJECTED ${betName}: Value too low (${(calculatedValue * 100).toFixed(1)}% < 5%)`);
         return null;
       }
       
@@ -579,10 +588,16 @@ HİÇBİRİ DEĞERLİ DEĞİLSE:
       }
       bet.confidence = Math.max(0, Math.min(100, bet.confidence));
       
+      // Minimum confidence: 70 — low-confidence bets rejected
+      if (bet.confidence < 70) {
+        console.log(`[AI] REJECTED ${betName}: Confidence too low (${bet.confidence} < 70)`);
+        return null;
+      }
+      
       // Assign risk level based on confidence
-      if (bet.confidence >= 70) {
+      if (bet.confidence >= 75) {
         bet.riskLevel = 'düşük';
-      } else if (bet.confidence >= 60) {
+      } else if (bet.confidence >= 70) {
         bet.riskLevel = 'orta';
       } else {
         bet.riskLevel = 'yüksek';
@@ -765,7 +780,7 @@ export async function generateAndSavePredictions(
     }
     
     // Cache the analysis
-    const cacheKey = `ai_analysis_v9_${fixtureId}`;
+    const cacheKey = `ai_analysis_v10_${fixtureId}`;
     try {
       await pool.query(
         `INSERT INTO api_cache (key, value, expires_at)
