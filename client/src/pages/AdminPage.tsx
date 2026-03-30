@@ -696,7 +696,10 @@ export default function AdminPage() {
         {activeTab === "dashboard" && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-slate-800">Genel Bakış</h2>
+              <div>
+                <h2 className="text-lg font-bold text-slate-800">Genel Bakış</h2>
+                <p className="text-[10px] text-emerald-600 font-semibold mt-0.5">v10 · Min. %70 güven · Min. %5 değer</p>
+              </div>
               <Button variant="outline" size="sm" onClick={loadAllData} className="text-slate-600">
                 <RefreshCcw className="w-4 h-4 mr-1" /> Yenile
               </Button>
@@ -827,6 +830,7 @@ export default function AdminPage() {
                 <div>
                   <h3 className="text-sm font-bold text-slate-800">Otomatik Yayınla</h3>
                   <p className="text-[11px] text-slate-500 mt-0.5">Maçları çek → AI analiz → Yayınla (tek tık)</p>
+                  <p className="text-[10px] text-emerald-600 mt-0.5 font-medium">Min. %70 güven · Min. %5 değer · İstatistik skoru ≥35</p>
                 </div>
                 <Button 
                   onClick={autoPublishToday}
@@ -1062,11 +1066,22 @@ export default function AdminPage() {
                                     <div className="flex items-center gap-2 flex-shrink-0">
                                       {aiResult && (
                                         aiResult.karar === 'bahis' ? (
-                                          <Badge className="bg-emerald-100 text-emerald-700 border-0 text-[10px]">
-                                            <CheckCircle className="w-3 h-3 mr-0.5" /> Bahis
-                                          </Badge>
+                                          <div className="flex items-center gap-1">
+                                            <Badge className="bg-emerald-100 text-emerald-700 border-0 text-[10px]">
+                                              <CheckCircle className="w-3 h-3 mr-0.5" /> Bahis
+                                            </Badge>
+                                            {aiResult.prediction?.confidence && (
+                                              <Badge className={`border-0 text-[10px] ${
+                                                aiResult.prediction.confidence >= 75
+                                                  ? 'bg-emerald-50 text-emerald-600'
+                                                  : 'bg-amber-50 text-amber-600'
+                                              }`}>
+                                                %{aiResult.prediction.confidence}
+                                              </Badge>
+                                            )}
+                                          </div>
                                         ) : (
-                                          <Badge className="bg-red-100 text-red-700 border-0 text-[10px]">
+                                          <Badge className="bg-slate-100 text-slate-500 border-0 text-[10px]">
                                             <XCircle className="w-3 h-3 mr-0.5" /> Pas
                                           </Badge>
                                         )

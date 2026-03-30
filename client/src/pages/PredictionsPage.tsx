@@ -377,19 +377,30 @@ export default function PredictionsPage() {
                       <div className="mt-4 pt-3 border-t border-gray-100">
                         {match.best_bet ? (
                           <div className="flex items-center justify-between gap-3">
-                            <div className={`px-4 py-2 rounded-xl font-bold text-sm transition-all duration-300 ${
-                              match.best_bet.result === 'won' 
-                                ? 'bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-700 border border-amber-300 shadow-sm' 
-                                : match.best_bet.risk_level === 'düşük' 
-                                  ? 'bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-700 border border-emerald-200' 
-                                  : match.best_bet.risk_level === 'orta' 
-                                    ? 'bg-gradient-to-r from-amber-50 to-orange-50 text-amber-700 border border-amber-200' 
-                                    : 'bg-gradient-to-r from-red-50 to-rose-50 text-red-700 border border-red-200'
-                            }`}>
-                              {match.best_bet.result === 'won' && <span className="mr-1">✓</span>}
-                              {match.best_bet.bet_type}
+                            <div className="flex items-center gap-2 min-w-0">
+                              <div className={`px-3 py-1.5 rounded-xl font-bold text-sm transition-all duration-300 flex-shrink-0 ${
+                                match.best_bet.result === 'won'
+                                  ? 'bg-gradient-to-r from-amber-100 to-yellow-100 text-amber-700 border border-amber-300 shadow-sm'
+                                  : match.best_bet.risk_level === 'düşük'
+                                    ? 'bg-gradient-to-r from-emerald-50 to-teal-50 text-emerald-700 border border-emerald-200'
+                                    : match.best_bet.risk_level === 'orta'
+                                      ? 'bg-gradient-to-r from-amber-50 to-orange-50 text-amber-700 border border-amber-200'
+                                      : 'bg-gradient-to-r from-slate-50 to-gray-50 text-slate-600 border border-slate-200'
+                              }`}>
+                                {match.best_bet.result === 'won' && <span className="mr-1">✓</span>}
+                                {match.best_bet.bet_type}
+                              </div>
+                              {match.best_bet.confidence >= 70 && (
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${
+                                  match.best_bet.confidence >= 75
+                                    ? 'bg-emerald-100 text-emerald-700'
+                                    : 'bg-amber-100 text-amber-700'
+                                }`}>
+                                  %{match.best_bet.confidence}
+                                </span>
+                              )}
                             </div>
-                            <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-emerald-600 group-hover:translate-x-1 transition-all" />
+                            <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-emerald-600 group-hover:translate-x-1 transition-all flex-shrink-0" />
                           </div>
                         ) : (
                           <div className="flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100 rounded-xl py-2.5 group-hover:from-emerald-100 group-hover:to-teal-100 transition-all">

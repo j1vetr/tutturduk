@@ -270,15 +270,31 @@ export default function MatchDetailPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-[11px] font-semibold text-emerald-600 uppercase tracking-wide">Ana tahmin</span>
-                        <span className="text-sm font-bold text-slate-800">{primaryBet.confidence}%</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] font-semibold text-emerald-600 uppercase tracking-wide">Ana Tahmin</span>
+                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                            primaryBet.confidence >= 75
+                              ? 'bg-emerald-100 text-emerald-700'
+                              : 'bg-amber-100 text-amber-700'
+                          }`}>
+                            {primaryBet.confidence >= 75 ? 'Düşük Risk' : 'Orta Risk'}
+                          </span>
+                        </div>
+                        <span className="text-sm font-bold text-slate-800">%{primaryBet.confidence}</span>
                       </div>
                       <h3 className="text-lg font-bold text-slate-900 mb-2">{primaryBet.bet_type}</h3>
+                      {primaryBet.odds && (
+                        <p className="text-xs text-slate-500 mb-2">Oran: <span className="font-semibold text-slate-700">{primaryBet.odds}</span></p>
+                      )}
                       <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-emerald-500 rounded-full transition-all duration-500"
-                          style={{ width: `${primaryBet.confidence}%` }}
+                        <div
+                          className="h-full bg-emerald-500 rounded-full transition-all duration-700"
+                          style={{ width: `${Math.min(100, Math.max(0, ((primaryBet.confidence - 70) / 30) * 100))}%` }}
                         />
+                      </div>
+                      <div className="flex justify-between mt-1">
+                        <span className="text-[9px] text-slate-400">%70 eşik</span>
+                        <span className="text-[9px] text-slate-400">%100</span>
                       </div>
                     </div>
                   </div>
@@ -294,15 +310,31 @@ export default function MatchDetailPage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-[11px] font-semibold text-blue-600 uppercase tracking-wide">Alternatif</span>
-                        <span className="text-sm font-bold text-slate-800">{altBet.confidence}%</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] font-semibold text-blue-600 uppercase tracking-wide">Alternatif</span>
+                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                            altBet.confidence >= 75
+                              ? 'bg-emerald-100 text-emerald-700'
+                              : 'bg-amber-100 text-amber-700'
+                          }`}>
+                            {altBet.confidence >= 75 ? 'Düşük Risk' : 'Orta Risk'}
+                          </span>
+                        </div>
+                        <span className="text-sm font-bold text-slate-800">%{altBet.confidence}</span>
                       </div>
                       <h3 className="text-lg font-bold text-slate-900 mb-2">{altBet.bet_type}</h3>
+                      {altBet.odds && (
+                        <p className="text-xs text-slate-500 mb-2">Oran: <span className="font-semibold text-slate-700">{altBet.odds}</span></p>
+                      )}
                       <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-blue-500 rounded-full transition-all duration-500"
-                          style={{ width: `${altBet.confidence}%` }}
+                        <div
+                          className="h-full bg-blue-500 rounded-full transition-all duration-700"
+                          style={{ width: `${Math.min(100, Math.max(0, ((altBet.confidence - 70) / 30) * 100))}%` }}
                         />
+                      </div>
+                      <div className="flex justify-between mt-1">
+                        <span className="text-[9px] text-slate-400">%70 eşik</span>
+                        <span className="text-[9px] text-slate-400">%100</span>
                       </div>
                     </div>
                   </div>
