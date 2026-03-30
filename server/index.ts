@@ -3,7 +3,7 @@ import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 import { startMatchStatusService } from "./matchStatusService";
-import { startAutoPublishService } from "./autoPublishService";
+import { startAutoPublishService, startCleanupService } from "./autoPublishService";
 
 const app = express();
 app.set('trust proxy', 1);
@@ -102,6 +102,9 @@ app.use((req, res, next) => {
       
       startAutoPublishService();
       log('Auto-publish service started (daily at 00:10 Turkey time)');
+      
+      startCleanupService();
+      log('Cleanup service started (daily at 21:00 Turkey time)');
     },
   );
 })();

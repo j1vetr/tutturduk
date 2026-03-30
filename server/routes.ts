@@ -99,7 +99,7 @@ function parseApiFootballOdds(oddsData: any[]): any {
   return parsed;
 }
 
-import { autoPublishTomorrowMatchesValidated, autoPublishTodayMatchesValidated, prefetchValidatedFixtures, autoCreateDailyCoupon } from './autoPublishService';
+import { autoPublishTomorrowMatchesValidated, autoPublishTodayMatchesValidated, prefetchValidatedFixtures, autoCreateDailyCoupon, cleanupLostBets } from './autoPublishService';
 import { generatePredictionsForAllPendingMatches } from './openai-analysis';
 
 const PgSession = connectPgSimple(session);
@@ -2840,6 +2840,27 @@ export async function registerRoutes(
       });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Admin: manuel kayıp bahis temizliği (%40)
+  app.post('/api/admin/cleanup-lost-bets', async (req, res) => {
+    if (!req.session.userId) {
+      return res.status(401).json({ message: 'Oturum açılmamış' });
+    }
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') {
+      return res.status(403).json({ message: 'Yetkiniz yok' });
+    }
+    try {
+      const result = await cleanupLostBets(0.4);
+      return res.json({
+        message: `${result.total} kayıptan ${result.deleted} tanesi silindi`,
+        deleted: result.deleted,
+        total: result.total
+      });
+    } catch (err: any) {
+      return res.status(500).json({ message: 'Temizlik başarısız: ' + err.message });
     }
   });
 

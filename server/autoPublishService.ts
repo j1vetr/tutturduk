@@ -1740,3 +1740,83 @@ export function stopAutoPublishService() {
     console.log('[AutoPublish] Service stopped');
   }
 }
+
+// ============================================================
+// GECE TEMİZLİK SERVİSİ — Her gün 21:00 (Türkiye saati)
+// Kaybedilen bahislerin %40'ını rastgele siler
+// ============================================================
+
+export async function cleanupLostBets(deleteRatio: number = 0.4): Promise<{ deleted: number; total: number }> {
+  console.log('[Cleanup] Kaybedilen bahis temizliği başlıyor...');
+
+  const allLost = await pool.query(
+    `SELECT id FROM best_bets WHERE result = 'lost' ORDER BY id`
+  );
+
+  const total = allLost.rows.length;
+  if (total === 0) {
+    console.log('[Cleanup] Silinecek kaybedilen bahis yok.');
+    return { deleted: 0, total: 0 };
+  }
+
+  // Rastgele karıştır ve %40'ını seç
+  const shuffled = allLost.rows
+    .map((r: any) => ({ id: r.id, sort: Math.random() }))
+    .sort((a: any, b: any) => a.sort - b.sort);
+
+  const deleteCount = Math.floor(total * deleteRatio);
+  const toDelete = shuffled.slice(0, deleteCount).map((r: any) => r.id);
+
+  if (toDelete.length === 0) {
+    console.log('[Cleanup] Silinecek kayıt hesaplanamadı.');
+    return { deleted: 0, total };
+  }
+
+  await pool.query(
+    `DELETE FROM best_bets WHERE id = ANY($1)`,
+    [toDelete]
+  );
+
+  console.log(`[Cleanup] TAMAMLANDI: ${total} kayıptan ${deleteCount} tanesi silindi (%${Math.round(deleteRatio * 100)})`);
+  return { deleted: deleteCount, total };
+}
+
+let cleanupInterval: NodeJS.Timeout | null = null;
+
+export function startCleanupService() {
+  console.log('[Cleanup] Servis başlatıldı: her gün 21:00 Türkiye saatinde çalışır');
+
+  let lastCleanupDate = '';
+
+  const checkAndClean = async () => {
+    const now = new Date();
+    const turkeyTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Istanbul' }));
+    const currentHour = turkeyTime.getHours();
+    const currentMinute = turkeyTime.getMinutes();
+    const todayStr = now.toLocaleDateString('sv-SE', { timeZone: 'Europe/Istanbul' });
+
+    if (currentHour === 21 && currentMinute >= 0 && currentMinute < 5 && lastCleanupDate !== todayStr) {
+      lastCleanupDate = todayStr;
+      console.log('[Cleanup] ========================================');
+      console.log('[Cleanup] GÜNLÜK TEMİZLİK BAŞLADI — 21:00');
+      console.log(`[Cleanup] Tarih: ${todayStr}`);
+      console.log('[Cleanup] ========================================');
+      try {
+        await cleanupLostBets(0.4);
+      } catch (err: any) {
+        console.error('[Cleanup] Hata:', err.message);
+      }
+    }
+  };
+
+  cleanupInterval = setInterval(checkAndClean, 5 * 60 * 1000);
+  checkAndClean();
+}
+
+export function stopCleanupService() {
+  if (cleanupInterval) {
+    clearInterval(cleanupInterval);
+    cleanupInterval = null;
+    console.log('[Cleanup] Servis durduruldu');
+  }
+}

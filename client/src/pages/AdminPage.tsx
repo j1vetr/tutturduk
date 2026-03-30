@@ -920,6 +920,24 @@ export default function AdminPage() {
               </Button>
               <Button 
                 onClick={async () => {
+                  if (!confirm('Kaybedilen bahislerin %40\'ı silinecek. Devam edilsin mi?')) return;
+                  try {
+                    const res = await fetch('/api/admin/cleanup-lost-bets', { method: 'POST', credentials: 'include' });
+                    const data = await res.json();
+                    if (res.ok) {
+                      toast({ description: data.message });
+                      loadBestBetsStats();
+                    } else toast({ variant: 'destructive', description: data.message });
+                  } catch { toast({ variant: 'destructive', description: 'İşlem başarısız' }); }
+                }}
+                variant="outline"
+                size="sm"
+                className="border-orange-200 text-orange-700 hover:bg-orange-50"
+              >
+                <Trash2 className="w-4 h-4 mr-1" /> Kayıpları Temizle (%40)
+              </Button>
+              <Button 
+                onClick={async () => {
                   const code = prompt('Veritabanını sıfırlamak için "SIFIRLA" yazın:');
                   if (code !== 'SIFIRLA') { toast({ variant: 'destructive', description: 'Onay kodu yanlış' }); return; }
                   try {
