@@ -1629,7 +1629,7 @@ export function startAutoPublishService() {
             // Cache AI analysis result for admin panel display
             if (aiAnalysis && fixtureId) {
               try {
-                const aiCacheKey = `ai_analysis_v11_${fixtureId}`;
+                const aiCacheKey = `ai_analysis_v12_${fixtureId}`;
                 await pool.query(
                   `INSERT INTO api_cache (key, value, expires_at)
                    VALUES ($1, $2, NOW() + INTERVAL '24 hours')

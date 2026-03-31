@@ -289,7 +289,7 @@ export default function MatchDetailPage() {
                       <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-emerald-500 rounded-full transition-all duration-700"
-                          style={{ width: `${Math.min(100, Math.max(0, ((primaryBet.confidence - 70) / 30) * 100))}%` }}
+                          style={{ width: `${Math.min(100, Math.max(0, ((primaryBet.confidence - 60) / 40) * 100))}%` }}
                         />
                       </div>
                       <div className="flex justify-between mt-1">
@@ -329,7 +329,7 @@ export default function MatchDetailPage() {
                       <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-blue-500 rounded-full transition-all duration-700"
-                          style={{ width: `${Math.min(100, Math.max(0, ((altBet.confidence - 70) / 30) * 100))}%` }}
+                          style={{ width: `${Math.min(100, Math.max(0, ((altBet.confidence - 60) / 40) * 100))}%` }}
                         />
                       </div>
                       <div className="flex justify-between mt-1">

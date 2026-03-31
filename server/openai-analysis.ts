@@ -327,11 +327,11 @@ Değer = (TahminiOlasılık / 100 × Oran) - 1
 
 5️⃣ GÜVEN & RİSK
 - Güven ≥75 → düşük risk
-- Güven 70-74 → orta risk
-- Güven <70 → KABUL EDİLMEZ → karar: "pas"
+- Güven 60-74 → orta risk
+- Güven <60 → KABUL EDİLMEZ → karar: "pas"
 
 6️⃣ SEÇİCİLİK KURALI — ÇOK ÖNEMLİ!
-- Güven skoru 70'in altındaysa her zaman "pas" döndür, kesinlikle bahis açma
+- Güven skoru 60'ın altındaysa her zaman "pas" döndür, kesinlikle bahis açma
 - Değer yüzdesi en az %2 (0.02) olmalı — sıfır değer yaklaşımı YASAK
 - Kupa maçları, derbiler, farklı lig seviyeleri → eşiği 5 puan yükselt (min 75+ güven)
 - "İstatistik yeterince güçlü değil ama açayım" kesinlikle YASAK — şüphe = pas
@@ -522,8 +522,8 @@ HİÇBİRİ DEĞERLİ DEĞİLSE:
 - valuePercentage = ((estimatedProbability/100) × odds) - 1
 - Değer < 0.02 (%2) ise o bahis null olmalı — sadece "biraz değer var" yetmez!
 - İkisi de değersizse karar: "pas"
-- Güven < 70 → KESİNLİKLE "pas", bahis açılmaz
-- Güven ≥75 → düşük risk, 70-74 → orta risk
+- Güven < 60 → KESİNLİKLE "pas", bahis açılmaz
+- Güven ≥75 → düşük risk, 60-74 → orta risk
 - Kupa/derbi/farklı lig → min 75 güven şart`;
 
   try {
@@ -588,16 +588,16 @@ HİÇBİRİ DEĞERLİ DEĞİLSE:
       }
       bet.confidence = Math.max(0, Math.min(100, bet.confidence));
       
-      // Minimum confidence: 70 — low-confidence bets rejected
-      if (bet.confidence < 70) {
-        console.log(`[AI] REJECTED ${betName}: Confidence too low (${bet.confidence} < 70)`);
+      // Minimum confidence: 60 — low-confidence bets rejected
+      if (bet.confidence < 60) {
+        console.log(`[AI] REJECTED ${betName}: Confidence too low (${bet.confidence} < 60)`);
         return null;
       }
       
       // Assign risk level based on confidence
       if (bet.confidence >= 75) {
         bet.riskLevel = 'düşük';
-      } else if (bet.confidence >= 70) {
+      } else if (bet.confidence >= 60) {
         bet.riskLevel = 'orta';
       } else {
         bet.riskLevel = 'yüksek';
@@ -780,7 +780,7 @@ export async function generateAndSavePredictions(
     }
     
     // Cache the analysis
-    const cacheKey = `ai_analysis_v11_${fixtureId}`;
+    const cacheKey = `ai_analysis_v12_${fixtureId}`;
     try {
       await pool.query(
         `INSERT INTO api_cache (key, value, expires_at)

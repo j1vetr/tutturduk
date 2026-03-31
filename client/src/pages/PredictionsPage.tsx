@@ -390,7 +390,7 @@ export default function PredictionsPage() {
                                 {match.best_bet.result === 'won' && <span className="mr-1">✓</span>}
                                 {match.best_bet.bet_type}
                               </div>
-                              {match.best_bet.confidence >= 70 && (
+                              {match.best_bet.confidence >= 60 && (
                                 <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${
                                   match.best_bet.confidence >= 75
                                     ? 'bg-emerald-100 text-emerald-700'
