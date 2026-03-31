@@ -2151,7 +2151,7 @@ export async function registerRoutes(
     
     for (const fixtureId of fixtureIds) {
       try {
-        // Check cache first (v10 = enhanced data with injuries, last 10 matches, season stats + stricter quality filters)
+        // Check cache first (v12 = enhanced data with injuries, last 10 matches, season stats)
         const aiCacheKey = `ai_analysis_v12_${fixtureId}`;
         const cachedResult = await pool.query(
           'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
