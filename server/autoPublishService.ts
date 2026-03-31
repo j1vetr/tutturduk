@@ -235,7 +235,7 @@ async function publishMatchesForDate(dateStr: string, totalLimit: number = 70, m
     
     // Process each hour slot and collect valid matches
     const scoredMatches: MatchWithScore[] = [];
-    const minStatsScore = 35;
+    const minStatsScore = 20;
     
     // Sort hours for predictable processing
     const sortedHours = Array.from(matchesByHour.keys()).sort((a, b) => a - b);
@@ -741,7 +741,7 @@ export async function autoPublishTomorrowMatchesLegacy(targetCount: number = 70)
     console.log(`[AutoPublish] After filtering: ${filteredMatches.length} matches`);
     
     const scoredMatches: MatchWithScore[] = [];
-    const minStatsScore = 35;
+    const minStatsScore = 20;
     const targetWithBuffer = Math.ceil(targetCount * 1.5); // Get extra matches for better selection
     
     console.log(`[AutoPublish] Processing ${filteredMatches.length} matches to find ${targetCount} with valid statistics (buffer: ${targetWithBuffer})...`);
@@ -1123,7 +1123,7 @@ export async function prefetchValidatedFixtures(dateStr: string) {
     const validatedFixtures: MatchWithScore[] = [];
     const batchSize = 5;
     const delayBetweenBatches = 2000;
-    const minStatsScore = 35;
+    const minStatsScore = 20;
     
     for (let i = 0; i < filteredFixtures.length && validatedFixtures.length < 150; i += batchSize) {
       const batch = filteredFixtures.slice(i, i + batchSize);
@@ -1629,7 +1629,7 @@ export function startAutoPublishService() {
             // Cache AI analysis result for admin panel display
             if (aiAnalysis && fixtureId) {
               try {
-                const aiCacheKey = `ai_analysis_v10_${fixtureId}`;
+                const aiCacheKey = `ai_analysis_v11_${fixtureId}`;
                 await pool.query(
                   `INSERT INTO api_cache (key, value, expires_at)
                    VALUES ($1, $2, NOW() + INTERVAL '24 hours')

@@ -332,7 +332,7 @@ Değer = (TahminiOlasılık / 100 × Oran) - 1
 
 6️⃣ SEÇİCİLİK KURALI — ÇOK ÖNEMLİ!
 - Güven skoru 70'in altındaysa her zaman "pas" döndür, kesinlikle bahis açma
-- Değer yüzdesi en az %5 (0.05) olmalı — "0.01 değer var, açayım" yaklaşımı YASAK
+- Değer yüzdesi en az %2 (0.02) olmalı — sıfır değer yaklaşımı YASAK
 - Kupa maçları, derbiler, farklı lig seviyeleri → eşiği 5 puan yükselt (min 75+ güven)
 - "İstatistik yeterince güçlü değil ama açayım" kesinlikle YASAK — şüphe = pas
 - Zorla tahmin üretme: eğer net görüş yoksa "pas" döndür
@@ -520,7 +520,7 @@ HİÇBİRİ DEĞERLİ DEĞİLSE:
 - 2.5 Alt ve KG Yok YASAK!
 - Her bahis için minimum oran 1.50!
 - valuePercentage = ((estimatedProbability/100) × odds) - 1
-- Değer < 0.05 (%5) ise o bahis null olmalı — sadece "biraz değer var" yetmez!
+- Değer < 0.02 (%2) ise o bahis null olmalı — sadece "biraz değer var" yetmez!
 - İkisi de değersizse karar: "pas"
 - Güven < 70 → KESİNLİKLE "pas", bahis açılmaz
 - Güven ≥75 → düşük risk, 70-74 → orta risk
@@ -576,9 +576,9 @@ HİÇBİRİ DEĞERLİ DEĞİLSE:
       const calculatedValue = ((bet.estimatedProbability / 100) * bet.odds) - 1;
       bet.valuePercentage = Math.round(calculatedValue * 100) / 100;
       
-      // Minimum value: 5% — micro-value bets rejected
-      if (calculatedValue < 0.05) {
-        console.log(`[AI] REJECTED ${betName}: Value too low (${(calculatedValue * 100).toFixed(1)}% < 5%)`);
+      // Minimum value: 2% — micro-value bets rejected
+      if (calculatedValue < 0.02) {
+        console.log(`[AI] REJECTED ${betName}: Value too low (${(calculatedValue * 100).toFixed(1)}% < 2%)`);
         return null;
       }
       
@@ -780,7 +780,7 @@ export async function generateAndSavePredictions(
     }
     
     // Cache the analysis
-    const cacheKey = `ai_analysis_v10_${fixtureId}`;
+    const cacheKey = `ai_analysis_v11_${fixtureId}`;
     try {
       await pool.query(
         `INSERT INTO api_cache (key, value, expires_at)

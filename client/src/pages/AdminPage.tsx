@@ -698,7 +698,7 @@ export default function AdminPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-lg font-bold text-slate-800">Genel Bakış</h2>
-                <p className="text-[10px] text-emerald-600 font-semibold mt-0.5">v10 · Min. %70 güven · Min. %5 değer</p>
+                <p className="text-[10px] text-emerald-600 font-semibold mt-0.5">v11 · Min. %70 güven · Min. %2 değer</p>
               </div>
               <Button variant="outline" size="sm" onClick={loadAllData} className="text-slate-600">
                 <RefreshCcw className="w-4 h-4 mr-1" /> Yenile
@@ -830,7 +830,7 @@ export default function AdminPage() {
                 <div>
                   <h3 className="text-sm font-bold text-slate-800">Otomatik Yayınla</h3>
                   <p className="text-[11px] text-slate-500 mt-0.5">Maçları çek → AI analiz → Yayınla (tek tık)</p>
-                  <p className="text-[10px] text-emerald-600 mt-0.5 font-medium">Min. %70 güven · Min. %5 değer · İstatistik skoru ≥35</p>
+                  <p className="text-[10px] text-emerald-600 mt-0.5 font-medium">Min. %70 güven · Min. %2 değer · İstatistik skoru ≥20</p>
                 </div>
                 <Button 
                   onClick={autoPublishToday}
