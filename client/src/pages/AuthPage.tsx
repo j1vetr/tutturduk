@@ -136,12 +136,6 @@ export default function AuthPage() {
     }
   };
 
-  const stats = [
-    { label: "Doğruluk", value: "78", suffix: "%" },
-    { label: "Maç / Gün", value: "40", suffix: "" },
-    { label: "Üye", value: "12K", suffix: "+" },
-  ];
-
   return (
     <div className="min-h-screen bg-[#0a0a0c] text-white relative overflow-x-hidden font-sans">
       {/* Global styles + noise texture */}
@@ -223,20 +217,6 @@ export default function AuthPage() {
         <div className="absolute inset-0 noise-overlay opacity-[0.025] mix-blend-overlay" />
       </div>
 
-      {/* Top utility bar */}
-      <div className="relative z-10 flex items-center justify-between px-5 sm:px-8 pt-5 pb-3">
-        <div className="flex items-center gap-2.5">
-          <div className="relative">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-            <div className="absolute inset-0 w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping opacity-75" />
-          </div>
-          <span className="text-[10.5px] font-medium tracking-[0.18em] uppercase text-white/45">Live · İstanbul</span>
-        </div>
-        <div className="text-[10.5px] font-medium tracking-[0.18em] uppercase text-white/30">
-          Members Only
-        </div>
-      </div>
-
       {/* Main content */}
       <div className="relative z-10 flex flex-col items-center px-4 sm:px-6 pt-4 pb-8 max-w-[480px] mx-auto">
 
@@ -255,20 +235,6 @@ export default function AuthPage() {
           <p className="text-[13.5px] text-white/45 font-light leading-relaxed max-w-[320px] tracking-[0.005em]">
             Yapay zeka destekli maç tahminleri, davetli üyelere özel.
           </p>
-        </div>
-
-        {/* Stats bento row */}
-        <div className="w-full grid grid-cols-3 gap-2 mb-6 animate-slide-up" style={{ animationDelay: '0.1s', opacity: 0 }}>
-          {stats.map((s, i) => (
-            <div key={i} className="bento-card rounded-2xl px-3 py-3.5 text-center">
-              <div className="font-serif-display text-2xl sm:text-[26px] text-white tracking-tight leading-none">
-                {s.value}<span className="text-emerald-400/90 text-lg ml-0.5">{s.suffix}</span>
-              </div>
-              <div className="text-[10px] mt-1.5 uppercase tracking-[0.15em] text-white/35 font-medium">
-                {s.label}
-              </div>
-            </div>
-          ))}
         </div>
 
         {/* Auth card — main bento */}
