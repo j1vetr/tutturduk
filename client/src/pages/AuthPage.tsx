@@ -13,27 +13,70 @@ import logoLight from "@assets/tutturduk_1777158124987.png";
 
 function SuccessOverlay({ isLogin }: { isLogin: boolean }) {
   return (
-    <div className="absolute inset-0 z-50 flex flex-col items-center justify-center rounded-[20px] overflow-hidden bg-[#0a0a0c]/95 backdrop-blur-xl border border-white/[0.06]">
-      <div className="absolute top-0 left-0 right-0 h-px bg-emerald-400/40" style={{ animation: 'progressBar 2s linear forwards' }} />
-      <div className="relative flex flex-col items-center gap-5 px-8 text-center">
-        <div className="relative animate-success-pop">
-          <div className="absolute -inset-3 bg-emerald-500/15 rounded-full blur-xl" />
-          <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center">
-            <CheckCircle2 className="w-7 h-7 text-emerald-950" strokeWidth={2.5} />
+    <div
+      className="absolute inset-0 z-50 flex flex-col items-center justify-center rounded-[20px] overflow-hidden bg-[#0a0a0c]/97 backdrop-blur-2xl border border-white/[0.06] animate-fade-in"
+      data-testid="overlay-success"
+    >
+      {/* top progress bar */}
+      <div
+        className="absolute top-0 left-0 right-0 h-[2px] bg-white/85 origin-left"
+        style={{ animation: 'progressBar 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards' }}
+      />
+
+      {/* corner status label */}
+      <div className="absolute top-5 left-5 flex items-center gap-1.5 text-[10px] text-white/35 font-medium tracking-[0.18em] uppercase">
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400/80 animate-pulse" />
+        <span>{isLogin ? "Oturum Aktif" : "Hesap Oluşturuldu"}</span>
+      </div>
+      <div className="absolute top-5 right-5 text-[10px] text-white/25 font-medium tracking-[0.16em] uppercase font-serif-display italic">
+        tutturduk
+      </div>
+
+      <div className="relative flex flex-col items-center px-8 text-center max-w-[340px]">
+
+        {/* monogram check — minimal, no green blob */}
+        <div
+          className="relative mb-7 animate-success-pop"
+          style={{ animationDuration: '0.5s' }}
+        >
+          <div className="w-14 h-14 rounded-full border border-white/15 bg-white/[0.03] flex items-center justify-center">
+            <Check className="w-6 h-6 text-white" strokeWidth={2.4} />
           </div>
+          <div
+            className="absolute inset-0 rounded-full border border-white/25"
+            style={{ animation: 'pingSoft 1.4s cubic-bezier(0, 0, 0.2, 1) infinite' }}
+          />
         </div>
-        <div className="animate-slide-up" style={{ animationDelay: '0.2s', opacity: 0 }}>
-          <h3 className="font-serif text-3xl text-white mb-1.5 leading-tight">
-            {isLogin ? "Welcome back." : "Access granted."}
+
+        {/* serif headline */}
+        <div className="animate-slide-up" style={{ animationDelay: '0.18s', opacity: 0 }}>
+          <h3 className="font-serif-display text-[34px] sm:text-[38px] text-white leading-[1.05] mb-3">
+            {isLogin ? (
+              <>Hoş <span className="italic text-white/85">geldiniz.</span></>
+            ) : (
+              <>Hesabınız <span className="italic text-white/85">hazır.</span></>
+            )}
           </h3>
-          <p className="text-[13px] text-white/50 font-light tracking-wide">
-            {isLogin ? "Yönlendiriliyorsunuz…" : "Hoş geldiniz, panel hazırlanıyor…"}
+
+          {/* divider */}
+          <div className="w-8 h-px bg-white/15 mx-auto mb-3.5" />
+
+          <p className="text-[12.5px] text-white/45 font-light tracking-wide leading-relaxed">
+            {isLogin
+              ? "Oturumunuz açıldı. Tahminler yükleniyor."
+              : "Davet kodunuz onaylandı. Panel hazırlanıyor."}
           </p>
         </div>
-        <div className="flex items-center gap-1.5 mt-1 animate-slide-up" style={{ animationDelay: '0.35s', opacity: 0 }}>
-          <div className="w-1 h-1 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: '0s' }} />
-          <div className="w-1 h-1 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: '0.15s' }} />
-          <div className="w-1 h-1 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: '0.3s' }} />
+
+        {/* loading row */}
+        <div
+          className="flex items-center gap-2 mt-7 animate-slide-up"
+          style={{ animationDelay: '0.34s', opacity: 0 }}
+        >
+          <Loader2 className="w-3.5 h-3.5 text-white/40 animate-spin" strokeWidth={2} />
+          <span className="text-[10.5px] text-white/35 font-medium tracking-[0.18em] uppercase">
+            Yönlendiriliyor
+          </span>
         </div>
       </div>
     </div>
@@ -162,6 +205,10 @@ export default function AuthPage() {
         @keyframes bounceSoft {
           0%, 100% { transform: translateY(0); opacity: 0.7; }
           50% { transform: translateY(2px); opacity: 1; }
+        }
+        @keyframes pingSoft {
+          0% { transform: scale(1); opacity: 0.6; }
+          80%, 100% { transform: scale(1.6); opacity: 0; }
         }
         .animate-bounce-soft { animation: bounceSoft 1.6s ease-in-out infinite; }
         .animate-slide-up { animation: slideInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
