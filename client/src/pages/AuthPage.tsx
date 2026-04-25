@@ -154,14 +154,6 @@ export default function AuthPage() {
       const result = await login(username.trim(), password, !isLogin, referralCode.trim());
       if (result.success) {
         setIsSuccess(true);
-        toast({
-          title: isLogin ? "Giriş başarılı" : "Hesap oluşturuldu",
-          description: isLogin
-            ? "Yönlendiriliyorsunuz."
-            : "Aramıza hoş geldiniz.",
-          className: "bg-[#14141a] text-white border border-white/10 font-medium",
-          duration: 3000,
-        });
         setTimeout(() => setLocation("/"), 2000);
       } else {
         const msg = result.error || (isLogin ? "Kullanıcı adı veya şifre hatalı." : "Kayıt yapılamadı.");
