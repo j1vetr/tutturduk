@@ -519,11 +519,18 @@ export default function AuthPage() {
 
         {/* Footer */}
         <div className="w-full mt-8 pt-5 border-t border-white/[0.04] text-center">
-          <p className="text-[11px] text-white/35 font-light tracking-wide">
-            <span className="font-serif-display italic text-white/45">tutturduk.com</span> — 2026
-          </p>
-          <p className="text-[11px] text-white/40 mt-2 font-medium tracking-wide">
-            18 yaş altı kullanıcılar için uygun değildir.
+          <p className="text-[11px] text-white/40 font-medium tracking-wide flex items-center justify-center gap-2.5 flex-wrap">
+            <a
+              href="https://instagram.com/tutturduk_com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-white/65 hover:text-white transition-colors"
+              data-testid="link-instagram-footer"
+            >
+              @tutturduk_com
+            </a>
+            <span className="text-white/20">|</span>
+            <span>18 yaş altı kullanıcılar için uygun değildir.</span>
           </p>
         </div>
       </div>
