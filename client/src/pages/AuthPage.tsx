@@ -225,7 +225,7 @@ export default function AuthPage() {
           <img
             src={logoLight}
             alt="tutturduk"
-            className="h-11 sm:h-12 w-auto object-contain mb-8 opacity-95"
+            className="h-16 sm:h-20 w-auto object-contain mb-9 opacity-95"
           />
 
           <h1 className="font-serif-display text-[40px] sm:text-[44px] leading-[1.05] text-white mb-3 px-2">
