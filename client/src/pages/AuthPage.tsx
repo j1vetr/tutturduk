@@ -356,12 +356,9 @@ export default function AuthPage() {
                   <>
                     {/* Davet Kodu — private members style */}
                     <div className="space-y-2 pt-1 animate-slide-up" style={{ animationDelay: '0.18s', opacity: 0 }}>
-                      <div className="flex items-center justify-between">
-                        <label className="block text-[10.5px] font-medium tracking-[0.14em] uppercase text-white/45">
-                          Davet Kodu
-                        </label>
-                        <span className="text-[10px] text-white/25 italic font-serif-display">By invitation</span>
-                      </div>
+                      <label className="block text-[10.5px] font-medium tracking-[0.14em] uppercase text-white/45">
+                        Davet Kodu
+                      </label>
                       <Input
                         placeholder="——————"
                         value={referralCode}
