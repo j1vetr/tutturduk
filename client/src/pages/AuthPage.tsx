@@ -396,7 +396,7 @@ export default function AuthPage() {
               {/* Switch link */}
               <div className="mt-5 pt-4 border-t border-white/[0.05] text-center animate-slide-up" style={{ animationDelay: isLogin ? '0.23s' : '0.28s', opacity: 0 }}>
                 <p className="text-[12px] text-white/40 font-light">
-                  {isLogin ? "Henüz üye değil misiniz?" : "Zaten üye misiniz?"}
+                  {isLogin ? "Henüz üye değil misiniz? " : "Zaten üye misiniz? "}
                   {' '}
                   <button
                     type="button"
@@ -404,7 +404,7 @@ export default function AuthPage() {
                     className="text-white/85 font-medium hover:text-white transition-colors underline decoration-white/20 underline-offset-[5px] hover:decoration-white/60"
                     data-testid="button-switch-mode"
                   >
-                    {isLogin ? "Üyelik başvurusu" : "Giriş yapın"}
+                    {isLogin ? "Üyelik Başvurusu" : "Giriş yapın"}
                   </button>
                 </p>
               </div>
