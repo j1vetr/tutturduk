@@ -4,168 +4,36 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  ArrowRight, Instagram, Eye, EyeOff, Loader2, Shield,
+  ArrowRight, Instagram, Eye, EyeOff, Loader2,
   UserPlus, LogIn, AlertCircle,
-  CheckCircle2, Copy, Check, ExternalLink, Sparkles, KeyRound,
-  Zap, Lock, Crown, Cpu, Radio, Activity
+  CheckCircle2, Copy, Check, ArrowUpRight
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-
-function AnimatedLogo() {
-  const letters = "TUTTURDUK".split("");
-  return (
-    <div className="flex flex-col items-center mb-2">
-      <div className="relative">
-        <div className="absolute -inset-10 bg-emerald-500/30 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -inset-6 bg-blue-500/15 rounded-full blur-2xl" />
-        <div className="relative flex items-baseline gap-[2px]">
-          {letters.map((letter, i) => (
-            <span
-              key={i}
-              className="inline-block text-[40px] font-black text-white"
-              style={{
-                animation: `letterBounce 2.5s ease-in-out ${i * 0.08}s infinite`,
-                textShadow: '0 0 24px rgba(16, 185, 129, 0.55), 0 0 6px rgba(255,255,255,0.2)',
-                letterSpacing: '0.02em',
-              }}
-            >
-              {letter}
-            </span>
-          ))}
-          <span className="inline-block text-[40px] font-black text-emerald-400" style={{ animation: `dotPulse 2.5s ease-in-out 0.72s infinite`, textShadow: '0 0 28px rgba(16, 185, 129, 0.8)' }}>.</span>
-          <span className="inline-block text-[40px] font-black text-emerald-400" style={{ animation: `letterBounce 2.5s ease-in-out 0.85s infinite`, textShadow: '0 0 28px rgba(16, 185, 129, 0.8)' }}>C</span>
-          <span className="inline-block text-[40px] font-black text-emerald-400" style={{ animation: `letterBounce 2.5s ease-in-out 0.93s infinite`, textShadow: '0 0 28px rgba(16, 185, 129, 0.8)' }}>O</span>
-          <span className="inline-block text-[40px] font-black text-emerald-400" style={{ animation: `letterBounce 2.5s ease-in-out 1.01s infinite`, textShadow: '0 0 28px rgba(16, 185, 129, 0.8)' }}>M</span>
-        </div>
-        <div className="h-[2px] bg-gradient-to-r from-transparent via-emerald-400 to-transparent rounded-full mt-2 mx-auto" style={{ animation: 'underlineGlow 2.5s ease-in-out infinite' }} />
-      </div>
-      <style>{`
-        @keyframes letterBounce {
-          0%, 100% { transform: translateY(0); }
-          15% { transform: translateY(-6px); }
-          30% { transform: translateY(0); }
-        }
-        @keyframes dotPulse {
-          0%, 100% { transform: scale(1); opacity: 1; }
-          15% { transform: scale(1.5); opacity: 0.85; }
-          30% { transform: scale(1); opacity: 1; }
-        }
-        @keyframes underlineGlow {
-          0%, 100% { width: 40%; opacity: 0.35; }
-          50% { width: 95%; opacity: 0.95; }
-        }
-        @keyframes slideInUp {
-          from { opacity: 0; transform: translateY(16px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes slideInLeft {
-          from { opacity: 0; transform: translateX(-20px); }
-          to { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes slideInRight {
-          from { opacity: 0; transform: translateX(20px); }
-          to { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes shakeX {
-          0%, 100% { transform: translateX(0); }
-          15% { transform: translateX(-8px); }
-          30% { transform: translateX(8px); }
-          45% { transform: translateX(-6px); }
-          60% { transform: translateX(6px); }
-          75% { transform: translateX(-3px); }
-          90% { transform: translateX(3px); }
-        }
-        @keyframes successPop {
-          0% { transform: scale(0.5); opacity: 0; }
-          60% { transform: scale(1.15); }
-          80% { transform: scale(0.95); }
-          100% { transform: scale(1); opacity: 1; }
-        }
-        @keyframes fadeInScale {
-          from { opacity: 0; transform: scale(0.96); }
-          to { opacity: 1; transform: scale(1); }
-        }
-        @keyframes progressBar {
-          from { width: 0%; }
-          to { width: 100%; }
-        }
-        @keyframes floatBadge {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-4px); }
-        }
-        @keyframes scanline {
-          0% { transform: translateY(-100%); }
-          100% { transform: translateY(100vh); }
-        }
-        @keyframes shimmer {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(200%); }
-        }
-        @keyframes pulseGlow {
-          0%, 100% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.25), 0 0 40px rgba(16, 185, 129, 0.1); }
-          50% { box-shadow: 0 0 32px rgba(16, 185, 129, 0.45), 0 0 60px rgba(16, 185, 129, 0.2); }
-        }
-        @keyframes ticker {
-          0%, 100% { opacity: 0.3; }
-          50% { opacity: 1; }
-        }
-        @keyframes drawLine {
-          from { stroke-dashoffset: 100; }
-          to { stroke-dashoffset: 0; }
-        }
-        @keyframes spinSlow {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        .animate-slide-up { animation: slideInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .animate-slide-left { animation: slideInLeft 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .animate-slide-right { animation: slideInRight 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .animate-shake { animation: shakeX 0.5s ease-in-out; }
-        .animate-success-pop { animation: successPop 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .animate-fade-scale { animation: fadeInScale 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .animate-float-badge { animation: floatBadge 3s ease-in-out infinite; }
-        .animate-pulse-glow { animation: pulseGlow 3s ease-in-out infinite; }
-        .animate-ticker { animation: ticker 1.5s ease-in-out infinite; }
-        .animate-spin-slow { animation: spinSlow 12s linear infinite; }
-      `}</style>
-    </div>
-  );
-}
+import logoLight from "@assets/tutturduk_1777158124987.png";
 
 function SuccessOverlay({ isLogin }: { isLogin: boolean }) {
   return (
-    <div className="absolute inset-0 z-50 flex flex-col items-center justify-center rounded-3xl overflow-hidden backdrop-blur-2xl bg-black/85 border border-emerald-500/30">
-      <div className="absolute inset-0 bg-gradient-to-br from-emerald-950/80 via-slate-950/90 to-blue-950/80" />
-      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-emerald-400 to-transparent" style={{ animation: 'progressBar 2s linear forwards' }} />
-
-      <div className="relative z-10 flex flex-col items-center gap-4 px-8 text-center">
-        <div className="relative">
-          <div className="absolute -inset-6 bg-emerald-500/30 rounded-full blur-2xl animate-pulse" />
-          <div className="relative w-20 h-20 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-2xl shadow-emerald-500/50 animate-success-pop ring-4 ring-emerald-400/20">
-            <CheckCircle2 className="w-10 h-10 text-white" />
+    <div className="absolute inset-0 z-50 flex flex-col items-center justify-center rounded-[20px] overflow-hidden bg-[#0a0a0c]/95 backdrop-blur-xl border border-white/[0.06]">
+      <div className="absolute top-0 left-0 right-0 h-px bg-emerald-400/40" style={{ animation: 'progressBar 2s linear forwards' }} />
+      <div className="relative flex flex-col items-center gap-5 px-8 text-center">
+        <div className="relative animate-success-pop">
+          <div className="absolute -inset-3 bg-emerald-500/15 rounded-full blur-xl" />
+          <div className="relative w-16 h-16 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center">
+            <CheckCircle2 className="w-7 h-7 text-emerald-950" strokeWidth={2.5} />
           </div>
         </div>
-
         <div className="animate-slide-up" style={{ animationDelay: '0.2s', opacity: 0 }}>
-          <h3 className="text-xl font-black text-white mb-1 tracking-tight">
-            {isLogin ? "ERİŞİM ONAYLANDI" : "ELITE ÜYE OLDUNUZ"}
+          <h3 className="font-serif text-3xl text-white mb-1.5 leading-tight">
+            {isLogin ? "Welcome back." : "Access granted."}
           </h3>
-          <p className="text-sm text-slate-400">
-            {isLogin ? "Sisteme bağlanılıyor…" : "Kapılar açılıyor, hoş geldiniz…"}
+          <p className="text-[13px] text-white/50 font-light tracking-wide">
+            {isLogin ? "Yönlendiriliyorsunuz…" : "Hoş geldiniz, panel hazırlanıyor…"}
           </p>
         </div>
-
-        <div className="flex items-center gap-2 mt-2 animate-slide-up" style={{ animationDelay: '0.35s', opacity: 0 }}>
-          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-bounce shadow-lg shadow-emerald-400/50" style={{ animationDelay: '0s' }} />
-          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-bounce shadow-lg shadow-emerald-400/50" style={{ animationDelay: '0.15s' }} />
-          <div className="w-2 h-2 rounded-full bg-emerald-400 animate-bounce shadow-lg shadow-emerald-400/50" style={{ animationDelay: '0.3s' }} />
-        </div>
-
-        <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 backdrop-blur-md rounded-2xl px-4 py-2.5 animate-slide-up" style={{ animationDelay: '0.5s', opacity: 0 }}>
-          <Sparkles className="w-4 h-4 text-emerald-400" />
-          <span className="text-xs text-emerald-300 font-semibold tracking-wide">
-            {isLogin ? "Terminal başlatılıyor" : "AI veri akışı bağlanıyor"}
-          </span>
+        <div className="flex items-center gap-1.5 mt-1 animate-slide-up" style={{ animationDelay: '0.35s', opacity: 0 }}>
+          <div className="w-1 h-1 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: '0s' }} />
+          <div className="w-1 h-1 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: '0.15s' }} />
+          <div className="w-1 h-1 rounded-full bg-white/40 animate-bounce" style={{ animationDelay: '0.3s' }} />
         </div>
       </div>
     </div>
@@ -202,8 +70,8 @@ export default function AuthPage() {
     navigator.clipboard.writeText(BAYI_KODU);
     setCopiedCode(true);
     toast({
-      description: "Bayi kodu kopyalandı!",
-      className: "bg-emerald-500 text-white border-none font-semibold",
+      description: "Bayi kodu panoya kopyalandı",
+      className: "bg-[#14141a] text-white border border-white/10 font-medium",
     });
     setTimeout(() => setCopiedCode(false), 2000);
   };
@@ -233,7 +101,7 @@ export default function AuthPage() {
       return;
     }
     if (!isLogin && !referralCode.trim()) {
-      setErrorMsg("Kayıt olmak için davet kodu zorunludur.");
+      setErrorMsg("Kayıt için geçerli bir davet kodu gereklidir.");
       triggerShake();
       return;
     }
@@ -244,11 +112,11 @@ export default function AuthPage() {
       if (result.success) {
         setIsSuccess(true);
         toast({
-          title: isLogin ? "Giriş Başarılı!" : "Hesap Oluşturuldu!",
+          title: isLogin ? "Giriş başarılı" : "Hesap oluşturuldu",
           description: isLogin
-            ? "Hoş geldiniz. Ana sayfaya yönlendiriliyorsunuz."
-            : "Aramıza hoş geldiniz! Tahminler sayfası açılıyor.",
-          className: "bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-none font-semibold shadow-xl",
+            ? "Yönlendiriliyorsunuz."
+            : "Aramıza hoş geldiniz.",
+          className: "bg-[#14141a] text-white border border-white/10 font-medium",
           duration: 3000,
         });
         setTimeout(() => setLocation("/"), 2000);
@@ -257,7 +125,7 @@ export default function AuthPage() {
         setErrorMsg(msg);
         triggerShake();
         toast({
-          title: "İşlem Başarısız",
+          title: "İşlem başarısız",
           description: msg,
           variant: "destructive",
           duration: 4000,
@@ -268,428 +136,428 @@ export default function AuthPage() {
     }
   };
 
-  const features = [
-    { icon: Cpu, text: "AI Tahmin Motoru" },
-    { icon: Activity, text: "Canlı Veri Akışı" },
-    { icon: Crown, text: "Elite Kuponlar" },
-  ];
-
-  const steps = [
-    {
-      icon: ExternalLink,
-      title: "iddaa.com'a Üye Olun",
-      desc: "Üyelik formunda Bayi Kodu alanına aşağıdaki kodu girin.",
-      hasCode: true,
-    },
-    {
-      icon: Instagram,
-      title: "Bize Ulaşın",
-      desc: "Instagram'dan mesaj atın, size özel davet kodunuzu hemen iletelim.",
-      hasCode: false,
-    },
-    {
-      icon: KeyRound,
-      title: "Kapıyı Açın",
-      desc: "Aldığınız kodu yukarıdaki davet alanına girin ve sisteme katılın.",
-      hasCode: false,
-    },
+  const stats = [
+    { label: "Doğruluk", value: "78", suffix: "%" },
+    { label: "Maç / Gün", value: "40", suffix: "" },
+    { label: "Üye", value: "12K", suffix: "+" },
   ];
 
   return (
-    <div className="min-h-screen bg-[#05070a] flex flex-col relative overflow-hidden">
-      {/* Background — terminal grid + nebula glows */}
-      <div className="absolute inset-0 opacity-[0.07]" style={{
-        backgroundImage: `linear-gradient(rgba(16,185,129,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,0.4) 1px, transparent 1px)`,
-        backgroundSize: '40px 40px',
-        maskImage: 'radial-gradient(ellipse at center, black 30%, transparent 75%)',
-      }} />
-      <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-emerald-500/20 rounded-full blur-[140px]" />
-      <div className="absolute bottom-[-5%] right-[-10%] w-[420px] h-[420px] bg-blue-600/15 rounded-full blur-[120px]" />
-      <div className="absolute top-[40%] left-[-10%] w-[300px] h-[300px] bg-cyan-500/10 rounded-full blur-[100px]" />
+    <div className="min-h-screen bg-[#0a0a0c] text-white relative overflow-x-hidden font-sans">
+      {/* Global styles + noise texture */}
+      <style>{`
+        @keyframes slideInUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes shakeX {
+          0%, 100% { transform: translateX(0); }
+          15% { transform: translateX(-6px); } 30% { transform: translateX(6px); }
+          45% { transform: translateX(-4px); } 60% { transform: translateX(4px); }
+          75% { transform: translateX(-2px); } 90% { transform: translateX(2px); }
+        }
+        @keyframes successPop {
+          0% { transform: scale(0.7); opacity: 0; }
+          60% { transform: scale(1.08); }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeInScale { from { opacity: 0; transform: scale(0.985); } to { opacity: 1; transform: scale(1); } }
+        @keyframes progressBar { from { width: 0%; } to { width: 100%; } }
+        @keyframes subtleFloat {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-3px); }
+        }
+        .animate-slide-up { animation: slideInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-shake { animation: shakeX 0.5s ease-in-out; }
+        .animate-success-pop { animation: successPop 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-fade-in { animation: fadeIn 0.6s ease-out forwards; }
+        .animate-fade-scale { animation: fadeInScale 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .font-serif-display { font-family: 'Instrument Serif', 'Georgia', serif; font-weight: 400; letter-spacing: -0.02em; }
+        .input-inset {
+          background: #131316;
+          box-shadow:
+            inset 0 1px 0 0 rgba(255,255,255,0.03),
+            inset 0 0 0 1px rgba(255,255,255,0.04),
+            0 1px 0 0 rgba(255,255,255,0.02);
+        }
+        .input-inset:hover {
+          box-shadow:
+            inset 0 1px 0 0 rgba(255,255,255,0.04),
+            inset 0 0 0 1px rgba(255,255,255,0.07),
+            0 1px 0 0 rgba(255,255,255,0.02);
+        }
+        .input-inset:focus, .input-inset:focus-within {
+          background: #16161a;
+          box-shadow:
+            inset 0 1px 0 0 rgba(255,255,255,0.05),
+            inset 0 0 0 1px rgba(52, 211, 153, 0.35),
+            0 0 0 4px rgba(52, 211, 153, 0.06);
+          outline: none;
+        }
+        .bento-card {
+          background: linear-gradient(180deg, rgba(255,255,255,0.025) 0%, rgba(255,255,255,0.005) 100%);
+          border: 1px solid rgba(255,255,255,0.06);
+          box-shadow:
+            inset 0 1px 0 0 rgba(255,255,255,0.04),
+            0 1px 2px 0 rgba(0,0,0,0.3);
+        }
+        .reveal-on-hover { opacity: 0; transition: opacity 0.25s ease; }
+        .reveal-parent:hover .reveal-on-hover,
+        .reveal-parent:focus-within .reveal-on-hover { opacity: 1; }
+        .noise-overlay {
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.4 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+        .tab-indicator {
+          background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.04) 100%);
+          box-shadow:
+            inset 0 1px 0 0 rgba(255,255,255,0.1),
+            inset 0 0 0 1px rgba(255,255,255,0.06),
+            0 1px 2px 0 rgba(0,0,0,0.4);
+        }
+      `}</style>
 
-      {/* Top status bar */}
-      <div className="relative z-10 flex items-center justify-between px-5 pt-4 pb-2 text-[10px] font-mono">
-        <div className="flex items-center gap-2 text-emerald-400/90">
-          <div className="relative w-2 h-2 rounded-full bg-emerald-400 animate-ticker shadow-md shadow-emerald-400/60" />
-          <span className="tracking-[0.2em]">SYS · ONLINE</span>
+      {/* Background — soft radial wash + noise + horizontal divider */}
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#0d0d10] via-[#0a0a0c] to-[#08080a]" />
+        <div className="absolute top-0 left-0 right-0 h-[60vh] opacity-[0.5]" style={{
+          background: 'radial-gradient(ellipse 80% 50% at 50% 0%, rgba(52, 211, 153, 0.06), transparent 70%)'
+        }} />
+        <div className="absolute inset-0 noise-overlay opacity-[0.025] mix-blend-overlay" />
+      </div>
+
+      {/* Top utility bar */}
+      <div className="relative z-10 flex items-center justify-between px-5 sm:px-8 pt-5 pb-3">
+        <div className="flex items-center gap-2.5">
+          <div className="relative">
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            <div className="absolute inset-0 w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping opacity-75" />
+          </div>
+          <span className="text-[10.5px] font-medium tracking-[0.18em] uppercase text-white/45">Live · İstanbul</span>
         </div>
-        <div className="flex items-center gap-2 text-blue-300/80">
-          <Radio className="w-3 h-3" />
-          <span className="tracking-[0.2em]">SECURE · CHANNEL</span>
+        <div className="text-[10.5px] font-medium tracking-[0.18em] uppercase text-white/30">
+          Members Only
         </div>
       </div>
 
-      <div className="relative z-10 flex flex-col flex-1">
+      {/* Main content */}
+      <div className="relative z-10 flex flex-col items-center px-4 sm:px-6 pt-4 pb-8 max-w-[480px] mx-auto">
 
-        {/* Logo + Features */}
-        <div className="flex flex-col items-center pt-6 pb-5 px-6">
-          <AnimatedLogo />
+        {/* Logo + heading */}
+        <div className="w-full flex flex-col items-center text-center pt-4 pb-7 animate-fade-in">
+          <img
+            src={logoLight}
+            alt="tutturduk"
+            className="h-11 sm:h-12 w-auto object-contain mb-8 opacity-95"
+          />
 
-          <p className="text-slate-400 text-[13px] mt-2 text-center tracking-wide">
-            <span className="text-emerald-400 font-mono text-[10px] uppercase tracking-[0.3em] mr-2">[ AI · POWERED ]</span>
-            Spor tahmin terminali
+          <h1 className="font-serif-display text-[40px] sm:text-[44px] leading-[1.05] text-white mb-3 px-2">
+            Spor verisinin<br/>
+            <span className="italic text-white/85">analitik merkezi.</span>
+          </h1>
+          <p className="text-[13.5px] text-white/45 font-light leading-relaxed max-w-[320px] tracking-[0.005em]">
+            Yapay zeka destekli maç tahminleri, davetli üyelere özel.
           </p>
+        </div>
 
-          <div className="flex flex-wrap justify-center gap-2 mt-5">
-            {features.map((f, i) => (
-              <div
-                key={i}
-                className="flex items-center gap-1.5 bg-white/[0.03] backdrop-blur-md border border-emerald-400/20 rounded-full px-3 py-1.5 animate-float-badge shadow-inner shadow-emerald-500/5"
-                style={{ animationDelay: `${i * 0.5}s` }}
-              >
-                <f.icon className="w-3 h-3 text-emerald-400" />
-                <span className="text-[11px] text-slate-200 font-semibold tracking-wide">{f.text}</span>
+        {/* Stats bento row */}
+        <div className="w-full grid grid-cols-3 gap-2 mb-6 animate-slide-up" style={{ animationDelay: '0.1s', opacity: 0 }}>
+          {stats.map((s, i) => (
+            <div key={i} className="bento-card rounded-2xl px-3 py-3.5 text-center">
+              <div className="font-serif-display text-2xl sm:text-[26px] text-white tracking-tight leading-none">
+                {s.value}<span className="text-emerald-400/90 text-lg ml-0.5">{s.suffix}</span>
               </div>
-            ))}
+              <div className="text-[10px] mt-1.5 uppercase tracking-[0.15em] text-white/35 font-medium">
+                {s.label}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Auth card — main bento */}
+        <div className="relative w-full animate-fade-scale">
+          <div className="relative bento-card rounded-[22px] overflow-hidden">
+
+            {/* Success overlay */}
+            {isSuccess && <SuccessOverlay isLogin={isLogin} />}
+
+            {/* Tab switcher */}
+            <div className="px-5 pt-5">
+              <div className="relative grid grid-cols-2 bg-[#0e0e11] rounded-xl p-1 border border-white/[0.04]">
+                <div
+                  className="absolute top-1 bottom-1 rounded-lg tab-indicator transition-all duration-[400ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
+                  style={{
+                    width: 'calc(50% - 4px)',
+                    left: isLogin ? '4px' : 'calc(50% + 0px)',
+                  }}
+                />
+                <button
+                  data-testid="button-tab-login"
+                  onClick={() => handleTabSwitch(true)}
+                  className={`relative z-10 py-2.5 text-[12.5px] font-medium tracking-wide transition-colors duration-300 flex items-center justify-center gap-1.5 ${
+                    isLogin ? 'text-white' : 'text-white/40 hover:text-white/60'
+                  }`}
+                >
+                  <LogIn className="w-3.5 h-3.5" strokeWidth={2} />
+                  Giriş
+                </button>
+                <button
+                  data-testid="button-tab-register"
+                  onClick={() => handleTabSwitch(false)}
+                  className={`relative z-10 py-2.5 text-[12.5px] font-medium tracking-wide transition-colors duration-300 flex items-center justify-center gap-1.5 ${
+                    !isLogin ? 'text-white' : 'text-white/40 hover:text-white/60'
+                  }`}
+                >
+                  <UserPlus className="w-3.5 h-3.5" strokeWidth={2} />
+                  Üyelik Başvurusu
+                </button>
+              </div>
+            </div>
+
+            {/* Form area */}
+            <div className="px-5 py-5" key={formKey}>
+
+              {/* Header text */}
+              <div className="mb-5 animate-slide-up" style={{ animationDelay: '0.05s', opacity: 0 }}>
+                <h2 className="font-serif-display text-[26px] text-white leading-tight">
+                  {isLogin ? "Hesabınıza giriş yapın" : "Üyelik başvurusu"}
+                </h2>
+                <p className="text-[12px] text-white/40 mt-1.5 font-light">
+                  {isLogin
+                    ? "Bilgilerinizi girerek panele erişin."
+                    : "Bu site davetli üyelere açıktır. Devam etmek için davet kodunuzu kullanın."}
+                </p>
+              </div>
+
+              {errorMsg && (
+                <div
+                  data-testid="text-error"
+                  className={`flex items-start gap-2.5 bg-red-500/[0.06] border border-red-500/20 text-red-200/90 px-3.5 py-3 rounded-xl mb-4 text-[12.5px] animate-slide-up ${shaking ? 'animate-shake' : ''}`}
+                >
+                  <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-400" strokeWidth={2} />
+                  <span className="font-medium leading-relaxed">{errorMsg}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} className={`space-y-3.5 ${shaking ? 'animate-shake' : ''}`}>
+                {/* Username */}
+                <div className="space-y-2 animate-slide-up" style={{ animationDelay: '0.08s', opacity: 0 }}>
+                  <label className="block text-[10.5px] font-medium tracking-[0.14em] uppercase text-white/45">
+                    Kullanıcı Adı
+                  </label>
+                  <Input
+                    placeholder="ahmet1905"
+                    value={username}
+                    onChange={(e) => { setUsername(e.target.value); setErrorMsg(""); }}
+                    className="input-inset h-12 rounded-xl border-0 text-white placeholder:text-white/25 text-[14px] font-normal transition-all duration-200 px-4"
+                    data-testid="input-username"
+                    autoComplete="username"
+                  />
+                </div>
+
+                {/* Password */}
+                <div className="space-y-2 animate-slide-up" style={{ animationDelay: '0.13s', opacity: 0 }}>
+                  <label className="block text-[10.5px] font-medium tracking-[0.14em] uppercase text-white/45">
+                    Şifre
+                  </label>
+                  <div className="relative">
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => { setPassword(e.target.value); setErrorMsg(""); }}
+                      className="input-inset h-12 rounded-xl border-0 text-white placeholder:text-white/25 text-[14px] font-normal pr-11 transition-all duration-200 px-4"
+                      data-testid="input-password"
+                      autoComplete={isLogin ? "current-password" : "new-password"}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/35 hover:text-white/65 transition-colors p-1"
+                      tabIndex={-1}
+                      aria-label={showPassword ? "Şifreyi gizle" : "Şifreyi göster"}
+                      aria-pressed={showPassword}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" strokeWidth={2} /> : <Eye className="w-4 h-4" strokeWidth={2} />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Register-only fields */}
+                {!isLogin && (
+                  <>
+                    {/* Davet Kodu — private members style */}
+                    <div className="space-y-2 pt-1 animate-slide-up" style={{ animationDelay: '0.18s', opacity: 0 }}>
+                      <div className="flex items-center justify-between">
+                        <label className="block text-[10.5px] font-medium tracking-[0.14em] uppercase text-white/45">
+                          Davet Kodu
+                        </label>
+                        <span className="text-[10px] text-white/25 italic font-serif-display">By invitation</span>
+                      </div>
+                      <Input
+                        placeholder="——————"
+                        value={referralCode}
+                        onChange={(e) => { setReferralCode(e.target.value.toUpperCase()); setErrorMsg(""); }}
+                        className="input-inset h-12 rounded-xl border-0 text-white placeholder:text-white/20 text-[15px] font-medium tracking-[0.4em] text-center transition-all duration-200 px-4 uppercase"
+                        style={{ fontFamily: "'JetBrains Mono', 'Geist Mono', ui-monospace, monospace" }}
+                        data-testid="input-referral"
+                        autoComplete="off"
+                      />
+                    </div>
+                  </>
+                )}
+
+                {/* Submit Button */}
+                <div className="pt-2 animate-slide-up" style={{ animationDelay: isLogin ? '0.18s' : '0.23s', opacity: 0 }}>
+                  <Button
+                    type="submit"
+                    className="group w-full h-12 text-[13.5px] font-medium rounded-xl bg-white text-[#0a0a0c] hover:bg-white/95 active:scale-[0.99] transition-all duration-200 relative tracking-tight"
+                    disabled={isLoading}
+                    data-testid="button-submit"
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>{isLogin ? "Giriş yapılıyor" : "Hesap oluşturuluyor"}</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center gap-2">
+                        <span>{isLogin ? "Hesabıma Giriş" : "Başvuruyu Tamamla"}</span>
+                        <ArrowRight className="w-4 h-4 ml-0.5 transition-transform group-hover:translate-x-0.5" strokeWidth={2} />
+                      </div>
+                    )}
+                  </Button>
+                </div>
+              </form>
+
+              {/* Switch link */}
+              <div className="mt-5 pt-4 border-t border-white/[0.05] text-center animate-slide-up" style={{ animationDelay: isLogin ? '0.23s' : '0.28s', opacity: 0 }}>
+                <p className="text-[12px] text-white/40 font-light">
+                  {isLogin ? "Henüz üye değil misiniz?" : "Zaten üye misiniz?"}
+                  {' '}
+                  <button
+                    type="button"
+                    onClick={() => handleTabSwitch(!isLogin)}
+                    className="text-white/85 font-medium hover:text-white transition-colors underline decoration-white/20 underline-offset-[5px] hover:decoration-white/60"
+                    data-testid="button-switch-mode"
+                  >
+                    {isLogin ? "Üyelik başvurusu" : "Giriş yapın"}
+                  </button>
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Card */}
-        <div className="flex-1 px-4 pb-8">
-          <div className="relative max-w-md mx-auto animate-fade-scale">
-            {/* Outer glow ring */}
-            <div className="absolute -inset-[1px] bg-gradient-to-br from-emerald-500/40 via-blue-500/20 to-emerald-500/40 rounded-[28px] blur-sm opacity-60" />
+        {/* INVITATION GUIDE — Bento — only on register */}
+        {!isLogin && (
+          <div className="w-full mt-3 space-y-3 animate-slide-up" style={{ animationDelay: '0.3s', opacity: 0 }}>
 
-            <div className="relative rounded-[26px] bg-gradient-to-b from-white/[0.06] to-white/[0.02] backdrop-blur-2xl border border-white/10 shadow-[0_30px_80px_-20px_rgba(0,0,0,0.7)] overflow-hidden">
+            {/* Section label */}
+            <div className="flex items-baseline justify-between px-1 pt-3 pb-1">
+              <h3 className="font-serif-display text-[22px] text-white/95 leading-none">
+                Davet kodu nasıl alınır?
+              </h3>
+              <span className="text-[10px] text-white/30 uppercase tracking-[0.16em] font-medium">3 Adım</span>
+            </div>
+            <p className="px-1 text-[12.5px] text-white/40 font-light leading-relaxed -mt-1.5 mb-1">
+              Aşağıdaki süreci tamamlayarak davet kodunuzu alabilirsiniz.
+            </p>
 
-              {/* Corner brackets — premium frame */}
-              <div className="pointer-events-none absolute top-2 left-2 w-5 h-5 border-t-2 border-l-2 border-emerald-400/50 rounded-tl-lg" />
-              <div className="pointer-events-none absolute top-2 right-2 w-5 h-5 border-t-2 border-r-2 border-emerald-400/50 rounded-tr-lg" />
-              <div className="pointer-events-none absolute bottom-2 left-2 w-5 h-5 border-b-2 border-l-2 border-emerald-400/50 rounded-bl-lg" />
-              <div className="pointer-events-none absolute bottom-2 right-2 w-5 h-5 border-b-2 border-r-2 border-emerald-400/50 rounded-br-lg" />
-
-              {/* Success Overlay */}
-              {isSuccess && <SuccessOverlay isLogin={isLogin} />}
-
-              {/* Tab Switcher — Glass with sliding indicator */}
-              <div className="relative px-3 pt-3">
-                <div className="relative flex bg-black/40 backdrop-blur-xl border border-white/5 rounded-2xl p-1">
-                  {/* Sliding glass pill */}
-                  <div
-                    className="absolute top-1 bottom-1 w-[calc(50%-4px)] rounded-xl bg-gradient-to-br from-emerald-500/25 to-emerald-600/15 border border-emerald-400/40 shadow-lg shadow-emerald-500/20 backdrop-blur-md transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]"
-                    style={{ left: isLogin ? '4px' : 'calc(50% + 0px)' }}
-                  />
-                  <button
-                    data-testid="button-tab-login"
-                    onClick={() => handleTabSwitch(true)}
-                    className={`relative z-10 flex-1 py-3 text-[13px] font-bold transition-all duration-300 flex items-center justify-center gap-2 ${
-                      isLogin ? 'text-emerald-300' : 'text-slate-500 hover:text-slate-300'
-                    }`}
-                  >
-                    <LogIn className="w-4 h-4" />
-                    Giriş Yap
-                  </button>
-                  <button
-                    data-testid="button-tab-register"
-                    onClick={() => handleTabSwitch(false)}
-                    className={`relative z-10 flex-1 py-3 text-[13px] font-bold transition-all duration-300 flex items-center justify-center gap-2 ${
-                      !isLogin ? 'text-emerald-300' : 'text-slate-500 hover:text-slate-300'
-                    }`}
-                  >
-                    <UserPlus className="w-4 h-4" />
-                    Kayıt Ol
-                  </button>
+            {/* Step 1 — Bayi Kodu (bank-statement style module) */}
+            <div className="bento-card rounded-2xl p-5 reveal-parent">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <div className="text-[10px] uppercase tracking-[0.16em] text-white/35 font-medium mb-1">01 · iddaa.com</div>
+                  <div className="font-serif-display text-[19px] text-white leading-tight">Üye olun</div>
+                </div>
+                <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 text-[11px] font-medium">
+                  01
                 </div>
               </div>
 
-              {/* Form */}
-              <div className="p-5 pt-4" key={formKey}>
-
-                {/* Error Banner */}
-                {errorMsg && (
-                  <div
-                    data-testid="text-error"
-                    className={`flex items-start gap-2.5 bg-red-500/10 border border-red-500/30 backdrop-blur-md text-red-300 px-3.5 py-3 rounded-xl mb-4 text-sm animate-slide-up ${shaking ? 'animate-shake' : ''}`}
-                  >
-                    <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                    <span className="font-medium">{errorMsg}</span>
-                  </div>
-                )}
-
-                <form onSubmit={handleSubmit} className={`space-y-4 ${shaking ? 'animate-shake' : ''}`}>
-                  {/* Username */}
-                  <div
-                    className="space-y-1.5 animate-slide-up"
-                    style={{ animationDelay: '0.05s', opacity: 0 }}
-                  >
-                    <label className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-400/80 uppercase tracking-[0.2em] font-mono">
-                      <span className="w-1 h-1 rounded-full bg-emerald-400" />
-                      Kullanıcı Adı
-                    </label>
-                    <Input
-                      placeholder="ahmet1905"
-                      value={username}
-                      onChange={(e) => { setUsername(e.target.value); setErrorMsg(""); }}
-                      className="h-12 rounded-xl bg-black/40 border-white/10 hover:border-emerald-500/30 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 focus:bg-black/60 text-slate-100 placeholder:text-slate-600 text-sm font-medium transition-all duration-200 backdrop-blur-md"
-                      data-testid="input-username"
-                      autoComplete="username"
-                    />
-                  </div>
-
-                  {/* Password */}
-                  <div
-                    className="space-y-1.5 animate-slide-up"
-                    style={{ animationDelay: '0.1s', opacity: 0 }}
-                  >
-                    <label className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-400/80 uppercase tracking-[0.2em] font-mono">
-                      <span className="w-1 h-1 rounded-full bg-emerald-400" />
-                      Şifre
-                    </label>
-                    <div className="relative">
-                      <Input
-                        type={showPassword ? "text" : "password"}
-                        placeholder="••••••••"
-                        value={password}
-                        onChange={(e) => { setPassword(e.target.value); setErrorMsg(""); }}
-                        className="h-12 rounded-xl bg-black/40 border-white/10 hover:border-emerald-500/30 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 focus:bg-black/60 text-slate-100 placeholder:text-slate-600 pr-11 text-sm font-medium transition-all duration-200 backdrop-blur-md"
-                        data-testid="input-password"
-                        autoComplete={isLogin ? "current-password" : "new-password"}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-emerald-400 transition-colors"
-                        tabIndex={-1}
-                        aria-label={showPassword ? "Şifreyi gizle" : "Şifreyi göster"}
-                        aria-pressed={showPassword}
-                      >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Register extra fields */}
-                  {!isLogin && (
+              {/* Bank-statement-style code module */}
+              <div className="bg-[#0a0a0c] border border-white/[0.05] rounded-xl px-4 py-3.5 mb-3 relative">
+                <div className="flex items-center justify-between">
+                  <div className="min-w-0">
+                    <div className="text-[9.5px] uppercase tracking-[0.18em] text-white/35 font-medium mb-1.5">Bayi Kodu</div>
                     <div
-                      className="space-y-4 pt-1 animate-slide-up"
-                      style={{ animationDelay: '0.15s', opacity: 0 }}
+                      data-testid="text-bayi-kodu"
+                      className="text-white text-[22px] font-medium tracking-[0.18em] leading-none"
+                      style={{ fontFamily: "'JetBrains Mono', 'Geist Mono', ui-monospace, 'SF Mono', monospace" }}
                     >
-                      {/* Davet Kodu — Premium key slot */}
-                      <div className="space-y-1.5">
-                        <label className="flex items-center justify-between text-[10px] font-bold uppercase tracking-[0.2em] font-mono">
-                          <span className="flex items-center gap-1.5 text-amber-400/90">
-                            <KeyRound className="w-3 h-3" />
-                            Davet Anahtarı
-                          </span>
-                          <span className="flex items-center gap-1 text-amber-400/60 text-[9px]">
-                            <Lock className="w-2.5 h-2.5" />
-                            ELITE
-                          </span>
-                        </label>
-                        <div className="relative group">
-                          {/* Golden glow on focus */}
-                          <div className="absolute -inset-[1px] bg-gradient-to-r from-amber-500/0 via-amber-400/30 to-amber-500/0 rounded-xl opacity-0 group-focus-within:opacity-100 blur-md transition-opacity duration-300" />
-                          {/* Corner brackets */}
-                          <div className="pointer-events-none absolute top-1.5 left-1.5 w-3 h-3 border-t border-l border-amber-400/40 rounded-tl" />
-                          <div className="pointer-events-none absolute top-1.5 right-1.5 w-3 h-3 border-t border-r border-amber-400/40 rounded-tr" />
-                          <div className="pointer-events-none absolute bottom-1.5 left-1.5 w-3 h-3 border-b border-l border-amber-400/40 rounded-bl" />
-                          <div className="pointer-events-none absolute bottom-1.5 right-1.5 w-3 h-3 border-b border-r border-amber-400/40 rounded-br" />
-
-                          <Input
-                            placeholder="X X X X - X X X X"
-                            value={referralCode}
-                            onChange={(e) => { setReferralCode(e.target.value.toUpperCase()); setErrorMsg(""); }}
-                            className="relative h-14 rounded-xl bg-gradient-to-b from-amber-950/30 to-black/50 border-amber-400/20 hover:border-amber-400/40 focus:border-amber-400/70 focus:ring-2 focus:ring-amber-500/20 text-amber-200 placeholder:text-amber-700/50 font-mono tracking-[0.5em] text-center text-base font-bold transition-all duration-200 backdrop-blur-md"
-                            data-testid="input-referral"
-                            autoComplete="off"
-                          />
-                        </div>
-                        <p className="text-[10px] text-slate-500 text-center tracking-wide">
-                          Bu sistem yalnızca davetli üyelere açıktır
-                        </p>
-                      </div>
-
-                      {/* ELITE ERİŞİM REHBERİ */}
-                      <div className="relative bg-gradient-to-br from-blue-950/40 via-slate-950/60 to-emerald-950/30 border border-emerald-500/20 rounded-2xl overflow-hidden backdrop-blur-md">
-                        {/* Top header strip */}
-                        <div className="relative bg-gradient-to-r from-emerald-500/10 via-blue-500/10 to-emerald-500/10 border-b border-white/5 px-4 py-3 overflow-hidden">
-                          <div className="absolute inset-0 opacity-30" style={{
-                            backgroundImage: `linear-gradient(90deg, transparent, rgba(16,185,129,0.3), transparent)`,
-                            backgroundSize: '200% 100%',
-                            animation: 'shimmer 4s linear infinite',
-                          }} />
-                          <div className="relative flex items-center gap-2.5">
-                            <div className="relative">
-                              <div className="absolute -inset-1 bg-amber-400/40 blur-md rounded-full" />
-                              <div className="relative w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/30">
-                                <Crown className="w-4 h-4 text-amber-950" strokeWidth={2.5} />
-                              </div>
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2">
-                                <h4 className="text-[13px] font-black text-white tracking-wide">ELITE ERİŞİM REHBERİ</h4>
-                              </div>
-                              <p className="text-[10px] text-emerald-300/70 font-mono tracking-wider">3 ADIM · ~2 DK</p>
-                            </div>
-                            <div className="text-[9px] font-bold text-amber-300/80 font-mono bg-amber-500/10 border border-amber-500/30 px-2 py-1 rounded-md">
-                              VIP
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Quest roadmap */}
-                        <div className="relative px-4 py-4">
-                          {/* Vertical glowing connector line */}
-                          <div className="absolute left-[27px] top-7 bottom-7 w-[2px] bg-gradient-to-b from-emerald-400/60 via-blue-400/40 to-amber-400/60" />
-                          <div className="absolute left-[26px] top-7 bottom-7 w-[4px] bg-gradient-to-b from-emerald-400/30 via-blue-400/20 to-amber-400/30 blur-sm" />
-
-                          <div className="space-y-3">
-                            {steps.map((step, idx) => {
-                              const Icon = step.icon;
-                              return (
-                                <div
-                                  key={idx}
-                                  className="relative animate-slide-up"
-                                  style={{ animationDelay: `${0.25 + idx * 0.08}s`, opacity: 0 }}
-                                >
-                                  <div className="flex items-start gap-3">
-                                    {/* Quest node */}
-                                    <div className="relative flex-shrink-0">
-                                      <div className="absolute -inset-1 bg-emerald-400/30 rounded-full blur-md" />
-                                      <div className="relative w-[34px] h-[34px] rounded-full bg-gradient-to-br from-slate-800 to-slate-950 border-2 border-emerald-400/50 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                                        <Icon className="w-4 h-4 text-emerald-300" strokeWidth={2.5} />
-                                      </div>
-                                      <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full bg-emerald-500 border-2 border-[#0a0e13] flex items-center justify-center text-[9px] font-black text-white">
-                                        {idx + 1}
-                                      </div>
-                                    </div>
-
-                                    {/* Quest content */}
-                                    <div className="flex-1 pt-0.5">
-                                      <p className="text-[12px] font-bold text-white tracking-tight mb-0.5">{step.title}</p>
-                                      <p className="text-[11px] text-slate-400 leading-relaxed">{step.desc}</p>
-
-                                      {step.hasCode && (
-                                        <div className="mt-2.5 relative">
-                                          {/* Bayi kodu terminal display */}
-                                          <div className="absolute -inset-[1px] bg-gradient-to-r from-emerald-500/40 via-emerald-300/60 to-emerald-500/40 rounded-xl blur-md animate-pulse-glow" />
-                                          <div className="relative flex items-center gap-2 bg-black/70 border border-emerald-400/40 rounded-xl p-1.5 backdrop-blur-md">
-                                            <div className="flex-1 relative bg-gradient-to-br from-emerald-950/80 to-black rounded-lg px-3 py-2.5 overflow-hidden">
-                                              <div className="absolute top-1.5 left-2 text-[8px] font-mono text-emerald-500/60 tracking-[0.3em]">BAYİ · KODU</div>
-                                              <div className="flex items-baseline justify-center gap-2 mt-1">
-                                                <span className="font-black text-2xl text-emerald-300 tracking-[0.25em] font-mono" style={{ textShadow: '0 0 16px rgba(52, 211, 153, 0.7), 0 0 4px rgba(255,255,255,0.3)' }}>
-                                                  {BAYI_KODU}
-                                                </span>
-                                              </div>
-                                              {/* Scanline */}
-                                              <div className="absolute inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-emerald-400/60 to-transparent" style={{ animation: 'scanline 3s linear infinite', top: 0 }} />
-                                            </div>
-                                            <button
-                                              type="button"
-                                              onClick={copyBayiCode}
-                                              data-testid="button-copy-bayi"
-                                              className={`flex-shrink-0 w-12 h-[52px] rounded-lg flex items-center justify-center transition-all duration-300 ${
-                                                copiedCode
-                                                  ? 'bg-emerald-500 text-white scale-95 shadow-lg shadow-emerald-500/40'
-                                                  : 'bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 hover:scale-105 border border-emerald-400/30'
-                                              }`}
-                                            >
-                                              {copiedCode ? <Check className="w-5 h-5" /> : <Copy className="w-4 h-4" />}
-                                            </button>
-                                          </div>
-                                        </div>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-
-                          <button
-                            type="button"
-                            className="w-full mt-4 group relative flex items-center justify-center gap-2.5 bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 text-white font-bold py-3 rounded-xl text-[13px] active:scale-[0.98] transition-all duration-200 shadow-lg shadow-purple-500/30 overflow-hidden animate-slide-up"
-                            style={{ animationDelay: '0.5s', opacity: 0 }}
-                            onClick={() => window.open('https://instagram.com', '_blank')}
-                            data-testid="button-instagram"
-                          >
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent" style={{
-                              transform: 'translateX(-100%)',
-                              animation: 'shimmer 3s ease-in-out infinite',
-                            }} />
-                            <Instagram className="w-5 h-5 relative" />
-                            <span className="relative tracking-wide">Instagram'dan Davet İste</span>
-                            <ExternalLink className="w-3.5 h-3.5 opacity-80 relative" />
-                          </button>
-                        </div>
-                      </div>
+                      {BAYI_KODU}
                     </div>
-                  )}
-
-                  {/* Submit Button */}
-                  <div
-                    className="pt-2 animate-slide-up"
-                    style={{ animationDelay: isLogin ? '0.15s' : '0.55s', opacity: 0 }}
-                  >
-                    <Button
-                      type="submit"
-                      className="group w-full h-14 py-4 text-sm font-black rounded-xl bg-gradient-to-r from-emerald-500 via-emerald-400 to-teal-500 text-emerald-950 hover:from-emerald-400 hover:to-teal-400 active:scale-[0.98] transition-all duration-200 shadow-[0_10px_40px_-10px_rgba(16,185,129,0.6)] hover:shadow-[0_15px_50px_-10px_rgba(16,185,129,0.8)] relative overflow-hidden tracking-wide"
-                      disabled={isLoading}
-                      data-testid="button-submit"
-                    >
-                      {/* Shimmer overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent" style={{
-                        transform: 'translateX(-100%)',
-                        animation: 'shimmer 2.5s ease-in-out infinite',
-                      }} />
-                      {isLoading ? (
-                        <div className="relative flex items-center gap-2">
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          <span>{isLogin ? "BAĞLANIYOR…" : "AKTIVE EDİLİYOR…"}</span>
-                        </div>
-                      ) : (
-                        <div className="relative flex items-center justify-center gap-2">
-                          {isLogin ? <Zap className="w-4 h-4" strokeWidth={2.5} /> : <KeyRound className="w-4 h-4" strokeWidth={2.5} />}
-                          <span>{isLogin ? "TERMİNALİ BAŞLAT" : "ELİTE ÜYE OL"}</span>
-                          <ArrowRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
-                        </div>
-                      )}
-                    </Button>
                   </div>
-                </form>
-
-                {/* Switch mode link */}
-                <div
-                  className="mt-5 pt-5 border-t border-white/5 text-center animate-slide-up"
-                  style={{ animationDelay: isLogin ? '0.2s' : '0.6s', opacity: 0 }}
-                >
-                  <p className="text-[12px] text-slate-500">
-                    {isLogin ? "Henüz davetli değil misiniz?" : "Zaten içeriden misiniz?"}
-                    {' '}
-                    <button
-                      type="button"
-                      onClick={() => handleTabSwitch(!isLogin)}
-                      className="text-emerald-400 font-bold hover:text-emerald-300 transition-colors underline-offset-4 hover:underline"
-                      data-testid="button-switch-mode"
-                    >
-                      {isLogin ? "Davet İste" : "Giriş Yap"}
-                    </button>
-                  </p>
+                  <button
+                    type="button"
+                    onClick={copyBayiCode}
+                    data-testid="button-copy-bayi"
+                    className={`reveal-on-hover w-9 h-9 rounded-lg flex items-center justify-center transition-all duration-200 flex-shrink-0 ${
+                      copiedCode
+                        ? 'bg-emerald-500 text-emerald-950 opacity-100'
+                        : 'bg-white/5 hover:bg-white/10 border border-white/10 text-white/70'
+                    }`}
+                    aria-label="Bayi kodunu kopyala"
+                  >
+                    {copiedCode ? <Check className="w-4 h-4" strokeWidth={2.5} /> : <Copy className="w-3.5 h-3.5" strokeWidth={2} />}
+                  </button>
                 </div>
               </div>
+
+              <p className="text-[12px] text-white/45 font-light leading-relaxed">
+                iddaa.com kayıt formundaki <span className="text-white/70 font-medium">Bayi Kodu</span> alanına yukarıdaki kodu girerek üyeliğinizi tamamlayın.
+              </p>
+            </div>
+
+            {/* Step 2 — Contact */}
+            <div className="bento-card rounded-2xl p-5">
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <div className="text-[10px] uppercase tracking-[0.16em] text-white/35 font-medium mb-1">02 · Instagram</div>
+                  <div className="font-serif-display text-[19px] text-white leading-tight">Bizimle iletişime geçin</div>
+                </div>
+                <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 text-[11px] font-medium">
+                  02
+                </div>
+              </div>
+              <p className="text-[12px] text-white/45 font-light leading-relaxed mb-3.5">
+                iddaa üyeliğiniz tamamlandıktan sonra Instagram hesabımıza mesaj atın. Üyeliğiniz doğrulandıktan sonra size özel davet kodunuz iletilecektir.
+              </p>
+              <button
+                type="button"
+                onClick={() => window.open('https://instagram.com', '_blank')}
+                data-testid="button-instagram"
+                className="group w-full h-11 flex items-center justify-center gap-2 bg-white/[0.04] hover:bg-white/[0.07] border border-white/10 hover:border-white/15 rounded-xl text-[12.5px] text-white/85 font-medium tracking-tight transition-all duration-200"
+              >
+                <Instagram className="w-4 h-4" strokeWidth={2} />
+                Instagram'da bize ulaşın
+                <ArrowUpRight className="w-3.5 h-3.5 opacity-50 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" strokeWidth={2} />
+              </button>
+            </div>
+
+            {/* Step 3 — Activate */}
+            <div className="bento-card rounded-2xl p-5">
+              <div className="flex items-start justify-between mb-3">
+                <div>
+                  <div className="text-[10px] uppercase tracking-[0.16em] text-white/35 font-medium mb-1">03 · Erişim</div>
+                  <div className="font-serif-display text-[19px] text-white leading-tight">Kodu girin, panele girin</div>
+                </div>
+                <div className="w-7 h-7 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/40 text-[11px] font-medium">
+                  03
+                </div>
+              </div>
+              <p className="text-[12px] text-white/45 font-light leading-relaxed">
+                Aldığınız davet kodunu yukarıdaki başvuru formuna girerek hesabınızı oluşturun ve panele erişim sağlayın.
+              </p>
             </div>
           </div>
+        )}
 
-          {/* Bottom trust row */}
-          <div className="flex items-center justify-center gap-4 mt-6">
-            <div className="flex items-center gap-1.5 text-slate-500">
-              <Shield className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="text-[10px] font-mono tracking-[0.15em] uppercase">Encrypted</span>
-            </div>
-            <div className="w-1 h-1 bg-slate-700 rounded-full" />
-            <div className="flex items-center gap-1.5 text-slate-500">
-              <Lock className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="text-[10px] font-mono tracking-[0.15em] uppercase">256-bit SSL</span>
-            </div>
-            <div className="w-1 h-1 bg-slate-700 rounded-full" />
-            <div className="flex items-center gap-1.5 text-slate-500">
-              <Cpu className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="text-[10px] font-mono tracking-[0.15em] uppercase">AI Core</span>
-            </div>
-          </div>
-
-          <p className="text-center text-[10px] text-slate-600 mt-4 font-mono tracking-wider">
-            &copy; 2025 · TUTTURDUK.COM · ELITE ACCESS PROTOCOL
+        {/* Footer */}
+        <div className="w-full mt-8 pt-5 border-t border-white/[0.04] text-center">
+          <p className="text-[10.5px] text-white/30 font-light tracking-wide">
+            <span className="font-serif-display italic text-white/40">tutturduk.com</span> · 2025
+          </p>
+          <p className="text-[10px] text-white/20 mt-1.5 font-light tracking-wide">
+            18 yaş altı kullanıcılar için uygun değildir. Sorumlu oyun.
           </p>
         </div>
       </div>
