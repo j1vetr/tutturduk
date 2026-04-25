@@ -222,6 +222,17 @@ Key entities include:
 - **API Endpoints**: `/api/featured-bet` (random top bet), `/api/daily-coupon` (today's coupon with predictions)
 - **Coupon Odds Fix**: `updateCouponOdds()` now uses real odds from `best_bets.odds` column instead of risk-level approximation
 
+### April 2026 - "Million-Dollar Data Company" Visual Redesign
+- **Aesthetic**: All user-facing pages (excluding /auth, /admin, /admin-login) redesigned as a premium dark art piece
+  - Pure dark background `#0a0a0c`, hairline white borders `rgba(255,255,255,0.06)`, generous whitespace
+  - Typography: Fraunces serif (italic accents) for headlines, Inter for body, JetBrains Mono for numerics with `tabular-nums`
+  - Removed all betting clichés: no yellow primaries, no neon, no gradient blob banners, no colored bottom-nav backgrounds
+- **Global Tokens** (`client/src/index.css`): `.font-serif-display`, `.num-display`, `.label-meta`, `.label-meta-sm`, `.premium-card`, `.premium-card-elevated`, `.hairline`, `.status-dot-*`, `animate-fade-in/slide-up/pulse-soft`
+- **MobileLayout**: Fixed dark header with white logo + circular profile button, hairline border, floating pill bottom nav with active white-dot indicator (Ana Sayfa / Tahminler / Sonuçlar)
+- **Pages Redesigned**: DashboardPage, PredictionsPage, MatchDetailPage, WinnersPage, ProfilePage, LiveMatchesPage, UpcomingMatchesPage, CouponDetailPage, CouponCreatorPage
+- **Components Redesigned**: HeroPrediction (hairline aesthetic). PredictionCard / CouponCard / BestBets are admin-only and were left untouched.
+- **Excluded** (per spec): AuthPage, AdminPage, AdminLoginPage
+
 ### March 2026 - Quality Improvement (Confidence & Filter Tightening)
 - **AI Confidence Threshold Raised**: Minimum confidence increased from 60 → 70 (post-processing hard reject)
 - **Minimum Value Percentage**: Changed from >0 to ≥5% (0.05) — micro-value bets rejected

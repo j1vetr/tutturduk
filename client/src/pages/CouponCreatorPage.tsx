@@ -1,22 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 import { MobileLayout } from "@/components/MobileLayout";
-import { 
-  Sparkles, Ticket, TrendingUp, Clock, ChevronRight, 
-  Target, AlertCircle, Trophy
-} from "lucide-react";
 import { Link } from "wouter";
+import { ArrowUpRight } from "lucide-react";
 
 interface CouponPrediction {
   id: number;
   home_team: string;
   away_team: string;
-  home_logo?: string;
-  away_logo?: string;
   league_name?: string;
   prediction: string;
   odds: string;
   match_time?: string;
-  match_date?: string;
 }
 
 interface Coupon {
@@ -31,180 +25,134 @@ interface Coupon {
 
 export default function CouponCreatorPage() {
   const { data: coupons = [], isLoading } = useQuery<Coupon[]>({
-    queryKey: ['/api/coupons'],
+    queryKey: ["/api/coupons"],
     queryFn: async () => {
-      const res = await fetch('/api/coupons');
+      const res = await fetch("/api/coupons");
       if (!res.ok) return [];
       return res.json();
     },
-    refetchInterval: 60000
+    refetchInterval: 60000,
   });
 
-  const todayCoupons = coupons
-    .filter(c => c.status === 'pending' || c.result === 'pending')
-    .slice(0, 3);
-
-  const getResultBadge = (result: string) => {
-    if (result === 'won') return { text: 'KAZANDI', color: 'bg-emerald-500 text-white' };
-    if (result === 'lost') return { text: 'KAYBETTİ', color: 'bg-red-500 text-white' };
-    return { text: 'BEKLİYOR', color: 'bg-amber-100 text-amber-600' };
-  };
+  const todayCoupons = coupons.filter((c) => c.status === "pending" || c.result === "pending").slice(0, 3);
+  const resultLabel = (r: string) => (r === "won" ? "Kazandı" : r === "lost" ? "Kaybetti" : "Bekliyor");
+  const resultDot = (r: string) =>
+    r === "won" ? "status-dot-won" : r === "lost" ? "status-dot-lost" : "status-dot-pending";
 
   return (
-    <MobileLayout activeTab="coupons">
-      <div className="space-y-6 pb-6">
-        {/* Header */}
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-50 via-white to-white border border-amber-200 p-6 mx-4 shadow-sm">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-amber-100 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-          <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg">
-                <Trophy className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-display font-bold text-gray-800">Günün Uzman Kuponları</h1>
-                <p className="text-[11px] text-gray-500">AI Destekli Profesyonel Öneriler</p>
-              </div>
-            </div>
-            <p className="text-sm text-gray-500">
-              Uzman analistlerimiz ve yapay zeka tarafından hazırlanan günün en iyi kupon önerileri. 
-              Her gün maksimum 3 adet özel kupon paylaşılmaktadır.
-            </p>
-          </div>
-        </div>
+    <MobileLayout activeTab="home">
+      <div className="space-y-7 pt-3">
+        {/* MASTHEAD */}
+        <header className="pt-2">
+          <span className="label-meta-sm">Kuponlar</span>
+          <h1 className="font-serif-display text-[30px] text-white leading-[1.05] mt-2 -tracking-[0.02em]">
+            Günün <span className="italic text-white/85">uzman kuponları</span>.
+          </h1>
+          <p className="text-[11.5px] text-white/45 leading-relaxed mt-3 max-w-[360px] font-light">
+            Her gün, en yüksek güven değerine sahip 2-3 maçlık kombinasyonlar paylaşılır.
+          </p>
+        </header>
 
-        {/* Coupons List */}
-        <div className="px-4 space-y-4">
+        {/* COUPONS */}
+        <section className="space-y-4">
           {isLoading ? (
-            <div className="space-y-4">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="animate-pulse bg-gray-100 rounded-2xl h-48" />
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="premium-card rounded-[18px] h-44 animate-pulse" />
               ))}
             </div>
           ) : todayCoupons.length === 0 ? (
-            <div className="bg-gray-50 border border-gray-200 rounded-2xl p-8 text-center shadow-sm">
-              <div className="w-16 h-16 rounded-2xl bg-amber-100 flex items-center justify-center mx-auto mb-4">
-                <Ticket className="w-8 h-8 text-amber-500" />
-              </div>
-              <h3 className="text-lg font-bold text-gray-800 mb-2">Henüz Kupon Yok</h3>
-              <p className="text-sm text-gray-500">
-                Bugün için henüz kupon önerisi paylaşılmadı. Lütfen daha sonra tekrar kontrol edin.
+            <div className="premium-card rounded-[18px] py-12 text-center">
+              <p className="font-serif-display text-[20px] text-white/80 italic">Henüz kupon yok.</p>
+              <p className="text-[12px] text-white/40 mt-2 font-light">
+                Yeni kupon önerileri her gün saat 01:00'da yayınlanır.
               </p>
             </div>
           ) : (
-            todayCoupons.map((coupon, index) => {
-              const badge = getResultBadge(coupon.result);
-              return (
-                <div 
-                  key={coupon.id}
-                  className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm"
-                >
-                  {/* Coupon Header */}
-                  <div className="bg-gradient-to-r from-amber-50 to-transparent p-4 border-b border-gray-100">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow">
-                          <span className="text-lg font-black text-white">{index + 1}</span>
-                        </div>
-                        <div>
-                          <h3 className="font-bold text-gray-800">{coupon.name}</h3>
-                          <p className="text-[10px] text-gray-400 uppercase tracking-wider">
-                            {new Date(coupon.coupon_date).toLocaleDateString('tr-TR', { 
-                              day: 'numeric', month: 'long' 
-                            })}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <span className={`px-2 py-1 rounded text-[10px] font-bold ${badge.color}`}>
-                          {badge.text}
+            todayCoupons.map((coupon, idx) => (
+              <Link key={coupon.id} href={`/coupon/${coupon.id}`}>
+                <a className="block premium-card rounded-[18px] p-5 hover:bg-white/[0.025] transition-colors group">
+                  {/* header */}
+                  <div className="flex items-start justify-between mb-5">
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-2.5 mb-2">
+                        <span className="text-[10px] text-white/30 num-display">
+                          KUPON {String(idx + 1).padStart(2, "0")}
                         </span>
-                        <div className="flex items-center gap-1 mt-1 justify-end">
-                          <TrendingUp className="w-3 h-3 text-emerald-500" />
-                          <span className="text-lg font-bold text-emerald-600">
-                            {parseFloat(coupon.combined_odds || '1').toFixed(2)}x
+                        <div className="w-px h-3 bg-white/10" />
+                        <div className="flex items-center gap-1.5">
+                          <span className={`status-dot ${resultDot(coupon.result)}`} />
+                          <span className="text-[10px] text-white/55 uppercase tracking-[0.14em] font-medium">
+                            {resultLabel(coupon.result)}
                           </span>
                         </div>
                       </div>
+                      <span className="font-serif-display text-[18px] text-white -tracking-[0.005em] leading-tight">
+                        {coupon.name}
+                      </span>
+                    </div>
+                    <div className="flex flex-col items-end">
+                      <span className="label-meta-sm">Oran</span>
+                      <span className="num-display text-[24px] text-white leading-none mt-1 tracking-tight">
+                        {parseFloat(coupon.combined_odds || "1").toFixed(2)}
+                      </span>
                     </div>
                   </div>
 
-                  {/* Predictions */}
-                  <div className="divide-y divide-gray-100">
-                    {coupon.predictions && coupon.predictions.length > 0 ? (
-                      coupon.predictions.map(pred => (
-                        <div key={pred.id} className="p-3 hover:bg-gray-50 transition-colors">
-                          <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-2 flex-1 min-w-0">
-                              <div className="w-6 h-6 rounded bg-gray-100 p-0.5 flex-shrink-0">
-                                {pred.home_logo && <img src={pred.home_logo} alt="" className="w-full h-full object-contain" />}
-                              </div>
-                              <span className="text-xs text-gray-800 truncate">{pred.home_team}</span>
-                              <span className="text-[10px] text-gray-400">vs</span>
-                              <span className="text-xs text-gray-800 truncate">{pred.away_team}</span>
-                              <div className="w-6 h-6 rounded bg-gray-100 p-0.5 flex-shrink-0">
-                                {pred.away_logo && <img src={pred.away_logo} alt="" className="w-full h-full object-contain" />}
-                              </div>
+                  <div className="h-px bg-white/[0.06] mb-4" />
+
+                  {/* predictions */}
+                  {coupon.predictions && coupon.predictions.length > 0 ? (
+                    <div className="space-y-3">
+                      {coupon.predictions.map((p, i) => (
+                        <div key={p.id} className="flex items-center gap-3">
+                          <span className="text-[10px] text-white/30 num-display w-4">
+                            {String(i + 1).padStart(2, "0")}
+                          </span>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-[12.5px] text-white/85 font-medium truncate leading-tight">
+                              {p.home_team} <span className="text-white/30">·</span> {p.away_team}
                             </div>
-                            <div className="flex items-center gap-2 flex-shrink-0">
-                              <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded text-[10px] font-bold">
-                                {pred.prediction}
-                              </span>
-                              <span className="text-xs font-bold text-amber-600">
-                                {pred.odds}
-                              </span>
-                            </div>
+                            <div className="text-[10.5px] text-white/40 mt-0.5 num-display">{p.match_time}</div>
                           </div>
-                          <div className="flex items-center gap-2 mt-1 ml-8">
-                            <span className="text-[9px] text-gray-400">{pred.league_name}</span>
-                            {pred.match_time && (
-                              <>
-                                <span className="text-gray-300">•</span>
-                                <Clock className="w-3 h-3 text-gray-400" />
-                                <span className="text-[9px] text-gray-400">{pred.match_time}</span>
-                              </>
-                            )}
+                          <div className="flex items-baseline gap-2.5">
+                            <span className="font-serif-display italic text-[12px] text-white/85">{p.prediction}</span>
+                            <span className="num-display text-[11px] text-white/55">{parseFloat(p.odds || "0").toFixed(2)}</span>
                           </div>
                         </div>
-                      ))
-                    ) : (
-                      <div className="p-4 text-center">
-                        <p className="text-sm text-gray-400">Bu kupona henüz maç eklenmedi</p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Footer */}
-                  <div className="p-3 bg-gray-50 border-t border-gray-100">
-                    <div className="flex items-center justify-between text-[10px] text-gray-400">
-                      <div className="flex items-center gap-1">
-                        <Sparkles className="w-3 h-3 text-amber-500" />
-                        <span>AI Destekli Analiz</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Target className="w-3 h-3" />
-                        <span>{coupon.predictions?.length || 0} Maç</span>
-                      </div>
+                      ))}
                     </div>
+                  ) : (
+                    <p className="text-[12px] text-white/45 font-light text-center py-2">
+                      Bu kupona henüz maç eklenmedi.
+                    </p>
+                  )}
+
+                  {/* footer cta */}
+                  <div className="flex items-center justify-end gap-1.5 mt-5 pt-4 border-t border-white/[0.05]">
+                    <span className="text-[11px] text-white/55 font-medium tracking-wide">Detayları gör</span>
+                    <ArrowUpRight
+                      className="w-3.5 h-3.5 text-white/55 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                      strokeWidth={1.8}
+                    />
                   </div>
-                </div>
-              );
-            })
+                </a>
+              </Link>
+            ))
           )}
+        </section>
+
+        {/* DISCLAIMER */}
+        <div className="premium-card rounded-[16px] px-5 py-4">
+          <p className="text-[11.5px] text-white/45 leading-relaxed font-light">
+            Kuponlar yalnızca bilgilendirme amaçlıdır. Yatırım tavsiyesi değildir. Bahis risk içerir.
+          </p>
         </div>
 
-        {/* Info Section */}
-        <div className="mx-4 bg-amber-50 border border-amber-200 rounded-xl p-4">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <h4 className="text-sm font-bold text-gray-800 mb-1">Önemli Bilgi</h4>
-              <p className="text-[11px] text-gray-500 leading-relaxed">
-                Kuponlar sadece bilgilendirme amaçlıdır. Yatırım tavsiyesi değildir. 
-                Bahis oynarken sorumlu davranın ve bütçenizi aşmayın.
-              </p>
-            </div>
-          </div>
+        <div className="text-center pt-2 pb-2">
+          <span className="label-meta-sm font-serif-display italic text-white/30 normal-case tracking-normal">
+            tutturduk · veri merkezi
+          </span>
         </div>
       </div>
     </MobileLayout>

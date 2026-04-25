@@ -1,8 +1,7 @@
 import { useLocation } from "wouter";
-import { Home, Trophy, User, Target } from "lucide-react";
+import { Home, Trophy, Target, User } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
-import logoIcon from "@assets/generated_images/minimalist_sports_betting_logo_icon.png";
+import logoLight from "@assets/tutturduk_1777158124987.png";
 
 interface MobileLayoutProps {
   children: React.ReactNode;
@@ -11,93 +10,144 @@ interface MobileLayoutProps {
 
 export function MobileLayout({ children, activeTab }: MobileLayoutProps) {
   const [, setLocation] = useLocation();
-  const { toast } = useToast();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white font-sans selection:bg-primary/30">
+    <div className="min-h-screen text-white font-sans selection:bg-white/15" style={{ background: '#0a0a0c' }}>
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-[100] bg-white/95 backdrop-blur-xl border-b border-gray-100 shadow-sm">
-        <div className="h-16 flex items-center justify-between px-4 max-w-full">
-          <div className="flex items-center gap-3">
-            <div className="relative group">
-              <div className="absolute -inset-2 bg-emerald-500/20 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <img src={logoIcon} alt="Logo" className="w-9 h-9 object-contain relative z-10 drop-shadow-sm" />
-            </div>
-            <div>
-              <h1 className="text-xl font-display font-black text-gray-900 tracking-tight leading-none flex items-center gap-0.5">
-                TUTTURDUK<span className="text-emerald-500">.COM</span>
-              </h1>
-              <p className="text-[9px] text-gray-400 uppercase tracking-[0.25em] font-bold">Premium Analiz</p>
-            </div>
-          </div>
-          <button 
-            onClick={() => setLocation("/profile")}
-            className="flex items-center gap-2 bg-gray-50 border border-gray-200 hover:border-emerald-300 px-3 py-1.5 rounded-xl active:scale-95 transition-all shadow-sm group relative overflow-hidden"
+      <header
+        className="fixed top-0 left-0 right-0 z-[100] backdrop-blur-2xl"
+        style={{
+          background: 'rgba(10,10,12,0.78)',
+          borderBottom: '1px solid rgba(255,255,255,0.06)',
+        }}
+      >
+        <div className="h-[58px] flex items-center justify-between px-5 max-w-[480px] mx-auto">
+          {/* Logo */}
+          <button
+            onClick={() => setLocation("/")}
+            className="flex items-center gap-2.5 group"
+            data-testid="link-home-logo"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-50 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
-            <div className="flex flex-col items-end leading-none relative z-10">
-              <span className="text-[8px] font-bold text-gray-400 uppercase group-hover:text-emerald-500 transition-colors">Hesabım</span>
-              <span className="text-sm font-display font-bold text-gray-800 tracking-widest">Profil</span>
-            </div>
-            <User className="w-3.5 h-3.5 text-emerald-500 group-hover:scale-110 transition-transform relative z-10" />
+            <img
+              src={logoLight}
+              alt="tutturduk"
+              className="h-7 w-auto object-contain opacity-95 group-hover:opacity-100 transition-opacity"
+            />
+          </button>
+
+          {/* Profile button */}
+          <button
+            onClick={() => setLocation("/profile")}
+            className={cn(
+              "h-9 w-9 rounded-full flex items-center justify-center transition-all",
+              "border border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/[0.14] active:scale-95",
+              activeTab === "profile" && "bg-white/[0.06] border-white/[0.18]"
+            )}
+            data-testid="button-profile"
+          >
+            <User className="w-[15px] h-[15px] text-white/75" strokeWidth={1.8} />
           </button>
         </div>
-        
+
+        {/* Hairline progress accent */}
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
       </header>
 
       {/* Header Spacer */}
-      <div className="h-20" />
-      
+      <div className="h-[58px]" />
+
       {/* Main Content */}
-      <main className="px-4 pb-32 animate-in fade-in slide-in-from-bottom-2 duration-500 relative z-10">
+      <main className="px-5 pb-32 max-w-[480px] mx-auto animate-fade-in relative z-10">
         {children}
       </main>
 
       {/* Floating Bottom Navigation */}
-      <nav className="fixed bottom-6 left-6 right-6 z-50">
-        <div className="bg-white/95 backdrop-blur-2xl border border-gray-200 rounded-2xl p-2 shadow-lg shadow-gray-200/50 flex items-center justify-between relative">
-          
-          <button 
+      <nav className="fixed bottom-5 left-0 right-0 z-50 px-4">
+        <div
+          className="max-w-[480px] mx-auto flex items-stretch backdrop-blur-2xl rounded-full overflow-hidden"
+          style={{
+            background: 'rgba(14,14,16,0.92)',
+            border: '1px solid rgba(255,255,255,0.07)',
+            boxShadow: '0 24px 60px -20px rgba(0,0,0,0.7), 0 1px 0 rgba(255,255,255,0.04) inset',
+          }}
+        >
+          <NavButton
+            label="Ana Sayfa"
+            icon={Home}
+            active={activeTab === "home"}
             onClick={() => setLocation("/")}
-            className={cn(
-              "flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all duration-300 relative group overflow-hidden",
-              activeTab === "home" ? "text-emerald-600 bg-emerald-50" : "text-gray-400 hover:text-gray-700 hover:bg-gray-50"
-            )}
-          >
-            <div className={cn("absolute inset-0 bg-emerald-100 blur-xl opacity-0 transition-opacity", activeTab === "home" && "opacity-50")} />
-            <Home className={cn("w-5 h-5 transition-transform relative z-10", activeTab === "home" ? "scale-110" : "group-active:scale-90")} />
-            <span className={cn("text-[9px] font-bold tracking-wide relative z-10", activeTab === "home" && "text-emerald-700")}>Ana Sayfa</span>
-          </button>
-          
-          <div className="w-[1px] h-8 bg-gray-200" />
-
-          <button 
+            testId="nav-home"
+          />
+          <NavDivider />
+          <NavButton
+            label="Tahminler"
+            icon={Target}
+            active={activeTab === "predictions"}
             onClick={() => setLocation("/predictions")}
-            className={cn(
-              "flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all duration-300 relative group overflow-hidden",
-              activeTab === "predictions" ? "text-blue-600 bg-blue-50" : "text-gray-400 hover:text-gray-700 hover:bg-gray-50"
-            )}
-          >
-            <div className={cn("absolute inset-0 bg-blue-100 blur-xl opacity-0 transition-opacity", activeTab === "predictions" && "opacity-50")} />
-            <Target className={cn("w-5 h-5 transition-transform relative z-10", activeTab === "predictions" ? "scale-110" : "group-active:scale-90")} />
-            <span className={cn("text-[9px] font-bold tracking-wide relative z-10", activeTab === "predictions" && "text-blue-700")}>Tahminler</span>
-          </button>
-          
-          <div className="w-[1px] h-8 bg-gray-200" />
-          
-          <button 
+            testId="nav-predictions"
+          />
+          <NavDivider />
+          <NavButton
+            label="Sonuçlar"
+            icon={Trophy}
+            active={activeTab === "winners"}
             onClick={() => setLocation("/winners")}
-            className={cn(
-              "flex-1 flex flex-col items-center justify-center gap-1 py-3 rounded-xl transition-all duration-300 relative group overflow-hidden",
-              activeTab === "winners" ? "text-purple-600 bg-purple-50" : "text-gray-400 hover:text-gray-700 hover:bg-gray-50"
-            )}
-          >
-            <div className={cn("absolute inset-0 bg-purple-100 blur-xl opacity-0 transition-opacity", activeTab === "winners" && "opacity-50")} />
-            <Trophy className={cn("w-5 h-5 transition-transform relative z-10", activeTab === "winners" ? "scale-110" : "group-active:scale-90")} />
-            <span className={cn("text-[9px] font-bold tracking-wide relative z-10", activeTab === "winners" && "text-purple-700")}>Tuttu/Tutmadı</span>
-          </button>
+            testId="nav-winners"
+          />
         </div>
       </nav>
     </div>
+  );
+}
+
+function NavDivider() {
+  return <div className="self-center w-px h-7 bg-white/[0.06]" />;
+}
+
+function NavButton({
+  label,
+  icon: Icon,
+  active,
+  onClick,
+  testId,
+}: {
+  label: string;
+  icon: any;
+  active: boolean;
+  onClick: () => void;
+  testId: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      data-testid={testId}
+      className={cn(
+        "group flex-1 flex flex-col items-center justify-center gap-1 py-3 transition-all duration-300 relative",
+        "active:scale-[0.97]"
+      )}
+    >
+      {/* Active dot */}
+      <div
+        className={cn(
+          "absolute top-1.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full transition-all duration-300",
+          active ? "bg-white opacity-100" : "opacity-0"
+        )}
+      />
+      <Icon
+        className={cn(
+          "w-[18px] h-[18px] transition-colors",
+          active ? "text-white" : "text-white/45 group-hover:text-white/70"
+        )}
+        strokeWidth={active ? 2 : 1.6}
+      />
+      <span
+        className={cn(
+          "text-[9.5px] tracking-[0.14em] uppercase font-medium transition-colors",
+          active ? "text-white/90" : "text-white/40 group-hover:text-white/65"
+        )}
+      >
+        {label}
+      </span>
+    </button>
   );
 }

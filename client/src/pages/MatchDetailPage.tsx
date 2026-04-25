@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useLocation } from "wouter";
-import { MobileLayout } from "@/components/MobileLayout";
-import { ArrowLeft, Clock, Loader2, Target, Flame, AlertTriangle, Lightbulb, TrendingUp, ChevronDown, ChevronUp, CheckCircle, XCircle, Info } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ArrowLeft, ChevronDown, ChevronUp, ArrowUpRight } from "lucide-react";
+import logoLight from "@assets/tutturduk_1777158124987.png";
 
 interface PredictionItem {
   bet_type: string;
@@ -51,412 +50,354 @@ export default function MatchDetailPage() {
   const [loading, setLoading] = useState(true);
   const [loadingAI, setLoadingAI] = useState(false);
   const [showAnalysis, setShowAnalysis] = useState(true);
-  const [showAvoidBets, setShowAvoidBets] = useState(false);
+  const [showAvoid, setShowAvoid] = useState(false);
 
   useEffect(() => {
-    if (id) loadMatch();
+    if (!id) return;
+    (async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/matches/${id}`);
+        if (res.ok) {
+          const data = await res.json();
+          setMatch(data);
+          loadAI();
+        }
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [id]);
 
   useEffect(() => {
     if (!match) return;
-
-    const fetchLiveScore = async () => {
+    const fetchLive = async () => {
       try {
-        const res = await fetch('/api/matches/live-scores');
+        const res = await fetch("/api/matches/live-scores");
         if (res.ok) {
           const data = await res.json();
-          if (data.scores && data.scores[match.fixture_id]) {
-            setLiveScore(data.scores[match.fixture_id]);
-          }
+          if (data.scores?.[match.fixture_id]) setLiveScore(data.scores[match.fixture_id]);
         }
-      } catch (error) {
-        console.error('Failed to fetch live score:', error);
-      }
+      } catch {}
     };
-
-    fetchLiveScore();
-    const interval = setInterval(fetchLiveScore, 180000);
-    return () => clearInterval(interval);
+    fetchLive();
+    const i = setInterval(fetchLive, 180000);
+    return () => clearInterval(i);
   }, [match]);
 
-  const loadMatch = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/matches/${id}`);
-      if (res.ok) {
-        const data = await res.json();
-        setMatch(data);
-        loadAIAnalysis();
-      }
-    } catch (error) {
-      console.error('Failed to load match:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadAIAnalysis = async () => {
+  async function loadAI() {
     setLoadingAI(true);
     try {
       const res = await fetch(`/api/matches/${id}/ai-analysis`);
-      if (res.ok) {
-        const data = await res.json();
-        setAiAnalysis(data);
-      }
-    } catch (error) {
-      console.error('Failed to load AI analysis:', error);
+      if (res.ok) setAiAnalysis(await res.json());
     } finally {
       setLoadingAI(false);
     }
-  };
+  }
 
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', weekday: 'long' });
-  };
+  const formatDate = (dateStr: string) =>
+    new Date(dateStr).toLocaleDateString("tr-TR", { day: "numeric", month: "long", weekday: "long" });
 
   const predictions = match?.predictions || [];
-  const primaryBet = predictions.find(p => p.bet_category === 'primary');
-  const altBet = predictions.find(p => p.bet_category === 'alternative');
+  const primaryBet = predictions.find((p) => p.bet_category === "primary");
+  const altBet = predictions.find((p) => p.bet_category === "alternative");
+  const isLive = liveScore && ["1H", "2H", "HT", "ET", "P", "BT"].includes(liveScore.statusShort);
+  const isFinished = liveScore && ["FT", "AET", "PEN"].includes(liveScore.statusShort);
 
   if (loading) {
     return (
-      <MobileLayout>
-        <div className="min-h-screen flex items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+      <PageShell>
+        <div className="flex items-center justify-center py-32">
+          <div className="w-8 h-8 rounded-full border border-white/[0.10] border-t-white/60 animate-spin" />
         </div>
-      </MobileLayout>
+      </PageShell>
     );
   }
 
   if (!match) {
     return (
-      <MobileLayout>
-        <div className="min-h-screen flex flex-col items-center justify-center gap-4 px-4">
-          <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center">
-            <Info className="w-8 h-8 text-slate-400" />
-          </div>
-          <p className="text-slate-500 text-center">Maç bulunamadı</p>
-          <Button variant="outline" onClick={() => setLocation('/predictions')} className="rounded-xl">
-            <ArrowLeft className="w-4 h-4 mr-2" /> Geri Dön
-          </Button>
+      <PageShell>
+        <div className="text-center py-24">
+          <p className="font-serif-display text-[20px] text-white/80 italic mb-2">Maç bulunamadı.</p>
+          <button
+            onClick={() => setLocation("/predictions")}
+            className="mt-6 px-6 py-3 rounded-full border border-white/[0.10] hover:border-white/[0.22] text-[12px] text-white/85 transition-colors inline-flex items-center gap-2"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" /> Geri dön
+          </button>
         </div>
-      </MobileLayout>
+      </PageShell>
     );
   }
 
-  const isLive = liveScore && ['1H', '2H', 'HT', 'ET', 'P', 'BT'].includes(liveScore.statusShort);
-  const isFinished = liveScore && ['FT', 'AET', 'PEN'].includes(liveScore.statusShort);
-
   return (
-    <div className="min-h-screen bg-slate-50">
+    <PageShell onBack={() => setLocation("/predictions")} league={match.league_name}>
+      <div className="space-y-6 pt-3">
+        {/* MASTHEAD */}
+        <header className="pt-1">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="status-dot bg-white/40" />
+            <span className="label-meta-sm">Maç Detayı</span>
+            <span className="w-px h-3 bg-white/10" />
+            <span className="text-[10.5px] text-white/45 truncate">{formatDate(match.match_date)}</span>
+          </div>
+
+          {/* Teams stacked */}
+          <div className="space-y-2.5">
+            <TeamLine logo={match.home_logo} name={match.home_team} score={isLive || isFinished ? liveScore?.homeGoals ?? 0 : null} />
+            <div className="flex items-center gap-3 pl-[26px]">
+              <span className="text-[10px] text-white/25 italic font-serif-display">vs</span>
+              {isLive ? (
+                <div className="flex items-center gap-1.5">
+                  <span className="status-dot status-dot-live animate-pulse-soft" />
+                  <span className="text-[10.5px] text-emerald-300/85 num-display tracking-wider">
+                    {liveScore?.statusShort === "HT" ? "Devre arası" : `${liveScore?.elapsed}'`}
+                  </span>
+                </div>
+              ) : isFinished ? (
+                <span className="text-[10.5px] text-white/40 uppercase tracking-[0.14em]">Maç sonu</span>
+              ) : (
+                <span className="text-[10.5px] text-white/55 num-display tracking-wider">{match.match_time}</span>
+              )}
+            </div>
+            <TeamLine logo={match.away_logo} name={match.away_team} score={isLive || isFinished ? liveScore?.awayGoals ?? 0 : null} />
+          </div>
+        </header>
+
+        {/* PREDICTIONS */}
+        {(primaryBet || altBet) && (
+          <section>
+            <SectionLabel left="Tahminler" />
+            <div className="premium-card rounded-[18px] divide-y divide-white/[0.05]">
+              {primaryBet && <BetRow bet={primaryBet} category="Ana Tahmin" />}
+              {altBet && <BetRow bet={altBet} category="Alternatif" />}
+            </div>
+          </section>
+        )}
+
+        {/* EXPECTED GOAL RANGE */}
+        {aiAnalysis?.expectedGoalRange && (
+          <section className="premium-card rounded-[18px] p-5 flex items-center justify-between">
+            <span className="label-meta">Beklenen Gol Aralığı</span>
+            <span className="font-serif-display italic text-[18px] text-white num-display">{aiAnalysis.expectedGoalRange}</span>
+          </section>
+        )}
+
+        {/* EXPERT TIP */}
+        {aiAnalysis?.expertTip && (
+          <section>
+            <SectionLabel left="Uzman Görüşü" />
+            <div className="premium-card-elevated rounded-[18px] p-5">
+              <p className="font-serif-display text-[17px] text-white/95 leading-[1.45] -tracking-[0.005em]">
+                <span className="italic text-white/55">"</span>
+                {aiAnalysis.expertTip}
+                <span className="italic text-white/55">"</span>
+              </p>
+            </div>
+          </section>
+        )}
+
+        {/* DETAILED ANALYSIS */}
+        {aiAnalysis?.analysis && (
+          <section>
+            <button
+              onClick={() => setShowAnalysis(!showAnalysis)}
+              className="w-full flex items-center justify-between px-1 mb-3 group"
+            >
+              <span className="label-meta">Detaylı Analiz</span>
+              {showAnalysis ? (
+                <ChevronUp className="w-3.5 h-3.5 text-white/45 group-hover:text-white/75 transition-colors" strokeWidth={1.8} />
+              ) : (
+                <ChevronDown className="w-3.5 h-3.5 text-white/45 group-hover:text-white/75 transition-colors" strokeWidth={1.8} />
+              )}
+            </button>
+            {showAnalysis && (
+              <div className="premium-card rounded-[18px] p-5">
+                <p className="text-[13.5px] text-white/75 leading-[1.65] font-light">{aiAnalysis.analysis}</p>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* AVOID */}
+        {aiAnalysis?.avoidBets && aiAnalysis.avoidBets.length > 0 && (
+          <section>
+            <button
+              onClick={() => setShowAvoid(!showAvoid)}
+              className="w-full flex items-center justify-between px-1 mb-3 group"
+            >
+              <div className="flex items-center gap-2.5">
+                <span className="label-meta">Uzak Durun</span>
+                <span className="text-[10px] text-white/35 num-display">
+                  {aiAnalysis.avoidBets.length.toString().padStart(2, "0")}
+                </span>
+              </div>
+              {showAvoid ? (
+                <ChevronUp className="w-3.5 h-3.5 text-white/45 group-hover:text-white/75 transition-colors" strokeWidth={1.8} />
+              ) : (
+                <ChevronDown className="w-3.5 h-3.5 text-white/45 group-hover:text-white/75 transition-colors" strokeWidth={1.8} />
+              )}
+            </button>
+            {showAvoid && (
+              <div className="premium-card rounded-[18px] divide-y divide-white/[0.05]">
+                {aiAnalysis.avoidBets.map((bet, i) => {
+                  const obj = typeof bet === "string" ? { bet, reason: "" } : (bet as any);
+                  const betText = obj.bet || JSON.stringify(bet);
+                  const reason = obj.reason;
+                  return (
+                    <div key={i} className="px-5 py-4 flex flex-col gap-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="font-serif-display italic text-[14px] text-white/90">{betText}</span>
+                        <span className="label-meta-sm text-white/30">Geç</span>
+                      </div>
+                      {reason && <p className="text-[12px] text-white/45 leading-relaxed">{reason}</p>}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* LOADING AI */}
+        {loadingAI && !aiAnalysis && (
+          <div className="premium-card rounded-[18px] p-8 flex flex-col items-center gap-3">
+            <div className="w-6 h-6 rounded-full border border-white/[0.10] border-t-white/60 animate-spin" />
+            <p className="text-[12px] text-white/45 font-light">Analiz yükleniyor…</p>
+          </div>
+        )}
+
+        {/* NO DATA */}
+        {!loadingAI && !aiAnalysis && !primaryBet && !altBet && (
+          <div className="premium-card rounded-[18px] p-8 text-center">
+            <p className="font-serif-display text-[18px] text-white/75 italic mb-4">Analiz henüz hazır değil.</p>
+            <button
+              onClick={loadAI}
+              className="px-5 py-2.5 rounded-full border border-white/[0.10] hover:border-white/[0.22] text-[12px] text-white/85 transition-colors"
+            >
+              Tekrar dene
+            </button>
+          </div>
+        )}
+
+        <div className="text-center pt-2 pb-2">
+          <span className="label-meta-sm font-serif-display italic text-white/30 normal-case tracking-normal">
+            tutturduk · veri merkezi
+          </span>
+        </div>
+      </div>
+    </PageShell>
+  );
+}
+
+/* ───── Helpers ───── */
+
+function PageShell({
+  children,
+  onBack,
+  league,
+}: {
+  children: React.ReactNode;
+  onBack?: () => void;
+  league?: string;
+}) {
+  return (
+    <div className="min-h-screen text-white font-sans" style={{ background: "#0a0a0c" }}>
       {/* Header */}
-      <div className="sticky top-0 z-50 bg-white border-b border-slate-200">
-        <div className="flex items-center justify-between px-4 py-3">
-          <button 
-            onClick={() => setLocation('/predictions')}
-            className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition-colors"
+      <header
+        className="fixed top-0 left-0 right-0 z-[100] backdrop-blur-2xl"
+        style={{
+          background: "rgba(10,10,12,0.78)",
+          borderBottom: "1px solid rgba(255,255,255,0.06)",
+        }}
+      >
+        <div className="h-[58px] flex items-center justify-between px-5 max-w-[480px] mx-auto">
+          <button
+            onClick={onBack}
+            className="h-9 w-9 rounded-full flex items-center justify-center border border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/[0.14] active:scale-95 transition-all"
             data-testid="button-back"
           >
-            <ArrowLeft className="w-5 h-5 text-slate-600" />
+            <ArrowLeft className="w-[15px] h-[15px] text-white/75" strokeWidth={1.8} />
           </button>
-          <div className="flex items-center gap-2">
-            {match.league_logo && <img src={match.league_logo} className="w-5 h-5" alt="" />}
-            <span className="text-sm font-medium text-slate-600">{match.league_name}</span>
-          </div>
-          <div className="w-10" />
+          <img src={logoLight} alt="tutturduk" className="h-6 w-auto object-contain opacity-90" />
+          <div className="h-9 w-9" />
         </div>
-      </div>
-
-      <div className="px-4 pb-32">
-        {/* Match Card */}
-        <div className="mt-4 bg-white rounded-2xl border border-slate-200 overflow-hidden">
-          {/* Date & Time */}
-          <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-center gap-3">
-            <div className="flex items-center gap-2 text-slate-600">
-              <Clock className="w-4 h-4" />
-              <span className="text-sm font-semibold">{match.match_time}</span>
-            </div>
-            <span className="text-slate-300">|</span>
-            <span className="text-sm text-slate-500">{formatDate(match.match_date)}</span>
-          </div>
-
-          {/* Teams */}
-          <div className="p-6">
-            <div className="flex items-center justify-between">
-              {/* Home Team */}
-              <div className="flex-1 text-center">
-                <div className="w-16 h-16 mx-auto mb-3 rounded-xl bg-slate-50 border border-slate-100 p-2">
-                  {match.home_logo ? (
-                    <img src={match.home_logo} className="w-full h-full object-contain" alt="" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-lg font-bold text-slate-400">
-                      {match.home_team.slice(0, 2)}
-                    </div>
-                  )}
-                </div>
-                <h3 className="font-bold text-slate-800 text-sm">{match.home_team}</h3>
-                <span className="text-[11px] text-slate-400 font-medium">Ev sahibi</span>
-              </div>
-              
-              {/* Score / VS */}
-              <div className="px-4 flex flex-col items-center gap-2">
-                {isLive ? (
-                  <>
-                    <div className="px-4 py-2 rounded-xl bg-red-50 border border-red-200">
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl font-bold text-slate-800">{liveScore?.homeGoals ?? 0}</span>
-                        <span className="text-slate-400">-</span>
-                        <span className="text-2xl font-bold text-slate-800">{liveScore?.awayGoals ?? 0}</span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-100">
-                      <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                      <span className="text-xs font-semibold text-red-600">
-                        {liveScore?.statusShort === 'HT' ? 'Devre arasi' : `${liveScore?.elapsed}'`}
-                      </span>
-                    </div>
-                  </>
-                ) : isFinished ? (
-                  <>
-                    <div className="px-4 py-2 rounded-xl bg-slate-100">
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl font-bold text-slate-800">{liveScore?.homeGoals ?? 0}</span>
-                        <span className="text-slate-400">-</span>
-                        <span className="text-2xl font-bold text-slate-800">{liveScore?.awayGoals ?? 0}</span>
-                      </div>
-                    </div>
-                    <span className="text-xs font-medium text-slate-500">Mac sonu</span>
-                  </>
-                ) : (
-                  <div className="w-14 h-14 rounded-xl bg-emerald-500 flex items-center justify-center">
-                    <span className="text-xl font-bold text-white">VS</span>
-                  </div>
-                )}
-              </div>
-              
-              {/* Away Team */}
-              <div className="flex-1 text-center">
-                <div className="w-16 h-16 mx-auto mb-3 rounded-xl bg-slate-50 border border-slate-100 p-2">
-                  {match.away_logo ? (
-                    <img src={match.away_logo} className="w-full h-full object-contain" alt="" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-lg font-bold text-slate-400">
-                      {match.away_team.slice(0, 2)}
-                    </div>
-                  )}
-                </div>
-                <h3 className="font-bold text-slate-800 text-sm">{match.away_team}</h3>
-                <span className="text-[11px] text-slate-400 font-medium">Deplasman</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Predictions Card */}
-        {(primaryBet || altBet) && (
-          <div className="mt-4 bg-white rounded-2xl border border-slate-200 overflow-hidden">
-            <div className="px-4 py-3 border-b border-slate-100">
-              <h2 className="text-sm font-bold text-slate-800">Tahminler</h2>
-            </div>
-            
-            <div className="divide-y divide-slate-100">
-              {/* Primary Bet */}
-              {primaryBet && (
-                <div className="p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                      <Target className="w-5 h-5 text-emerald-600" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[11px] font-semibold text-emerald-600 uppercase tracking-wide">Ana Tahmin</span>
-                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                            primaryBet.confidence >= 75
-                              ? 'bg-emerald-100 text-emerald-700'
-                              : 'bg-amber-100 text-amber-700'
-                          }`}>
-                            {primaryBet.confidence >= 75 ? 'Düşük Risk' : 'Orta Risk'}
-                          </span>
-                        </div>
-                        <span className="text-sm font-bold text-slate-800">%{primaryBet.confidence}</span>
-                      </div>
-                      <h3 className="text-lg font-bold text-slate-900 mb-2">{primaryBet.bet_type}</h3>
-                      {primaryBet.odds && (
-                        <p className="text-xs text-slate-500 mb-2">Oran: <span className="font-semibold text-slate-700">{primaryBet.odds}</span></p>
-                      )}
-                      <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-emerald-500 rounded-full transition-all duration-700"
-                          style={{ width: `${Math.min(100, Math.max(0, ((primaryBet.confidence - 60) / 40) * 100))}%` }}
-                        />
-                      </div>
-                      <div className="flex justify-between mt-1">
-                        <span className="text-[9px] text-slate-400">%70 eşik</span>
-                        <span className="text-[9px] text-slate-400">%100</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Alternative Bet */}
-              {altBet && (
-                <div className="p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
-                      <Flame className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[11px] font-semibold text-blue-600 uppercase tracking-wide">Alternatif</span>
-                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                            altBet.confidence >= 75
-                              ? 'bg-emerald-100 text-emerald-700'
-                              : 'bg-amber-100 text-amber-700'
-                          }`}>
-                            {altBet.confidence >= 75 ? 'Düşük Risk' : 'Orta Risk'}
-                          </span>
-                        </div>
-                        <span className="text-sm font-bold text-slate-800">%{altBet.confidence}</span>
-                      </div>
-                      <h3 className="text-lg font-bold text-slate-900 mb-2">{altBet.bet_type}</h3>
-                      {altBet.odds && (
-                        <p className="text-xs text-slate-500 mb-2">Oran: <span className="font-semibold text-slate-700">{altBet.odds}</span></p>
-                      )}
-                      <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-blue-500 rounded-full transition-all duration-700"
-                          style={{ width: `${Math.min(100, Math.max(0, ((altBet.confidence - 60) / 40) * 100))}%` }}
-                        />
-                      </div>
-                      <div className="flex justify-between mt-1">
-                        <span className="text-[9px] text-slate-400">%70 eşik</span>
-                        <span className="text-[9px] text-slate-400">%100</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+        {league && (
+          <div className="px-5 pb-2 max-w-[480px] mx-auto">
+            <p className="text-center text-[10px] text-white/40 truncate uppercase tracking-[0.16em] font-medium">
+              {league}
+            </p>
           </div>
         )}
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+      </header>
+      <div className={league ? "h-[78px]" : "h-[58px]"} />
+      <main className="px-5 pb-12 max-w-[480px] mx-auto animate-fade-in relative z-10">{children}</main>
+    </div>
+  );
+}
 
-        {/* Loading AI */}
-        {loadingAI && (
-          <div className="mt-4 bg-white rounded-2xl border border-slate-200 p-8">
-            <div className="flex flex-col items-center gap-3">
-              <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
-              <p className="text-sm text-slate-500">Analiz yükleniyor...</p>
-            </div>
-          </div>
-        )}
+function SectionLabel({ left, right }: { left: string; right?: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between px-1 mb-3">
+      <span className="label-meta">{left}</span>
+      {right}
+    </div>
+  );
+}
 
-        {/* AI Analysis Content */}
-        {aiAnalysis && (
-          <div className="mt-4 space-y-4">
-            {/* Expert Tip */}
-            {aiAnalysis.expertTip && (
-              <div className="bg-white rounded-2xl border border-slate-200 p-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
-                    <Lightbulb className="w-5 h-5 text-amber-600" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-slate-800 mb-1">Uzman gorusu</h3>
-                    <p className="text-sm text-slate-600 leading-relaxed">{aiAnalysis.expertTip}</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Detailed Analysis - Collapsible */}
-            {aiAnalysis.analysis && (
-              <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-                <button 
-                  onClick={() => setShowAnalysis(!showAnalysis)}
-                  className="w-full flex items-center justify-between p-4"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center">
-                      <TrendingUp className="w-5 h-5 text-slate-600" />
-                    </div>
-                    <span className="text-sm font-bold text-slate-800">Detayli analiz</span>
-                  </div>
-                  {showAnalysis ? (
-                    <ChevronUp className="w-5 h-5 text-slate-400" />
-                  ) : (
-                    <ChevronDown className="w-5 h-5 text-slate-400" />
-                  )}
-                </button>
-                
-                {showAnalysis && (
-                  <div className="px-4 pb-4 border-t border-slate-100 pt-3">
-                    <p className="text-sm text-slate-600 leading-relaxed">{aiAnalysis.analysis}</p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Avoid Bets - Collapsible */}
-            {aiAnalysis.avoidBets && aiAnalysis.avoidBets.length > 0 && (
-              <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-                <button 
-                  onClick={() => setShowAvoidBets(!showAvoidBets)}
-                  className="w-full flex items-center justify-between p-4"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center">
-                      <AlertTriangle className="w-5 h-5 text-red-500" />
-                    </div>
-                    <span className="text-sm font-bold text-slate-800">Uzak durun</span>
-                    <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-medium">
-                      {aiAnalysis.avoidBets.length}
-                    </span>
-                  </div>
-                  {showAvoidBets ? (
-                    <ChevronUp className="w-5 h-5 text-slate-400" />
-                  ) : (
-                    <ChevronDown className="w-5 h-5 text-slate-400" />
-                  )}
-                </button>
-                
-                {showAvoidBets && (
-                  <div className="px-4 pb-4 space-y-2">
-                    {aiAnalysis.avoidBets.map((bet, i) => {
-                      const betText = typeof bet === 'string' ? bet : (bet as any).bet || (bet as any).reason || JSON.stringify(bet);
-                      return (
-                        <div key={i} className="flex items-start gap-2 p-3 rounded-xl bg-red-50">
-                          <XCircle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
-                          <span className="text-sm text-red-700">{betText}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* No Data State */}
-        {!loadingAI && !aiAnalysis && !primaryBet && !altBet && (
-          <div className="mt-4 bg-white rounded-2xl border border-slate-200 p-8 text-center">
-            <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-slate-100 flex items-center justify-center">
-              <Info className="w-7 h-7 text-slate-400" />
-            </div>
-            <p className="text-slate-500 mb-4">Analiz henuz yuklenemedi</p>
-            <Button 
-              onClick={loadAIAnalysis} 
-              className="bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-xl px-6"
-            >
-              Analizi yukle
-            </Button>
-          </div>
+function TeamLine({ logo, name, score }: { logo?: string; name: string; score: number | null }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="w-[18px] h-[18px] rounded-full bg-white/[0.04] border border-white/[0.06] flex items-center justify-center overflow-hidden flex-shrink-0">
+        {logo ? (
+          <img src={logo} alt="" className="w-3 h-3 object-contain" />
+        ) : (
+          <span className="text-[8px] text-white/55 font-medium">{name.slice(0, 1)}</span>
         )}
       </div>
+      <span className="text-[18px] text-white font-serif-display flex-1 -tracking-[0.01em]">{name}</span>
+      {score !== null && (
+        <span className="num-display text-[24px] text-white leading-none ml-3">{score}</span>
+      )}
+    </div>
+  );
+}
+
+function BetRow({ bet, category }: { bet: PredictionItem; category: string }) {
+  const riskLabel =
+    bet.confidence >= 75 ? "Düşük Risk" : bet.confidence >= 70 ? "Orta Risk" : "Yüksek Risk";
+  const pct = Math.min(100, Math.max(0, ((bet.confidence - 60) / 40) * 100));
+  return (
+    <div className="px-5 py-5">
+      <div className="flex items-center justify-between mb-3">
+        <span className="label-meta-sm">{category}</span>
+        <span className="text-[10px] text-white/40 num-display tracking-wider">{riskLabel}</span>
+      </div>
+      <div className="flex items-baseline justify-between mb-4">
+        <span className="font-serif-display text-[24px] text-white italic -tracking-[0.01em] leading-none">
+          {bet.bet_type}
+        </span>
+        <span className="num-display text-[20px] text-white leading-none">%{bet.confidence}</span>
+      </div>
+      {bet.odds && (
+        <div className="flex items-center justify-between mb-3">
+          <span className="label-meta-sm">Oran</span>
+          <span className="num-display text-[13px] text-white/85">{Number(bet.odds).toFixed(2)}</span>
+        </div>
+      )}
+      <div className="h-[2px] bg-white/[0.05] rounded-full overflow-hidden">
+        <div className="h-full bg-white/85 rounded-full transition-all duration-1000 ease-out" style={{ width: `${pct}%` }} />
+      </div>
+      <div className="flex justify-between mt-1.5">
+        <span className="text-[9px] text-white/30 num-display">%70 eşik</span>
+        <span className="text-[9px] text-white/30 num-display">%100</span>
+      </div>
+      {bet.reasoning && (
+        <p className="text-[12.5px] text-white/55 leading-relaxed mt-4 pt-4 border-t border-white/[0.05] font-light">
+          {bet.reasoning}
+        </p>
+      )}
     </div>
   );
 }

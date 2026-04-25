@@ -14,6 +14,8 @@ import AdminPage from "@/pages/AdminPage";
 import MatchDetailPage from "@/pages/MatchDetailPage";
 import LiveMatchesPage from "@/pages/LiveMatchesPage";
 import UpcomingMatchesPage from "@/pages/UpcomingMatchesPage";
+import CouponDetailPage from "@/pages/CouponDetailPage";
+import CouponCreatorPage from "@/pages/CouponCreatorPage";
 import AdminLoginPage from "@/pages/AdminLoginPage";
 import { useEffect } from "react";
 

@@ -1,22 +1,9 @@
 import { useState, useEffect } from "react";
 import { MobileLayout } from "@/components/MobileLayout";
 import { useLocation } from "wouter";
-import { 
-  TrendingUp, 
-  Target, 
-  Trophy, 
-  ChevronRight, 
-  Clock,
-  Sparkles,
-  Zap,
-  ArrowRight,
-  Activity,
-  Star,
-  Shield,
-  BarChart3,
-  Flame,
-  Ticket
-} from "lucide-react";
+import { ArrowUpRight, ChevronRight } from "lucide-react";
+import { format } from "date-fns";
+import { tr } from "date-fns/locale";
 
 interface Stats {
   total: number;
@@ -95,25 +82,20 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (stats) {
-      const duration = 1500;
-      const steps = 60;
+      const duration = 1200;
+      const steps = 50;
       const interval = duration / steps;
       let step = 0;
-
       const timer = setInterval(() => {
         step++;
-        const progress = step / steps;
-        const eased = 1 - Math.pow(1 - progress, 3);
-        
+        const eased = 1 - Math.pow(1 - step / steps, 3);
         setAnimatedStats({
           won: Math.round(stats.won * eased),
           total: Math.round(stats.total * eased),
-          rate: Math.round(stats.successRate * eased)
+          rate: Math.round(stats.successRate * eased),
         });
-
         if (step >= steps) clearInterval(timer);
       }, interval);
-
       return () => clearInterval(timer);
     }
   }, [stats]);
@@ -121,40 +103,27 @@ export default function DashboardPage() {
   async function fetchData() {
     try {
       const [statsRes, matchesRes, featuredRes, couponRes] = await Promise.all([
-        fetch("/api/best-bets/stats", { credentials: 'include' }),
-        fetch("/api/matches", { credentials: 'include' }),
-        fetch("/api/featured-bet", { credentials: 'include' }),
-        fetch("/api/daily-coupon", { credentials: 'include' })
+        fetch("/api/best-bets/stats", { credentials: "include" }),
+        fetch("/api/matches", { credentials: "include" }),
+        fetch("/api/featured-bet", { credentials: "include" }),
+        fetch("/api/daily-coupon", { credentials: "include" }),
       ]);
-      
-      if (statsRes.ok) {
-        const data = await statsRes.json();
-        setStats(data);
-      }
-      
+      if (statsRes.ok) setStats(await statsRes.json());
       if (matchesRes.ok) {
         const data = await matchesRes.json();
         const now = new Date();
         const upcoming = data
           .filter((m: any) => {
-            if (m.status === 'finished') return false;
-            const timeStr = m.match_time?.padStart(5, '0') || '00:00';
+            if (m.status === "finished") return false;
+            const timeStr = m.match_time?.padStart(5, "0") || "00:00";
             const matchDateTime = new Date(`${m.match_date}T${timeStr}:00+03:00`);
             return matchDateTime > now;
           })
-          .slice(0, 4);
+          .slice(0, 5);
         setTodayMatches(upcoming);
       }
-
-      if (featuredRes.ok) {
-        const data = await featuredRes.json();
-        setFeaturedBet(data);
-      }
-
-      if (couponRes.ok) {
-        const data = await couponRes.json();
-        setDailyCoupon(data);
-      }
+      if (featuredRes.ok) setFeaturedBet(await featuredRes.json());
+      if (couponRes.ok) setDailyCoupon(await couponRes.json());
     } catch (err) {
       console.error("Dashboard fetch error:", err);
     } finally {
@@ -162,445 +131,331 @@ export default function DashboardPage() {
     }
   }
 
+  const today = format(new Date(), "d MMMM yyyy", { locale: tr });
+  const todayShort = format(new Date(), "EEEE", { locale: tr });
+
   return (
     <MobileLayout activeTab="home">
-      <div className="space-y-5 pb-4">
-        
-        {/* Hero Section */}
-        <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 shadow-2xl">
-          <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute top-4 right-8 w-24 h-24 bg-emerald-500/20 rounded-full blur-2xl animate-pulse" />
-            <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-blue-500/15 rounded-full blur-3xl" />
-            <div className="absolute top-1/2 right-1/4 w-16 h-16 bg-purple-500/10 rounded-full blur-xl animate-pulse" style={{ animationDelay: '1s' }} />
-            <div className="absolute top-6 left-6 w-20 h-20 border border-white/5 rounded-full" />
-            <div className="absolute top-10 left-10 w-12 h-12 border border-white/5 rounded-full" />
-            <div className="absolute bottom-8 right-8 w-16 h-16 border border-emerald-500/10 rounded-2xl rotate-45" />
-            <div className="absolute inset-0 opacity-[0.03]" style={{
-              backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
-              backgroundSize: '32px 32px'
-            }} />
-          </div>
-          
-          <div className="relative z-10">
-            <div className="inline-flex items-center gap-2 bg-emerald-500/20 backdrop-blur-sm border border-emerald-500/30 rounded-full px-3 py-1.5 mb-4">
-              <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-              <span className="text-emerald-300 text-[11px] font-semibold tracking-wide">Yapay Zeka Destekli</span>
-            </div>
-            
-            <h1 className="text-white text-2xl font-black tracking-tight mb-2">
-              Hoş geldiniz!
-            </h1>
-            <p className="text-slate-400 text-sm leading-relaxed mb-5 max-w-[280px]">
-              Profesyonel analizler ve yapay zeka ile kazanma şansınızı artırın.
-            </p>
-            
-            <button 
-              onClick={() => setLocation("/predictions")}
-              className="group w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white font-bold py-3.5 px-5 rounded-2xl flex items-center justify-center gap-3 shadow-lg shadow-emerald-500/25 active:scale-[0.98] transition-all duration-300"
-              data-testid="button-view-predictions"
-            >
-              <Target className="w-5 h-5" />
-              <span>Tahminleri Görüntüle</span>
-              <ArrowRight className="w-4 h-4 ml-auto group-hover:translate-x-1 transition-transform" />
-            </button>
-          </div>
-        </div>
+      <div className="space-y-7 pt-3">
 
-        {/* Featured Bet Card */}
+        {/* ───── HEADER MASTHEAD ───── */}
+        <header className="flex items-baseline justify-between pt-2">
+          <div className="flex flex-col gap-1">
+            <span className="label-meta-sm">{todayShort}</span>
+            <h1 className="font-serif-display text-[28px] sm:text-[32px] text-white leading-[1] -tracking-[0.02em]">
+              <span className="italic text-white/85">İyi günler.</span>
+            </h1>
+            <span className="text-[11px] text-white/40 mt-1 num-display">{today}</span>
+          </div>
+          <div className="flex flex-col items-end gap-1.5">
+            <span className="label-meta-sm">Başarı</span>
+            <div className="flex items-baseline gap-1">
+              <span className="font-serif-display text-[28px] text-white leading-none num-display">
+                {loading ? "—" : animatedStats.rate}
+              </span>
+              <span className="text-[14px] text-white/40 font-light">%</span>
+            </div>
+          </div>
+        </header>
+
+        {/* ───── FEATURED BET (Günün En İyi Bahisi) ───── */}
         {featuredBet && (
           <button
             onClick={() => setLocation(`/match/${featuredBet.fixture_id}`)}
-            className="w-full relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-500 via-orange-500 to-red-500 p-[1px] shadow-lg shadow-orange-500/20 active:scale-[0.99] transition-all"
+            className="block w-full text-left premium-card-elevated rounded-[20px] p-5 active:scale-[0.995] transition-transform group"
             data-testid="card-featured-bet"
           >
-            <div className="relative rounded-[15px] bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-5 overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-amber-500/15 to-transparent rounded-bl-[60px]" />
-              <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-orange-500/10 to-transparent rounded-tr-[40px]" />
-              
-              <div className="relative z-10">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/30">
-                      <Flame className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-bold text-white">Günün En İyi Bahisi</h3>
-                      <p className="text-[10px] text-amber-300/80 font-medium">{featuredBet.league_name}</p>
-                    </div>
-                  </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <span className="text-xs font-bold text-white bg-white/10 backdrop-blur-sm px-2.5 py-1 rounded-lg">
-                      {featuredBet.match_time}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2.5 flex-1">
-                    <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center overflow-hidden p-1.5">
-                      {featuredBet.home_logo ? (
-                        <img src={featuredBet.home_logo} alt="" className="w-full h-full object-contain" />
-                      ) : (
-                        <span className="text-xs font-bold text-white">{featuredBet.home_team.slice(0, 2)}</span>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-white truncate">{featuredBet.home_team}</p>
-                      <p className="text-sm font-bold text-white truncate">{featuredBet.away_team}</p>
-                    </div>
-                    <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center overflow-hidden p-1.5">
-                      {featuredBet.away_logo ? (
-                        <img src={featuredBet.away_logo} alt="" className="w-full h-full object-contain" />
-                      ) : (
-                        <span className="text-xs font-bold text-white">{featuredBet.away_team.slice(0, 2)}</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 bg-gradient-to-r from-amber-500/20 to-orange-500/20 backdrop-blur-sm border border-amber-500/30 rounded-xl px-3.5 py-2.5">
-                    <p className="text-[10px] text-amber-300/70 font-semibold uppercase tracking-wider mb-0.5">Tahmin</p>
-                    <p className="text-sm font-black text-white">{featuredBet.bet_type}</p>
-                  </div>
-                  <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl px-3.5 py-2.5 text-center">
-                    <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-0.5">Oran</p>
-                    <p className="text-sm font-black text-amber-400">{parseFloat(featuredBet.odds).toFixed(2)}</p>
-                  </div>
-                  <div className="bg-white/10 backdrop-blur-sm border border-white/10 rounded-xl px-3.5 py-2.5 text-center">
-                    <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-0.5">Güven</p>
-                    <p className="text-sm font-black text-emerald-400">%{featuredBet.confidence}</p>
-                  </div>
-                </div>
+            {/* top label row */}
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-2">
+                <span className="status-dot status-dot-live animate-pulse-soft" />
+                <span className="label-meta-sm text-white/55">Günün Bahsi</span>
               </div>
+              <span className="text-[10.5px] text-white/40 num-display tracking-wider">
+                {featuredBet.match_time}
+              </span>
+            </div>
+
+            {/* Teams display */}
+            <div className="space-y-2.5 mb-5">
+              <TeamRow logo={featuredBet.home_logo} name={featuredBet.home_team} />
+              <div className="flex items-center gap-3 pl-[26px]">
+                <span className="text-[10px] text-white/25 font-light italic font-serif-display">vs</span>
+                <span className="text-[10px] text-white/30 truncate">{featuredBet.league_name}</span>
+              </div>
+              <TeamRow logo={featuredBet.away_logo} name={featuredBet.away_team} />
+            </div>
+
+            {/* divider */}
+            <div className="h-px bg-white/[0.06] mb-4" />
+
+            {/* metrics row */}
+            <div className="grid grid-cols-3 gap-4">
+              <Metric label="Tahmin" value={featuredBet.bet_type} serif />
+              <Metric label="Oran" value={parseFloat(featuredBet.odds).toFixed(2)} mono />
+              <Metric label="Güven" value={`${featuredBet.confidence}%`} mono />
+            </div>
+
+            {/* CTA arrow */}
+            <div className="flex items-center justify-end gap-1.5 mt-5 pt-4 border-t border-white/[0.05]">
+              <span className="text-[11px] text-white/55 font-medium tracking-wide">Detaylı analiz</span>
+              <ArrowUpRight className="w-3.5 h-3.5 text-white/55 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" strokeWidth={1.8} />
             </div>
           </button>
         )}
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-3 gap-3">
-          <div className="relative bg-white rounded-2xl p-4 border border-slate-100 shadow-sm overflow-hidden group" data-testid="stat-won">
-            <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-emerald-100 to-transparent rounded-bl-[40px] opacity-60" />
-            <div className="relative z-10">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-100 to-emerald-50 flex items-center justify-center mb-2 shadow-sm">
-                <Trophy className="w-5 h-5 text-emerald-600" />
-              </div>
-              <p className="text-2xl font-black text-slate-800 tabular-nums" data-testid="text-won-count">
-                {loading ? "-" : animatedStats.won}
-              </p>
-              <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Kazanan</p>
+        {/* ───── STATS STRIP ───── */}
+        <section>
+          <SectionLabel left="Performans" right="Toplam İstatistik" />
+          <div className="premium-card rounded-[18px] overflow-hidden">
+            <div className="grid grid-cols-3 divide-x divide-white/[0.05]">
+              <StatCell label="Kazanan" value={loading ? "—" : animatedStats.won} />
+              <StatCell label="Toplam" value={loading ? "—" : animatedStats.total} />
+              <StatCell label="Oran" value={loading ? "—" : `${animatedStats.rate}%`} />
             </div>
-          </div>
-          
-          <div className="relative bg-white rounded-2xl p-4 border border-slate-100 shadow-sm overflow-hidden group" data-testid="stat-total">
-            <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-blue-100 to-transparent rounded-bl-[40px] opacity-60" />
-            <div className="relative z-10">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center mb-2 shadow-sm">
-                <BarChart3 className="w-5 h-5 text-blue-600" />
-              </div>
-              <p className="text-2xl font-black text-slate-800 tabular-nums" data-testid="text-total-count">
-                {loading ? "-" : animatedStats.total}
-              </p>
-              <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Toplam</p>
-            </div>
-          </div>
-          
-          <div className="relative bg-white rounded-2xl p-4 border border-slate-100 shadow-sm overflow-hidden group" data-testid="stat-rate">
-            <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-violet-100 to-transparent rounded-bl-[40px] opacity-60" />
-            <div className="relative z-10">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-100 to-violet-50 flex items-center justify-center mb-2 shadow-sm">
-                <TrendingUp className="w-5 h-5 text-violet-600" />
-              </div>
-              <p className="text-2xl font-black text-slate-800 tabular-nums" data-testid="text-rate-value">
-                %{loading ? "-" : animatedStats.rate}
-              </p>
-              <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Başarı</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Success Rate Progress */}
-        {stats && stats.successRate > 0 && (
-          <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-100 to-emerald-50 flex items-center justify-center">
-                  <Activity className="w-4 h-4 text-emerald-600" />
+            {stats && stats.successRate > 0 && (
+              <>
+                <div className="h-px bg-white/[0.05]" />
+                <div className="px-5 py-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="label-meta-sm">Başarı Oranı</span>
+                    <span className="text-[10.5px] text-white/55 num-display">
+                      {stats.won} / {stats.won + stats.lost}
+                    </span>
+                  </div>
+                  <div className="h-[3px] bg-white/[0.05] rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-white/85 rounded-full transition-all duration-1000 ease-out"
+                      style={{ width: `${animatedStats.rate}%` }}
+                    />
+                  </div>
                 </div>
-                <h3 className="text-sm font-bold text-slate-800">Başarı Oranı</h3>
-              </div>
-              <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">
-                {stats.won}/{stats.won + stats.lost}
-              </span>
-            </div>
-            <div className="h-3 bg-slate-100 rounded-full overflow-hidden shadow-inner">
-              <div 
-                className="h-full bg-gradient-to-r from-emerald-500 via-emerald-400 to-teal-400 rounded-full transition-all duration-1000 ease-out relative"
-                style={{ width: `${animatedStats.rate}%` }}
-              >
-                <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-transparent" />
-              </div>
-            </div>
-            <div className="flex justify-between mt-3">
-              <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1.5">
-                <div className="w-2 h-2 bg-emerald-500 rounded-full" />
-                {stats.won} kazandı
-              </span>
-              <span className="text-[11px] text-red-500 font-semibold flex items-center gap-1.5">
-                <div className="w-2 h-2 bg-red-500 rounded-full" />
-                {stats.lost} kaybetti
-              </span>
-            </div>
+              </>
+            )}
           </div>
-        )}
+        </section>
 
-        {/* Daily Coupon Card */}
+        {/* ───── DAILY COUPON ───── */}
         {dailyCoupon && dailyCoupon.predictions && dailyCoupon.predictions.length > 0 && (
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet-500 via-purple-600 to-indigo-700 p-[1px] shadow-lg shadow-purple-500/20">
-            <div className="relative rounded-[15px] bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 overflow-hidden">
-              <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-purple-500/15 to-transparent rounded-bl-[80px]" />
-              <div className="absolute bottom-0 left-0 w-28 h-28 bg-gradient-to-tr from-indigo-500/10 to-transparent rounded-tr-[50px]" />
-              
-              <div className="relative z-10 p-5">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-400 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
-                      <Ticket className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-bold text-white">Günün Kuponu</h3>
-                      <p className="text-[10px] text-purple-300/80 font-medium">{dailyCoupon.predictions.length} maç kombinasyonu</p>
-                    </div>
-                  </div>
-                  <div className="bg-gradient-to-r from-amber-400 to-orange-500 rounded-xl px-3 py-1.5">
-                    <p className="text-[9px] text-amber-900 font-bold uppercase tracking-wider">Toplam Oran</p>
-                    <p className="text-lg font-black text-white text-center leading-tight">{parseFloat(dailyCoupon.combined_odds).toFixed(2)}</p>
-                  </div>
+          <section>
+            <SectionLabel left="Günün Kuponu" right={`${dailyCoupon.predictions.length} Maç`} />
+            <button
+              onClick={() => setLocation(`/coupon/${dailyCoupon.id}`)}
+              className="block w-full text-left premium-card rounded-[18px] p-5 hover:bg-white/[0.025] transition-colors"
+              data-testid="card-daily-coupon"
+            >
+              {/* header */}
+              <div className="flex items-end justify-between mb-5">
+                <div className="flex flex-col">
+                  <span className="label-meta-sm">Toplam Oran</span>
+                  <span className="font-serif-display text-[36px] text-white leading-none num-display tracking-tight mt-1">
+                    {parseFloat(dailyCoupon.combined_odds).toFixed(2)}
+                  </span>
                 </div>
-
-                <div className="space-y-2.5 mb-4">
-                  {dailyCoupon.predictions.map((pred, idx) => (
-                    <div 
-                      key={pred.id}
-                      className="flex items-center gap-3 bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl px-3.5 py-2.5"
-                    >
-                      <span className="text-[10px] font-bold text-purple-400 w-4">{idx + 1}</span>
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <div className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center overflow-hidden p-0.5 flex-shrink-0">
-                          {pred.home_logo ? (
-                            <img src={pred.home_logo} alt="" className="w-full h-full object-contain" />
-                          ) : (
-                            <span className="text-[8px] font-bold text-white">{pred.home_team.slice(0, 2)}</span>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-semibold text-white truncate">
-                            {pred.home_team} - {pred.away_team}
-                          </p>
-                          <p className="text-[10px] text-slate-400">{pred.match_time}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 flex-shrink-0">
-                        <span className="text-xs font-bold text-amber-400 bg-amber-500/10 px-2 py-1 rounded-lg">
-                          {pred.bet_type}
-                        </span>
-                        <span className="text-xs font-bold text-slate-300">
-                          {pred.odds ? parseFloat(pred.odds).toFixed(2) : '-'}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <button
-                  onClick={() => setLocation("/coupons")}
-                  className="w-full bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-400 hover:to-purple-500 text-white font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
-                  data-testid="button-view-coupon"
-                >
-                  <span className="text-sm">Kuponu Görüntüle</span>
-                  <ChevronRight className="w-4 h-4" />
-                </button>
+                <span className="text-[10.5px] text-white/40 num-display">
+                  ID·{String(dailyCoupon.id).padStart(4, "0")}
+                </span>
               </div>
-            </div>
-          </div>
+
+              {/* dotted separator */}
+              <div className="relative my-4">
+                <div className="absolute left-0 right-0 top-1/2 h-px"
+                  style={{
+                    backgroundImage: 'linear-gradient(to right, rgba(255,255,255,0.18) 50%, transparent 50%)',
+                    backgroundSize: '6px 1px',
+                  }} />
+              </div>
+
+              {/* predictions list */}
+              <div className="space-y-3">
+                {dailyCoupon.predictions.map((pred, idx) => (
+                  <div key={pred.id} className="flex items-center gap-3">
+                    <span className="text-[10px] text-white/30 num-display w-4">
+                      {String(idx + 1).padStart(2, "0")}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[12.5px] text-white/85 font-medium truncate leading-tight">
+                        {pred.home_team} <span className="text-white/30">·</span> {pred.away_team}
+                      </div>
+                      <div className="text-[10.5px] text-white/40 mt-0.5 num-display">
+                        {pred.match_time}
+                      </div>
+                    </div>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-[11px] font-medium text-white/85 font-serif-display italic">
+                        {pred.bet_type}
+                      </span>
+                      <span className="text-[11px] text-white/55 num-display">
+                        {pred.odds ? parseFloat(pred.odds).toFixed(2) : "—"}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* footer cta */}
+              <div className="flex items-center justify-end gap-1.5 mt-5 pt-4 border-t border-white/[0.05]">
+                <span className="text-[11px] text-white/55 font-medium tracking-wide">Kuponu görüntüle</span>
+                <ArrowUpRight className="w-3.5 h-3.5 text-white/55" strokeWidth={1.8} />
+              </div>
+            </button>
+          </section>
         )}
 
-        {/* Upcoming Matches */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center">
-                <Clock className="w-4 h-4 text-blue-600" />
-              </div>
-              <h3 className="text-sm font-bold text-slate-800">Yaklaşan Maçlar</h3>
-            </div>
-            <button 
-              onClick={() => setLocation("/predictions")}
-              className="text-xs text-emerald-600 font-semibold flex items-center gap-1 hover:gap-2 transition-all"
-              data-testid="link-all-predictions"
-            >
-              Tümünü gör
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </div>
-          
+        {/* ───── UPCOMING MATCHES ───── */}
+        <section>
+          <SectionLabel
+            left="Yaklaşan Maçlar"
+            right={
+              <button
+                onClick={() => setLocation("/predictions")}
+                className="flex items-center gap-1 text-[10.5px] text-white/55 hover:text-white transition-colors uppercase tracking-[0.16em] font-medium"
+                data-testid="link-all-predictions"
+              >
+                Tümü <ChevronRight className="w-3 h-3" strokeWidth={2} />
+              </button>
+            }
+          />
+
           {loading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map(i => (
-                <div key={i} className="bg-white rounded-2xl p-4 border border-slate-100 animate-pulse">
-                  <div className="flex items-center gap-4">
-                    <div className="w-11 h-11 bg-slate-200 rounded-xl" />
-                    <div className="flex-1">
-                      <div className="h-4 bg-slate-200 rounded-lg w-3/4 mb-2" />
-                      <div className="h-3 bg-slate-100 rounded w-1/2" />
-                    </div>
-                    <div className="w-11 h-11 bg-slate-200 rounded-xl" />
-                  </div>
+            <div className="space-y-px premium-card rounded-[18px] overflow-hidden">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="px-5 py-4 animate-pulse">
+                  <div className="h-3 bg-white/[0.05] rounded w-3/4 mb-2" />
+                  <div className="h-2 bg-white/[0.04] rounded w-1/2" />
                 </div>
               ))}
             </div>
           ) : todayMatches.length > 0 ? (
-            <div className="space-y-3">
-              {todayMatches.map((match, index) => {
-                const primaryBet = match.predictions?.find(p => p.bet_category === 'primary');
+            <div className="premium-card rounded-[18px] overflow-hidden divide-y divide-white/[0.05]">
+              {todayMatches.map((match) => {
+                const primaryBet = match.predictions?.find((p) => p.bet_category === "primary");
                 return (
                   <button
                     key={match.id}
                     onClick={() => setLocation(`/match/${match.fixture_id}`)}
-                    className="w-full bg-white rounded-2xl p-4 border border-slate-100 shadow-sm hover:shadow-md hover:border-slate-200 active:scale-[0.99] transition-all text-left relative overflow-hidden group"
+                    className="w-full px-5 py-4 text-left hover:bg-white/[0.02] active:bg-white/[0.04] transition-colors group"
                     data-testid={`card-match-${match.fixture_id}`}
                   >
-                    {index === 0 && (
-                      <div className="absolute top-0 right-0 bg-gradient-to-bl from-emerald-500/10 to-transparent w-20 h-20 rounded-bl-[40px]" />
-                    )}
-                    
-                    <div className="flex items-center gap-3 relative z-10">
-                      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-100 flex items-center justify-center overflow-hidden p-1.5">
-                        {match.home_logo ? (
-                          <img src={match.home_logo} alt="" className="w-full h-full object-contain" />
-                        ) : (
-                          <span className="text-sm font-bold text-slate-600">{match.home_team.slice(0, 2)}</span>
-                        )}
-                      </div>
-                      
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[10px] text-white/35 truncate uppercase tracking-[0.14em] font-medium">
+                        {match.league_name || "Lig"}
+                      </span>
+                      <span className="text-[10.5px] text-white/55 num-display tracking-wider">
+                        {match.match_time}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-slate-800 truncate">
+                        <p className="text-[13.5px] text-white/95 font-medium leading-tight">
                           {match.home_team}
-                          <span className="text-slate-400 font-normal mx-1.5">vs</span>
+                        </p>
+                        <p className="text-[13.5px] text-white/95 font-medium leading-tight mt-0.5">
                           {match.away_team}
                         </p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-[11px] text-slate-500 truncate">
-                            {match.league_name || "Lig"}
+                      </div>
+                      {primaryBet && (
+                        <div className="flex flex-col items-end gap-0.5">
+                          <span className="font-serif-display italic text-[13px] text-white/85">
+                            {primaryBet.bet_type}
                           </span>
-                          {primaryBet && (
-                            <>
-                              <span className="text-slate-300">•</span>
-                              <span className="text-[11px] font-semibold text-emerald-600">
-                                {primaryBet.bet_type}
-                              </span>
-                            </>
-                          )}
+                          <span className="text-[10px] text-white/40 num-display">
+                            %{primaryBet.confidence}
+                          </span>
                         </div>
-                      </div>
-                      
-                      <div className="flex flex-col items-end gap-1.5">
-                        <span className="text-xs font-bold text-white bg-gradient-to-r from-emerald-500 to-emerald-600 px-2.5 py-1 rounded-lg shadow-sm">
-                          {match.match_time}
-                        </span>
-                        <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-emerald-500 group-hover:translate-x-0.5 transition-all" />
-                      </div>
+                      )}
+                      <ChevronRight className="w-3.5 h-3.5 text-white/30 group-hover:text-white/65 group-hover:translate-x-0.5 transition-all" strokeWidth={1.8} />
                     </div>
                   </button>
                 );
               })}
             </div>
           ) : (
-            <div className="bg-gradient-to-br from-slate-50 to-white rounded-2xl p-8 text-center border border-slate-100">
-              <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mx-auto mb-3">
-                <Clock className="w-7 h-7 text-slate-400" />
-              </div>
-              <p className="text-sm font-semibold text-slate-600 mb-1">Yaklaşan maç bulunamadı</p>
-              <p className="text-xs text-slate-400">Yeni maçlar için tahminler sayfasını kontrol edin.</p>
-            </div>
-          )}
-        </div>
-
-        {/* Quick Action Cards */}
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            onClick={() => setLocation("/predictions")}
-            className="group relative bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 text-white rounded-2xl p-5 text-left overflow-hidden active:scale-[0.98] transition-all shadow-lg shadow-emerald-500/20"
-            data-testid="card-predictions"
-          >
-            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full blur-2xl -mr-8 -mt-8" />
-            <div className="absolute bottom-0 left-0 w-16 h-16 bg-black/10 rounded-full blur-xl -ml-4 -mb-4" />
-            <div className="absolute top-4 right-4 w-8 h-8 border border-white/20 rounded-full" />
-            
-            <div className="relative z-10">
-              <div className="w-11 h-11 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-3 shadow-inner">
-                <Target className="w-5 h-5 text-white" />
-              </div>
-              <h4 className="text-base font-bold mb-0.5">Tahminler</h4>
-              <p className="text-emerald-100 text-[11px] opacity-90">AI destekli analizler</p>
-            </div>
-          </button>
-          
-          <button
-            onClick={() => setLocation("/winners")}
-            className="group relative bg-gradient-to-br from-violet-500 via-purple-600 to-indigo-600 text-white rounded-2xl p-5 text-left overflow-hidden active:scale-[0.98] transition-all shadow-lg shadow-purple-500/20"
-            data-testid="card-winners"
-          >
-            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full blur-2xl -mr-8 -mt-8" />
-            <div className="absolute bottom-0 left-0 w-16 h-16 bg-black/10 rounded-full blur-xl -ml-4 -mb-4" />
-            <div className="absolute top-4 right-4 w-8 h-8 border border-white/20 rounded-full" />
-            
-            <div className="relative z-10">
-              <div className="w-11 h-11 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center mb-3 shadow-inner">
-                <Star className="w-5 h-5 text-white" />
-              </div>
-              <h4 className="text-base font-bold mb-0.5">Sonuçlar</h4>
-              <p className="text-purple-100 text-[11px] opacity-90">Tuttu / Tutmadı</p>
-            </div>
-          </button>
-        </div>
-
-        {/* Info Card */}
-        <div className="relative bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 rounded-2xl p-5 border border-amber-200/50 overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-amber-200/30 to-transparent rounded-bl-[60px]" />
-          
-          <div className="flex items-start gap-4 relative z-10">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center flex-shrink-0 shadow-lg shadow-amber-500/20">
-              <Zap className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h4 className="text-sm font-bold text-slate-800 mb-1.5">Nasıl çalışır?</h4>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                Yapay zeka, takım formları, kafa kafaya istatistikler ve sakatlık verilerini analiz ederek en değerli bahisleri belirler.
+            <div className="premium-card rounded-[18px] px-5 py-10 text-center">
+              <p className="font-serif-display text-[18px] text-white/75 italic">Bugün maç yok.</p>
+              <p className="text-[12px] text-white/40 mt-1.5 font-light">
+                Yeni analizler yarın saat 01:00'da yayınlanır.
               </p>
             </div>
-          </div>
-        </div>
+          )}
+        </section>
 
-        {/* Trust Indicators */}
-        <div className="flex items-center justify-center gap-6 py-2">
-          <div className="flex items-center gap-1.5 text-slate-400">
-            <Shield className="w-4 h-4" />
-            <span className="text-[10px] font-medium">Güvenli</span>
+        {/* ───── FOOTER METHODOLOGY ───── */}
+        <section className="pt-2">
+          <div className="premium-card rounded-[18px] p-5">
+            <div className="flex items-center justify-between mb-3">
+              <span className="label-meta-sm">Yöntem</span>
+              <span className="text-[10px] text-white/30 font-serif-display italic">v.10</span>
+            </div>
+            <p className="font-serif-display text-[19px] text-white/95 leading-[1.25] mb-2.5 -tracking-[0.01em]">
+              <span className="italic">Veri</span>, sezgi değil.
+            </p>
+            <p className="text-[12px] text-white/45 font-light leading-relaxed">
+              Form, sakatlık, geçmiş karşılaşma, oran piyasası ve sezon istatistikleri
+              GPT-4o ile değerlendirilir. <span className="text-white/65">Yalnızca güven ≥70</span> ve
+              <span className="text-white/65"> değer ≥%5</span> olan tahminler yayınlanır.
+            </p>
           </div>
-          <div className="w-1 h-1 bg-slate-300 rounded-full" />
-          <div className="flex items-center gap-1.5 text-slate-400">
-            <Sparkles className="w-4 h-4" />
-            <span className="text-[10px] font-medium">AI Analiz</span>
-          </div>
-          <div className="w-1 h-1 bg-slate-300 rounded-full" />
-          <div className="flex items-center gap-1.5 text-slate-400">
-            <Activity className="w-4 h-4" />
-            <span className="text-[10px] font-medium">Gerçek Zamanlı</span>
-          </div>
+        </section>
+
+        {/* ───── BOTTOM SIGNATURE ───── */}
+        <div className="text-center pt-3 pb-2">
+          <span className="label-meta-sm font-serif-display italic text-white/30 normal-case tracking-normal">
+            tutturduk · veri merkezi
+          </span>
         </div>
 
       </div>
     </MobileLayout>
+  );
+}
+
+/* ───── Helpers ───── */
+
+function SectionLabel({ left, right }: { left: string; right?: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between px-1 mb-3">
+      <span className="label-meta">{left}</span>
+      {typeof right === "string" ? <span className="label-meta-sm">{right}</span> : right}
+    </div>
+  );
+}
+
+function TeamRow({ logo, name }: { logo?: string; name: string }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="w-[18px] h-[18px] rounded-full bg-white/[0.04] border border-white/[0.06] flex items-center justify-center overflow-hidden flex-shrink-0">
+        {logo ? (
+          <img src={logo} alt="" className="w-3 h-3 object-contain" />
+        ) : (
+          <span className="text-[8px] text-white/55 font-medium">{name.slice(0, 1)}</span>
+        )}
+      </div>
+      <span className="text-[15.5px] text-white/95 font-medium truncate -tracking-[0.005em]">{name}</span>
+    </div>
+  );
+}
+
+function Metric({ label, value, serif, mono }: { label: string; value: string; serif?: boolean; mono?: boolean }) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className="label-meta-sm">{label}</span>
+      <span
+        className={`text-[15px] text-white leading-none ${serif ? "font-serif-display italic" : ""} ${mono ? "num-display" : ""}`}
+      >
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function StatCell({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="px-4 py-5 flex flex-col items-center gap-1.5">
+      <span className="font-serif-display text-[28px] text-white leading-none num-display">
+        {value}
+      </span>
+      <span className="label-meta-sm">{label}</span>
+    </div>
   );
 }
