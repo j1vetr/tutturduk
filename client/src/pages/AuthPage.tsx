@@ -164,7 +164,7 @@ export default function AuthPage() {
         .animate-success-pop { animation: successPop 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         .animate-fade-in { animation: fadeIn 0.6s ease-out forwards; }
         .animate-fade-scale { animation: fadeInScale 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        .font-serif-display { font-family: 'Instrument Serif', 'Georgia', serif; font-weight: 400; letter-spacing: -0.02em; }
+        .font-serif-display { font-family: 'Fraunces', 'Georgia', serif; font-weight: 400; letter-spacing: -0.025em; font-optical-sizing: auto; }
         .input-inset {
           background: #131316;
           box-shadow:
@@ -519,11 +519,11 @@ export default function AuthPage() {
 
         {/* Footer */}
         <div className="w-full mt-8 pt-5 border-t border-white/[0.04] text-center">
-          <p className="text-[10.5px] text-white/30 font-light tracking-wide">
-            <span className="font-serif-display italic text-white/40">tutturduk.com</span> · 2025
+          <p className="text-[11px] text-white/35 font-light tracking-wide">
+            <span className="font-serif-display italic text-white/45">tutturduk.com</span> — 2026
           </p>
-          <p className="text-[10px] text-white/20 mt-1.5 font-light tracking-wide">
-            18 yaş altı kullanıcılar için uygun değildir. Sorumlu oyun.
+          <p className="text-[11px] text-white/40 mt-2 font-medium tracking-wide">
+            18 yaş altı kullanıcılar için uygun değildir.
           </p>
         </div>
       </div>
