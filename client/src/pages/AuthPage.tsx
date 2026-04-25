@@ -500,16 +500,17 @@ export default function AuthPage() {
               <p className="text-[12px] text-white/45 font-light leading-relaxed mb-3.5">
                 iddaa üyeliğiniz tamamlandıktan sonra Instagram hesabımıza mesaj atın. Üyeliğiniz doğrulandıktan sonra size özel davet kodunuz iletilecektir.
               </p>
-              <button
-                type="button"
-                onClick={() => window.open('https://instagram.com', '_blank')}
+              <a
+                href="https://instagram.com/tutturduk_com"
+                target="_blank"
+                rel="noopener noreferrer"
                 data-testid="button-instagram"
                 className="group w-full h-11 flex items-center justify-center gap-2 bg-white/[0.04] hover:bg-white/[0.07] border border-white/10 hover:border-white/15 rounded-xl text-[12.5px] text-white/85 font-medium tracking-tight transition-all duration-200"
               >
                 <Instagram className="w-4 h-4" strokeWidth={2} />
-                Instagram'da bize ulaşın
+                @tutturduk_com
                 <ArrowUpRight className="w-3.5 h-3.5 opacity-50 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" strokeWidth={2} />
-              </button>
+              </a>
             </div>
 
             {/* Step 3 — Activate */}
