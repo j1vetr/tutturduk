@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import {
   ArrowRight, Instagram, Eye, EyeOff, Loader2,
   UserPlus, LogIn, AlertCircle,
-  CheckCircle2, Copy, Check, ArrowUpRight
+  CheckCircle2, Copy, Check, ArrowUpRight, ChevronDown
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import logoLight from "@assets/tutturduk_1777158124987.png";
@@ -159,6 +159,11 @@ export default function AuthPage() {
           0%, 100% { transform: translateY(0); }
           50% { transform: translateY(-3px); }
         }
+        @keyframes bounceSoft {
+          0%, 100% { transform: translateY(0); opacity: 0.7; }
+          50% { transform: translateY(2px); opacity: 1; }
+        }
+        .animate-bounce-soft { animation: bounceSoft 1.6s ease-in-out infinite; }
         .animate-slide-up { animation: slideInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         .animate-shake { animation: shakeX 0.5s ease-in-out; }
         .animate-success-pop { animation: successPop 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
@@ -366,6 +371,17 @@ export default function AuthPage() {
                         data-testid="input-referral"
                         autoComplete="off"
                       />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          document.getElementById('davet-rehberi')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }}
+                        data-testid="button-scroll-guide"
+                        className="group w-full flex items-center justify-center gap-1.5 mt-2 text-[11.5px] text-white/45 hover:text-white/80 font-medium transition-colors py-1"
+                      >
+                        Davet kodun yok mu? Aşağıdaki rehbere bak
+                        <ChevronDown className="w-3.5 h-3.5 animate-bounce-soft transition-transform group-hover:translate-y-0.5" strokeWidth={2.2} />
+                      </button>
                     </div>
                   </>
                 )}
@@ -414,7 +430,7 @@ export default function AuthPage() {
 
         {/* INVITATION GUIDE — Bento — only on register */}
         {!isLogin && (
-          <div className="w-full mt-3 space-y-3 animate-slide-up" style={{ animationDelay: '0.3s', opacity: 0 }}>
+          <div id="davet-rehberi" className="w-full mt-3 space-y-3 animate-slide-up scroll-mt-6" style={{ animationDelay: '0.3s', opacity: 0 }}>
 
             {/* Section label */}
             <div className="flex items-baseline justify-between px-1 pt-3 pb-1">
