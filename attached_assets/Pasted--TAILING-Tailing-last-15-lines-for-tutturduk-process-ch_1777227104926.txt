@@ -1,0 +1,1656 @@
+
+[TAILING] Tailing last 15 lines for [tutturduk] process (change the value with --lines option)
+/root/.pm2/logs/tutturduk-error.log last 15 lines:
+11|tutturd |     at o (/var/www/tutturduk/dist/index.cjs:342:2165)
+11|tutturd |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+11|tutturd |     at async /var/www/tutturduk/dist/index.cjs:342:3019
+11|tutturd | AI Analysis error: TypeError: d.odds.toFixed is not a function
+11|tutturd |     at /var/www/tutturduk/dist/index.cjs:342:2300
+11|tutturd |     at Array.map (<anonymous>)
+11|tutturd |     at o (/var/www/tutturduk/dist/index.cjs:342:2165)
+11|tutturd |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+11|tutturd |     at async /var/www/tutturduk/dist/index.cjs:342:3019
+11|tutturd | AI Analysis error: TypeError: d.odds.toFixed is not a function
+11|tutturd |     at /var/www/tutturduk/dist/index.cjs:342:2300
+11|tutturd |     at Array.map (<anonymous>)
+11|tutturd |     at o (/var/www/tutturduk/dist/index.cjs:342:2165)
+11|tutturd |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+11|tutturd |     at async /var/www/tutturduk/dist/index.cjs:342:3019
+
+/root/.pm2/logs/tutturduk-out.log last 15 lines:
+11|tutturd | [API-Football] Cache SET: odds:1520655 (TTL: 15min)
+11|tutturd | [Prefetch] Valid: Juventude vs Londrina (score: 100)
+11|tutturd | [API-Football] Requesting: /predictions { fixture: '1531187' }
+11|tutturd | [API-Football] Response: 1 results
+11|tutturd | [API-Football] Cache SET: prediction:1531187 (TTL: 240min)
+11|tutturd | [API-Football] Requesting: /odds { fixture: '1531187' }
+11|tutturd | [API-Football] Response: 0 results
+11|tutturd | [API-Football] Cache SET: odds:1531187 (TTL: 15min)
+11|tutturd | [API-Football] Requesting: /predictions { fixture: '1490245' }
+11|tutturd | [API-Football] Response: 1 results
+11|tutturd | [API-Football] Cache SET: prediction:1490245 (TTL: 240min)
+11|tutturd | [API-Football] Requesting: /odds { fixture: '1490245' }
+11|tutturd | [API-Football] Response: 1 results
+11|tutturd | [API-Football] Cache SET: odds:1490245 (TTL: 15min)
+11|tutturd | [Prefetch] Valid: Austin vs Houston Dynamo (score: 100)
+
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1490246' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1490246 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1490246' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1490246 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: St. Louis City vs San Jose Earthquakes (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1492055' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1492055 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1492055' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1492055 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: River Plate vs Aldosivi (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1511557' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1511557 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1511557' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1511557 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Deportes Temuco vs Rangers de Talca (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1530508' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1530508 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1530508' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1530508 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1542649' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1542649 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1542649' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1542649 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1504949' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1504949 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1504949' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1504949 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Alianza vs Zacatecoluca (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1504953' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1504953 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1504953' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1504953 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Isidro Metapán vs Fuerte San Francisco (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1510131' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1510131 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1510131' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1510131 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1510133' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1510133 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1510133' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1510133 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Plaza Amador vs UMECIT (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1514433' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1514433 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1514433' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1514433 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1531186' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1531186 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1531186' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1531186 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1535117' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1535117 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1535117' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1535117 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Real Espana vs CD Olimpia (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1540785' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1540785 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1540785' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1540785 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Real Estelí vs Matagalpa (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1540787' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1540787 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1540787' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1540787 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Managua vs Diriangén (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1542115' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1542115 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1542115' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1542115 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Monarcas vs Mineros de Zacatecas (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1492611' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1492611 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1492611' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1492611 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Toluca vs Leon (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1492610' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1492610 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1492610' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1492610 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Guadalajara Chivas vs Club Tijuana (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1490247' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1490247 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1490247' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1490247 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: San Diego vs Portland Timbers (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1504951' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1504951 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1504951' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1504951 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Inter vs Municipal Limeño (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1506101' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1506101 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1506101' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1506101 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Independiente Medellin vs Fortaleza FC (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1489180' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1489180 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1489180' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1489180 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: CS Herediano vs Sporting San Jose (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1531185' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1531185 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1531185' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1531185 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1534561' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1534561 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1534561' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1534561 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1542650' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1542650 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1542650' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1542650 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1542651' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1542651 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1542651' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1542651 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1531226' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1531226 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1531226' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1531226 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1492613' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1492613 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1492613' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1492613 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: FC Juarez vs Atletico San Luis (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1542116' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1542116 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1542116' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1542116 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: CA La Paz vs CDS Tampico Madero (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1492612' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1492612 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1492612' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1492612 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Club America vs Atlas (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1500221' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1500221 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1500221' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1500221 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1516746' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1516746 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1516746' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1516746 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Vanraure Hachinohe vs Blaublitz Akita (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1522092' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1522092 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1522092' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1522092 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Western United II vs Melbourne Knights (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1517519' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1517519 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1517519' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1517519 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Sydney United vs Wollongong Wolves (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1524208' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1524208 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1524208' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1524208 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1469710' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1469710 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1469710' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1469710 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Sydney vs Auckland (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1500220' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1500220 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1500220' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1500220 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1500223' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1500223 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1500223' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1500223 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1506953' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1506953 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1506953' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1506953 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Jeonbuk Motors vs Pohang Steelers (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1510311' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1510311 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1510311' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1510311 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Seoul E-Land FC vs Hwaseong (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1510312' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1510312 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1510312' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1510312 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Suwon City FC vs Gimpo Citizen (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1516747' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1516747 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1516747' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1516747 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Matsumoto Yamaga vs Parceiro Nagano (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1516748' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1516748 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1516748' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1516748 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Kochi United vs Tokushima Vortis (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1517515' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1517515 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1517515' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1517515 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Rockdale City Suns vs St George City FA (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1517516' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1517516 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1517516' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1517516 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Blacktown City vs NWS Spirit (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1517747' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1517747 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1517747' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1517747 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Central Coast II vs Newcastle Jets II (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1520458' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1520458 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1520458' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1520458 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Busan Transportation vs Gangneung City (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1520459' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1520459 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1520459' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1520459 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Chuncheon vs Mokpo City (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1520460' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1520460 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1520460' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1520460 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Siheung Citizen vs Yangpyeong (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1520461' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1520461 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1520461' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1520461 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Yeoju Sejong vs Pocheon (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1522025' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1522025 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1522025' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1522025 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Melbourne City II vs Hume City (score: 85)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1523731' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1523731 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1523731' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1523731 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Belmont Swansea vs Kahibah (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1532555' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1532555 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1532555' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1532555 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1532556' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1532556 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1532556' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1532556 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1516749' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1516749 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1516749' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1516749 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Ehime FC vs Kamatamare Sanuki (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1517518' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1517518 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1517518' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1517518 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: APIA Leichhardt Tigers vs St. George Saints (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1528592' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1528592 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1528592' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1528592 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1536334' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1536334 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1536334' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1536334 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1538839' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1538839 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1538839' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1538839 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Enisey vs FK Neftekhimik (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1540667' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1540667 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1540667' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1540667 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Southern District vs Kowloon City (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1542121' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1542121 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1542121' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1542121 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1435715' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1435715 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1435715' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1435715 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1469711' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1469711 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1469711' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1469711 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Melbourne City vs Adelaide United (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1506954' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1506954 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1506954' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1506954 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Gwangju FC vs FC Anyang (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1506955' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1506955 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1506955' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1506955 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Ulsan Hyundai FC vs Daejeon Citizen (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1510313' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1510313 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1510313' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1510313 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Cheongju vs Asan Mugunghwa (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1510314' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1510314 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1510314' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1510314 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Yongin City vs Gimhae City (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1528593' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1528593 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1528593' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1528593 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1400603' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1400603 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1400603' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1400603 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1487404' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1487404 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1487404' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1487404 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Slovácko II vs Hranice (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1487562' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1487562 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1487562' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1487562 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Velké Meziříčí vs Kuřim (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1487783' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1487783 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1487783' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1487783 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1489542' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1489542 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1489542' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1489542 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Hradec Králové II vs Jablonec II (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1489543' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1489543 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1489543' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1489543 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Pardubice II vs Sokol Brozany (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1489676' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1489676 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1489676' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1489676 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Bohemians 1905 II vs Táborsko II (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1489677' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1489677 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1489677' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1489677 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Dukla Praha II vs České Budějovice II (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1391837' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1391837 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1391837' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1391837 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Admira Wacker vs Sturm Graz II (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1394953' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1394953 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1394953' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1394953 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Slovan Bratislava II vs Žilina II (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1422080' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1422080 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1422080' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1422080 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1422081' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1422081 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1422081' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1422081 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1422082' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1422082 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1422082' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1422082 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Jednota Bánová vs Rimavská Sobota (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1422470' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1422470 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1422470' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1422470 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1465695' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1465695 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1465695' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1465695 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1477393' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1477393 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1477393' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1477393 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Sparta Praha II vs Opava (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1487408' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1487408 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1487408' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1487408 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Zlín II vs Sigma Olomouc II (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1487557' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1487557 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1487557' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1487557 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1489682' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1489682 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1489682' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1489682 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1489814' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1489814 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1489814' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1489814 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1518973' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1518973 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1518973' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1518973 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Persipal vs Persipura Jayapura (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1518974' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1518974 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1518974' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1518974 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Persekat vs Persiraja Banda Aceh (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1538833' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1538833 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1538833' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1538833 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Chelyabinsk vs Ural (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1408042' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1408042 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1408042' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1408042 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1408043' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1408043 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1408043' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1408043 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1526299' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1526299 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1526299' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1526299 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Kirivong Sok Sen Chey vs Dangkor Senchey (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1394954' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1394954 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1394954' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1394954 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Slávia TU Košice vs Baník Lehota p.Vtáčnikom (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1396753' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1396753 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1396753' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1396753 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Atlètic Club d'Escaldes vs Carroi (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1400606' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1400606 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1400606' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1400606 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1404242' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1404242 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1404242' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1404242 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Penang vs Sabah FA (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1414286' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1414286 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1414286' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1414286 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1414715' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1414715 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1414715' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1414715 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1414716' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1414716 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1414716' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1414716 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Vasas II vs Dabas (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1414719' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1414719 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1414719' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1414719 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1414939' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1414939 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1414939' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1414939 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1414942' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1414942 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1414942' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1414942 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Újpest II vs MTE 1904 (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1415135' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1415135 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1415135' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1415135 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Diósgyőr II vs Nyiregyhaza II (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1422254' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1422254 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1422254' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1422254 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1529831' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1529831 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1529831' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1529831 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1394952' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1394952 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1394952' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1394952 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Malženice vs Lokomotíva Zvolen (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1459776' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1459776 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1459776' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1459776 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Castellonense vs Saguntino (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1459091' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1459091 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1459091' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1459091 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1460082' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1460082 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1460082' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1460082 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1460083' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1460083 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1460083' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1460083 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1460086' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1460086 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1460086' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1460086 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1460087' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1460087 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1460087' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1460087 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1461912' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1461912 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1461912' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1461912 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1461917' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1461917 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1461917' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1461917 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1521584' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1521584 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1521584' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1521584 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1538132' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1538132 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1538132' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1538132 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1459468' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1459468 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1459468' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1459468 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1459469' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1459469 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1459469' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1459469 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1391601' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1391601 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1391601' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1391601 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Kryvbas KR vs Dynamo Kyiv (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1411011' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1411011 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1411011' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1411011 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Polonia Nysa vs Słowianin (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1431461' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1431461 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1431461' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1431461 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Europa Fc vs Real Murcia (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1432177' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1432177 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1432177' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1432177 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Atlético Astorga vs Sarriana (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1432178' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1432178 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1432178' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1432178 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Bergantiños vs UD Ourense (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1432179' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1432179 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1432179' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1432179 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Burgos Promesas vs Salamanca UDS (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1432180' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1432180 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1432180' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1432180 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Deportivo La Coruña II vs Real Valladolid II (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1432181' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1432181 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1432181' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1432181 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Gimnástica Segoviana vs Real Oviedo II (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1432182' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1432182 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1432182' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1432182 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Langreo vs Numancia (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1432183' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1432183 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1432183' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1432183 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Lealtad vs Coruxo (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1432184' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1432184 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1432184' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1432184 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Marino de Luanco vs Sámano (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1432185' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1432185 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1432185' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1432185 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Racing Santander II vs Real Ávila (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1432483' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1432483 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1432483' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1432483 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Alfaro vs SD Logroñés (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1432484' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1432484 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1432484' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1432484 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Amorebieta vs Sestao River (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1432485' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1432485 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1432485' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1432485 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Basconia vs Gernika (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1432486' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1432486 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1432486' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1432486 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Ejea vs Eibar II (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1432487' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1432487 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1432487' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1432487 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Náxara vs Beasain (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1432488' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1432488 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1432488' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1432488 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Tudelano vs Deportivo Alavés II (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1432489' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1432489 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1432489' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1432489 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: UD Logroñés vs Mutilvera (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1432490' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1432490 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1432490' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1432490 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Utebo vs Ebro (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1432491' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1432491 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1432491' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1432491 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Real Zaragoza II vs Real Unión (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1433095' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1433095 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1433095' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1433095 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Almería II vs Deportiva Minera (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1433096' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1433096 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1433096' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1433096 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Antoniano vs Recreativo Huelva (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1433097' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1433097 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1433097' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1433097 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Estepona vs Águilas (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1433098' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1433098 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1433098' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1433098 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Extremadura 1924 vs La Unión Atlético (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1433099' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1433099 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1433099' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1433099 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Lorca Deportiva vs Yeclano (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1433100' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1433100 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1433100' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1433100 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1433101' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1433101 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1433101' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1433101 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Puente Genil vs Málaga II (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1433102' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1433102 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1433102' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1433102 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Ucam Murcia vs Real Jaén (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1433103' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1433103 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1433103' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1433103 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Xerez Deportivo vs Xerez (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1433401' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1433401 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1433401' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1433401 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: CD Coria vs Elche II (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1433402' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1433402 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1433402' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1433402 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Colonia Moscardó vs Navalcarnero (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1433403' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1433403 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1433403' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1433403 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Conquense vs Tenerife II (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1433404' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1433404 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1433404' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1433404 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Fuenlabrada vs Rayo Majadahonda (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1433405' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1433405 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1433405' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1433405 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Getafe II vs Intercity (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1433406' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1433406 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1433406' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1433406 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Las Palmas II vs Orihuela (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1433407' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1433407 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1433407' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1433407 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Quintanar del Rey vs RSD Alcalá (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1433408' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1433408 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1433408' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1433408 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Rayo Vallecano II vs Socuéllamos (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1433409' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1433409 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1433409' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1433409 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: SS Reyes vs Real Madrid III (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1452794' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1452794 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1452794' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1452794 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Alcoyano vs Sant Andreu (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1452795' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1452795 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1452795' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1452795 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Atlético Baleares vs Terrassa (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1452796' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1452796 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1452796' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1452796 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Barbastro vs Castellón II (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1452797' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1452797 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1452797' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1452797 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Girona II vs Torrent (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1452798' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1452798 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1452798' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1452798 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Poblense vs Porreres (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1452799' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1452799 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1452799' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1452799 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Reddis vs Olot (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1452800' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1452800 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1452800' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1452800 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Ibiza Islas Pitiusas vs Andratx (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1452802' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1452802 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1452802' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1452802 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Barcelona B vs Atlètic Lleida (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1458211' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1458211 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1458211' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1458211 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1458213' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1458213 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1458213' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1458213 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Arosa vs Boiro (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1458511' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1458511 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1458511' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1458511 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1458514' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1458514 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1458514' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1458514 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1458515' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1458515 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1458515' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1458515 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1458517' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1458517 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1458517' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1458517 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1458518' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1458518 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1458518' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1458518 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1458788' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1458788 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1458788' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1458788 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1459098' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1459098 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1459098' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1459098 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1460088' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1460088 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1460088' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1460088 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1460389' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1460389 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1460389' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1460389 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1460689' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1460689 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1460689' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1460689 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1460691' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1460691 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1460691' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1460691 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1460693' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1460693 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1460693' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1460693 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1460696' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1460696 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1460696' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1460696 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1460995' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1460995 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1460995' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1460995 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1460997' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1460997 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1460997' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1460997 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1461302' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1461302 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1461302' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1461302 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1461306' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1461306 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1461306' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1461306 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1462216' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1462216 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1462216' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1462216 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1462221' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1462221 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1462221' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1462221 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1462223' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1462223 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1462223' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1462223 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1462525' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1462525 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1462525' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1462525 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1462831' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1462831 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1462831' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1462831 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1462833' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1462833 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1462833' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1462833 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1463130' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1463130 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1463130' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1463130 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1463440' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1463440 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1463440' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1463440 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1480006' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1480006 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1480006' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1480006 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Valencia II vs Espanyol II (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1497128' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1497128 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1497128' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1497128 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1515047' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1515047 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1515047' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1515047 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: União Santarém vs Academica (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1518138' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1518138 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1518138' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1518138 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Hồ Chí Minh II vs Long An (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1527947' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1527947 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1527947' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1527947 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1534279' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1534279 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1534279' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1534279 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1536335' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1536335 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1536335' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1536335 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1536544' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1536544 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1536544' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1536544 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1536771' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1536771 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1536771' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1536771 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1536773' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1536773 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1536773' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1536773 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1538270' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1538270 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1538270' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1538270 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: B 93 vs Middelfart (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1540657' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1540657 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1540657' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1540657 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Warriors vs Eastern (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1542122' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1542122 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1542122' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1542122 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1542447' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1542447 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1542447' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1542447 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1380652' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1380652 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1380652' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1380652 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Wisla Plock vs Radomiak Radom (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1381137' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1381137 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1381137' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1381137 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Excelsior vs Utrecht (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1458787' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1458787 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1458787' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1458787 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1460694' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1460694 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1460694' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1460694 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1378196' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1378196 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1378196' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1378196 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Fiorentina vs Sassuolo (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1400605' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1400605 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1400605' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1400605 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Ahrobiznes Volochysk vs Inhulets (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1408044' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1408044 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1408044' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1408044 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1435686' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1435686 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1435686' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1435686 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1458214' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1458214 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1458214' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1458214 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Coruña vs Barco (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1458512' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1458512 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1458512' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1458512 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1459472' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1459472 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1459472' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1459472 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Manresa vs Badalona (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1497131' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1497131 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1497131' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1497131 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1510736' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1510736 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1510736' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1510736 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Gute vs Angby (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1515704' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1515704 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1515704' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1515704 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Kubikenborg vs IFK Östersund (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1538149' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1538149 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1538149' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1538149 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1387083' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1387083 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1387083' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1387083 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Coventry vs Wrexham (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1397258' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1397258 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1397258' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1397258 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Granad. Tenerife W vs Sevilla W (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1400244' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1400244 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1400244' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1400244 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Nizhny Novgorod vs Spartak Moscow (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1417315' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1417315 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1417315' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1417315 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Tottenham Hotspur W vs Manchester United W (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1461305' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1461305 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1461305' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1461305 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1461610' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1461610 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1461610' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1461610 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1462218' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1462218 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1462218' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1462218 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1470804' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1470804 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1470804' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1470804 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1491292' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1491292 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1491292' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1491292 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Rayong FC vs Lamphun Warrior (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1496037' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1496037 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1496037' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1496037 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: jerv vs Træff (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1497544' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1497544 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1497544' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1497544 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: IFK Varnamo vs Oddevold (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1510555' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1510555 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1510555' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1510555 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Herrestads vs Lidköping (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1510737' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1510737 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1510737' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1510737 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Korsnäs vs Enskede (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1510738' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1510738 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1510738' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1510738 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Skiljebo vs Bollstanäs (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1510739' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1510739 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1510739' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1510739 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Täby vs Kungsängen (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1511103' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1511103 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1511103' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1511103 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Lindo FF vs Haninge (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1511283' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1511283 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1511283' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1511283 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Västra Frölunda vs Lindome (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1511284' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1511284 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1511284' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1511284 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Onsala vs Jonsered (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1511285' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1511285 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1511285' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1511285 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Torslanda vs Astrio (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1514639' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1514639 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1514639' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1514639 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Vihiga United FC vs Equity Bank (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1515814' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1515814 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1515814' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1515814 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Auda vs Tukums (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1518065' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1518065 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1518065' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1518065 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Da Nang vs Viettel (score: 100)
+11|tutturduk  | [Prefetch] Validated 151 matches for 2026-04-26
+11|tutturduk  | [AutoPublish][Diag] sample[0] ts=1777161600 date=2026-04-26T00:00:00+00:00 status=FT
+11|tutturduk  | [AutoPublish][Diag] sample[1] ts=1777161600 date=2026-04-26T00:00:00+00:00 status=FT
+11|tutturduk  | [AutoPublish][Diag] sample[2] ts=1777161600 date=2026-04-26T00:00:00+00:00 status=FT
+11|tutturduk  | [AutoPublish][Diag] cutoffMs=1777227177026 (2026-04-26T18:12:57.026Z)
+11|tutturduk  | [AutoPublish] Future-only filtre (manuel/anlık): 151 → 0 maç (151 maç zaten başlamış/yakın, atlandı)
+11|tutturduk  | [AutoPublish] Bugün için kalan ileri tarihli maç yok, işlem iptal
+11|tutturduk  | 9:07:57 PM [express] POST /api/admin/auto-publish-today 200 in 207304ms :: {"success":true,"message":"0 kaliteli maç yayınlandı (bugün 2026-04-26 için) — sadece 5 dk sonrası","published":0,"total":0,"date":"2026-04-26","skipped":"no_future_matches"}
+11|tutturduk  | 9:07:57 PM [express] GET /api/admin/matches 304 in 3ms :: []
