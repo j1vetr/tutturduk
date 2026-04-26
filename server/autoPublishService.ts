@@ -1260,8 +1260,13 @@ export async function prefetchValidatedFixtures(dateStr: string) {
 // Publish from pre-fetched validated fixtures
 // FAZ C: matchesPerHour parametresi geriye uyumluluk için tutuluyor ama artık kullanılmıyor.
 // Saat-bazlı bucket yerine pure stats-score ranking kullanılır → multi-pass akışıyla tutarlı.
-export async function publishFromPrefetchedFixtures(dateStr: string, totalLimit: number = MAX_DAILY_MATCHES, _matchesPerHour: number = 5) {
-  console.log(`[AutoPublish] Publishing from prefetched data for ${dateStr}...`);
+export async function publishFromPrefetchedFixtures(
+  dateStr: string,
+  totalLimit: number = MAX_DAILY_MATCHES,
+  _matchesPerHour: number = 5,
+  futureOnlyMinutes: number | null = 5,
+) {
+  console.log(`[AutoPublish] Publishing from prefetched data for ${dateStr} (futureOnlyMinutes=${futureOnlyMinutes ?? 'kapalı'})...`);
 
   // FAZ 1.1 — Aynı kilit cron ile paylaşılır; manuel tetikleme cron ile yarışmaz.
   const PUBLISH_LOCK_KEY = 73572404;
@@ -1315,7 +1320,27 @@ export async function publishFromPrefetchedFixtures(dateStr: string, totalLimit:
     await releaseLock();
     return { published: 0, total: 0, date: dateStr };
   }
-  
+
+  // Future-only filtre: sadece bugün için anlamlı (yarın için tüm maçlar zaten ilerideki).
+  // Manuel tetikleme + cron her ikisinde de geçmiş kickoff'lu maçları eler.
+  const todayStrTr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Istanbul' });
+  if (futureOnlyMinutes !== null && dateStr === todayStrTr) {
+    const cutoffMs = Date.now() + futureOnlyMinutes * 60 * 1000;
+    const beforeCount = validatedFixtures.length;
+    validatedFixtures = validatedFixtures.filter((m: MatchWithScore) => {
+      const ts = m.fixture?.timestamp;
+      if (!ts) return false;
+      return ts * 1000 > cutoffMs;
+    });
+    const skipped = beforeCount - validatedFixtures.length;
+    console.log(`[AutoPublish] Future-only filtre (manuel/anlık): ${beforeCount} → ${validatedFixtures.length} maç (${skipped} maç zaten başlamış/yakın, atlandı)`);
+    if (validatedFixtures.length === 0) {
+      console.log('[AutoPublish] Bugün için kalan ileri tarihli maç yok, işlem iptal');
+      // releaseLock için outer try-finally bloğuna güveniyoruz
+      return { published: 0, total: 0, date: dateStr, skipped: 'no_future_matches' };
+    }
+  }
+
   // FAZ C: Pure stats-score ranking — saat-bazlı bucket kaldırıldı.
   // En kaliteli maçlardan başlayarak effectiveLimit kadar seç.
   const ranked = [...validatedFixtures].sort(
@@ -1573,14 +1598,20 @@ export async function autoPublishTomorrowMatchesValidated(totalLimit: number = M
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowStr = tomorrow.toISOString().split('T')[0];
-  
+
   console.log(`[AutoPublish] Tomorrow's validated matches: ${tomorrowStr}`);
-  return publishFromPrefetchedFixtures(tomorrowStr, totalLimit, matchesPerHour);
+  // Yarın için tüm maçlar ileride → futureOnly filtresi uygulanmaz (null).
+  return publishFromPrefetchedFixtures(tomorrowStr, totalLimit, matchesPerHour, null);
 }
 
-export async function autoPublishTodayMatchesValidated(totalLimit: number = MAX_DAILY_MATCHES, matchesPerHour: number = 5, refresh: boolean = false) {
-  const today = new Date();
-  const todayStr = today.toISOString().split('T')[0];
+export async function autoPublishTodayMatchesValidated(
+  totalLimit: number = MAX_DAILY_MATCHES,
+  matchesPerHour: number = 5,
+  refresh: boolean = false,
+  futureOnlyMinutes: number | null = 5,
+) {
+  // Türkiye saati bazlı tarih (futureOnly filtresi de aynı TZ kullanıyor → tutarlı)
+  const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Istanbul' });
 
   if (refresh) {
     const cacheKey = `prefetch_validated_${todayStr}`;
@@ -1592,8 +1623,8 @@ export async function autoPublishTodayMatchesValidated(totalLimit: number = MAX_
     }
   }
 
-  console.log(`[AutoPublish] Today's validated matches: ${todayStr} (refresh=${refresh})`);
-  return publishFromPrefetchedFixtures(todayStr, totalLimit, matchesPerHour);
+  console.log(`[AutoPublish] Today's validated matches: ${todayStr} (refresh=${refresh}, futureOnlyMinutes=${futureOnlyMinutes ?? 'kapalı'})`);
+  return publishFromPrefetchedFixtures(todayStr, totalLimit, matchesPerHour, futureOnlyMinutes);
 }
 
 // ============================================================

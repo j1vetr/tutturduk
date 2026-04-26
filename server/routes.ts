@@ -2784,12 +2784,20 @@ export async function registerRoutes(
       return res.status(403).json({ message: 'Yetkiniz yok' });
     }
     try {
-      const { totalLimit = 70, perHour = 5, refresh = false } = req.body;
-      const result = await autoPublishTodayMatchesValidated(totalLimit, perHour, !!refresh);
-      res.json({ 
-        success: true, 
-        message: `${result.published} kaliteli maç yayınlandı (bugün ${result.date} için)${refresh ? ' — taze veri ile' : ''}`,
-        ...result 
+      const { totalLimit = 70, perHour = 5, refresh = false, futureOnlyMinutes = 5 } = req.body;
+      // null → filtre kapalı; geçersiz/NaN → güvenli default 5
+      let fom: number | null;
+      if (futureOnlyMinutes === null) {
+        fom = null;
+      } else {
+        const n = Number(futureOnlyMinutes);
+        fom = (Number.isFinite(n) && n >= 0) ? n : 5;
+      }
+      const result = await autoPublishTodayMatchesValidated(totalLimit, perHour, !!refresh, fom);
+      res.json({
+        success: true,
+        message: `${result.published} kaliteli maç yayınlandı (bugün ${result.date} için)${refresh ? ' — taze veri ile' : ''}${fom !== null ? ` — sadece ${fom} dk sonrası` : ''}`,
+        ...result
       });
     } catch (error: any) {
       res.status(500).json({ message: error.message });
