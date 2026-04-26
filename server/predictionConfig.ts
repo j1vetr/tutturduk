@@ -5,8 +5,25 @@
 // ============================================================
 
 // ─── GÜNLÜK YAYINLAMA LİMİTLERİ ──────────────────────────────
-export const MAX_DAILY_MATCHES = 35;
+// Multi-pass cron (01:00 / 10:00 / 14:00 / 17:00) toplamda bu cap'e kadar yayın yapar.
+export const MAX_DAILY_MATCHES = 40;
 export const MAX_PREFETCH_BUFFER = 80;
+
+// ─── MULTI-PASS YAYIN GEÇİŞ SAATLERİ (Türkiye) ───────────────
+// Pass 1: gece — tüm gün taranır (sabah/öğle maçlarının oranları hazırdır).
+// Pass 2-4: o saatten itibaren başlayacak maçlara odaklanır (oranlar gün içinde açıldıkça).
+// futureOnlyMinutes: pass başlangıcına bu kadar dk kala başlayacak maçlar elenir (oranı stabilize olmamış olabilir).
+export const PUBLISH_PASSES = [
+  { hour: 1,  label: '1/4 (01:00)', futureOnlyMinutes: null, refreshCache: false },
+  { hour: 10, label: '2/4 (10:00)', futureOnlyMinutes: 5,    refreshCache: true  },
+  { hour: 14, label: '3/4 (14:00)', futureOnlyMinutes: 5,    refreshCache: true  },
+  { hour: 17, label: '4/4 (17:00)', futureOnlyMinutes: 5,    refreshCache: true  },
+] as const;
+
+// Coupon scheduler: Pass 4 (17:00 başlar, 15-30 dk sürebilir) bittikten güvenli aralıkla sonra 18:30'da çalışır.
+// Ek koruma: scheduler advisory lock'u test eder; pass hâlâ çalışıyorsa retry yapar.
+export const COUPON_SCHEDULE_HOUR = 18;
+export const COUPON_SCHEDULE_MINUTE = 30;
 
 // ─── İSTATİSTİK KALİTE EŞİĞİ ─────────────────────────────────
 export const MIN_STATS_SCORE = 35;

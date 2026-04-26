@@ -3,7 +3,7 @@ import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
 import { startMatchStatusService } from "./matchStatusService";
-import { startAutoPublishService, startCleanupService } from "./autoPublishService";
+import { startAutoPublishService, startCleanupService, startCouponSchedulerService } from "./autoPublishService";
 import { startOddsRefreshService } from "./oddsRefreshService";
 
 const app = express();
@@ -102,13 +102,16 @@ app.use((req, res, next) => {
       log('Match status service started (15 min interval)');
       
       startAutoPublishService();
-      log('Auto-publish service started (daily at 00:10 Turkey time)');
-      
+      log('Auto-publish multi-pass scheduler started (01:00 / 10:00 / 14:00 / 17:00 Turkey time, cap=40)');
+
+      startCouponSchedulerService();
+      log('Coupon scheduler started (daily at 18:30 Turkey time, lock-aware)');
+
       startCleanupService();
       log('Cleanup service started (daily at 21:00 Turkey time)');
 
       startOddsRefreshService();
-      log('Odds refresh service started (hourly, lookahead 2 hours)');
+      log('Odds refresh service started (every 30 min, lookahead 180 min)');
     },
   );
 })();
