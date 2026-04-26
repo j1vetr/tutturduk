@@ -148,12 +148,9 @@ export default function MatchDetailPage() {
             <div className="flex items-center gap-3 pl-[26px]">
               <span className="text-[10px] text-white/25 italic font-serif-display">vs</span>
               {isLive ? (
-                <div className="flex items-center gap-1.5">
-                  <span className="status-dot status-dot-live animate-pulse-soft" />
-                  <span className="text-[10.5px] text-emerald-300/85 num-display tracking-wider">
-                    {liveScore?.statusShort === "HT" ? "Devre arası" : `${liveScore?.elapsed}'`}
-                  </span>
-                </div>
+                <span className="text-[10.5px] text-emerald-300/85 num-display tracking-wider uppercase">
+                  {liveScore?.statusShort === "HT" ? "Devre arası" : `${liveScore?.elapsed}'`}
+                </span>
               ) : isFinished ? (
                 <span className="text-[10.5px] text-white/40 uppercase tracking-[0.14em]">Maç sonu</span>
               ) : (

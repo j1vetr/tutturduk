@@ -117,11 +117,8 @@ function MatchCardVersus({ match }: { match: Match }) {
         </div>
 
         {isLive ? (
-          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#d4ff00]/15">
-            <span className="w-1.5 h-1.5 rounded-full tt-bg-lime tt-pulse" />
-            <span className="text-[9.5px] tt-text-lime tracking-[0.14em] uppercase font-semibold tt-mono">
-              {match.elapsed}'
-            </span>
+          <span className="text-[10px] tt-text-lime tracking-[0.14em] uppercase font-semibold tt-mono tt-tabular">
+            {match.elapsed}'
           </span>
         ) : isFinished ? (
           <span className="text-[9.5px] text-white/35 tracking-[0.14em] uppercase">Bitti</span>

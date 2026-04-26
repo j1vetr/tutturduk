@@ -14,6 +14,8 @@ Preferred communication style: Simple, everyday language.
 - **Design Principles**: Mobile-first, responsive, fixed header, floating pill bottom navigation.
 - **UI/UX**: Premium dark aesthetic with a pure dark background (`#0a0a0c`), hairline white borders, and specific typography (Fraunces for headlines, Inter for body, JetBrains Mono for numerics). Betting clichés are avoided.
 - **Routes**: User-facing routes are localized to Turkish (e.g., `/predictions` → `/tahminler`).
+- **Live indicators**: Pulse-soft (yanıp sönen) noktalar artık kullanılmıyor. Canlı maçlar için sadece düz lime metin (örn. `63'`) gösterilir; "Günün Bahsi" tile'ı `FeaturedBetCountdown` ile dakika bazında güncellenen geri sayım (`Başlar · 1s 14d` / `Canlı · 35'` / `Maç Bitti`) gösterir. Geri sayım kickoff'u Türkiye saatine (`+03:00`) sabitlenmiştir; iskelet `animate-pulse` (yükleniyor parıltıları) korunur.
+- **Tahmin kartı (Versus Strip)**: `/tahminler` MatchRow tek satır halinde [ev logosu] takım adları + skorlar [deplasman logosu] gösterir, üstte `[no] [lig logosu] LİG ADI ........ saat / dk'` meta satırı, altta hairline ile ayrılmış bahis bloğu (Tahmin · TUTTU/TUTMADI · oran · güven · →) bulunur.
 
 ### Backend
 - **Technology**: Express.js with TypeScript.

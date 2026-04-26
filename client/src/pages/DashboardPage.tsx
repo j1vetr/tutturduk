@@ -224,13 +224,13 @@ export default function DashboardPage() {
             data-testid="card-featured-bet"
           >
             <div className="surface rounded-3xl overflow-hidden">
-              {/* Top bar — lime tag + meta */}
+              {/* Top bar — lime tag + countdown */}
               <div className="flex items-center justify-between px-5 pt-5 pb-4">
                 <span className="tag-lime">Günün Bahsi</span>
-                <div className="flex items-center gap-2.5">
-                  <span className="status-dot status-dot-live animate-pulse-soft" />
-                  <span className="eyebrow-tiny num-mono">{featuredBet.match_time}</span>
-                </div>
+                <FeaturedBetCountdown
+                  matchDate={featuredBet.match_date}
+                  matchTime={featuredBet.match_time}
+                />
               </div>
 
               {/* League strip */}
@@ -562,6 +562,76 @@ function BetStat({
         {value}
       </span>
     </div>
+  );
+}
+
+function FeaturedBetCountdown({
+  matchDate,
+  matchTime,
+}: {
+  matchDate: string;
+  matchTime: string;
+}) {
+  const [label, setLabel] = useState<{ text: string; tone: "soon" | "live" | "done" | "later" }>({
+    text: matchTime,
+    tone: "later",
+  });
+
+  useEffect(() => {
+    const compute = () => {
+      const time = (matchTime || "00:00").padStart(5, "0");
+      const datePart = (matchDate || "").slice(0, 10);
+      const ts = new Date(`${datePart}T${time}:00+03:00`).getTime();
+      if (Number.isNaN(ts)) {
+        setLabel({ text: matchTime, tone: "later" });
+        return;
+      }
+      const diff = ts - Date.now();
+
+      if (diff <= -2.25 * 3_600_000) {
+        setLabel({ text: "Maç Bitti", tone: "done" });
+        return;
+      }
+      if (diff <= 0) {
+        const elapsedMin = Math.floor(-diff / 60_000);
+        setLabel({ text: `Canlı · ${elapsedMin}'`, tone: "live" });
+        return;
+      }
+      const totalMin = Math.floor(diff / 60_000);
+      if (totalMin < 60) {
+        setLabel({ text: `Başlar · ${totalMin}d`, tone: "soon" });
+      } else if (totalMin < 24 * 60) {
+        const h = Math.floor(totalMin / 60);
+        const m = totalMin % 60;
+        setLabel({
+          text: m > 0 ? `Başlar · ${h}s ${m}d` : `Başlar · ${h}s`,
+          tone: "soon",
+        });
+      } else {
+        setLabel({ text: `${matchTime}`, tone: "later" });
+      }
+    };
+    compute();
+    const id = setInterval(compute, 60_000);
+    return () => clearInterval(id);
+  }, [matchDate, matchTime]);
+
+  const colorClass =
+    label.tone === "live"
+      ? "text-lime"
+      : label.tone === "done"
+      ? "text-white/40"
+      : label.tone === "soon"
+      ? "text-white/85"
+      : "text-white/65";
+
+  return (
+    <span
+      data-testid="text-featured-countdown"
+      className={`text-[10.5px] num-mono tabular tracking-[0.14em] uppercase font-semibold ${colorClass}`}
+    >
+      {label.text}
+    </span>
   );
 }
 

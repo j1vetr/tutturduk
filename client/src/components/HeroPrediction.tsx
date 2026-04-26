@@ -89,15 +89,11 @@ export function HeroPrediction() {
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
           {timeLeft.isLive ? (
-            <>
-              <span className="status-dot status-dot-live animate-pulse-soft" />
-              <span className="label-meta-sm text-emerald-300/90">Canlı Yayın</span>
-            </>
+            <span className="label-meta-sm text-emerald-300/90 uppercase tracking-[0.16em]">
+              Canlı Yayın
+            </span>
           ) : (
-            <>
-              <span className="status-dot bg-white/40" />
-              <span className="label-meta-sm">Öne Çıkan</span>
-            </>
+            <span className="label-meta-sm uppercase tracking-[0.16em]">Öne Çıkan</span>
           )}
         </div>
         <div className="flex items-center gap-3">

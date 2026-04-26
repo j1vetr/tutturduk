@@ -396,11 +396,23 @@ function FilterChip({
       }`}
     >
       {live && !active && (
-        <span className="w-1.5 h-1.5 rounded-full bg-lime animate-pulse-soft" aria-hidden />
+        <span className="w-1.5 h-1.5 rounded-sm bg-lime" aria-hidden />
       )}
       <span>{label}</span>
       <span className="num-mono opacity-70">{String(count).padStart(2, "0")}</span>
     </button>
+  );
+}
+
+function TeamLogo({ src, alt }: { src?: string; alt: string }) {
+  return (
+    <div className="w-10 h-10 rounded-xl bg-[#1d1d22] border border-white/[0.04] flex items-center justify-center flex-shrink-0">
+      {src ? (
+        <img src={src} alt={alt} className="w-7 h-7 object-contain" />
+      ) : (
+        <span className="text-[11px] text-white/55 font-semibold">{alt.slice(0, 1)}</span>
+      )}
+    </div>
   );
 }
 
@@ -421,6 +433,9 @@ function MatchRow({
   const bet = match.best_bet;
   const won = bet?.result === "won";
   const lost = bet?.result === "lost";
+  const showScore = (isLive || isFinished) && live;
+  const homeScore = showScore ? live!.homeGoals ?? 0 : null;
+  const awayScore = showScore ? live!.awayGoals ?? 0 : null;
 
   return (
     <button
@@ -429,56 +444,73 @@ function MatchRow({
       className="block w-full text-left bg-[#131316] hover:bg-[#1a1a1d] active:bg-[#1a1a1d] rounded-2xl px-5 py-5 transition-colors group"
     >
       {/* meta row */}
-      <div className="flex items-baseline justify-between gap-3 mb-3.5">
-        <div className="flex items-baseline gap-3 min-w-0">
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <div className="flex items-center gap-2.5 min-w-0">
           <span className="num-mono text-[10.5px] text-white/30 tabular">
             {String(index).padStart(2, "0")}
           </span>
-          <span className="num-mono text-[12px] text-white/85 tabular">{match.match_time}</span>
-          <span className="text-[10.5px] text-white/40 truncate uppercase tracking-[0.12em]">
+          {match.league_logo && (
+            <img
+              src={match.league_logo}
+              alt=""
+              className="w-3.5 h-3.5 object-contain opacity-70 grayscale"
+              aria-hidden
+            />
+          )}
+          <span className="text-[10.5px] text-white/45 truncate uppercase tracking-[0.12em]">
             {match.league_name || "—"}
           </span>
         </div>
 
         {isLive ? (
-          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-lime/15">
-            <span className="w-1.5 h-1.5 rounded-full bg-lime animate-pulse-soft" aria-hidden />
-            <span className="text-[9.5px] text-lime tracking-[0.14em] uppercase font-semibold num-mono">
-              {live!.statusShort === "HT" ? "Devre Arası" : `${live!.elapsed ?? 0}'`}
-            </span>
+          <span className="text-[10px] text-lime tracking-[0.14em] uppercase font-semibold num-mono tabular">
+            {live!.statusShort === "HT" ? "Devre Arası" : `${live!.elapsed ?? 0}'`}
           </span>
         ) : isFinished ? (
           <span className="text-[9.5px] text-white/35 tracking-[0.14em] uppercase">Bitti</span>
-        ) : relative ? (
-          <span className="text-[10.5px] text-white/55 num-mono tabular">{relative}</span>
-        ) : null}
+        ) : (
+          <div className="flex items-baseline gap-2">
+            <span className="text-[12px] text-white/85 num-mono tabular">{match.match_time}</span>
+            {relative && (
+              <span className="text-[10px] text-white/40 num-mono tabular">{relative}</span>
+            )}
+          </div>
+        )}
       </div>
 
-      {/* teams */}
-      <div className="mb-4">
-        <p className="text-[15.5px] text-white leading-[1.2] font-medium truncate">
-          {match.home_team}
-        </p>
-        <p className="text-[15.5px] text-white/60 leading-[1.2] font-medium truncate mt-0.5">
-          {match.away_team}
-        </p>
-      </div>
+      {/* versus strip — single row: [Home logo] names — scores [Away logo] */}
+      <div className="flex items-center gap-3 mb-4">
+        <TeamLogo src={match.home_logo} alt={match.home_team} />
 
-      {/* score for live/finished */}
-      {(isLive || isFinished) && live && (
-        <div className="bt-hairline pt-4 mb-4 flex items-end justify-between">
-          <div className="eyebrow-tiny">Skor</div>
-          <div className="font-display num-mono tabular text-[22px] text-white leading-none">
-            {live.homeGoals ?? 0}
-            <span className="text-white/30 mx-2">—</span>
-            {live.awayGoals ?? 0}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between gap-2 leading-[1.15]">
+            <span className="text-[14.5px] text-white font-medium truncate">
+              {match.home_team}
+            </span>
+            {showScore && (
+              <span className="font-display num-mono tabular text-[15px] text-white font-semibold flex-shrink-0">
+                {homeScore}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center justify-between gap-2 leading-[1.15] mt-1">
+            <span className="text-[14.5px] text-white/55 font-medium truncate">
+              {match.away_team}
+            </span>
+            {showScore && (
+              <span className="font-display num-mono tabular text-[15px] text-white/55 font-semibold flex-shrink-0">
+                {awayScore}
+              </span>
+            )}
           </div>
         </div>
-      )}
+
+        <TeamLogo src={match.away_logo} alt={match.away_team} />
+      </div>
 
       {/* bet block */}
       {bet ? (
-        <div className={`${(isLive || isFinished) ? "" : "bt-hairline pt-4"} flex items-end justify-between gap-3`}>
+        <div className="bt-hairline pt-4 flex items-end justify-between gap-3">
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 mb-1">
               <span className="eyebrow-tiny">Tahmin</span>
