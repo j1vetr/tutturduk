@@ -70,7 +70,7 @@ export default function CouponCreatorPage() {
             </div>
           ) : (
             todayCoupons.map((coupon, idx) => (
-              <Link key={coupon.id} href={`/coupon/${coupon.id}`}>
+              <Link key={coupon.id} href={`/kupon/${coupon.id}`}>
                 <a className="block premium-card rounded-[18px] p-5 hover:bg-white/[0.025] transition-colors group">
                   {/* header */}
                   <div className="flex items-start justify-between mb-5">

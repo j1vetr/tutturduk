@@ -324,7 +324,7 @@ export default function PredictionsPage() {
                         match={match}
                         index={baseIndex + idx}
                         live={liveScores[match.fixture_id]}
-                        onClick={() => setLocation(`/match/${match.fixture_id}`)}
+                        onClick={() => setLocation(`/mac/${match.fixture_id}`)}
                       />
                     ))}
                   </div>

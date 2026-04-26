@@ -57,6 +57,34 @@ function Router() {
       <Route path="/">
         {() => <ProtectedRoute component={DashboardPage} />}
       </Route>
+
+      {/* Türkçe rotalar (birincil) */}
+      <Route path="/tahminler">
+        {() => <ProtectedRoute component={PredictionsPage} />}
+      </Route>
+      <Route path="/mac/:id">
+        {() => <ProtectedRoute component={MatchDetailPage} />}
+      </Route>
+      <Route path="/sonuclar">
+        {() => <ProtectedRoute component={WinnersPage} />}
+      </Route>
+      <Route path="/profil">
+        {() => <ProtectedRoute component={ProfilePage} />}
+      </Route>
+      <Route path="/canli">
+        {() => <ProtectedRoute component={LiveMatchesPage} />}
+      </Route>
+      <Route path="/yaklasan">
+        {() => <ProtectedRoute component={UpcomingMatchesPage} />}
+      </Route>
+      <Route path="/kupon/:id">
+        {() => <ProtectedRoute component={CouponDetailPage} />}
+      </Route>
+      <Route path="/kupon-olustur">
+        {() => <ProtectedRoute component={CouponCreatorPage} />}
+      </Route>
+
+      {/* Eski İngilizce rotalar — geri uyumluluk */}
       <Route path="/predictions">
         {() => <ProtectedRoute component={PredictionsPage} />}
       </Route>
@@ -75,6 +103,13 @@ function Router() {
       <Route path="/upcoming">
         {() => <ProtectedRoute component={UpcomingMatchesPage} />}
       </Route>
+      <Route path="/coupon/:id">
+        {() => <ProtectedRoute component={CouponDetailPage} />}
+      </Route>
+      <Route path="/coupon-creator">
+        {() => <ProtectedRoute component={CouponCreatorPage} />}
+      </Route>
+
       <Route path="/admin">
         {() => <ProtectedRoute component={AdminPage} />}
       </Route>

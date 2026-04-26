@@ -466,7 +466,7 @@ export default function WinnersPage() {
               {data.wonCoupons.slice(0, 5).map((c) => (
                 <button
                   key={c.id}
-                  onClick={() => setLocation(`/coupon/${c.id}`)}
+                  onClick={() => setLocation(`/kupon/${c.id}`)}
                   className="block w-full text-left bg-[#131316] hover:bg-[#1a1a1d] rounded-2xl px-5 py-4 transition-colors group"
                   data-testid={`card-coupon-${c.id}`}
                 >
@@ -550,7 +550,7 @@ export default function WinnersPage() {
                     index={idx + 1}
                     isAdmin={isAdmin}
                     onUpdateResult={updateResult}
-                    onClick={() => setLocation(`/match/${match.fixture_id}`)}
+                    onClick={() => setLocation(`/mac/${match.fixture_id}`)}
                   />
                 ))}
               </div>

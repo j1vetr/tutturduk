@@ -37,7 +37,7 @@ export function MobileLayout({ children, activeTab }: MobileLayoutProps) {
 
           {/* Profile button */}
           <button
-            onClick={() => setLocation("/profile")}
+            onClick={() => setLocation("/profil")}
             className={cn(
               "h-9 w-9 rounded-full flex items-center justify-center transition-all",
               "border border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.05] hover:border-white/[0.14] active:scale-95",
@@ -83,7 +83,7 @@ export function MobileLayout({ children, activeTab }: MobileLayoutProps) {
             label="Tahminler"
             icon={Target}
             active={activeTab === "predictions"}
-            onClick={() => setLocation("/predictions")}
+            onClick={() => setLocation("/tahminler")}
             testId="nav-predictions"
           />
           <NavDivider />
@@ -91,7 +91,7 @@ export function MobileLayout({ children, activeTab }: MobileLayoutProps) {
             label="Sonuçlar"
             icon={Trophy}
             active={activeTab === "winners"}
-            onClick={() => setLocation("/winners")}
+            onClick={() => setLocation("/sonuclar")}
             testId="nav-winners"
           />
         </div>

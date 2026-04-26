@@ -81,7 +81,7 @@ export function HeroPrediction() {
 
   return (
     <button
-      onClick={() => setLocation(`/match/${match.fixture_id}`)}
+      onClick={() => setLocation(`/mac/${match.fixture_id}`)}
       className="block w-full text-left premium-card-elevated rounded-[20px] p-5 active:scale-[0.995] transition-transform group"
       data-testid="card-hero-prediction"
     >

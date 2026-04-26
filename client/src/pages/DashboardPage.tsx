@@ -140,8 +140,10 @@ export default function DashboardPage() {
   const dateLabel = format(new Date(), "d MMMM, EEEE", { locale: tr }).toUpperCase();
   const weekLabel = format(new Date(), "'HAFTA' w · yyyy", { locale: tr }).toUpperCase();
 
-  /* Build ticker items from real data */
-  const tickerItems: string[] = [];
+  /* Build ticker items from real data — brand line is always first */
+  const tickerItems: string[] = [
+    "TUTTURDUK.COM · TÜRKİYE'NİN YAPAY ZEKA BAHİS TAHMİN PLATFORMU",
+  ];
   if (stats && stats.total > 0) {
     tickerItems.push(`BUGÜNE KADAR · %${stats.successRate} İSABET`);
     tickerItems.push(`${stats.won}/${stats.total} TUTAN BAHİS`);
@@ -157,10 +159,7 @@ export default function DashboardPage() {
   if (dailyCoupon) {
     tickerItems.push(`KUPON · ${parseFloat(dailyCoupon.combined_odds).toFixed(2)}x TOPLAM`);
   }
-  const tickerLine =
-    tickerItems.length > 0
-      ? tickerItems.join("   ◆   ")
-      : "TUTTURDUK · ANALİZ MERKEZİ · TÜRKİYE";
+  const tickerLine = tickerItems.join("   ◆   ");
 
   return (
     <MobileLayout activeTab="home">
@@ -220,7 +219,7 @@ export default function DashboardPage() {
         {/* ════════ FEATURED BET — broadcast tile ════════ */}
         {featuredBet ? (
           <button
-            onClick={() => setLocation(`/match/${featuredBet.fixture_id}`)}
+            onClick={() => setLocation(`/mac/${featuredBet.fixture_id}`)}
             className="block w-full text-left group animate-slide-up"
             data-testid="card-featured-bet"
           >
@@ -353,7 +352,7 @@ export default function DashboardPage() {
             </div>
 
             <button
-              onClick={() => setLocation(`/coupon/${dailyCoupon.id}`)}
+              onClick={() => setLocation(`/kupon/${dailyCoupon.id}`)}
               className="block w-full text-left surface rounded-2xl overflow-hidden hover:bg-[#16161a] transition-colors animate-slide-up"
               data-testid="card-daily-coupon"
             >
@@ -422,7 +421,7 @@ export default function DashboardPage() {
           <div className="flex items-end justify-between mb-4">
             <span className="eyebrow">Bugünün Maçları</span>
             <button
-              onClick={() => setLocation("/predictions")}
+              onClick={() => setLocation("/tahminler")}
               className="eyebrow-tiny flex items-center gap-1.5 hover:text-white transition-colors"
               data-testid="link-all-predictions"
             >
@@ -444,7 +443,7 @@ export default function DashboardPage() {
                 return (
                   <button
                     key={match.id}
-                    onClick={() => setLocation(`/match/${match.fixture_id}`)}
+                    onClick={() => setLocation(`/mac/${match.fixture_id}`)}
                     className={`w-full px-4 py-4 text-left active:bg-white/[0.02] transition-colors group block ${
                       idx > 0 ? "bt-hairline" : ""
                     }`}

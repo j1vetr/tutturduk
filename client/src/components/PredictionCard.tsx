@@ -57,7 +57,7 @@ export function PredictionCard({ prediction }: PredictionCardProps) {
 
   return (
     <Card 
-      onClick={() => setLocation(`/match/${prediction.id}`)}
+      onClick={() => setLocation(`/mac/${prediction.id}`)}
       className="group relative border-border/40 bg-card overflow-hidden hover:border-primary/50 transition-all duration-500 active:scale-[0.99] cursor-pointer shadow-sm hover:shadow-2xl"
     >
       <div className="absolute top-0 right-0 w-40 h-40 bg-primary/5 rounded-full blur-[50px] -translate-y-1/2 translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />

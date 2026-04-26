@@ -120,7 +120,7 @@ export default function MatchDetailPage() {
         <div className="text-center py-24">
           <p className="font-serif-display text-[20px] text-white/80 italic mb-2">Maç bulunamadı.</p>
           <button
-            onClick={() => setLocation("/predictions")}
+            onClick={() => setLocation("/tahminler")}
             className="mt-6 px-6 py-3 rounded-full border border-white/[0.10] hover:border-white/[0.22] text-[12px] text-white/85 transition-colors inline-flex items-center gap-2"
           >
             <ArrowLeft className="w-3.5 h-3.5" /> Geri dön
@@ -131,7 +131,7 @@ export default function MatchDetailPage() {
   }
 
   return (
-    <PageShell onBack={() => setLocation("/predictions")} league={match.league_name}>
+    <PageShell onBack={() => setLocation("/tahminler")} league={match.league_name}>
       <div className="space-y-6 pt-3">
         {/* MASTHEAD */}
         <header className="pt-1">

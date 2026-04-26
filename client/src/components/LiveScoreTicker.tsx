@@ -38,7 +38,7 @@ export function LiveScoreTicker() {
         {displayMatches.map((match, idx) => (
           <button 
             key={`${match.fixture.id}-${idx}`}
-            onClick={() => setLocation("/live")}
+            onClick={() => setLocation("/canli")}
             className="flex items-center gap-3 group hover:bg-white/5 px-2 py-0.5 rounded transition-colors"
           >
             <div className="flex items-center gap-2 text-[10px] font-bold text-gray-300">

@@ -78,7 +78,7 @@ export default function BestBets() {
 
       <div className="space-y-3">
         {bets.slice(0, 3).map((bet, index) => (
-          <Link href={`/match/${bet.match_id}`} key={bet.id}>
+          <Link href={`/mac/${bet.match_id}`} key={bet.id}>
             <div 
               className={`relative overflow-hidden rounded-2xl border transition-all active:scale-[0.98] shadow-sm hover:shadow-md ${
                 index === 0 
