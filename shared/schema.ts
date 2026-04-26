@@ -66,9 +66,10 @@ export const coupons = pgTable("coupons", {
 });
 
 export const apiCache = pgTable("api_cache", {
-  key: text("key").primaryKey(),
-  value: text("value").notNull(),
+  key: varchar("key", { length: 255 }).primaryKey(),
+  data: jsonb("data").notNull(),
   expires_at: timestamp("expires_at").notNull(),
+  created_at: timestamp("created_at").defaultNow(),
 });
 
 export const sessions = pgTable("sessions", {

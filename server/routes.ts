@@ -106,20 +106,20 @@ const PgSession = connectPgSimple(session);
 
 async function getCachedData<T>(key: string, fetchFn: () => Promise<T>, ttlMinutes: number = 60): Promise<T> {
   const cached = await pool.query(
-    'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
+    'SELECT data FROM api_cache WHERE key = $1 AND expires_at > NOW()',
     [key]
   );
   
   if (cached.rows.length > 0) {
-    return JSON.parse(cached.rows[0].value) as T;
+    return (typeof cached.rows[0].data === 'string' ? JSON.parse(cached.rows[0].data) : cached.rows[0].data) as T;
   }
   
   const data = await fetchFn();
   const expiresAt = new Date(Date.now() + ttlMinutes * 60 * 1000);
   
   await pool.query(
-    `INSERT INTO api_cache (key, value, expires_at) VALUES ($1, $2, $3)
-     ON CONFLICT (key) DO UPDATE SET value = $2, expires_at = $3`,
+    `INSERT INTO api_cache (key, data, expires_at) VALUES ($1, $2, $3)
+     ON CONFLICT (key) DO UPDATE SET data = $2, expires_at = $3`,
     [key, JSON.stringify(data), expiresAt]
   );
   
@@ -837,13 +837,13 @@ export async function registerRoutes(
       
       // Check cache first (60 min TTL)
       const cached = await pool.query(
-        'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
+        'SELECT data FROM api_cache WHERE key = $1 AND expires_at > NOW()',
         [cacheKey]
       );
       
       if (cached.rows.length > 0) {
         console.log('[ValidatedFixtures] Returning cached data');
-        return res.json(JSON.parse(cached.rows[0].value));
+        return res.json((typeof cached.rows[0].data === 'string' ? JSON.parse(cached.rows[0].data) : cached.rows[0].data));
       }
       
       console.log(`[ValidatedFixtures] Fetching fixtures for ${fetchDate}...`);
@@ -981,9 +981,9 @@ export async function registerRoutes(
       
       // Cache for 6 hours (so admin doesn't reload on every visit)
       await pool.query(
-        `INSERT INTO api_cache (key, value, expires_at)
+        `INSERT INTO api_cache (key, data, expires_at)
          VALUES ($1, $2, NOW() + INTERVAL '6 hours')
-         ON CONFLICT (key) DO UPDATE SET value = $2, expires_at = NOW() + INTERVAL '6 hours'`,
+         ON CONFLICT (key) DO UPDATE SET data = $2, expires_at = NOW() + INTERVAL '6 hours'`,
         [cacheKey, JSON.stringify(responseData)]
       );
       
@@ -1426,12 +1426,12 @@ export async function registerRoutes(
       for (const match of matches) {
         const cacheKey = aiCacheKey(match.fixture_id);
         const cachedResult = await pool.query(
-          'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
+          'SELECT data FROM api_cache WHERE key = $1 AND expires_at > NOW()',
           [cacheKey]
         );
         if (cachedResult.rows.length > 0) {
           try {
-            const analysis = JSON.parse(cachedResult.rows[0].value);
+            const analysis = (typeof cachedResult.rows[0].data === 'string' ? JSON.parse(cachedResult.rows[0].data) : cachedResult.rows[0].data);
             badges[match.id] = {
               bestBet: analysis.bestBet,
               riskLevel: analysis.riskLevel,
@@ -1618,13 +1618,13 @@ export async function registerRoutes(
 
       // 1. First check cache
       const cachedResult = await pool.query(
-        'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
+        'SELECT data FROM api_cache WHERE key = $1 AND expires_at > NOW()',
         [cacheKey]
       );
       
       if (cachedResult.rows.length > 0) {
         console.log(`[AI Analysis] Returning cached analysis for fixture ${match.fixture_id}`);
-        return res.json(JSON.parse(cachedResult.rows[0].value));
+        return res.json((typeof cachedResult.rows[0].data === 'string' ? JSON.parse(cachedResult.rows[0].data) : cachedResult.rows[0].data));
       }
 
       // 2. Check if best_bets exist (from auto-publish or previous generation)
@@ -1633,9 +1633,9 @@ export async function registerRoutes(
         // Also cache this reconstructed analysis for future requests
         try {
           await pool.query(
-            `INSERT INTO api_cache (key, value, expires_at)
+            `INSERT INTO api_cache (key, data, expires_at)
              VALUES ($1, $2, NOW() + INTERVAL '24 hours')
-             ON CONFLICT (key) DO UPDATE SET value = $2, expires_at = NOW() + INTERVAL '24 hours'`,
+             ON CONFLICT (key) DO UPDATE SET data = $2, expires_at = NOW() + INTERVAL '24 hours'`,
             [cacheKey, JSON.stringify(reconstructed)]
           );
         } catch (e) { /* ignore cache errors */ }
@@ -2113,12 +2113,12 @@ export async function registerRoutes(
     for (const fixtureId of fixtureIds) {
       const cacheKey = aiCacheKey(fixtureId);
       const cachedResult = await pool.query(
-        'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
+        'SELECT data FROM api_cache WHERE key = $1 AND expires_at > NOW()',
         [cacheKey]
       );
       
       if (cachedResult.rows.length > 0) {
-        const cached = JSON.parse(cachedResult.rows[0].value);
+        const cached = (typeof cachedResult.rows[0].data === 'string' ? JSON.parse(cachedResult.rows[0].data) : cachedResult.rows[0].data);
         results.push({
           fixtureId,
           karar: cached.karar || (cached.predictions?.length > 0 ? 'bahis' : 'pas'),
@@ -2154,12 +2154,12 @@ export async function registerRoutes(
         // Check cache first (v12 = enhanced data with injuries, last 10 matches, season stats)
         const cacheKey = aiCacheKey(fixtureId);
         const cachedResult = await pool.query(
-          'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
+          'SELECT data FROM api_cache WHERE key = $1 AND expires_at > NOW()',
           [cacheKey]
         );
         
         if (cachedResult.rows.length > 0) {
-          const cached = JSON.parse(cachedResult.rows[0].value);
+          const cached = (typeof cachedResult.rows[0].data === 'string' ? JSON.parse(cachedResult.rows[0].data) : cachedResult.rows[0].data);
           results.push({
             fixtureId,
             karar: cached.karar || (cached.predictions?.length > 0 ? 'bahis' : 'pas'),
@@ -2325,9 +2325,9 @@ export async function registerRoutes(
         // Cache the result
         try {
           await pool.query(
-            `INSERT INTO api_cache (key, value, expires_at)
+            `INSERT INTO api_cache (key, data, expires_at)
              VALUES ($1, $2, NOW() + INTERVAL '24 hours')
-             ON CONFLICT (key) DO UPDATE SET value = $2, expires_at = NOW() + INTERVAL '24 hours'`,
+             ON CONFLICT (key) DO UPDATE SET data = $2, expires_at = NOW() + INTERVAL '24 hours'`,
             [cacheKey, JSON.stringify(aiAnalysis)]
           );
         } catch (e) { /* ignore cache errors */ }
@@ -2386,12 +2386,12 @@ export async function registerRoutes(
       let hasCachedAI = false;
       
       const cachedAI = await pool.query(
-        'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
+        'SELECT data FROM api_cache WHERE key = $1 AND expires_at > NOW()',
         [aiKey]
       );
       
       if (cachedAI.rows.length > 0) {
-        aiAnalysis = JSON.parse(cachedAI.rows[0].value);
+        aiAnalysis = (typeof cachedAI.rows[0].data === 'string' ? JSON.parse(cachedAI.rows[0].data) : cachedAI.rows[0].data);
         hasCachedAI = true;
         console.log(`[ManualPublish] Found cached AI analysis for fixture ${fixtureId}`);
         

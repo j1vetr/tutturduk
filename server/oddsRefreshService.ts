@@ -65,13 +65,13 @@ async function refreshOddsForUpcomingMatches(): Promise<void> {
 
       // Mevcut cache'deki AI analizinden eski oranları çıkar
       const cacheRes = await pool.query(
-        'SELECT value FROM api_cache WHERE key = $1',
+        'SELECT data FROM api_cache WHERE key = $1',
         [aiCacheKey(fixtureId)]
       );
       if (cacheRes.rows.length === 0) continue;
 
       let oldAnalysis: any;
-      try { oldAnalysis = JSON.parse(cacheRes.rows[0].value); } catch { continue; }
+      try { oldAnalysis = (typeof cacheRes.rows[0].data === 'string' ? JSON.parse(cacheRes.rows[0].data) : cacheRes.rows[0].data); } catch { continue; }
 
       // Yeni şema: primaryBet, alternativeBet (BetResult — odds: number),
       // predictions[] (PredictionItem — odds: string)
@@ -137,9 +137,9 @@ async function refreshOddsForUpcomingMatches(): Promise<void> {
 
       // Yeni analizi cache'e yaz
       await pool.query(
-        `INSERT INTO api_cache (key, value, expires_at)
+        `INSERT INTO api_cache (key, data, expires_at)
          VALUES ($1, $2, NOW() + INTERVAL '24 hours')
-         ON CONFLICT (key) DO UPDATE SET value = $2, expires_at = NOW() + INTERVAL '24 hours'`,
+         ON CONFLICT (key) DO UPDATE SET data = $2, expires_at = NOW() + INTERVAL '24 hours'`,
         [aiCacheKey(fixtureId), JSON.stringify(refreshed)]
       );
 

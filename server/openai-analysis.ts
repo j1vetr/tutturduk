@@ -644,9 +644,9 @@ export async function generateAndSavePredictions(
 
     try {
       await pool.query(
-        `INSERT INTO api_cache (key, value, expires_at)
+        `INSERT INTO api_cache (key, data, expires_at)
          VALUES ($1, $2, NOW() + INTERVAL '24 hours')
-         ON CONFLICT (key) DO UPDATE SET value = $2, expires_at = NOW() + INTERVAL '24 hours'`,
+         ON CONFLICT (key) DO UPDATE SET data = $2, expires_at = NOW() + INTERVAL '24 hours'`,
         [aiCacheKey(fixtureId), JSON.stringify(analysis)]
       );
     } catch (err: any) {
@@ -682,9 +682,9 @@ export async function generateBatchAnalysis(
           if (item.cacheable !== false && analysis) {
             try {
               await pool.query(
-                `INSERT INTO api_cache (key, value, expires_at)
+                `INSERT INTO api_cache (key, data, expires_at)
                  VALUES ($1, $2, NOW() + INTERVAL '24 hours')
-                 ON CONFLICT (key) DO UPDATE SET value = $2, expires_at = NOW() + INTERVAL '24 hours'`,
+                 ON CONFLICT (key) DO UPDATE SET data = $2, expires_at = NOW() + INTERVAL '24 hours'`,
                 [aiCacheKey(item.fixtureId), JSON.stringify(analysis)]
               );
             } catch { /* cache errors ignored */ }

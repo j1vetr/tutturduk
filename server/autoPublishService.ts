@@ -1159,13 +1159,13 @@ export async function prefetchValidatedFixtures(dateStr: string) {
     
     // Check if already cached
     const existing = await pool.query(
-      'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
+      'SELECT data FROM api_cache WHERE key = $1 AND expires_at > NOW()',
       [cacheKey]
     );
     
     if (existing.rows.length > 0) {
       console.log(`[Prefetch] Already cached for ${dateStr}`);
-      return JSON.parse(existing.rows[0].value);
+      return (typeof existing.rows[0].data === 'string' ? JSON.parse(existing.rows[0].data) : existing.rows[0].data);
     }
     
     // Fetch all fixtures for the date
@@ -1244,9 +1244,9 @@ export async function prefetchValidatedFixtures(dateStr: string) {
     
     // Cache for 4 hours
     await pool.query(
-      `INSERT INTO api_cache (key, value, expires_at)
+      `INSERT INTO api_cache (key, data, expires_at)
        VALUES ($1, $2, NOW() + INTERVAL '4 hours')
-       ON CONFLICT (key) DO UPDATE SET value = $2, expires_at = NOW() + INTERVAL '4 hours'`,
+       ON CONFLICT (key) DO UPDATE SET data = $2, expires_at = NOW() + INTERVAL '4 hours'`,
       [cacheKey, JSON.stringify(validatedFixtures)]
     );
     
@@ -1301,7 +1301,7 @@ export async function publishFromPrefetchedFixtures(
   
   // Try to get from cache first
   const cached = await pool.query(
-    'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
+    'SELECT data FROM api_cache WHERE key = $1 AND expires_at > NOW()',
     [cacheKey]
   );
   
@@ -1309,7 +1309,7 @@ export async function publishFromPrefetchedFixtures(
   
   if (cached.rows.length > 0) {
     console.log('[AutoPublish] Using prefetched data from cache');
-    validatedFixtures = JSON.parse(cached.rows[0].value);
+    validatedFixtures = (typeof cached.rows[0].data === 'string' ? JSON.parse(cached.rows[0].data) : cached.rows[0].data);
   } else {
     console.log('[AutoPublish] No prefetch cache, fetching now...');
     validatedFixtures = await prefetchValidatedFixtures(dateStr);
