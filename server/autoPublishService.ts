@@ -1323,14 +1323,37 @@ export async function publishFromPrefetchedFixtures(
 
   // Future-only filtre: sadece bugün için anlamlı (yarın için tüm maçlar zaten ilerideki).
   // Manuel tetikleme + cron her ikisinde de geçmiş kickoff'lu maçları eler.
+  // ROBUSTNESS: Önce fixture.timestamp (saniye), yoksa fixture.date ISO string'inden parse et.
   const todayStrTr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Istanbul' });
   if (futureOnlyMinutes !== null && dateStr === todayStrTr) {
     const cutoffMs = Date.now() + futureOnlyMinutes * 60 * 1000;
     const beforeCount = validatedFixtures.length;
+
+    // Diagnostik: ilk 3 maçın değerlerini logla → bug izleme
+    for (let i = 0; i < Math.min(3, validatedFixtures.length); i++) {
+      const f = validatedFixtures[i].fixture as any;
+      console.log(`[AutoPublish][Diag] sample[${i}] ts=${f?.timestamp} date=${f?.date} status=${f?.status?.short}`);
+    }
+    console.log(`[AutoPublish][Diag] cutoffMs=${cutoffMs} (${new Date(cutoffMs).toISOString()})`);
+
     validatedFixtures = validatedFixtures.filter((m: MatchWithScore) => {
-      const ts = m.fixture?.timestamp;
-      if (!ts) return false;
-      return ts * 1000 > cutoffMs;
+      const fix = m.fixture as any;
+      // 1) Önce timestamp (Unix saniye)
+      let kickoffMs: number | null = null;
+      const ts = fix?.timestamp;
+      if (typeof ts === 'number' && ts > 0) {
+        kickoffMs = ts * 1000;
+      } else if (typeof ts === 'string' && ts.length > 0) {
+        const n = Number(ts);
+        if (Number.isFinite(n) && n > 0) kickoffMs = n * 1000;
+      }
+      // 2) Fallback: fixture.date ISO string
+      if (kickoffMs === null && typeof fix?.date === 'string') {
+        const t = new Date(fix.date).getTime();
+        if (Number.isFinite(t)) kickoffMs = t;
+      }
+      if (kickoffMs === null) return false; // ne timestamp ne date yoksa güvenli ele
+      return kickoffMs > cutoffMs;
     });
     const skipped = beforeCount - validatedFixtures.length;
     console.log(`[AutoPublish] Future-only filtre (manuel/anlık): ${beforeCount} → ${validatedFixtures.length} maç (${skipped} maç zaten başlamış/yakın, atlandı)`);
@@ -1684,13 +1707,25 @@ export async function runScheduledPublishPass(dateStr: string, opts: PublishPass
     }
 
     // (a) Future-only filtre: pass 2/3/4'te sadece ilerideki maçları al
+    // ROBUSTNESS: timestamp yoksa fixture.date ISO string fallback
     if (opts.futureOnlyMinutes !== null) {
       const cutoffMs = Date.now() + opts.futureOnlyMinutes * 60 * 1000;
       const beforeCount = validatedFixtures.length;
       validatedFixtures = validatedFixtures.filter((m: MatchWithScore) => {
-        const ts = m.fixture?.timestamp;
-        if (!ts) return false;
-        return ts * 1000 > cutoffMs;
+        const fix = m.fixture as any;
+        let kickoffMs: number | null = null;
+        const ts = fix?.timestamp;
+        if (typeof ts === 'number' && ts > 0) kickoffMs = ts * 1000;
+        else if (typeof ts === 'string' && ts.length > 0) {
+          const n = Number(ts);
+          if (Number.isFinite(n) && n > 0) kickoffMs = n * 1000;
+        }
+        if (kickoffMs === null && typeof fix?.date === 'string') {
+          const t = new Date(fix.date).getTime();
+          if (Number.isFinite(t)) kickoffMs = t;
+        }
+        if (kickoffMs === null) return false;
+        return kickoffMs > cutoffMs;
       });
       console.log(`${tag} Future-only filtre: ${beforeCount} → ${validatedFixtures.length} maç (kickoff > now+${opts.futureOnlyMinutes}dk)`);
       if (validatedFixtures.length === 0) {
