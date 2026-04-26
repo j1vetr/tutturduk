@@ -1257,7 +1257,36 @@ export async function prefetchValidatedFixtures(dateStr: string) {
 // Publish from pre-fetched validated fixtures
 export async function publishFromPrefetchedFixtures(dateStr: string, totalLimit: number = MAX_DAILY_MATCHES, matchesPerHour: number = 5) {
   console.log(`[AutoPublish] Publishing from prefetched data for ${dateStr}...`);
-  
+
+  // FAZ 1.1 — Aynı kilit cron ile paylaşılır; manuel tetikleme cron ile yarışmaz.
+  const PUBLISH_LOCK_KEY = 73572404;
+  const lockRes = await pool.query(
+    'SELECT pg_try_advisory_lock($1) AS got',
+    [PUBLISH_LOCK_KEY]
+  );
+  if (!lockRes.rows[0]?.got) {
+    console.log('[AutoPublish] Başka bir publish işi çalışıyor (advisory lock alınamadı), manuel tetikleme atlandı.');
+    return { published: 0, total: 0, date: dateStr, skipped: 'lock_busy' };
+  }
+  let advisoryLockHeld = true;
+  const releaseLock = async () => {
+    if (!advisoryLockHeld) return;
+    advisoryLockHeld = false;
+    try { await pool.query('SELECT pg_advisory_unlock($1)', [PUBLISH_LOCK_KEY]); } catch { /* skip */ }
+  };
+
+  try {
+  // 35-cap: zaten yayında olan maç sayısını hesaba kat
+  const alreadyPublished = await getTodayPublishedCount(dateStr);
+  const remainingSlots = Math.max(0, MAX_DAILY_MATCHES - alreadyPublished);
+  const effectiveLimit = Math.min(totalLimit, remainingSlots);
+  console.log(`[AutoPublish] DB'de ${alreadyPublished} yayında, ${remainingSlots} slot kaldı (cap=${MAX_DAILY_MATCHES}, istenen=${totalLimit}, etkin=${effectiveLimit})`);
+  if (effectiveLimit === 0) {
+    console.log('[AutoPublish] Günlük 35 maç limiti dolu, manuel tetikleme iptal.');
+    await releaseLock();
+    return { published: 0, total: 0, date: dateStr, skipped: 'cap_full' };
+  }
+
   const cacheKey = `prefetch_validated_${dateStr}`;
   
   // Try to get from cache first
@@ -1278,6 +1307,7 @@ export async function publishFromPrefetchedFixtures(dateStr: string, totalLimit:
   
   if (!validatedFixtures || validatedFixtures.length === 0) {
     console.log('[AutoPublish] No validated fixtures to publish');
+    await releaseLock();
     return { published: 0, total: 0, date: dateStr };
   }
   
@@ -1294,15 +1324,15 @@ export async function publishFromPrefetchedFixtures(dateStr: string, totalLimit:
     matchesByHour.get(hour)!.push(match);
   }
   
-  // Select matches per hour
+  // Select matches per hour — etkin kapasite (cap'e göre) kullanılır
   const matchesToPublish: MatchWithScore[] = [];
   const sortedHours = Array.from(matchesByHour.keys()).sort((a, b) => a - b);
   
   for (const hour of sortedHours) {
-    if (matchesToPublish.length >= totalLimit) break;
+    if (matchesToPublish.length >= effectiveLimit) break;
     
     const hourMatches = matchesByHour.get(hour)!;
-    const toTake = Math.min(matchesPerHour, totalLimit - matchesToPublish.length);
+    const toTake = Math.min(matchesPerHour, effectiveLimit - matchesToPublish.length);
     matchesToPublish.push(...hourMatches.slice(0, toTake));
   }
   
@@ -1483,14 +1513,17 @@ export async function publishFromPrefetchedFixtures(dateStr: string, totalLimit:
       }
       
       // AI said "bahis" - proceed with publishing
-      await pool.query(
+      // RETURNING id ile gerçek insert tespiti, ON CONFLICT ile yarış güvenli
+      const insertResult = await pool.query(
         `INSERT INTO published_matches 
          (fixture_id, home_team, away_team, home_logo, away_logo, league_name, league_logo, league_id,
           match_date, match_time, timestamp, status, is_featured,
           api_advice, api_winner_name, api_winner_comment, api_percent_home, api_percent_draw, api_percent_away,
           api_under_over, api_goals_home, api_goals_away, api_comparison, api_h2h, api_teams)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'pending', FALSE,
-                 $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)`,
+                 $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
+         ON CONFLICT (fixture_id) DO NOTHING
+         RETURNING id`,
         [
           match.fixture.id,
           homeTeam,
@@ -1523,21 +1556,16 @@ export async function publishFromPrefetchedFixtures(dateStr: string, totalLimit:
           teams ? JSON.stringify(teams) : null
         ]
       );
-      
-      publishedCount++;
-      console.log(`[AutoPublish] Published: ${homeTeam} vs ${awayTeam}`);
-      
-      // Get the newly inserted match ID and save prediction
-      const insertedMatch = await pool.query(
-        'SELECT id FROM published_matches WHERE fixture_id = $1',
-        [match.fixture.id]
-      );
-      
-      if (insertedMatch.rows.length > 0) {
-        const matchId = insertedMatch.rows[0].id;
+
+      if (insertResult.rowCount && insertResult.rowCount > 0) {
+        publishedCount++;
+        const matchId = insertResult.rows[0].id;
         await saveBestBetsFromAnalysis(matchId, match.fixture.id, homeTeam, awayTeam, homeLogo, awayLogo, leagueName, leagueLogo, matchDate, matchTime, aiAnalysis);
+        console.log(`[AutoPublish] Published: ${homeTeam} vs ${awayTeam}`);
+      } else {
+        console.log(`[AutoPublish] Mac zaten yayinlanmış (conflict): ${homeTeam} vs ${awayTeam}`);
       }
-      
+
       await new Promise(resolve => setTimeout(resolve, 3000));
       
     } catch (error) {
@@ -1548,6 +1576,9 @@ export async function publishFromPrefetchedFixtures(dateStr: string, totalLimit:
   console.log(`[AutoPublish] Completed! Published ${publishedCount}, Passed ${passedCount} matches`);
   
   return { published: publishedCount, total: matchesToPublish.length, date: dateStr };
+  } finally {
+    await releaseLock();
+  }
 }
 
 // Updated auto-publish functions using validated fixtures
