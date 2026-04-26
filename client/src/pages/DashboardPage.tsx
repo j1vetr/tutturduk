@@ -503,9 +503,9 @@ export default function DashboardPage() {
             <span className="eyebrow-tiny">Yöntem</span>
           </div>
           <p className="text-[13.5px] text-white/85 leading-relaxed font-display">
-            Form, sakatlık, oran piyasası ve sezon istatistikleri tek bir modelde
-            buluşur. Yalnızca <span className="text-white">güven ≥%70</span> ve
-            <span className="text-white"> değer ≥%5</span> olan bahisler yayınlanır.
+            Tahminler; takım formu, sakatlıklar, oran hareketleri ve sezon istatistikleri
+            birlikte değerlendirilerek üretilir. Yalnızca güven oranı
+            <span className="text-white"> %70 ve üzeri</span> olan bahisler yayınlanır.
           </p>
         </section>
 
