@@ -21,7 +21,7 @@ export function MobileLayout({ children, activeTab }: MobileLayoutProps) {
           borderBottom: '1px solid rgba(255,255,255,0.06)',
         }}
       >
-        <div className="h-[58px] flex items-center justify-between px-5 max-w-[480px] mx-auto">
+        <div className="h-[68px] flex items-center justify-between px-5 max-w-[480px] mx-auto">
           {/* Logo */}
           <button
             onClick={() => setLocation("/")}
@@ -31,7 +31,7 @@ export function MobileLayout({ children, activeTab }: MobileLayoutProps) {
             <img
               src={logoLight}
               alt="tutturduk"
-              className="h-7 w-auto object-contain opacity-95 group-hover:opacity-100 transition-opacity"
+              className="h-11 w-auto object-contain opacity-95 group-hover:opacity-100 transition-opacity"
             />
           </button>
 
@@ -54,7 +54,7 @@ export function MobileLayout({ children, activeTab }: MobileLayoutProps) {
       </header>
 
       {/* Header Spacer */}
-      <div className="h-[58px]" />
+      <div className="h-[68px]" />
 
       {/* Main Content */}
       <main className="px-5 pb-32 max-w-[480px] mx-auto animate-fade-in relative z-10">

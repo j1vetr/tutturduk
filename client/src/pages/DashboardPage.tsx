@@ -160,7 +160,7 @@ export default function DashboardPage() {
   const tickerLine =
     tickerItems.length > 0
       ? tickerItems.join("   ◆   ")
-      : "TUTTURDUK · ANALİZ MERKEZİ · GPT-4O · TÜRKİYE";
+      : "TUTTURDUK · ANALİZ MERKEZİ · TÜRKİYE";
 
   return (
     <MobileLayout activeTab="home">
