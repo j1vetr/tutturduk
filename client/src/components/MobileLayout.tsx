@@ -13,11 +13,11 @@ export function MobileLayout({ children, activeTab }: MobileLayoutProps) {
 
   return (
     <div className="min-h-screen text-white font-sans selection:bg-white/15" style={{ background: '#0a0a0c' }}>
-      {/* Header */}
+      {/* Header — solid, no glassmorphism */}
       <header
-        className="fixed top-0 left-0 right-0 z-[100] backdrop-blur-2xl"
+        className="fixed top-0 left-0 right-0 z-[100]"
         style={{
-          background: 'rgba(10,10,12,0.78)',
+          background: '#0a0a0c',
           borderBottom: '1px solid rgba(255,255,255,0.06)',
         }}
       >
@@ -61,14 +61,14 @@ export function MobileLayout({ children, activeTab }: MobileLayoutProps) {
         {children}
       </main>
 
-      {/* Floating Bottom Navigation */}
+      {/* Bottom Navigation — solid surface, no blur */}
       <nav className="fixed bottom-5 left-0 right-0 z-50 px-4">
         <div
-          className="max-w-[480px] mx-auto flex items-stretch backdrop-blur-2xl rounded-full overflow-hidden"
+          className="max-w-[480px] mx-auto flex items-stretch rounded-full overflow-hidden"
           style={{
-            background: 'rgba(14,14,16,0.92)',
-            border: '1px solid rgba(255,255,255,0.07)',
-            boxShadow: '0 24px 60px -20px rgba(0,0,0,0.7), 0 1px 0 rgba(255,255,255,0.04) inset',
+            background: '#141416',
+            border: '1px solid rgba(255,255,255,0.08)',
+            boxShadow: '0 24px 60px -20px rgba(0,0,0,0.85), 0 1px 0 rgba(255,255,255,0.04) inset',
           }}
         >
           <NavButton

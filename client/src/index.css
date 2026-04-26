@@ -130,7 +130,213 @@
 }
 
 @layer utilities {
-  /* ───── Premium Design Tokens ───── */
+  /* ═══════════════════════════════════════════
+     BROADCAST DESIGN SYSTEM (new — Awwwards)
+     Modern grotesk · solid surfaces · acid-lime accent
+     ═══════════════════════════════════════════ */
+
+  /* Display family — Space Grotesk, NO italic, NO serif */
+  .font-display {
+    font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+    letter-spacing: -0.025em;
+    font-feature-settings: "ss01", "ss02";
+  }
+
+  /* Display sizes — sport broadcast hierarchy */
+  .text-display-3xl {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-weight: 700;
+    font-size: clamp(56px, 16vw, 88px);
+    line-height: 0.9;
+    letter-spacing: -0.05em;
+  }
+  .text-display-2xl {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-weight: 700;
+    font-size: clamp(40px, 11vw, 60px);
+    line-height: 0.94;
+    letter-spacing: -0.04em;
+  }
+  .text-display-xl {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-weight: 700;
+    font-size: 32px;
+    line-height: 1;
+    letter-spacing: -0.035em;
+  }
+  .text-display-lg {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 22px;
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+  }
+  .text-display-md {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 17px;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  /* Eyebrow / micro labels */
+  .eyebrow {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 10.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.55);
+  }
+  .eyebrow-tiny {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+  }
+
+  /* Tabular numerics — JetBrains Mono for precision data */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+  }
+  .num-mono {
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Solid surfaces — NO glass, NO blur */
+  .surface {
+    background: #141416;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .surface-2 {
+    background: #1a1a1d;
+    border: 1px solid rgba(255,255,255,0.07);
+  }
+  .surface-3 {
+    background: #0f0f11;
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+
+  /* Lime signature accent — used SPARINGLY */
+  .text-lime { color: #d4ff00; }
+  .bg-lime { background: #d4ff00; }
+  .border-lime { border-color: #d4ff00; }
+  .lime-underline {
+    position: relative;
+  }
+  .lime-underline::after {
+    content: "";
+    position: absolute;
+    left: 0; bottom: -6px;
+    width: 32px;
+    height: 3px;
+    background: #d4ff00;
+    border-radius: 2px;
+  }
+
+  /* Lime tag (broadcast graphic) */
+  .tag-lime {
+    display: inline-flex;
+    align-items: center;
+    background: #d4ff00;
+    color: #0a0a0a;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 700;
+    font-size: 9.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    padding: 6px 10px;
+    border-radius: 4px;
+    line-height: 1;
+  }
+
+  /* Status chips — sport result badges */
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 5px 9px;
+    border-radius: 4px;
+    line-height: 1;
+  }
+  .chip-won {
+    background: rgba(52,211,153,0.12);
+    color: #34d399;
+    border: 1px solid rgba(52,211,153,0.24);
+  }
+  .chip-lost {
+    background: rgba(239,68,68,0.12);
+    color: #f87171;
+    border: 1px solid rgba(239,68,68,0.24);
+  }
+  .chip-pending {
+    background: rgba(255,255,255,0.04);
+    color: rgba(255,255,255,0.55);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  /* CTAs */
+  .btn-lime {
+    background: #d4ff00;
+    color: #0a0a0a;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 14px 22px;
+    border-radius: 999px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn-lime:hover {
+    background: #e4ff44;
+    transform: translateY(-1px);
+  }
+  .btn-ghost {
+    background: transparent;
+    color: #fafafa;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 11px 18px;
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 999px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-ghost:hover {
+    border-color: rgba(255,255,255,0.32);
+    background: rgba(255,255,255,0.02);
+  }
+
+  /* Hairline borders */
+  .bb-hairline { border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .bt-hairline { border-top: 1px solid rgba(255,255,255,0.06); }
+
+  /* Ticker / marquee scroller */
+  .ticker-mask {
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 8%, #000 92%, transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, #000 8%, #000 92%, transparent 100%);
+  }
+
+  /* ───── Premium Design Tokens (legacy — kept for other pages) ───── */
 
   .font-serif-display {
     font-family: 'Fraunces', 'Times New Roman', serif;
@@ -162,13 +368,11 @@
     color: rgba(255,255,255,0.35);
   }
 
-  /* Premium card surfaces */
+  /* Premium card surfaces — solid, no glassmorphism */
   .premium-card {
-    background: rgba(255,255,255,0.018);
+    background: #131316;
     border: 1px solid rgba(255,255,255,0.06);
     border-radius: 1.25rem;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
   }
   .premium-card-hover:hover {
     background: rgba(255,255,255,0.028);
@@ -209,8 +413,11 @@
   .status-dot-lost { background: hsl(0 70% 60%); }
   .status-dot-pending { background: rgba(255,255,255,0.35); }
 
-  /* Subtle marquee/animations */
+  /* Subtle marquee/animations — pauses for reduced-motion users */
   .animate-marquee { animation: marquee 35s linear infinite; }
+  @media (prefers-reduced-motion: reduce) {
+    .animate-marquee { animation: none; }
+  }
   .animate-bounce-horizontal { animation: bounce-horizontal 1.4s infinite; }
   .animate-pulse-soft { animation: pulse-soft 2.4s ease-in-out infinite; }
   .animate-fade-in { animation: fadeIn 0.6s ease-out forwards; }

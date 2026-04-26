@@ -67,38 +67,6 @@ interface DailyCoupon {
   }>;
 }
 
-const PULL_QUOTES = [
-  "Form çizgisi yukarı, savunma istikrarlı.",
-  "Oran piyasası bu senaryoyu hafife almış.",
-  "Veri güçlü, sürpriz olasılığı düşük.",
-  "Geçmiş karşılaşmalar bu yönü destekliyor.",
-  "Sezonun seyri net bir tablo çiziyor.",
-  "İki takımın da ofansif tercihleri aynı yönü işaret ediyor.",
-  "Sayısal ağırlıklar tek bir senaryoda buluşuyor.",
-];
-
-function pullQuoteFor(bet: FeaturedBet | null) {
-  if (!bet) return PULL_QUOTES[0];
-  const idx = (bet.fixture_id || bet.confidence || 0) % PULL_QUOTES.length;
-  return PULL_QUOTES[idx];
-}
-
-function bulletinTimeLabel() {
-  const h = new Date().getHours();
-  if (h < 6) return "BU GECE BÜLTENDE";
-  if (h < 12) return "BU SABAH BÜLTENDE";
-  if (h < 17) return "BU ÖĞLE BÜLTENDE";
-  if (h < 21) return "BU AKŞAM BÜLTENDE";
-  return "BU GECE BÜLTENDE";
-}
-
-function issueNumber() {
-  // Issue counter from a fixed launch date — gives an "almanak" feel.
-  const launch = new Date("2026-01-01T00:00:00+03:00");
-  const today = new Date();
-  return Math.max(1, Math.floor((today.getTime() - launch.getTime()) / 86400000) + 1);
-}
-
 export default function DashboardPage() {
   const [, setLocation] = useLocation();
   const [stats, setStats] = useState<Stats | null>(null);
@@ -115,8 +83,8 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (stats) {
-      const duration = 1200;
-      const steps = 50;
+      const duration = 1100;
+      const steps = 40;
       const interval = duration / steps;
       let step = 0;
       const timer = setInterval(() => {
@@ -142,12 +110,9 @@ export default function DashboardPage() {
         fetch("/api/featured-bet", { credentials: "include" }),
         fetch("/api/daily-coupon", { credentials: "include" }),
       ]);
-
-      // If the two core endpoints both fail, treat as a hard error.
       if (!statsRes.ok && !matchesRes.ok) {
         throw new Error("Veriler yüklenemedi.");
       }
-
       if (statsRes.ok) setStats(await statsRes.json());
       if (matchesRes.ok) {
         const data = await matchesRes.json();
@@ -159,7 +124,7 @@ export default function DashboardPage() {
             const matchDateTime = new Date(`${m.match_date}T${timeStr}:00+03:00`);
             return matchDateTime > now;
           })
-          .slice(0, 5);
+          .slice(0, 6);
         setTodayMatches(upcoming);
       }
       if (featuredRes.ok) setFeaturedBet(await featuredRes.json());
@@ -172,51 +137,71 @@ export default function DashboardPage() {
     }
   }
 
-  const todayLong = format(new Date(), "d MMMM, EEEE", { locale: tr }).toUpperCase();
-  const todayShort = format(new Date(), "d MMMM yyyy", { locale: tr });
+  const dateLabel = format(new Date(), "d MMMM, EEEE", { locale: tr }).toUpperCase();
+  const weekLabel = format(new Date(), "'HAFTA' w · yyyy", { locale: tr }).toUpperCase();
+
+  /* Build ticker items from real data */
+  const tickerItems: string[] = [];
+  if (stats && stats.total > 0) {
+    tickerItems.push(`BUGÜNE KADAR · %${stats.successRate} İSABET`);
+    tickerItems.push(`${stats.won}/${stats.total} TUTAN BAHİS`);
+  }
+  if (featuredBet) {
+    tickerItems.push(
+      `GÜNÜN BAHSİ · ${featuredBet.bet_type.toUpperCase()} · ORAN ${parseFloat(featuredBet.odds).toFixed(2)}`
+    );
+  }
+  if (todayMatches.length > 0) {
+    tickerItems.push(`${todayMatches.length} MAÇ ANALİZE HAZIR`);
+  }
+  if (dailyCoupon) {
+    tickerItems.push(`KUPON · ${parseFloat(dailyCoupon.combined_odds).toFixed(2)}x TOPLAM`);
+  }
+  const tickerLine =
+    tickerItems.length > 0
+      ? tickerItems.join("   ◆   ")
+      : "TUTTURDUK · ANALİZ MERKEZİ · GPT-4O · TÜRKİYE";
 
   return (
     <MobileLayout activeTab="home">
-      {/* Atmosphere — fixed background layers behind everything */}
-      <div className="atmosphere-glow" aria-hidden />
-      <div className="atmosphere-grain" aria-hidden />
-
-      <div className="space-y-10 pt-2 relative z-10">
-
-        {/* ───── MASTHEAD ───── */}
-        <header className="pt-3 animate-fade-in">
-          {/* Künye satırı */}
-          <div className="flex items-center justify-between text-[9.5px] font-medium tracking-[0.2em] text-white/40 uppercase mb-5">
-            <span className="num-display tracking-[0.18em]">
-              SAYI · {String(issueNumber()).padStart(3, "0")}
-            </span>
-            <span className="w-6 h-px bg-white/10" />
-            <span>{todayLong}</span>
+      <div className="-mx-5">
+        {/* ════════ TICKER BAR ════════ */}
+        <div
+          className="bb-hairline bg-[#0d0d0f] py-2.5 overflow-hidden ticker-mask"
+          data-testid="ticker-stats"
+          role="marquee"
+          aria-label={tickerLine}
+        >
+          <div className="flex animate-marquee whitespace-nowrap" aria-hidden="true">
+            <span className="eyebrow-tiny px-4 num-mono">{tickerLine}</span>
+            <span className="eyebrow-tiny px-4 num-mono">{tickerLine}</span>
+            <span className="eyebrow-tiny px-4 num-mono">{tickerLine}</span>
           </div>
+        </div>
+      </div>
 
-          {/* Headline */}
-          <h1 className="almanac-mast text-[42px] sm:text-[48px] text-white">
-            Bugünün <span className="italic text-white/85">bülteni</span>.
+      <div className="space-y-9 pt-7 pb-2">
+
+        {/* ════════ HERO MASTHEAD ════════ */}
+        <header className="animate-fade-in" data-testid="dashboard-hero">
+          <div className="flex items-center justify-between mb-4">
+            <span className="eyebrow num-mono">{dateLabel}</span>
+            <span className="eyebrow-tiny num-mono">{weekLabel}</span>
+          </div>
+          <h1 className="text-display-3xl text-white">
+            Bugün<span className="text-lime">.</span>
           </h1>
-
-          {/* Edition mark */}
-          <div className="flex items-baseline justify-between mt-4">
-            <span className="text-[11px] text-white/35 font-light italic font-serif-display">
-              — günün analizleri, oranlar ve değer.
-            </span>
-            <span className="text-[10px] text-white/35 font-serif-display italic tracking-wide">
-              v.10 · GPT-4o
-            </span>
-          </div>
+          <p className="mt-4 text-[14px] text-white/55 leading-relaxed max-w-[88%]">
+            Veriye dayalı tahminler. Bugünün öne çıkan bahsi, kuponu ve maçları
+            tek bir akışta.
+          </p>
         </header>
 
-        {/* ───── ERROR STATE ───── */}
+        {/* ════════ ERROR STATE ════════ */}
         {error && !loading && (
-          <div className="premium-card rounded-[18px] px-5 py-5 text-center" data-testid="error-dashboard">
-            <p className="font-serif-display italic text-[18px] text-white/85 leading-tight">
-              {error}
-            </p>
-            <p className="text-[12px] text-white/45 font-light mt-2">
+          <div className="surface rounded-2xl px-5 py-6 text-center" data-testid="error-dashboard">
+            <p className="text-display-md text-white">{error}</p>
+            <p className="text-[12.5px] text-white/45 mt-2">
               Sunucuya ulaşırken bir aksaklık oldu.
             </p>
             <button
@@ -224,7 +209,7 @@ export default function DashboardPage() {
                 setLoading(true);
                 fetchData();
               }}
-              className="mt-4 px-5 py-2 rounded-full border border-white/15 text-[11px] uppercase tracking-[0.2em] font-medium text-white/85 hover:bg-white/[0.04] transition-colors"
+              className="btn-ghost mt-5"
               data-testid="button-retry-dashboard"
             >
               Tekrar dene
@@ -232,321 +217,304 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* ───── COVER STORY — Featured Bet ───── */}
+        {/* ════════ FEATURED BET — broadcast tile ════════ */}
         {featuredBet ? (
           <button
             onClick={() => setLocation(`/match/${featuredBet.fixture_id}`)}
             className="block w-full text-left group animate-slide-up"
             data-testid="card-featured-bet"
           >
-            <div className="relative premium-card-elevated rounded-[22px] overflow-hidden">
-              {/* Cream accent rail (left) */}
-              <div className="absolute left-0 top-6 bottom-6 w-[3px] bg-accent-cream rounded-full opacity-90" />
+            <div className="surface rounded-3xl overflow-hidden">
+              {/* Top bar — lime tag + meta */}
+              <div className="flex items-center justify-between px-5 pt-5 pb-4">
+                <span className="tag-lime">Günün Bahsi</span>
+                <div className="flex items-center gap-2.5">
+                  <span className="status-dot status-dot-live animate-pulse-soft" />
+                  <span className="eyebrow-tiny num-mono">{featuredBet.match_time}</span>
+                </div>
+              </div>
 
-              <div className="px-6 py-6">
-                {/* Top label row */}
-                <div className="flex items-center justify-between mb-6 pl-3">
-                  <div className="flex items-center gap-2">
-                    <span className="status-dot status-dot-live animate-pulse-soft" />
-                    <span className="text-[9.5px] font-medium tracking-[0.2em] uppercase accent-cream opacity-90">
-                      Bugünün Bahsi
-                    </span>
-                  </div>
-                  <span className="text-[10.5px] text-white/45 num-display tracking-wider">
-                    {featuredBet.match_time}
+              {/* League strip */}
+              {featuredBet.league_name && (
+                <div className="px-5 pb-3">
+                  <span className="eyebrow-tiny truncate block max-w-full">
+                    {featuredBet.league_name}
                   </span>
                 </div>
+              )}
 
-                {/* Teams — magazine cover horizontal balance */}
-                <div className="pl-3 mb-5">
-                  <div className="flex items-center justify-between gap-3">
-                    <TeamSide
-                      logo={featuredBet.home_logo}
-                      name={featuredBet.home_team}
-                      align="left"
-                    />
-                    <div className="flex flex-col items-center flex-shrink-0 px-1">
-                      <span className="font-serif-display italic text-[13px] text-white/45 leading-none">
-                        vs
-                      </span>
-                      <span className="block w-5 h-px bg-white/15 mt-2" aria-hidden />
-                    </div>
-                    <TeamSide
-                      logo={featuredBet.away_logo}
-                      name={featuredBet.away_team}
-                      align="right"
-                    />
-                  </div>
-                  {featuredBet.league_name && (
-                    <p className="text-center text-[9.5px] text-white/35 uppercase tracking-[0.22em] font-medium mt-3">
-                      {featuredBet.league_name}
-                    </p>
-                  )}
+              {/* Teams — stacked, very large, broadcast headline style */}
+              <div className="px-5 pb-5">
+                <div className="flex items-center gap-3 mb-2">
+                  <TeamBadge logo={featuredBet.home_logo} name={featuredBet.home_team} />
+                  <h2 className="text-display-lg text-white truncate flex-1">
+                    {featuredBet.home_team}
+                  </h2>
                 </div>
-
-                {/* Pull quote — editor's reading of the match */}
-                <div className="pl-3 mb-6 relative">
-                  <div className="absolute left-0 top-1 bottom-1 w-px bg-white/15" />
-                  <p className="pull-quote text-[16px] pl-3.5">
-                    “{pullQuoteFor(featuredBet)}”
-                  </p>
+                <div className="flex items-center gap-3">
+                  <TeamBadge logo={featuredBet.away_logo} name={featuredBet.away_team} />
+                  <h2 className="text-display-lg text-white/70 truncate flex-1">
+                    {featuredBet.away_team}
+                  </h2>
                 </div>
+              </div>
 
-                {/* Hairline */}
-                <div className="h-px bg-white/[0.06] mb-5" />
+              {/* Lime separator */}
+              <div className="bg-lime h-[2px] mx-5" aria-hidden />
 
-                {/* Metrics info-strip */}
-                <div className="grid grid-cols-3 gap-4 pl-3">
-                  <CoverMetric label="Tahmin" value={featuredBet.bet_type} accent />
-                  <CoverMetric label="Oran" value={parseFloat(featuredBet.odds).toFixed(2)} mono />
-                  <CoverMetric label="Güven" value={`%${featuredBet.confidence}`} mono />
-                </div>
+              {/* Bet stats grid */}
+              <div className="grid grid-cols-3 px-5">
+                <BetStat label="Tahmin" value={featuredBet.bet_type} highlight />
+                <BetStat
+                  label="Oran"
+                  value={parseFloat(featuredBet.odds).toFixed(2)}
+                  mono
+                  border="left"
+                />
+                <BetStat
+                  label="Güven"
+                  value={`${featuredBet.confidence}%`}
+                  mono
+                  border="left"
+                />
+              </div>
 
-                {/* CTA */}
-                <div className="flex items-center justify-end gap-1.5 mt-6 pt-4 border-t border-white/[0.05]">
-                  <span className="font-serif-display italic text-[12.5px] text-white/65">
-                    Detaylı analiz
-                  </span>
-                  <span
-                    aria-hidden
-                    className="text-white/65 transition-transform group-hover:translate-x-0.5"
-                  >
-                    →
-                  </span>
-                </div>
+              {/* CTA bar */}
+              <div className="bt-hairline px-5 py-4 flex items-center justify-between">
+                <span className="eyebrow-tiny">Detaylı analiz</span>
+                <span
+                  aria-hidden
+                  className="text-lime text-[16px] font-bold transition-transform group-hover:translate-x-1"
+                >
+                  →
+                </span>
               </div>
             </div>
           </button>
         ) : loading ? (
-          <div className="premium-card rounded-[22px] h-[320px] animate-pulse" />
+          <div className="surface rounded-3xl h-[340px] animate-pulse" />
         ) : null}
 
-        <Ornament />
-
-        {/* ───── BUGÜNÜN HESABI — kartsız stat blok ───── */}
-        <section>
-          <SectionLabel left="Bugünün Hesabı" right={stats ? `${stats.won}/${stats.won + stats.lost}` : "—"} />
-
-          <div className="grid grid-cols-3 gap-0">
-            <BigStat
-              label="Kazanan"
-              value={loading ? "—" : animatedStats.won}
-              border="right"
-            />
-            <BigStat
-              label="Toplam"
-              value={loading ? "—" : animatedStats.total}
-              border="right"
-            />
-            <BigStat
-              label="Oran"
-              value={loading ? "—" : `%${animatedStats.rate}`}
-            />
+        {/* ════════ STATS BAND — score-card style ════════ */}
+        <section data-testid="section-stats">
+          <div className="flex items-end justify-between mb-4">
+            <span className="eyebrow">Hesabımız</span>
+            {stats && stats.total > 0 && (
+              <span className="eyebrow-tiny num-mono">
+                {stats.won} TUTTU · {stats.lost} TUTMADI
+              </span>
+            )}
           </div>
 
-          {stats && stats.successRate > 0 && (
-            <div className="mt-5 pt-1">
-              <div className="flex items-center justify-between mb-2">
-                <span className="label-meta-sm">Başarı oranı</span>
-                <span className="text-[10.5px] text-white/55 num-display">
-                  {stats.won} tuttu · {stats.lost} tutmadı
+          <div className="surface rounded-2xl overflow-hidden">
+            <div className="grid grid-cols-3">
+              <ScoreBlock
+                label="Kazanan"
+                value={loading ? "—" : animatedStats.won}
+                accent
+              />
+              <ScoreBlock
+                label="Toplam"
+                value={loading ? "—" : animatedStats.total}
+                border="left"
+              />
+              <ScoreBlock
+                label="İsabet"
+                value={loading ? "—" : `${animatedStats.rate}%`}
+                border="left"
+              />
+            </div>
+
+            {stats && stats.total > 0 && (
+              <div className="bt-hairline px-5 py-3.5 flex items-center gap-3">
+                <span className="eyebrow-tiny flex-shrink-0">Başarı</span>
+                <div className="flex-1 h-[3px] bg-white/[0.06] rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-lime rounded-full transition-all duration-1000 ease-out"
+                    style={{ width: `${animatedStats.rate}%` }}
+                  />
+                </div>
+                <span className="num-mono text-[12px] text-white tabular flex-shrink-0">
+                  {animatedStats.rate}%
                 </span>
               </div>
-              <div className="h-[2px] bg-white/[0.06] rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-white/85 rounded-full transition-all duration-1000 ease-out"
-                  style={{ width: `${animatedStats.rate}%` }}
-                />
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </section>
 
-        {/* ───── EDITOR'S COUPON ───── */}
+        {/* ════════ DAILY COUPON — split tile ════════ */}
         {dailyCoupon && dailyCoupon.predictions && dailyCoupon.predictions.length > 0 && (
-          <>
-            <Ornament />
-            <section>
-              <SectionLabel
-                left="Editörün Kuponu"
-                right={`${dailyCoupon.predictions.length} MAÇ`}
-              />
+          <section data-testid="section-daily-coupon">
+            <div className="flex items-end justify-between mb-4">
+              <span className="eyebrow">Günün Kuponu</span>
+              <span className="eyebrow-tiny num-mono">
+                {dailyCoupon.predictions.length} MAÇ · KOMBİNE
+              </span>
+            </div>
 
-              <button
-                onClick={() => setLocation(`/coupon/${dailyCoupon.id}`)}
-                className="block w-full text-left premium-card rounded-[22px] p-6 hover:bg-white/[0.025] transition-colors animate-slide-up"
-                data-testid="card-daily-coupon"
-              >
-                {/* Header — büyük italic toplam oran solda */}
-                <div className="flex items-end justify-between mb-5">
-                  <div className="flex flex-col">
-                    <span className="label-meta-sm">Toplam Oran</span>
-                    <span className="font-serif-display italic text-[44px] text-white leading-[0.95] tracking-tight mt-1.5">
-                      {parseFloat(dailyCoupon.combined_odds).toFixed(2)}
-                    </span>
+            <button
+              onClick={() => setLocation(`/coupon/${dailyCoupon.id}`)}
+              className="block w-full text-left surface rounded-2xl overflow-hidden hover:bg-[#16161a] transition-colors animate-slide-up"
+              data-testid="card-daily-coupon"
+            >
+              {/* Top — combined odds as hero number */}
+              <div className="flex items-stretch">
+                <div className="flex-1 px-5 py-5">
+                  <span className="eyebrow-tiny block mb-2">Toplam Oran</span>
+                  <div className="text-display-2xl text-lime tabular leading-none">
+                    {parseFloat(dailyCoupon.combined_odds).toFixed(2)}
                   </div>
-                  <span className="text-[10.5px] text-white/40 num-display tracking-wider">
-                    ID·{String(dailyCoupon.id).padStart(4, "0")}
+                </div>
+                <div className="bg-[#0f0f11] px-5 py-5 flex flex-col justify-center items-end border-l border-white/[0.06] min-w-[88px]">
+                  <span className="eyebrow-tiny block mb-1">ID</span>
+                  <span className="num-mono text-[15px] text-white tabular">
+                    #{String(dailyCoupon.id).padStart(4, "0")}
                   </span>
                 </div>
+              </div>
 
-                {/* Dotted separator */}
-                <div className="dotted-separator my-5" />
-
-                {/* Predictions list */}
-                <div className="space-y-3.5">
-                  {dailyCoupon.predictions.map((pred, idx) => (
-                    <div key={pred.id} className="flex items-center gap-3">
-                      <span className="font-serif-display italic text-[13px] text-white/40 w-[22px] flex-shrink-0">
-                        {String(idx + 1).padStart(2, "0")}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-[13px] text-white/95 font-medium truncate leading-tight">
-                          {pred.home_team} <span className="text-white/30">·</span> {pred.away_team}
-                        </div>
-                        <div className="text-[10.5px] text-white/40 mt-0.5 num-display">
-                          {pred.match_time}
-                        </div>
-                      </div>
-                      <div className="flex items-baseline gap-2.5 flex-shrink-0">
-                        <span className="text-[12px] text-white/85 font-serif-display italic">
-                          {pred.bet_type}
-                        </span>
-                        <span className="text-[11px] text-white/55 num-display">
-                          {pred.odds ? parseFloat(pred.odds).toFixed(2) : "—"}
-                        </span>
-                      </div>
+              {/* Predictions list */}
+              <div className="bt-hairline">
+                {dailyCoupon.predictions.map((pred, idx) => (
+                  <div
+                    key={pred.id}
+                    className={`px-5 py-3.5 flex items-center gap-3 ${
+                      idx > 0 ? "bt-hairline" : ""
+                    }`}
+                  >
+                    <span className="num-mono text-[11px] text-white/40 tabular w-5 flex-shrink-0">
+                      {String(idx + 1).padStart(2, "0")}
+                    </span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[13.5px] text-white font-medium truncate leading-tight">
+                        {pred.home_team} <span className="text-white/30">·</span> {pred.away_team}
+                      </p>
+                      <p className="num-mono text-[10.5px] text-white/40 tabular mt-0.5">
+                        {pred.match_time}
+                      </p>
                     </div>
-                  ))}
-                </div>
+                    <div className="flex items-center gap-2.5 flex-shrink-0">
+                      <span className="text-display-md text-white">{pred.bet_type}</span>
+                      <span className="num-mono text-[12.5px] text-lime tabular font-semibold">
+                        {pred.odds ? parseFloat(pred.odds).toFixed(2) : "—"}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
 
-                {/* Footer CTA */}
-                <div className="flex items-center justify-end gap-1.5 mt-6 pt-4 border-t border-white/[0.05]">
-                  <span className="font-serif-display italic text-[12.5px] text-white/65">
-                    Kuponu görüntüle
-                  </span>
-                  <span aria-hidden className="text-white/65">→</span>
-                </div>
-              </button>
-            </section>
-          </>
+              {/* Footer CTA */}
+              <div className="bt-hairline px-5 py-4 flex items-center justify-between">
+                <span className="eyebrow-tiny">Kuponu görüntüle</span>
+                <span
+                  aria-hidden
+                  className="text-lime text-[16px] font-bold transition-transform group-hover:translate-x-1"
+                >
+                  →
+                </span>
+              </div>
+            </button>
+          </section>
         )}
 
-        <Ornament />
-
-        {/* ───── BU AKŞAM BÜLTENDE — yaklaşan maçlar (kartsız) ───── */}
-        <section>
-          <SectionLabel
-            left={bulletinTimeLabel()}
-            right={
-              <button
-                onClick={() => setLocation("/predictions")}
-                className="flex items-center gap-1 text-[10px] text-white/55 hover:text-white transition-colors uppercase tracking-[0.18em] font-medium"
-                data-testid="link-all-predictions"
-              >
-                Tümü <span aria-hidden>→</span>
-              </button>
-            }
-          />
+        {/* ════════ TODAY'S MATCHES — list ════════ */}
+        <section data-testid="section-today-matches">
+          <div className="flex items-end justify-between mb-4">
+            <span className="eyebrow">Bugünün Maçları</span>
+            <button
+              onClick={() => setLocation("/predictions")}
+              className="eyebrow-tiny flex items-center gap-1.5 hover:text-white transition-colors"
+              data-testid="link-all-predictions"
+            >
+              Tümü
+              <span aria-hidden className="text-lime">→</span>
+            </button>
+          </div>
 
           {loading ? (
-            <div className="space-y-4 px-1">
+            <div className="space-y-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="animate-pulse">
-                  <div className="h-3 bg-white/[0.04] rounded w-1/2 mb-2" />
-                  <div className="h-2 bg-white/[0.03] rounded w-1/3" />
-                </div>
+                <div key={i} className="surface rounded-xl h-[68px] animate-pulse" />
               ))}
             </div>
           ) : todayMatches.length > 0 ? (
-            <div className="px-1">
+            <div className="surface rounded-2xl overflow-hidden">
               {todayMatches.map((match, idx) => {
                 const primaryBet = match.predictions?.find((p) => p.bet_category === "primary");
                 return (
                   <button
                     key={match.id}
                     onClick={() => setLocation(`/match/${match.fixture_id}`)}
-                    className="w-full py-4 text-left active:opacity-70 transition-opacity group block border-t border-white/[0.05] first:border-t-0"
+                    className={`w-full px-4 py-4 text-left active:bg-white/[0.02] transition-colors group block ${
+                      idx > 0 ? "bt-hairline" : ""
+                    }`}
                     data-testid={`card-match-${match.fixture_id}`}
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="num-display text-[12px] text-white/55 tracking-wider flex-shrink-0 w-[42px]">
+                    <div className="flex items-center gap-3.5">
+                      {/* Time block */}
+                      <div className="num-mono text-[13px] text-white tabular flex-shrink-0 w-[44px] font-semibold">
                         {match.match_time}
-                      </span>
+                      </div>
+
+                      {/* Vertical divider */}
+                      <div className="w-px h-9 bg-white/[0.08] flex-shrink-0" aria-hidden />
+
+                      {/* Teams + league */}
                       <div className="flex-1 min-w-0">
-                        <p className="text-[13.5px] text-white/95 font-medium leading-tight truncate">
+                        <p className="text-[13.5px] text-white font-semibold leading-tight truncate font-display">
                           {match.home_team} <span className="text-white/30">·</span> {match.away_team}
                         </p>
                         {match.league_name && (
-                          <p className="text-[10px] text-white/35 mt-1 uppercase tracking-[0.14em] font-medium truncate">
-                            {match.league_name}
-                          </p>
+                          <p className="eyebrow-tiny mt-1 truncate">{match.league_name}</p>
                         )}
                       </div>
-                      {primaryBet && (
-                        <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
-                          <span className="font-serif-display italic text-[13px] text-white/85 leading-none">
+
+                      {/* Bet badge */}
+                      {primaryBet ? (
+                        <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                          <span className="text-display-md text-white">
                             {primaryBet.bet_type}
                           </span>
-                          <span className="text-[10px] text-white/40 num-display mt-1">
+                          <span className="num-mono text-[10px] text-lime tabular font-semibold">
                             %{primaryBet.confidence}
                           </span>
                         </div>
+                      ) : (
+                        <span className="eyebrow-tiny">—</span>
                       )}
-                      <span className="text-white/30 group-hover:text-white/65 group-hover:translate-x-0.5 transition-all text-[14px] flex-shrink-0">
-                        →
-                      </span>
                     </div>
                   </button>
                 );
               })}
-              {/* bottom hairline */}
-              <div className="h-px bg-white/[0.05]" />
             </div>
           ) : (
-            <div className="py-10 text-center">
-              <p className="font-serif-display italic text-[20px] text-white/75">Bugün maç yok.</p>
-              <p className="text-[12px] text-white/40 mt-2 font-light">
-                Yeni analizler yarın saat 01:00'da yayınlanır.
+            <div className="surface rounded-2xl px-5 py-12 text-center">
+              <p className="text-display-lg text-white">Bugün maç yok.</p>
+              <p className="text-[12.5px] text-white/45 mt-2">
+                Yeni analizler her gün 01:00'da yayınlanır.
               </p>
             </div>
           )}
         </section>
 
-        <Ornament />
-
-        {/* ───── EDİTÖRDEN ───── */}
-        <section className="relative">
-          <div className="flex items-start gap-4">
-            <span className="drop-cap leading-[0.85] flex-shrink-0 mt-1">V</span>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-baseline justify-between mb-2">
-                <span className="text-[9.5px] font-medium tracking-[0.2em] uppercase text-white/45">
-                  Editörden · {todayShort}
-                </span>
-                <span className="text-[10px] text-white/30 font-serif-display italic">v.10</span>
-              </div>
-              <p className="font-serif-display italic text-[16px] text-white/85 leading-[1.4] -tracking-[0.005em]">
-                eri, sezgi değil.
-              </p>
-              <p className="text-[12.5px] text-white/45 font-light leading-[1.55] mt-3">
-                Form, sakatlık, geçmiş karşılaşma, oran piyasası ve sezon istatistikleri
-                GPT-4o ile değerlendirilir. Yalnızca <span className="text-white/75">güven ≥%70</span> ve
-                <span className="text-white/75"> değer ≥%5</span> olan tahminler yayınlanır.
-              </p>
-              <div className="text-right mt-3">
-                <span className="font-serif-display italic text-[11px] text-white/40">
-                  — tutturduk
-                </span>
-              </div>
-            </div>
+        {/* ════════ METHOD STRIP ════════ */}
+        <section className="surface rounded-2xl px-5 py-5" data-testid="section-method">
+          <div className="flex items-center gap-3 mb-3">
+            <span className="w-1.5 h-1.5 rounded-full bg-lime" aria-hidden />
+            <span className="eyebrow-tiny">Yöntem</span>
           </div>
+          <p className="text-[13.5px] text-white/85 leading-relaxed font-display">
+            Her tahmin <span className="text-lime font-semibold">GPT-4o</span> ile değerlendirilir.
+            Form, sakatlık, oran piyasası ve sezon istatistikleri tek bir modelde
+            buluşur. Yalnızca <span className="text-white">güven ≥%70</span> ve
+            <span className="text-white"> değer ≥%5</span> olan bahisler yayınlanır.
+          </p>
         </section>
 
-        {/* ───── KÜNYE / SIGNATURE ───── */}
-        <div className="text-center pt-4 pb-2">
-          <span className="font-serif-display italic text-[11px] text-white/30 tracking-wide">
-            tutturduk · veri merkezi · {String(issueNumber()).padStart(3, "0")}
+        {/* ════════ SIGNATURE FOOTER ════════ */}
+        <div className="text-center py-5">
+          <span className="eyebrow-tiny num-mono">
+            TUTTURDUK · ANALİZ MERKEZİ
           </span>
         </div>
 
@@ -555,75 +523,44 @@ export default function DashboardPage() {
   );
 }
 
-/* ───── Helpers ───── */
+/* ───────── Sub-components ───────── */
 
-function SectionLabel({ left, right }: { left: string; right?: React.ReactNode }) {
+function TeamBadge({ logo, name }: { logo?: string; name: string }) {
   return (
-    <div className="flex items-center justify-between mb-4 px-1">
-      <span className="text-[10px] font-medium tracking-[0.2em] uppercase text-white/55">
-        {left}
-      </span>
-      {typeof right === "string" ? (
-        <span className="text-[10px] font-medium tracking-[0.18em] uppercase text-white/40 num-display">
-          {right}
-        </span>
+    <div className="w-9 h-9 rounded-full bg-[#1f1f23] border border-white/[0.06] flex items-center justify-center overflow-hidden flex-shrink-0">
+      {logo ? (
+        <img src={logo} alt="" className="w-6 h-6 object-contain" />
       ) : (
-        right
+        <span className="text-display-md text-white/55">{name.slice(0, 1)}</span>
       )}
     </div>
   );
 }
 
-function Ornament() {
-  return <div className="ornament-divider py-2" aria-hidden />;
-}
-
-function TeamSide({
-  logo,
-  name,
-  align,
-}: {
-  logo?: string;
-  name: string;
-  align: "left" | "right";
-}) {
-  const isRight = align === "right";
-  return (
-    <div className={`flex flex-col flex-1 min-w-0 gap-2 ${isRight ? "items-end text-right" : "items-start text-left"}`}>
-      <div className="w-[34px] h-[34px] rounded-full bg-white/[0.04] border border-white/[0.06] flex items-center justify-center overflow-hidden flex-shrink-0">
-        {logo ? (
-          <img src={logo} alt="" className="w-6 h-6 object-contain" />
-        ) : (
-          <span className="text-[12px] text-white/55 font-medium">{name.slice(0, 1)}</span>
-        )}
-      </div>
-      <span className="text-[15px] text-white/95 font-medium leading-tight -tracking-[0.005em] line-clamp-2 w-full">
-        {name}
-      </span>
-    </div>
-  );
-}
-
-function CoverMetric({
+function BetStat({
   label,
   value,
-  accent,
+  highlight,
   mono,
+  border,
 }: {
   label: string;
   value: string;
-  accent?: boolean;
+  highlight?: boolean;
   mono?: boolean;
+  border?: "left";
 }) {
   return (
-    <div className="flex flex-col gap-2">
-      <span className="text-[9px] font-medium tracking-[0.2em] uppercase text-white/40">
-        {label}
-      </span>
+    <div
+      className={`px-3 py-4 flex flex-col gap-2 ${
+        border === "left" ? "border-l border-white/[0.06]" : ""
+      }`}
+    >
+      <span className="eyebrow-tiny">{label}</span>
       <span
-        className={`text-[15px] leading-none ${
-          accent ? "font-serif-display italic text-white/95" : ""
-        } ${mono ? "num-display text-white/95" : ""}`}
+        className={`leading-none ${
+          highlight ? "text-display-lg text-white" : "text-display-md text-white"
+        } ${mono ? "num-mono tabular" : "font-display"}`}
       >
         {value}
       </span>
@@ -631,27 +568,31 @@ function CoverMetric({
   );
 }
 
-function BigStat({
+function ScoreBlock({
   label,
   value,
   border,
+  accent,
 }: {
   label: string;
   value: string | number;
-  border?: "right";
+  border?: "left";
+  accent?: boolean;
 }) {
   return (
     <div
-      className={`px-2 py-3 flex flex-col items-center gap-2 ${
-        border === "right" ? "border-r border-white/[0.06]" : ""
+      className={`px-3 py-5 flex flex-col gap-2.5 items-center ${
+        border === "left" ? "border-l border-white/[0.06]" : ""
       }`}
     >
-      <span className="font-serif-display text-[34px] text-white leading-none num-display tracking-tight">
+      <span
+        className={`text-display-xl tabular leading-none ${
+          accent ? "text-lime" : "text-white"
+        } num-mono`}
+      >
         {value}
       </span>
-      <span className="text-[9.5px] font-medium tracking-[0.2em] uppercase text-white/45">
-        {label}
-      </span>
+      <span className="eyebrow-tiny">{label}</span>
     </div>
   );
 }
