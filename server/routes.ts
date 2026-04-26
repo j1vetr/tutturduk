@@ -1598,7 +1598,7 @@ export async function registerRoutes(
             predictions: existingBets.rows.map((bet: any) => ({
               type: bet.risk_level === 'düşük' ? 'expected' : bet.risk_level === 'orta' ? 'medium' : 'risky',
               bet: bet.bet_type,
-              odds: bet.odds ? `${bet.odds.toFixed(2)}` : '~1.50',
+              odds: bet.odds ? `${Number(bet.odds).toFixed(2)}` : '~1.50',
               confidence: bet.confidence || 65,
               reasoning: bet.reasoning || '',
               consistentScores: bet.bet_description ? bet.bet_description.split(', ') : ['1-1', '2-1']

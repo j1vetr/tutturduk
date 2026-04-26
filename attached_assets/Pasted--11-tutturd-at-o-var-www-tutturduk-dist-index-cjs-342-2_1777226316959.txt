@@ -1,0 +1,27 @@
+
+11|tutturd |     at o (/var/www/tutturduk/dist/index.cjs:342:2165)
+11|tutturd |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+11|tutturd |     at async /var/www/tutturduk/dist/index.cjs:342:3019
+11|tutturd | AI Analysis error: TypeError: d.odds.toFixed is not a function
+11|tutturd |     at /var/www/tutturduk/dist/index.cjs:342:2300
+11|tutturd |     at Array.map (<anonymous>)
+11|tutturd |     at o (/var/www/tutturduk/dist/index.cjs:342:2165)
+11|tutturd |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+11|tutturd |     at async /var/www/tutturduk/dist/index.cjs:342:3019
+11|tutturd | AI Analysis error: TypeError: d.odds.toFixed is not a function
+11|tutturd |     at /var/www/tutturduk/dist/index.cjs:342:2300
+11|tutturd |     at Array.map (<anonymous>)
+11|tutturd |     at o (/var/www/tutturduk/dist/index.cjs:342:2165)
+11|tutturd |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+11|tutturd |     at async /var/www/tutturduk/dist/index.cjs:342:3019
+
+/root/.pm2/logs/tutturduk-out.log last 15 lines:
+11|tutturd | 95.png","league_name":"Primera División Femenina","league_logo":"https://media.api-sports.io/football/leagues/142.png","match_time":"13:00","confidence":70,"reasoning":"Maçın toplam gol beklentisi yüksek. Deportivo'nun hücum gücü ve Alhama'nın savunma zaafları nedeniyle 2.5 Üst seçeneği değerli görünüyor.","created_at":"2026-04-26T01:57:47.746Z","match_id":669,"match_date":"2026-04-26","bet_type":"2.5 Üst","bet_description":null,"risk_level":"orta","result":"won","bet_category":"alternative","odds":"4.60"},{"id":1233,"date_for":"2026-04-26","fixture_id":1397259,"home_team":"Deportivo de La Coruña W","away_team":"Alhama","home_logo":"https://media.api-sports.io/football/teams/6376.png","away_logo":"https://media.api-sports.io/football/teams/19895.png","league_name":"Primera División Femenina","league_logo":"https://media.api-sports.io/football/leagues/142.png","match_time":"13:00","confidence":70,"reasoning":"Maçın toplam gol beklentisi yüksek. Deportivo'nun hücum gücü ve Alhama'nın savunma zaafları nedeniyle 2.5 Üst seçeneği değerli görünüyor.","created_at":"2026-04-26T01:57:47.745Z","match_id":669,"match_date":"2026-04-26","bet_type":"2.5 Üst","bet_description":null,"risk_level":"orta","result":"won","bet_category":"primary","odds":"4.60"},{"id":1232,"date_for":"2026-04-26","fixture_id":1396067,"home_team":"Podhale Nowy Targ","away_team":"Świt Skolwin","home_logo":"https://media.api-sports.io/football/teams/12834.png","away_logo":"https://media.api-sports.io/football/teams/12902.png","league_name":"II Liga - East","league_logo":"https://media.api-sports.io/football/leagues/109.png","match_time":"13:00","confidence":70,"reasoning":"Her iki takımın da son maçlarında gol bulma ve yeme eğilimleri yüksek. Podhale Nowy Targ'ın hücum gücü ve Świt Skolwin'in savunma zaafları göz önüne alındığında, maçın gollü geçmesi muhtemel.","created_at":"2026-04-26T01:57:41.669Z","match_id":668,"match_date":"2026-04-26","bet_type":"2.5 Üst","bet_description":null,"risk_level":"orta","result":"won","bet_category":"alternative","odds":"5.50"},{"id":1231,"date_for":"2026-04-26","fixture_id":1396067,"home_team":"Podhale Nowy Targ","away_team":"Świt Skolwin","home_logo":"https://media.api-sports.io/football/teams/12834.png","away_logo":"https://media.api-sports.io/football/teams/12902.png","league_name":"II Liga - East","league_logo":"https://media.api-sports.io/football/leagues/109.png","match_time":"13:00","confidence":75,"reasoning":"Podhale Nowy Targ evinde güçlü bir performans sergiliyor ve rakibine karşı üstün bir oyun bekleniyor. Świt Skolwin'in deplasman performansı zayıf.","created_at":"2026-04-26T01:57:41.669Z","match_id":668,"match_date":"2026-04-26","bet_type":"MS1","bet_description":null,"risk_level":"düşük","result":"won","bet_category":"primary","odds":"1.53"}]}
+11|tutturd | 8:58:04 PM [express] GET /api/admin/matches 304 in 17ms :: []
+11|tutturd | 8:58:07 PM [express] GET /api/admin/matches 304 in 4ms :: []
+
+11|tutturduk  | [AutoPublish] Today's validated matches: 2026-04-26 (refresh=false, futureOnlyMinutes=5)
+11|tutturduk  | [AutoPublish] Publishing from prefetched data for 2026-04-26 (futureOnlyMinutes=5)...
+11|tutturduk  | [AutoPublish] DB'de 26 yayında, 14 slot kaldı (cap=40, istenen=70, etkin=14)
+11|tutturduk  | 8:58:24 PM [express] POST /api/admin/auto-publish-today 500 in 19ms :: {"message":"column \"data\" does not exist"}
+
