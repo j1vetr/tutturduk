@@ -1,9 +1,50 @@
 import OpenAI from "openai";
+import crypto from "crypto";
 import { pool } from "./db";
+import {
+  MIN_ODDS,
+  MIN_VALUE_PERCENT,
+  MIN_CONFIDENCE,
+  RISK_LOW_CONFIDENCE,
+  LOW_ODDS_THRESHOLD,
+  LOW_ODDS_MIN_EDGE,
+  LOW_ODDS_MIN_CONFIDENCE,
+  HOME_ADVANTAGE_FACTOR,
+  LEAGUE_AVG_GOALS,
+  isLowScoringLeague,
+  arePositivelyCorrelated,
+} from "./predictionConfig";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+// ─── İZİN VERİLEN MARKETLER (FAZ 3.1) ────────────────────────
+// AI sadece bu marketler arasından seçim yapabilir.
+const ALLOWED_MARKETS = [
+  '1.5 Üst', '2.5 Üst', '2.5 Alt',
+  'KG Var', 'KG Yok',
+  'MS1', 'MS2',
+  '1X', 'X2', '12',
+  'DNB Ev', 'DNB Dep',
+] as const;
+
+// ─── CACHE KEY (FAZ 1.5) ─────────────────────────────────────
+// Otomatik hash: prompt veya schema değişirse cache invalid olur.
+const CACHE_KEY_VERSION = (() => {
+  const fingerprint = JSON.stringify({
+    markets: ALLOWED_MARKETS,
+    minOdds: MIN_ODDS,
+    minValue: MIN_VALUE_PERCENT,
+    minConfidence: MIN_CONFIDENCE,
+    schema: 'v2-adaptive-markets',
+  });
+  return crypto.createHash('md5').update(fingerprint).digest('hex').slice(0, 8);
+})();
+
+export function aiCacheKey(fixtureId: number | string): string {
+  return `ai_analysis_${CACHE_KEY_VERSION}_${fixtureId}`;
+}
 
 interface MatchData {
   homeTeam: string;
@@ -48,16 +89,6 @@ interface MatchData {
     avgGoalsConcededAway?: number;
     biggestWinStreak?: number;
     biggestLoseStreak?: number;
-    goalsMinutes?: {
-      '0-15'?: number;
-      '16-30'?: number;
-      '31-45'?: number;
-      '46-60'?: number;
-      '61-75'?: number;
-      '76-90'?: number;
-    };
-    penaltyScored?: number;
-    penaltyMissed?: number;
   };
   awayTeamStats?: {
     cleanSheets?: number;
@@ -68,16 +99,6 @@ interface MatchData {
     avgGoalsConcededAway?: number;
     biggestWinStreak?: number;
     biggestLoseStreak?: number;
-    goalsMinutes?: {
-      '0-15'?: number;
-      '16-30'?: number;
-      '31-45'?: number;
-      '46-60'?: number;
-      '61-75'?: number;
-      '76-90'?: number;
-    };
-    penaltyScored?: number;
-    penaltyMissed?: number;
   };
   injuries?: {
     home?: { player: string; reason: string; type: string }[];
@@ -139,10 +160,10 @@ export interface BetResult {
   bet: string;
   odds: number;
   confidence: number;
-  reasoning: string;
-  valuePercentage: number;
   estimatedProbability: number;
+  valuePercentage: number;
   riskLevel: 'düşük' | 'orta' | 'yüksek';
+  reasoning: string;
 }
 
 export interface AIAnalysisResult {
@@ -156,45 +177,35 @@ export interface AIAnalysisResult {
     isDerby: boolean;
   };
   analysis: string;
-  psychologicalAnalysis?: {
-    homeTeamMorale: 'yüksek' | 'orta' | 'düşük';
-    awayTeamMorale: 'yüksek' | 'orta' | 'düşük';
-    matchPressure: 'yüksek' | 'normal' | 'düşük';
-    motivationFactor: string;
-  };
-  primaryBet?: BetResult | null;  // 2.5 Üst
-  alternativeBet?: BetResult | null;  // KG Var
+  primaryBet?: BetResult | null;
+  alternativeBet?: BetResult | null;
   predictions: PredictionItem[];
   singleBet?: SingleBetResult | null;
-  avoidBets?: Record<string, string>;
   expertTip?: string;
   expectedGoalRange?: string;
 }
 
+// ─── HELPERS ─────────────────────────────────────────────────
 function formatForm(form?: string): string {
   if (!form) return 'Veri yok';
-  return form.split('').join(' ');
-}
-
-function formatGoalMinutes(minutes?: { [key: string]: number }): string {
-  if (!minutes) return 'Veri yok';
-  const entries = Object.entries(minutes).filter(([_, v]) => v > 0);
-  if (entries.length === 0) return 'Veri yok';
-  return entries.map(([k, v]) => `${k}: ${v} gol`).join(', ');
+  return form.split('').slice(-5).join(' ');
 }
 
 function formatLastMatches(matches?: { opponent: string; result: string; score: string; home: boolean }[]): string {
   if (!matches || matches.length === 0) return 'Veri yok';
-  // Show last 10 matches for better trend analysis
-  return matches.slice(0, 10).map(m => 
-    `${m.home ? 'İç saha' : 'Deplasman'} vs ${m.opponent}: ${m.score} (${m.result === 'W' ? 'G' : m.result === 'D' ? 'B' : 'M'})`
-  ).join('\n  ');
+  // FAZ 2.3: 10 → 5 maç (token tasarrufu)
+  return matches.slice(0, 5).map(m =>
+    `${m.home ? 'İ' : 'D'} ${m.opponent}: ${m.score} (${m.result === 'W' ? 'G' : m.result === 'D' ? 'B' : 'M'})`
+  ).join(' | ');
 }
 
-function detectMatchType(league: string): string {
-  const cupKeywords = ['Kupa', 'Cup', 'Copa', 'Coupe', 'Pokal', 'FA Cup', 'League Cup', 'Coppa'];
-  const isCup = cupKeywords.some(k => league.toLowerCase().includes(k.toLowerCase()));
-  return isCup ? 'cup' : 'league';
+function detectMatchType(league: string): 'league' | 'cup' | 'friendly' {
+  const cupKeywords = ['kupa', 'cup', 'copa', 'coupe', 'pokal', 'coppa'];
+  const friendlyKeywords = ['friendly', 'hazırlık', 'club friendlies'];
+  const lower = league.toLowerCase();
+  if (friendlyKeywords.some(k => lower.includes(k))) return 'friendly';
+  if (cupKeywords.some(k => lower.includes(k))) return 'cup';
+  return 'league';
 }
 
 function detectDerby(homeTeam: string, awayTeam: string): boolean {
@@ -209,450 +220,358 @@ function detectDerby(homeTeam: string, awayTeam: string): boolean {
     ['Celtic', 'Rangers'], ['Boca', 'River'], ['Flamengo', 'Fluminense'],
     ['Porto', 'Benfica'], ['Porto', 'Sporting'], ['Benfica', 'Sporting'],
   ];
-  
-  const homeLower = homeTeam.toLowerCase();
-  const awayLower = awayTeam.toLowerCase();
-  
-  return derbies.some(([t1, t2]) => 
-    (homeLower.includes(t1.toLowerCase()) && awayLower.includes(t2.toLowerCase())) ||
-    (homeLower.includes(t2.toLowerCase()) && awayLower.includes(t1.toLowerCase()))
+  const h = homeTeam.toLowerCase();
+  const a = awayTeam.toLowerCase();
+  return derbies.some(([t1, t2]) =>
+    (h.includes(t1.toLowerCase()) && a.includes(t2.toLowerCase())) ||
+    (h.includes(t2.toLowerCase()) && a.includes(t1.toLowerCase()))
   );
 }
 
-function calculateExpectedGoals(matchData: MatchData): { home: number; away: number; total: number } {
+// ─── POISSON xG (FAZ 4.2) ────────────────────────────────────
+// Düzgün Poisson: lig ortalama gol oranı + ev avantajı + savunma sıkılığı.
+function calculateExpectedGoals(matchData: MatchData): { home: number; away: number; total: number; lambda: { home: number; away: number } } {
   const homeStats = matchData.homeTeamStats;
   const awayStats = matchData.awayTeamStats;
-  
-  const homeAttack = homeStats?.avgGoalsHome || (matchData.homeGoalsFor ? matchData.homeGoalsFor / Math.max(1, (matchData.homeWins || 0) + (matchData.homeDraws || 0) + (matchData.homeLosses || 0)) : 1.5);
-  const awayDefense = awayStats?.avgGoalsConcededAway || 1.2;
-  const awayAttack = awayStats?.avgGoalsAway || (matchData.awayGoalsFor ? matchData.awayGoalsFor / Math.max(1, (matchData.awayWins || 0) + (matchData.awayDraws || 0) + (matchData.awayLosses || 0)) : 1.0);
-  const homeDefense = homeStats?.avgGoalsConcededHome || 1.0;
-  
-  const expectedHome = (homeAttack + awayDefense) / 2;
-  const expectedAway = (awayAttack + homeDefense) / 2;
-  
+
+  // Lig ortalama gol/maç (her takım için yarısı)
+  const leagueAvgPerTeam = LEAGUE_AVG_GOALS / 2;
+
+  // Takım hücum/savunma "strength" oranları (1.0 = lig ortalaması)
+  const homeAttackRate = homeStats?.avgGoalsHome ?? leagueAvgPerTeam;
+  const homeDefenseRate = homeStats?.avgGoalsConcededHome ?? leagueAvgPerTeam;
+  const awayAttackRate = awayStats?.avgGoalsAway ?? leagueAvgPerTeam;
+  const awayDefenseRate = awayStats?.avgGoalsConcededAway ?? leagueAvgPerTeam;
+
+  const homeAttackStrength = homeAttackRate / leagueAvgPerTeam;
+  const homeDefenseStrength = homeDefenseRate / leagueAvgPerTeam;
+  const awayAttackStrength = awayAttackRate / leagueAvgPerTeam;
+  const awayDefenseStrength = awayDefenseRate / leagueAvgPerTeam;
+
+  // Dixon-Coles benzeri: λ_home = avg × homeAttack × awayDefense × homeAdvantage
+  const lambdaHome = leagueAvgPerTeam * homeAttackStrength * awayDefenseStrength * HOME_ADVANTAGE_FACTOR;
+  const lambdaAway = leagueAvgPerTeam * awayAttackStrength * homeDefenseStrength;
+
   return {
-    home: Math.round(expectedHome * 10) / 10,
-    away: Math.round(expectedAway * 10) / 10,
-    total: Math.round((expectedHome + expectedAway) * 10) / 10
+    home: Math.round(lambdaHome * 10) / 10,
+    away: Math.round(lambdaAway * 10) / 10,
+    total: Math.round((lambdaHome + lambdaAway) * 10) / 10,
+    lambda: { home: lambdaHome, away: lambdaAway },
   };
 }
 
-function analyzeTrends(matchData: MatchData): string[] {
-  const trends: string[] = [];
-  const homeStats = matchData.homeTeamStats;
-  const awayStats = matchData.awayTeamStats;
-  
-  if (homeStats?.cleanSheets && homeStats.cleanSheets >= 3) {
-    trends.push(`${matchData.homeTeam} son dönemde ${homeStats.cleanSheets} temiz kale tuttu - savunma güçlü`);
-  }
-  if (awayStats?.cleanSheets && awayStats.cleanSheets >= 3) {
-    trends.push(`${matchData.awayTeam} son dönemde ${awayStats.cleanSheets} temiz kale tuttu - savunma güçlü`);
-  }
-  if (homeStats?.failedToScore && homeStats.failedToScore >= 3) {
-    trends.push(`${matchData.homeTeam} son dönemde ${homeStats.failedToScore} maçta gol atamadı - hücum zayıf`);
-  }
-  if (awayStats?.failedToScore && awayStats.failedToScore >= 3) {
-    trends.push(`${matchData.awayTeam} son dönemde ${awayStats.failedToScore} maçta gol atamadı - hücum zayıf`);
-  }
-  
-  const h2hCount = matchData.h2hResults?.length || 0;
-  if (h2hCount >= 3) {
-    const h2hTotal = matchData.h2hResults!.reduce((sum, m) => sum + m.homeGoals + m.awayGoals, 0);
-    const h2hAvg = h2hTotal / h2hCount;
-    if (h2hAvg >= 3) {
-      trends.push(`H2H ortalaması ${h2hAvg.toFixed(1)} gol - gollü maç geçmişi`);
-    } else if (h2hAvg <= 2) {
-      trends.push(`H2H ortalaması ${h2hAvg.toFixed(1)} gol - az gollü maç geçmişi`);
-    }
-  }
-  
-  return trends;
+// Poisson olasılık yardımcısı: P(X = k | λ)
+function poissonPmf(k: number, lambda: number): number {
+  if (lambda <= 0) return k === 0 ? 1 : 0;
+  let logP = -lambda + k * Math.log(lambda);
+  for (let i = 2; i <= k; i++) logP -= Math.log(i);
+  return Math.exp(logP);
 }
 
-export async function generateMatchAnalysis(matchData: MatchData): Promise<AIAnalysisResult> {
-  const h2hTotal = matchData.h2hResults?.reduce((sum, m) => sum + m.homeGoals + m.awayGoals, 0) || 0;
-  const h2hCount = matchData.h2hResults?.length || 0;
-  const h2hAvg = h2hCount > 0 ? (h2hTotal / h2hCount).toFixed(1) : '0';
-  
-  const h2hSummary = h2hCount > 0 
-    ? `Son ${h2hCount} karşılaşmada toplam ${h2hTotal} gol atıldı. Maç başına gol ortalaması: ${h2hAvg}`
-    : 'Bu iki takım daha önce hiç karşılaşmamış - İLK KEZ KARŞI KARŞIYA GELİYORLAR.';
+// 0-9 gole kadar Poisson skor matrisinden market olasılıkları
+function computeMarketProbabilities(lambda: { home: number; away: number }): Record<string, number> {
+  const maxGoals = 9;
+  let pHome = 0, pDraw = 0, pAway = 0;
+  let pBttsYes = 0;
+  let pOver = { 0.5: 0, 1.5: 0, 2.5: 0, 3.5: 0 };
 
-  const homeStats = matchData.homeTeamStats;
-  const awayStats = matchData.awayTeamStats;
-  const comp = matchData.comparison;
+  for (let h = 0; h <= maxGoals; h++) {
+    for (let a = 0; a <= maxGoals; a++) {
+      const p = poissonPmf(h, lambda.home) * poissonPmf(a, lambda.away);
+      if (h > a) pHome += p;
+      else if (h < a) pAway += p;
+      else pDraw += p;
+      if (h > 0 && a > 0) pBttsYes += p;
+      const total = h + a;
+      if (total > 0.5) pOver[0.5] += p;
+      if (total > 1.5) pOver[1.5] += p;
+      if (total > 2.5) pOver[2.5] += p;
+      if (total > 3.5) pOver[3.5] += p;
+    }
+  }
+
+  return {
+    msHome: pHome,
+    msDraw: pDraw,
+    msAway: pAway,
+    bttsYes: pBttsYes,
+    bttsNo: 1 - pBttsYes,
+    over15: pOver[1.5],
+    under15: 1 - pOver[1.5],
+    over25: pOver[2.5],
+    under25: 1 - pOver[2.5],
+    over35: pOver[3.5],
+    dc1X: pHome + pDraw,
+    dcX2: pAway + pDraw,
+    dc12: pHome + pAway,
+    dnbHome: pDraw > 0.999 ? 0 : pHome / (pHome + pAway),
+    dnbAway: pDraw > 0.999 ? 0 : pAway / (pHome + pAway),
+  };
+}
+
+// ─── ANA ANALİZ FONKSİYONU ───────────────────────────────────
+export async function generateMatchAnalysis(matchData: MatchData): Promise<AIAnalysisResult> {
+  const h2hCount = matchData.h2hResults?.length || 0;
+  const h2hTotal = matchData.h2hResults?.reduce((sum, m) => sum + m.homeGoals + m.awayGoals, 0) || 0;
+  const h2hAvg = h2hCount > 0 ? (h2hTotal / h2hCount).toFixed(1) : '0';
+
   const odds = matchData.odds;
-  
   const matchType = matchData.matchType || detectMatchType(matchData.league);
   const isDerby = detectDerby(matchData.homeTeam, matchData.awayTeam);
   const homeLeagueLevel = matchData.homeLeagueLevel || 1;
   const awayLeagueLevel = matchData.awayLeagueLevel || 1;
-  
-  const expectedGoals = calculateExpectedGoals(matchData);
-  const trends = analyzeTrends(matchData);
 
-  // Professional Value Betting System Prompt v3 - 2.5 Üst + KG Var Focus
-  const systemPrompt = `Sen tutturduk.com için çalışan profesyonel bir bahis tahmincisi ve value betting uzmanısın.
-Hem istatistiksel hem psikolojik analiz yaparak tahmin üretiyorsun.
+  const xg = calculateExpectedGoals(matchData);
+  const marketProbs = computeMarketProbabilities(xg.lambda);
 
-🎯 ODAK MARKETLER (SADECE BU İKİSİ):
-1. Ana Bahis: 2.5 ÜST (3+ gol beklentisi)
-2. Alternatif Bahis: KG VAR (her iki takım da gol atar)
+  // FAZ 3.4: Lig bazlı goal-line tercihi
+  const lowScoring = isLowScoringLeague(matchData.leagueId, matchData.league);
+  const goalLineHint = lowScoring
+    ? '⚠️ DÜŞÜK GOL ORTALAMALI LİG: 2.5 Üst yerine 1.5 Üst veya 2.5 Alt tercih et.'
+    : '';
 
-⚠️ 2.5 Alt ve KG Yok bahisleri YASAKTIR - asla önerme!
+  // ─── SİSTEM PROMPT (FAZ 2.3 diet, FAZ 3.1/3.2/3.3, FAZ 4.4) ───
+  const systemPrompt = `Sen tutturduk.com için profesyonel value betting uzmanısın.
 
-🚫 KESİN KURALLAR:
+🎯 GÖREVİN:
+Verilen maç için 11 marketten primary (ana) ve alternative (alternatif) bahis seç.
+İzin verilen marketler: 1.5 Üst, 2.5 Üst, 2.5 Alt, KG Var, KG Yok, MS1, MS2, 1X, X2, 12, DNB Ev, DNB Dep.
+Bunların DIŞINDA bahis önerme.
 
-1️⃣ MİNİMUM ORAN: 1.50
-- Her iki bahis için de oran ≥1.50 olmalı
-- Düşük oranlı bahisleri yuvarlama veya zorla önerme
+📐 OLASILIK vs GÜVEN (AYRI):
+- estimatedProbability (0-100): "Bu bahis kaç maçtan birinde tutar?" Saf oran tahmini.
+- confidence (0-100): "Bu tahminime ne kadar güveniyorum?" Veri kalitesi + senin emin olma derecen.
+İkisi farklı şeyler. Karışık form, az veri, sürpriz risk → confidence düşer ama probability yüksek olabilir.
 
-2️⃣ DEĞER HESABI
-Değer = (TahminiOlasılık / 100 × Oran) - 1
-- Her iki bahis için de değer > 0 olmalı
-- Değer yoksa o bahis için null döndür
+📊 DEĞER HESABI (Kelly):
+value = (estimatedProbability/100 × odds) - 1
+Pozitif değer = kâr beklentisi var.
 
-3️⃣ KARAR MEKANİZMASI
-- 2.5 Üst VE KG Var ikisi de değerliyse → "bahis"
-- Sadece biri değerliyse de → "bahis" (diğeri null)
-- İkisi de değersizse → "pas"
+🚦 KESİN EŞİKLER:
+- Min oran: ${MIN_ODDS.toFixed(2)} (${LOW_ODDS_THRESHOLD} altı = "düşük oran rejimi", aşağı bak)
+- Min değer: %${(MIN_VALUE_PERCENT * 100).toFixed(0)} (value ≥ ${MIN_VALUE_PERCENT})
+- Min güven: ${MIN_CONFIDENCE}
+- Düşük oran rejimi (oran < ${LOW_ODDS_THRESHOLD}): değer ≥ %${(LOW_ODDS_MIN_EDGE * 100).toFixed(0)} VE güven ≥ ${LOW_ODDS_MIN_CONFIDENCE} olmalı.
 
-4️⃣ PSİKOLOJİK ANALİZ (ÇOK ÖNEMLİ)
-- Takım morali (son maç sonuçları, galibiyet/mağlubiyet serisi)
-- Motivasyon (şampiyonluk, küme düşme, derbi, kupa finali)
-- Baskı faktörü (büyük takım beklentisi, taraftar baskısı)
-- Form trendi (yükselen mi düşen mi?)
-- Kilit oyuncu eksikliği etkisi
+🔗 KORELASYON KURALI:
+Primary ile alternative POZİTİF KORELE OLMAMALI.
+Yasak çiftler: 2.5 Üst+KG Var, 2.5 Üst+1.5 Üst, 2.5 Alt+KG Yok, MS1+1X, MS1+DNB Ev, MS2+X2, MS2+DNB Dep.
+İyi çiftler: 2.5 Üst+MS1, KG Var+1X, 2.5 Alt+MS1, 1.5 Üst+12, KG Yok+DNB Ev.
 
-5️⃣ GÜVEN & RİSK
-- Güven ≥75 → düşük risk
-- Güven 60-74 → orta risk
-- Güven <60 → KABUL EDİLMEZ → karar: "pas"
+🎚️ RİSK SEVİYESİ:
+- Güven ≥${RISK_LOW_CONFIDENCE}: düşük
+- Güven ${MIN_CONFIDENCE}-${RISK_LOW_CONFIDENCE - 1}: orta
+- Güven <${MIN_CONFIDENCE}: KABUL EDİLMEZ → o bahis null
 
-6️⃣ SEÇİCİLİK KURALI — ÇOK ÖNEMLİ!
-- Güven skoru 60'ın altındaysa her zaman "pas" döndür, kesinlikle bahis açma
-- Değer yüzdesi en az %2 (0.02) olmalı — sıfır değer yaklaşımı YASAK
-- Kupa maçları, derbiler, farklı lig seviyeleri → eşiği 5 puan yükselt (min 75+ güven)
-- "İstatistik yeterince güçlü değil ama açayım" kesinlikle YASAK — şüphe = pas
-- Zorla tahmin üretme: eğer net görüş yoksa "pas" döndür
+📤 KARAR:
+- En az 1 bahis tüm eşikleri geçerse → karar: "bahis"
+- Hiçbiri geçmezse → karar: "pas" (zorla bahis açma)
+- Kupa/derbi/farklı lig → eşiği 5 puan yükselt
+- Şüphe = pas. Net görüş yoksa "pas" döndür.
 
-Türkçe, profesyonel dilde yanıt ver. SADECE JSON formatında çıktı üret.`;
+Türkçe yanıt ver. SADECE JSON döndür.`;
 
-  const prompt = `
-================================
-🏟️ MAÇ BİLGİLERİ
-================================
-Lig/Turnuva: ${matchData.league}
-Maç Tipi: ${matchType === 'cup' ? '🏆 KUPA MAÇI - Dikkat: Sürpriz riski yüksek!' : '⚽ LİG MAÇI'}
-${isDerby ? '🔥 DERBİ MAÇI - İlk yarı genelde temkinli, duygusal atmosfer!' : ''}
-Ev Sahibi: ${matchData.homeTeam}${matchData.homeRank ? ` (Sıralama: ${matchData.homeRank}. - ${matchData.homePoints} puan)` : ''}
-Deplasman: ${matchData.awayTeam}${matchData.awayRank ? ` (Sıralama: ${matchData.awayRank}. - ${matchData.awayPoints} puan)` : ''}
+  // ─── KULLANICI PROMPT (slim) ─────────────────────────────────
+  const homeStats = matchData.homeTeamStats;
+  const awayStats = matchData.awayTeamStats;
+  const comp = matchData.comparison;
 
-${homeLeagueLevel !== awayLeagueLevel ? `⚠️ FARKLI LİG SEVİYELERİ:
-- ${matchData.homeTeam}: ${homeLeagueLevel}. Lig
-- ${matchData.awayTeam}: ${awayLeagueLevel}. Lig
-Alt lig takımı genelde defansif oynar, sürpriz riski yüksek!` : ''}
+  const oddsBlock = odds ? `MS: 1=${odds.home?.toFixed(2) || '-'} X=${odds.draw?.toFixed(2) || '-'} 2=${odds.away?.toFixed(2) || '-'}
+ÜST: 1.5=${odds.over15?.toFixed(2) || '-'} 2.5=${odds.over25?.toFixed(2) || '-'} | ALT: 2.5=${odds.under25?.toFixed(2) || '-'}
+KG: Var=${odds.bttsYes?.toFixed(2) || '-'} Yok=${odds.bttsNo?.toFixed(2) || '-'}
+ÇŞ: 1X=${odds.doubleChanceHomeOrDraw?.toFixed(2) || '-'} X2=${odds.doubleChanceAwayOrDraw?.toFixed(2) || '-'} 12=${odds.doubleChanceHomeOrAway?.toFixed(2) || '-'}
+DNB: Ev=${odds.dnbHome?.toFixed(2) || '-'} Dep=${odds.dnbAway?.toFixed(2) || '-'}` : 'Oran yok';
 
-================================
-📊 EV SAHİBİ: ${matchData.homeTeam}
-================================
-Son 10 Maç:
-  ${formatLastMatches(matchData.homeLastMatches)}
-  
-Form: ${formatForm(matchData.homeForm)}
-Sezon: ${matchData.homeWins || 0}G ${matchData.homeDraws || 0}B ${matchData.homeLosses || 0}M | Attığı: ${matchData.homeGoalsFor || 0} | Yediği: ${matchData.homeGoalsAgainst || 0}
-${homeStats ? `Detaylı İstatistikler:
-  - Temiz Kale: ${homeStats.cleanSheets || 0} maç
-  - Gol Atamadığı Maç: ${homeStats.failedToScore || 0}
-  - Evde Gol Ortalaması: ${homeStats.avgGoalsHome?.toFixed(2) || '-'}
-  - Evde Yediği Ortalama: ${homeStats.avgGoalsConcededHome?.toFixed(2) || '-'}
-  - En Uzun Galibiyet Serisi: ${homeStats.biggestWinStreak || '-'}
-  - En Uzun Mağlubiyet Serisi: ${homeStats.biggestLoseStreak || '-'}
-  - Penaltı: ${homeStats.penaltyScored || 0} attı, ${homeStats.penaltyMissed || 0} kaçırdı
-  - Gol Dakikaları: ${formatGoalMinutes(homeStats.goalsMinutes)}` : ''}
+  const injuriesLine = (matchData.injuries?.home?.length || matchData.injuries?.away?.length)
+    ? `Sakat: ${matchData.homeTeam}=${matchData.injuries?.home?.length || 0}, ${matchData.awayTeam}=${matchData.injuries?.away?.length || 0}`
+    : '';
 
-================================
-📊 DEPLASMAN: ${matchData.awayTeam}
-================================
-Son 10 Maç:
-  ${formatLastMatches(matchData.awayLastMatches)}
-  
-Form: ${formatForm(matchData.awayForm)}
-Sezon: ${matchData.awayWins || 0}G ${matchData.awayDraws || 0}B ${matchData.awayLosses || 0}M | Attığı: ${matchData.awayGoalsFor || 0} | Yediği: ${matchData.awayGoalsAgainst || 0}
-${awayStats ? `Detaylı İstatistikler:
-  - Temiz Kale: ${awayStats.cleanSheets || 0} maç
-  - Gol Atamadığı Maç: ${awayStats.failedToScore || 0}
-  - Deplasmanda Gol Ortalaması: ${awayStats.avgGoalsAway?.toFixed(2) || '-'}
-  - Deplasmanda Yediği Ortalama: ${awayStats.avgGoalsConcededAway?.toFixed(2) || '-'}
-  - En Uzun Galibiyet Serisi: ${awayStats.biggestWinStreak || '-'}
-  - En Uzun Mağlubiyet Serisi: ${awayStats.biggestLoseStreak || '-'}
-  - Penaltı: ${awayStats.penaltyScored || 0} attı, ${awayStats.penaltyMissed || 0} kaçırdı
-  - Gol Dakikaları: ${formatGoalMinutes(awayStats.goalsMinutes)}` : ''}
+  const prompt = `MAÇ: ${matchData.homeTeam} vs ${matchData.awayTeam}
+LİG: ${matchData.league} ${matchType === 'cup' ? '(KUPA)' : ''} ${isDerby ? '(DERBİ)' : ''}
+${goalLineHint}
 
-================================
-🤝 KAFA KAFAYA GEÇMİŞ
-================================
-${h2hSummary}
-${matchData.h2hResults?.length ? matchData.h2hResults.slice(0, 5).map(h => `  ${matchData.homeTeam} ${h.homeGoals} - ${h.awayGoals} ${matchData.awayTeam}`).join('\n') : ''}
+${matchData.homeTeam} (Ev):
+- Sezon: ${matchData.homeWins || 0}G ${matchData.homeDraws || 0}B ${matchData.homeLosses || 0}M | Att/Yed: ${matchData.homeGoalsFor || 0}/${matchData.homeGoalsAgainst || 0}
+- Form: ${formatForm(matchData.homeForm)}
+- Son 5: ${formatLastMatches(matchData.homeLastMatches)}
+${homeStats ? `- Evde gol ort: ${homeStats.avgGoalsHome?.toFixed(2) || '-'} | Evde yediği ort: ${homeStats.avgGoalsConcededHome?.toFixed(2) || '-'} | Temiz kale: ${homeStats.cleanSheets || 0}` : ''}
 
-================================
-📈 KARŞILAŞTIRMALI ANALİZ
-================================
-- Form Üstünlüğü: Ev ${comp?.form?.home || '-'}% vs Dep ${comp?.form?.away || '-'}%
-- Hücum Gücü: Ev ${comp?.att?.home || '-'}% vs Dep ${comp?.att?.away || '-'}%
-- Savunma Gücü: Ev ${comp?.def?.home || '-'}% vs Dep ${comp?.def?.away || '-'}%
-- H2H Üstünlük: Ev ${comp?.h2h?.home || '-'}% vs Dep ${comp?.h2h?.away || '-'}%
+${matchData.awayTeam} (Dep):
+- Sezon: ${matchData.awayWins || 0}G ${matchData.awayDraws || 0}B ${matchData.awayLosses || 0}M | Att/Yed: ${matchData.awayGoalsFor || 0}/${matchData.awayGoalsAgainst || 0}
+- Form: ${formatForm(matchData.awayForm)}
+- Son 5: ${formatLastMatches(matchData.awayLastMatches)}
+${awayStats ? `- Depde gol ort: ${awayStats.avgGoalsAway?.toFixed(2) || '-'} | Depde yediği ort: ${awayStats.avgGoalsConcededAway?.toFixed(2) || '-'} | Temiz kale: ${awayStats.cleanSheets || 0}` : ''}
 
-================================
-🔢 HESAPLANAN BEKLENEN GOLLER
-================================
-- ${matchData.homeTeam} Beklenen: ${expectedGoals.home} gol
-- ${matchData.awayTeam} Beklenen: ${expectedGoals.away} gol
-- Toplam Beklenen: ${expectedGoals.total} gol
+H2H (son ${h2hCount}): toplam ${h2hTotal} gol, ort ${h2hAvg}
+${comp ? `Karşılaştırma: Form ${comp.form?.home || '-'}/${comp.form?.away || '-'} | Hücum ${comp.att?.home || '-'}/${comp.att?.away || '-'} | Savunma ${comp.def?.home || '-'}/${comp.def?.away || '-'}` : ''}
 
-${trends.length > 0 ? `================================
-📌 TESPİT EDİLEN TRENDLER
-================================
-${trends.map(t => `- ${t}`).join('\n')}` : ''}
+POISSON xG (lig ort + ev avantajı):
+- ${matchData.homeTeam}: ${xg.home} | ${matchData.awayTeam}: ${xg.away} | Toplam: ${xg.total}
+- Model olasılıkları: MS1 %${(marketProbs.msHome * 100).toFixed(0)} | MSX %${(marketProbs.msDraw * 100).toFixed(0)} | MS2 %${(marketProbs.msAway * 100).toFixed(0)}
+- 2.5 Üst %${(marketProbs.over25 * 100).toFixed(0)} | KG Var %${(marketProbs.bttsYes * 100).toFixed(0)} | 1.5 Üst %${(marketProbs.over15 * 100).toFixed(0)}
 
-${odds ? `================================
-💰 BAHİS ORANLARI
-================================
-MAÇ SONUCU:
-- MS1 (Ev): ${odds.home?.toFixed(2) || '-'} | MSX (Beraberlik): ${odds.draw?.toFixed(2) || '-'} | MS2 (Deplasman): ${odds.away?.toFixed(2) || '-'}
+ORANLAR:
+${oddsBlock}
+${injuriesLine}
 
-ALT/ÜST:
-- 1.5 Üst: ${odds.over15?.toFixed(2) || '-'} | 2.5 Alt: ${odds.under25?.toFixed(2) || '-'} | 2.5 Üst: ${odds.over25?.toFixed(2) || '-'} | 3.5 Alt: ${odds.under35?.toFixed(2) || '-'} | 3.5 Üst: ${odds.over35?.toFixed(2) || '-'}
-
-KARŞILIKLI GOL:
-- KG Var: ${odds.bttsYes?.toFixed(2) || '-'} | KG Yok: ${odds.bttsNo?.toFixed(2) || '-'}
-
-ÇİFTE ŞANS:
-- 1X: ${odds.doubleChanceHomeOrDraw?.toFixed(2) || '-'} | 12: ${odds.doubleChanceHomeOrAway?.toFixed(2) || '-'} | X2: ${odds.doubleChanceAwayOrDraw?.toFixed(2) || '-'}
-
-İLK YARI:
-- İY MS1: ${odds.halfTimeHome?.toFixed(2) || '-'} | İY X: ${odds.halfTimeDraw?.toFixed(2) || '-'} | İY MS2: ${odds.halfTimeAway?.toFixed(2) || '-'}
-- İY 0.5 Üst: ${odds.htOver05?.toFixed(2) || '-'} | İY 0.5 Alt: ${odds.htUnder05?.toFixed(2) || '-'} | İY 1.5 Alt: ${odds.htUnder15?.toFixed(2) || '-'}
-
-DNB (Beraberlik Yok):
-- DNB Ev: ${odds.dnbHome?.toFixed(2) || '-'} | DNB Deplasman: ${odds.dnbAway?.toFixed(2) || '-'}` : ''}
-
-${matchData.injuries?.home?.length || matchData.injuries?.away?.length ? `================================
-🏥 SAKATLIKLAR
-================================
-${matchData.injuries?.home?.length ? `${matchData.homeTeam}: ${matchData.injuries.home.map(i => `${i.player} (${i.reason})`).join(', ')}` : ''}
-${matchData.injuries?.away?.length ? `${matchData.awayTeam}: ${matchData.injuries.away.map(i => `${i.player} (${i.reason})`).join(', ')}` : ''}` : ''}
-
-================================
-📤 JSON ÇIKTI FORMATI (ZORUNLU)
-================================
-
-GEÇERLİ TAHMİN VARSA (en az biri değerli):
+JSON ÇIKTI:
 {
-  "karar": "bahis",
-  "matchContext": {
-    "type": "${matchType}",
-    "significance": "normal|relegation|title|promotion|final",
-    "homeLeagueLevel": ${homeLeagueLevel},
-    "awayLeagueLevel": ${awayLeagueLevel},
-    "isCupUpset": false,
-    "isDerby": ${isDerby}
-  },
-  "analysis": "5-8 cümlelik detaylı maç analizi. Form, taktik, istatistik ve psikolojik değerlendirme.",
-  
-  "psychologicalAnalysis": {
-    "homeTeamMorale": "yüksek|orta|düşük",
-    "awayTeamMorale": "yüksek|orta|düşük",
-    "matchPressure": "yüksek|normal|düşük",
-    "motivationFactor": "Kısa motivasyon açıklaması (şampiyonluk yarışı, küme düşme mücadelesi, rahat konum vb.)"
-  },
-  
+  "karar": "bahis" | "pas",
+  "analysis": "3-4 cümle özet (form, gol beklentisi, taktik durum)",
   "primaryBet": {
-    "bet": "2.5 Üst",
-    "odds": 1.72,
-    "estimatedProbability": 62,
-    "valuePercentage": 0.12,
-    "confidence": 74,
-    "riskLevel": "orta",
-    "reasoning": "5-6 cümlelik profesyonel yorum. Neden 3+ gol beklediğini, takımların gol atma eğilimini, son maçlardaki gol ortalamalarını ve H2H verilerini kullanarak açıkla."
-  },
-  
-  "alternativeBet": {
-    "bet": "KG Var",
-    "odds": 1.85,
-    "estimatedProbability": 62,
-    "valuePercentage": 0.09,
-    "confidence": 71,
-    "riskLevel": "orta",
-    "reasoning": "5-6 cümlelik profesyonel yorum. Her iki takımın gol atma kapasitesini, savunma zafiyetlerini ve karşılıklı gol geçmişini açıkla."
-  },
-  
-  "expectedGoalRange": "2-3"
+    "bet": "marketAdı (tam olarak: 1.5 Üst|2.5 Üst|2.5 Alt|KG Var|KG Yok|MS1|MS2|1X|X2|12|DNB Ev|DNB Dep)",
+    "odds": <oran>,
+    "estimatedProbability": <0-100>,
+    "confidence": <0-100>,
+    "reasoning": "2-3 cümle gerekçe"
+  } | null,
+  "alternativeBet": { ... } | null,
+  "expectedGoalRange": "X-Y"
 }
 
-SADECE 2.5 ÜST DEĞERLİ İSE:
-{
-  "karar": "bahis",
-  "primaryBet": { ... },
-  "alternativeBet": null,
-  ...
-}
-
-SADECE KG VAR DEĞERLİ İSE:
-{
-  "karar": "bahis",
-  "primaryBet": null,
-  "alternativeBet": { ... },
-  ...
-}
-
-HİÇBİRİ DEĞERLİ DEĞİLSE:
-{
-  "karar": "pas",
-  "primaryBet": null,
-  "alternativeBet": null,
-  "analysis": "Bu maçta ne 2.5 Üst ne de KG Var için yeterli değer bulunamadı. [Sebep açıkla]"
-}
-
-⚠️ KRİTİK KURALLAR:
-- SADECE "2.5 Üst" ve "KG Var" bahislerini değerlendir
-- 2.5 Alt ve KG Yok YASAK!
-- Her bahis için minimum oran 1.50!
-- valuePercentage = ((estimatedProbability/100) × odds) - 1
-- Değer < 0.02 (%2) ise o bahis null olmalı — sadece "biraz değer var" yetmez!
-- İkisi de değersizse karar: "pas"
-- Güven < 60 → KESİNLİKLE "pas", bahis açılmaz
-- Güven ≥75 → düşük risk, 60-74 → orta risk
-- Kupa/derbi/farklı lig → min 75 güven şart`;
+KURALLAR:
+- Bahis adı tam olarak yukarıdaki listeden olmalı.
+- Primary ile alternative pozitif korele OLMAMALI.
+- Hiçbir bahis eşikleri geçemiyorsa → karar: "pas", primaryBet: null, alternativeBet: null.
+- Düşük oran (< ${LOW_ODDS_THRESHOLD}) için ekstra sıkı: değer ≥ %${(LOW_ODDS_MIN_EDGE * 100).toFixed(0)} VE güven ≥ ${LOW_ODDS_MIN_CONFIDENCE}.
+${matchType === 'cup' || isDerby || homeLeagueLevel !== awayLeagueLevel ? '- Bu maç KUPA/DERBİ/farklı seviye → güven eşiği +5.' : ''}`;
 
   try {
     const response = await openai.chat.completions.create({
       model: "gpt-4o",
       messages: [
-        {
-          role: "system",
-          content: systemPrompt
-        },
-        {
-          role: "user",
-          content: prompt
-        }
+        { role: "system", content: systemPrompt },
+        { role: "user", content: prompt },
       ],
-      temperature: 0.35,
-      max_tokens: 2500,
-      response_format: { type: "json_object" }
+      temperature: 0.3,
+      max_tokens: 1100,
+      response_format: { type: "json_object" },
     });
 
     const content = response.choices[0]?.message?.content;
-    if (!content) {
-      throw new Error("OpenAI yanıt vermedi");
-    }
+    if (!content) throw new Error("OpenAI yanıt vermedi");
 
     const result = JSON.parse(content) as AIAnalysisResult;
-    
-    // Initialize predictions array if not present
-    if (!result.predictions) {
-      result.predictions = [];
-    }
-    
-    // Helper function to validate and process a bet
-    const validateBet = (bet: BetResult | null | undefined, betName: string): BetResult | null => {
-      if (!bet) return null;
-      
-      // Clamp estimatedProbability to valid range (0-100)
+    if (!result.predictions) result.predictions = [];
+
+    // ─── BAHİS DOĞRULAMA (FAZ 1.2, 3.1, 3.3, 4.4) ────────────
+    const isHighStakes = matchType === 'cup' || isDerby || homeLeagueLevel !== awayLeagueLevel;
+    const minConfEffective = isHighStakes ? MIN_CONFIDENCE + 5 : MIN_CONFIDENCE;
+    const lowOddsMinConfEffective = isHighStakes ? LOW_ODDS_MIN_CONFIDENCE + 5 : LOW_ODDS_MIN_CONFIDENCE;
+
+    const validateBet = (bet: BetResult | null | undefined, label: string): BetResult | null => {
+      if (!bet || !bet.bet) return null;
+
+      // Market whitelist
+      const isAllowed = ALLOWED_MARKETS.some(m => bet.bet.toLowerCase().includes(m.toLowerCase()));
+      if (!isAllowed) {
+        console.log(`[AI] REJECTED ${label}: "${bet.bet}" izin verilen markette değil`);
+        return null;
+      }
+
+      // Probability/confidence sanity
       if (typeof bet.estimatedProbability !== 'number' || isNaN(bet.estimatedProbability)) {
         bet.estimatedProbability = 50;
       }
       bet.estimatedProbability = Math.max(0, Math.min(100, bet.estimatedProbability));
-      
-      // Validate minimum odds (1.50)
-      if (typeof bet.odds !== 'number' || isNaN(bet.odds) || bet.odds < 1.50) {
-        console.log(`[AI] REJECTED ${betName}: Odds ${bet.odds} below 1.50`);
-        return null;
-      }
-      
-      // Recalculate value percentage
-      const calculatedValue = ((bet.estimatedProbability / 100) * bet.odds) - 1;
-      bet.valuePercentage = Math.round(calculatedValue * 100) / 100;
-      
-      // Minimum value: 2% — micro-value bets rejected
-      if (calculatedValue < 0.02) {
-        console.log(`[AI] REJECTED ${betName}: Value too low (${(calculatedValue * 100).toFixed(1)}% < 2%)`);
-        return null;
-      }
-      
-      // Clamp and set confidence
+
       if (typeof bet.confidence !== 'number' || isNaN(bet.confidence)) {
         bet.confidence = bet.estimatedProbability;
       }
       bet.confidence = Math.max(0, Math.min(100, bet.confidence));
-      
-      // Minimum confidence: 60 — low-confidence bets rejected
-      if (bet.confidence < 60) {
-        console.log(`[AI] REJECTED ${betName}: Confidence too low (${bet.confidence} < 60)`);
+
+      // Min odds
+      if (typeof bet.odds !== 'number' || isNaN(bet.odds) || bet.odds < MIN_ODDS) {
+        console.log(`[AI] REJECTED ${label}: oran ${bet.odds} < ${MIN_ODDS}`);
         return null;
       }
-      
-      // Assign risk level based on confidence
-      if (bet.confidence >= 75) {
-        bet.riskLevel = 'düşük';
-      } else if (bet.confidence >= 60) {
-        bet.riskLevel = 'orta';
+
+      // Recompute value
+      const value = ((bet.estimatedProbability / 100) * bet.odds) - 1;
+      bet.valuePercentage = Math.round(value * 100) / 100;
+
+      // Düşük oran (1.40-1.49) için sıkı edge (FAZ 3.3)
+      if (bet.odds < LOW_ODDS_THRESHOLD) {
+        if (value < LOW_ODDS_MIN_EDGE) {
+          console.log(`[AI] REJECTED ${label}: düşük oran (${bet.odds}) için değer yetersiz (${(value * 100).toFixed(1)}% < ${(LOW_ODDS_MIN_EDGE * 100).toFixed(0)}%)`);
+          return null;
+        }
+        if (bet.confidence < lowOddsMinConfEffective) {
+          console.log(`[AI] REJECTED ${label}: düşük oran için güven yetersiz (${bet.confidence} < ${lowOddsMinConfEffective})`);
+          return null;
+        }
       } else {
-        bet.riskLevel = 'yüksek';
+        // Standart eşik
+        if (value < MIN_VALUE_PERCENT) {
+          console.log(`[AI] REJECTED ${label}: değer ${(value * 100).toFixed(1)}% < ${(MIN_VALUE_PERCENT * 100).toFixed(0)}%`);
+          return null;
+        }
+        if (bet.confidence < minConfEffective) {
+          console.log(`[AI] REJECTED ${label}: güven ${bet.confidence} < ${minConfEffective}`);
+          return null;
+        }
       }
-      
+
+      // Risk seviyesi (FAZ 1.2)
+      if (bet.confidence >= RISK_LOW_CONFIDENCE) bet.riskLevel = 'düşük';
+      else if (bet.confidence >= MIN_CONFIDENCE) bet.riskLevel = 'orta';
+      else bet.riskLevel = 'yüksek';
+
+      if (!bet.reasoning) bet.reasoning = '';
       return bet;
     };
-    
-    // Process primaryBet (2.5 Üst) and alternativeBet (KG Var)
-    result.primaryBet = validateBet(result.primaryBet, '2.5 Üst');
-    result.alternativeBet = validateBet(result.alternativeBet, 'KG Var');
-    
-    // Determine final decision
-    const hasPrimary = result.primaryBet !== null;
-    const hasAlternative = result.alternativeBet !== null;
-    
+
+    result.primaryBet = validateBet(result.primaryBet, 'primary');
+    result.alternativeBet = validateBet(result.alternativeBet, 'alternative');
+
+    // Korelasyon kuralı (FAZ 3.2)
+    if (result.primaryBet && result.alternativeBet) {
+      if (arePositivelyCorrelated(result.primaryBet.bet, result.alternativeBet.bet)) {
+        console.log(`[AI] CORRELATION DROP: "${result.primaryBet.bet}" ↔ "${result.alternativeBet.bet}" pozitif korele → alternative atıldı`);
+        result.alternativeBet = null;
+      }
+    }
+
+    // Karar
+    const hasPrimary = result.primaryBet !== null && result.primaryBet !== undefined;
+    const hasAlternative = result.alternativeBet !== null && result.alternativeBet !== undefined;
+
     if (!hasPrimary && !hasAlternative) {
-      // Neither bet has value - pass
-      console.log(`[AI] Decision: PAS - Neither 2.5 Üst nor KG Var has value`);
+      console.log(`[AI] PAS — geçerli bahis yok: ${matchData.homeTeam} vs ${matchData.awayTeam}`);
       result.karar = 'pas';
       result.predictions = [];
       return result;
     }
-    
-    // At least one bet has value - bahis
+
     result.karar = 'bahis';
     result.predictions = [];
-    
+
     if (result.primaryBet) {
       result.predictions.push({
         type: 'expected',
         bet: result.primaryBet.bet,
         odds: result.primaryBet.odds.toString(),
         confidence: result.primaryBet.confidence,
-        reasoning: result.primaryBet.reasoning || '',
+        reasoning: result.primaryBet.reasoning,
         isValueBet: true,
-        valuePercentage: result.primaryBet.valuePercentage
+        valuePercentage: result.primaryBet.valuePercentage,
       });
-      console.log(`[AI] PRIMARY: ${result.primaryBet.bet} @ ${result.primaryBet.odds} | Value: ${(result.primaryBet.valuePercentage * 100).toFixed(1)}% | Risk: ${result.primaryBet.riskLevel}`);
+      console.log(`[AI] PRIMARY: ${result.primaryBet.bet} @${result.primaryBet.odds} | val ${(result.primaryBet.valuePercentage * 100).toFixed(1)}% | conf ${result.primaryBet.confidence} | ${result.primaryBet.riskLevel}`);
     }
-    
     if (result.alternativeBet) {
       result.predictions.push({
         type: 'medium',
         bet: result.alternativeBet.bet,
         odds: result.alternativeBet.odds.toString(),
         confidence: result.alternativeBet.confidence,
-        reasoning: result.alternativeBet.reasoning || '',
+        reasoning: result.alternativeBet.reasoning,
         isValueBet: true,
-        valuePercentage: result.alternativeBet.valuePercentage
+        valuePercentage: result.alternativeBet.valuePercentage,
       });
-      console.log(`[AI] ALTERNATIVE: ${result.alternativeBet.bet} @ ${result.alternativeBet.odds} | Value: ${(result.alternativeBet.valuePercentage * 100).toFixed(1)}% | Risk: ${result.alternativeBet.riskLevel}`);
+      console.log(`[AI] ALT: ${result.alternativeBet.bet} @${result.alternativeBet.odds} | val ${(result.alternativeBet.valuePercentage * 100).toFixed(1)}% | conf ${result.alternativeBet.confidence} | ${result.alternativeBet.riskLevel}`);
     }
-    
-    // Backwards compatibility with singleBet (use primaryBet if available, else alternativeBet)
+
+    // singleBet backwards-compat
     if (result.primaryBet) {
       result.singleBet = {
         bet: result.primaryBet.bet,
@@ -662,10 +581,10 @@ HİÇBİRİ DEĞERLİ DEĞİLSE:
         isValueBet: true,
         valuePercentage: result.primaryBet.valuePercentage,
         estimatedProbability: result.primaryBet.estimatedProbability,
-        riskLevel: result.primaryBet.riskLevel
+        riskLevel: result.primaryBet.riskLevel,
       };
     }
-    
+
     return result;
   } catch (error) {
     console.error("OpenAI analysis error:", error);
@@ -673,6 +592,7 @@ HİÇBİRİ DEĞERLİ DEĞİLSE:
   }
 }
 
+// ─── KAYDET + DB (cache key güncellendi - FAZ 1.5) ───────────
 export async function generateAndSavePredictions(
   matchId: number,
   fixtureId: number,
@@ -688,156 +608,139 @@ export async function generateAndSavePredictions(
 ): Promise<AIAnalysisResult | null> {
   try {
     console.log(`[AI+BestBets] Generating analysis for ${homeTeam} vs ${awayTeam}...`);
-    
     const analysis = await generateMatchAnalysis(matchData);
-    
-    // Handle "pas" decision - AI decided not to bet on this match
+
     if (!analysis || analysis.karar === 'pas') {
-      console.log(`[AI+BestBets] PASS decision for ${homeTeam} vs ${awayTeam} - no confident prediction`);
+      console.log(`[AI+BestBets] PASS for ${homeTeam} vs ${awayTeam}`);
       return analysis || null;
     }
-    
-    // Save primaryBet (2.5 Üst) if available
-    if (analysis.primaryBet) {
+
+    const insertBet = async (bet: BetResult, category: 'primary' | 'alternative') => {
       try {
         await pool.query(
-          `INSERT INTO best_bets 
-           (match_id, fixture_id, home_team, away_team, home_logo, away_logo, 
+          `INSERT INTO best_bets
+           (match_id, fixture_id, home_team, away_team, home_logo, away_logo,
             league_name, league_logo, match_date, match_time,
             bet_type, bet_category, odds, confidence, risk_level, reasoning, result, date_for)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, 'pending', $17)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,'pending',$17)
            ON CONFLICT (fixture_id, date_for, bet_category) DO UPDATE SET
              bet_type = EXCLUDED.bet_type,
              odds = EXCLUDED.odds,
              confidence = EXCLUDED.confidence,
              risk_level = EXCLUDED.risk_level,
              reasoning = EXCLUDED.reasoning`,
-          [
-            matchId,
-            fixtureId,
-            homeTeam,
-            awayTeam,
-            homeLogo,
-            awayLogo,
-            leagueName,
-            leagueLogo,
-            matchDate,
-            matchTime,
-            analysis.primaryBet.bet,
-            'primary',
-            analysis.primaryBet.odds,
-            analysis.primaryBet.confidence,
-            analysis.primaryBet.riskLevel,
-            analysis.primaryBet.reasoning,
-            matchDate
-          ]
+          [matchId, fixtureId, homeTeam, awayTeam, homeLogo, awayLogo,
+            leagueName, leagueLogo, matchDate, matchTime,
+            bet.bet, category, bet.odds, bet.confidence, bet.riskLevel, bet.reasoning, matchDate]
         );
-        console.log(`[AI+BestBets] Saved PRIMARY: ${analysis.primaryBet.bet} @ ${analysis.primaryBet.odds}`);
+        console.log(`[AI+BestBets] Saved ${category}: ${bet.bet} @${bet.odds}`);
       } catch (err: any) {
-        console.error(`[AI+BestBets] Error saving primary bet:`, err.message);
+        if (err.code !== '23505') console.error(`[AI+BestBets] Save error (${category}):`, err.message);
       }
-    }
-    
-    // Save alternativeBet (KG Var) if available
-    if (analysis.alternativeBet) {
-      try {
-        await pool.query(
-          `INSERT INTO best_bets 
-           (match_id, fixture_id, home_team, away_team, home_logo, away_logo, 
-            league_name, league_logo, match_date, match_time,
-            bet_type, bet_category, odds, confidence, risk_level, reasoning, result, date_for)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, 'pending', $17)
-           ON CONFLICT (fixture_id, date_for, bet_category) DO UPDATE SET
-             bet_type = EXCLUDED.bet_type,
-             odds = EXCLUDED.odds,
-             confidence = EXCLUDED.confidence,
-             risk_level = EXCLUDED.risk_level,
-             reasoning = EXCLUDED.reasoning`,
-          [
-            matchId,
-            fixtureId,
-            homeTeam,
-            awayTeam,
-            homeLogo,
-            awayLogo,
-            leagueName,
-            leagueLogo,
-            matchDate,
-            matchTime,
-            analysis.alternativeBet.bet,
-            'alternative',
-            analysis.alternativeBet.odds,
-            analysis.alternativeBet.confidence,
-            analysis.alternativeBet.riskLevel,
-            analysis.alternativeBet.reasoning,
-            matchDate
-          ]
-        );
-        console.log(`[AI+BestBets] Saved ALTERNATIVE: ${analysis.alternativeBet.bet} @ ${analysis.alternativeBet.odds}`);
-      } catch (err: any) {
-        console.error(`[AI+BestBets] Error saving alternative bet:`, err.message);
-      }
-    }
-    
-    // Cache the analysis
-    const cacheKey = `ai_analysis_v12_${fixtureId}`;
+    };
+
+    if (analysis.primaryBet) await insertBet(analysis.primaryBet, 'primary');
+    if (analysis.alternativeBet) await insertBet(analysis.alternativeBet, 'alternative');
+
     try {
       await pool.query(
         `INSERT INTO api_cache (key, value, expires_at)
          VALUES ($1, $2, NOW() + INTERVAL '24 hours')
          ON CONFLICT (key) DO UPDATE SET value = $2, expires_at = NOW() + INTERVAL '24 hours'`,
-        [cacheKey, JSON.stringify(analysis)]
+        [aiCacheKey(fixtureId), JSON.stringify(analysis)]
       );
     } catch (err: any) {
-      console.error(`[AI+BestBets] Error caching analysis:`, err.message);
+      console.error(`[AI+BestBets] Cache error:`, err.message);
     }
-    
-    const savedCount = (analysis.primaryBet ? 1 : 0) + (analysis.alternativeBet ? 1 : 0);
-    console.log(`[AI+BestBets] Completed for ${homeTeam} vs ${awayTeam}: ${savedCount} predictions saved`);
+
     return analysis;
-    
   } catch (error: any) {
-    console.error(`[AI+BestBets] Error generating analysis for ${homeTeam} vs ${awayTeam}:`, error.message);
+    console.error(`[AI+BestBets] Error for ${homeTeam} vs ${awayTeam}:`, error.message);
     return null;
   }
 }
 
+// ─── PARALEL BATCH (FAZ 2.1) ─────────────────────────────────
+// Birden fazla maçı eşzamanlı işler. Her chunk için Promise.all,
+// chunk arası kısa buffer (rate limit için).
+export async function generateBatchAnalysis(
+  matches: { fixtureId: number; matchData: MatchData; cacheable?: boolean }[],
+  options: { concurrency?: number; delayMs?: number } = {}
+): Promise<Map<number, AIAnalysisResult | null>> {
+  const concurrency = options.concurrency ?? 5;
+  const delayMs = options.delayMs ?? 1500;
+  const results = new Map<number, AIAnalysisResult | null>();
+
+  for (let i = 0; i < matches.length; i += concurrency) {
+    const chunk = matches.slice(i, i + concurrency);
+    console.log(`[AIBatch] Chunk ${Math.floor(i / concurrency) + 1}/${Math.ceil(matches.length / concurrency)} (${chunk.length} maç)`);
+
+    const chunkResults = await Promise.all(
+      chunk.map(async (item) => {
+        try {
+          const analysis = await generateMatchAnalysis(item.matchData);
+          if (item.cacheable !== false && analysis) {
+            try {
+              await pool.query(
+                `INSERT INTO api_cache (key, value, expires_at)
+                 VALUES ($1, $2, NOW() + INTERVAL '24 hours')
+                 ON CONFLICT (key) DO UPDATE SET value = $2, expires_at = NOW() + INTERVAL '24 hours'`,
+                [aiCacheKey(item.fixtureId), JSON.stringify(analysis)]
+              );
+            } catch { /* cache errors ignored */ }
+          }
+          return { fixtureId: item.fixtureId, analysis };
+        } catch (err: any) {
+          console.error(`[AIBatch] Hata fixture ${item.fixtureId}:`, err.message);
+          return { fixtureId: item.fixtureId, analysis: null };
+        }
+      })
+    );
+
+    for (const r of chunkResults) results.set(r.fixtureId, r.analysis);
+
+    if (i + concurrency < matches.length) {
+      await new Promise(r => setTimeout(r, delayMs));
+    }
+  }
+
+  return results;
+}
+
 export async function generatePredictionsForAllPendingMatches(): Promise<{ processed: number; success: number; failed: number }> {
-  console.log('[AI+BestBets] Starting batch prediction generation for all pending matches...');
-  
+  console.log('[AI+BestBets] Batch prediction generation starting...');
+
   const result = await pool.query(
     `SELECT pm.* FROM published_matches pm
-     WHERE pm.status = 'pending' 
+     WHERE pm.status = 'pending'
      AND NOT EXISTS (SELECT 1 FROM best_bets bb WHERE bb.fixture_id = pm.fixture_id)
      ORDER BY pm.match_date, pm.match_time
      LIMIT 50`
   );
-  
+
   const matches = result.rows;
-  console.log(`[AI+BestBets] Found ${matches.length} matches without predictions`);
-  
+  console.log(`[AI+BestBets] Bulunan maç: ${matches.length}`);
+
   let processed = 0;
   let success = 0;
   let failed = 0;
-  
+
   for (const match of matches) {
     processed++;
-    console.log(`[AI+BestBets] Processing ${processed}/${matches.length}: ${match.home_team} vs ${match.away_team}`);
-    
+    console.log(`[AI+BestBets] ${processed}/${matches.length}: ${match.home_team} vs ${match.away_team}`);
+
     const matchData: MatchData = {
       homeTeam: match.home_team,
       awayTeam: match.away_team,
       league: match.league_name || '',
       leagueId: match.league_id,
       comparison: match.api_comparison ? (typeof match.api_comparison === 'string' ? JSON.parse(match.api_comparison) : match.api_comparison) : undefined,
-      homeForm: match.api_teams?.home?.league?.form,
-      awayForm: match.api_teams?.away?.league?.form,
       h2hResults: match.api_h2h ? (typeof match.api_h2h === 'string' ? JSON.parse(match.api_h2h) : match.api_h2h)?.map((h: any) => ({
         homeGoals: h.homeGoals || 0,
-        awayGoals: h.awayGoals || 0
+        awayGoals: h.awayGoals || 0,
       })) : undefined,
     };
-    
+
     if (match.api_teams) {
       const teams = typeof match.api_teams === 'string' ? JSON.parse(match.api_teams) : match.api_teams;
       if (teams.home?.league) {
@@ -857,38 +760,23 @@ export async function generatePredictionsForAllPendingMatches(): Promise<{ proce
         matchData.awayForm = teams.away.league.form;
       }
     }
-    
+
     try {
       const analysis = await generateAndSavePredictions(
-        match.id,
-        match.fixture_id,
-        match.home_team,
-        match.away_team,
-        match.home_logo,
-        match.away_logo,
-        match.league_name,
-        match.league_logo,
-        match.match_date,
-        match.match_time,
-        matchData
+        match.id, match.fixture_id, match.home_team, match.away_team,
+        match.home_logo, match.away_logo, match.league_name, match.league_logo,
+        match.match_date, match.match_time, matchData
       );
-      
-      if (analysis) {
-        success++;
-      } else {
-        failed++;
-      }
-      
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      
+      if (analysis) success++; else failed++;
+      await new Promise(r => setTimeout(r, 1500));
     } catch (error: any) {
-      console.error(`[AI+BestBets] Failed for ${match.home_team} vs ${match.away_team}:`, error.message);
+      console.error(`[AI+BestBets] Hata: ${error.message}`);
       failed++;
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise(r => setTimeout(r, 3000));
     }
   }
-  
-  console.log(`[AI+BestBets] Batch complete: ${success} success, ${failed} failed out of ${processed} processed`);
+
+  console.log(`[AI+BestBets] Tamam: ${success} başarılı, ${failed} hatalı, ${processed} işlendi`);
   return { processed, success, failed };
 }
 

@@ -4,6 +4,7 @@ import { serveStatic } from "./static";
 import { createServer } from "http";
 import { startMatchStatusService } from "./matchStatusService";
 import { startAutoPublishService, startCleanupService } from "./autoPublishService";
+import { startOddsRefreshService } from "./oddsRefreshService";
 
 const app = express();
 app.set('trust proxy', 1);
@@ -105,6 +106,9 @@ app.use((req, res, next) => {
       
       startCleanupService();
       log('Cleanup service started (daily at 21:00 Turkey time)');
+
+      startOddsRefreshService();
+      log('Odds refresh service started (hourly, lookahead 2 hours)');
     },
   );
 })();

@@ -1,8 +1,50 @@
 import { pool } from './db';
 import { apiFootball, CURRENT_SEASON } from './apiFootball';
 import { filterMatches, getStatisticsScore } from './matchFilter';
-import { generateAndSavePredictions, generateMatchAnalysis } from './openai-analysis';
+import { generateAndSavePredictions, generateMatchAnalysis, generateBatchAnalysis, aiCacheKey } from './openai-analysis';
 import type { MatchData } from './openai-analysis';
+import {
+  MAX_DAILY_MATCHES,
+  MAX_PREFETCH_BUFFER,
+  MIN_STATS_SCORE,
+  ODDS_SWEET_MIN,
+  ODDS_SWEET_MAX,
+  AI_BATCH_SIZE,
+  AI_BATCH_DELAY_MS,
+} from './predictionConfig';
+
+// FAZ 1.1: Bugün için DB'de kaç primary best_bet var?
+async function getTodayPublishedCount(dateStr: string): Promise<number> {
+  const r = await pool.query(
+    `SELECT COUNT(DISTINCT fixture_id)::int AS c
+     FROM best_bets
+     WHERE date_for = $1 AND COALESCE(bet_category, 'primary') = 'primary'`,
+    [dateStr]
+  );
+  return r.rows[0]?.c || 0;
+}
+
+// FAZ 2.2: Erken-elek — 2.5 Üst oranı sweet spot dışındaysa AI'ya gitme.
+function passesOddsEarlyElim(odds: any): { ok: boolean; reason?: string } {
+  if (!odds) return { ok: false, reason: 'oran yok' };
+  const o25 = odds.over25;
+  if (typeof o25 === 'number' && o25 >= ODDS_SWEET_MIN && o25 <= ODDS_SWEET_MAX) {
+    return { ok: true };
+  }
+  // Eğer 2.5 Üst sweet spot dışındaysa, KG Var oranı sweet spotta mı?
+  const btts = odds.bttsYes;
+  if (typeof btts === 'number' && btts >= ODDS_SWEET_MIN && btts <= ODDS_SWEET_MAX) {
+    return { ok: true };
+  }
+  // Çift şans 1X veya X2 bazen değer barındırır
+  const dc1x = odds.doubleChanceHomeOrDraw;
+  const dcx2 = odds.doubleChanceAwayOrDraw;
+  if ((typeof dc1x === 'number' && dc1x >= 1.30 && dc1x <= 1.80) ||
+      (typeof dcx2 === 'number' && dcx2 >= 1.30 && dcx2 <= 1.80)) {
+    return { ok: true };
+  }
+  return { ok: false, reason: `2.5Ü=${o25 ?? '-'} KGV=${btts ?? '-'} sweet spot dışı` };
+}
 
 async function saveBestBetsFromAnalysis(
   matchId: number, fixtureId: number,
@@ -163,7 +205,7 @@ function parseApiFootballOdds(oddsData: any[]): ParsedOdds {
 }
 
 // Core function for publishing matches - used by both tomorrow and today functions
-async function publishMatchesForDate(dateStr: string, totalLimit: number = 70, matchesPerHour: number = 10) {
+async function publishMatchesForDate(dateStr: string, totalLimit: number = MAX_DAILY_MATCHES, matchesPerHour: number = 10) {
   console.log(`\n[AutoPublish] ==========================================`);
   console.log(`[AutoPublish] STARTING PUBLISH FOR: ${dateStr}`);
   console.log(`[AutoPublish] Limit: ${totalLimit} matches, Per hour: ${matchesPerHour}`);
@@ -235,7 +277,7 @@ async function publishMatchesForDate(dateStr: string, totalLimit: number = 70, m
     
     // Process each hour slot and collect valid matches
     const scoredMatches: MatchWithScore[] = [];
-    const minStatsScore = 20;
+    const minStatsScore = MIN_STATS_SCORE;
     
     // Sort hours for predictable processing
     const sortedHours = Array.from(matchesByHour.keys()).sort((a, b) => a - b);
@@ -650,15 +692,26 @@ export async function autoCreateDailyCoupon(dateStr: string): Promise<{ couponId
     );
     const couponId = couponResult.rows[0].id;
 
+    // FAZ 1.4: Eksik/geçersiz oranlı bahisleri tamamen ele
+    const validBets = selectedBets.filter(b => {
+      const o = parseFloat(b.odds);
+      return Number.isFinite(o) && o > 1.0;
+    });
+
+    if (validBets.length < 2) {
+      console.log(`[AutoCoupon] ${dateStr} — geçerli oranlı bahis yetersiz (${validBets.length}). Kupon oluşturulmadı.`);
+      // Aç olan kuponu temizle
+      await pool.query('DELETE FROM coupons WHERE id = $1', [couponId]);
+      return null;
+    }
+
     let totalOdds = 1;
-    for (const bet of selectedBets) {
+    for (const bet of validBets) {
       await pool.query(
         'INSERT INTO coupon_predictions (coupon_id, best_bet_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
         [couponId, bet.id]
       );
-      const odds = parseFloat(bet.odds);
-      if (odds && odds > 1) totalOdds *= odds;
-      else totalOdds *= 1.65;
+      totalOdds *= parseFloat(bet.odds);
     }
 
     await pool.query(
@@ -666,10 +719,10 @@ export async function autoCreateDailyCoupon(dateStr: string): Promise<{ couponId
       [totalOdds.toFixed(2), couponId]
     );
 
-    console.log(`[AutoCoupon] Kupon oluşturuldu: ${selectedBets.length} maç, toplam oran: ${totalOdds.toFixed(2)}`);
-    selectedBets.forEach(b => console.log(`  - ${b.home_team} vs ${b.away_team}: ${b.bet_type} @${b.odds}`));
+    console.log(`[AutoCoupon] Kupon oluşturuldu: ${validBets.length} maç, toplam oran: ${totalOdds.toFixed(2)}`);
+    validBets.forEach(b => console.log(`  - ${b.home_team} vs ${b.away_team}: ${b.bet_type} @${b.odds}`));
 
-    return { couponId, matchCount: selectedBets.length };
+    return { couponId, matchCount: validBets.length };
   } catch (error) {
     console.error('[AutoCoupon] Hata:', error);
     return null;
@@ -677,7 +730,7 @@ export async function autoCreateDailyCoupon(dateStr: string): Promise<{ couponId
 }
 
 // Publish tomorrow's matches (used by automatic 22:00 scheduler)
-export async function autoPublishTomorrowMatches(totalLimit: number = 70, matchesPerHour: number = 5) {
+export async function autoPublishTomorrowMatches(totalLimit: number = MAX_DAILY_MATCHES, matchesPerHour: number = 5) {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowStr = tomorrow.toISOString().split('T')[0];
@@ -687,7 +740,7 @@ export async function autoPublishTomorrowMatches(totalLimit: number = 70, matche
 }
 
 // Publish today's matches (used by manual admin button)
-export async function autoPublishTodayMatches(totalLimit: number = 70, matchesPerHour: number = 5) {
+export async function autoPublishTodayMatches(totalLimit: number = MAX_DAILY_MATCHES, matchesPerHour: number = 5) {
   const today = new Date();
   const todayStr = today.toISOString().split('T')[0];
   
@@ -741,7 +794,7 @@ export async function autoPublishTomorrowMatchesLegacy(targetCount: number = 70)
     console.log(`[AutoPublish] After filtering: ${filteredMatches.length} matches`);
     
     const scoredMatches: MatchWithScore[] = [];
-    const minStatsScore = 20;
+    const minStatsScore = MIN_STATS_SCORE;
     const targetWithBuffer = Math.ceil(targetCount * 1.5); // Get extra matches for better selection
     
     console.log(`[AutoPublish] Processing ${filteredMatches.length} matches to find ${targetCount} with valid statistics (buffer: ${targetWithBuffer})...`);
@@ -1123,7 +1176,7 @@ export async function prefetchValidatedFixtures(dateStr: string) {
     const validatedFixtures: MatchWithScore[] = [];
     const batchSize = 5;
     const delayBetweenBatches = 2000;
-    const minStatsScore = 20;
+    const minStatsScore = MIN_STATS_SCORE;
     
     for (let i = 0; i < filteredFixtures.length && validatedFixtures.length < 150; i += batchSize) {
       const batch = filteredFixtures.slice(i, i + batchSize);
@@ -1202,7 +1255,7 @@ export async function prefetchValidatedFixtures(dateStr: string) {
 }
 
 // Publish from pre-fetched validated fixtures
-export async function publishFromPrefetchedFixtures(dateStr: string, totalLimit: number = 70, matchesPerHour: number = 5) {
+export async function publishFromPrefetchedFixtures(dateStr: string, totalLimit: number = MAX_DAILY_MATCHES, matchesPerHour: number = 5) {
   console.log(`[AutoPublish] Publishing from prefetched data for ${dateStr}...`);
   
   const cacheKey = `prefetch_validated_${dateStr}`;
@@ -1498,7 +1551,7 @@ export async function publishFromPrefetchedFixtures(dateStr: string, totalLimit:
 }
 
 // Updated auto-publish functions using validated fixtures
-export async function autoPublishTomorrowMatchesValidated(totalLimit: number = 70, matchesPerHour: number = 5) {
+export async function autoPublishTomorrowMatchesValidated(totalLimit: number = MAX_DAILY_MATCHES, matchesPerHour: number = 5) {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
   const tomorrowStr = tomorrow.toISOString().split('T')[0];
@@ -1507,7 +1560,7 @@ export async function autoPublishTomorrowMatchesValidated(totalLimit: number = 7
   return publishFromPrefetchedFixtures(tomorrowStr, totalLimit, matchesPerHour);
 }
 
-export async function autoPublishTodayMatchesValidated(totalLimit: number = 70, matchesPerHour: number = 5) {
+export async function autoPublishTodayMatchesValidated(totalLimit: number = MAX_DAILY_MATCHES, matchesPerHour: number = 5) {
   const today = new Date();
   const todayStr = today.toISOString().split('T')[0];
   
@@ -1546,13 +1599,59 @@ export function startAutoPublishService() {
           return;
         }
         
-        // ADIM 2: AI kontrol - her mac icin bahis/pas karari al
-        console.log(`[AutoPublish] ADIM 2/3: AI kontrol basliyor (${validatedFixtures.length} mac)...`);
-        let bahisCount = 0;
-        let pasCount = 0;
-        const bahisMatches: MatchWithScore[] = [];
-        
-        for (const match of validatedFixtures) {
+        // ADIM 2: AI kontrol — FAZ 1.1 + 2.1 + 2.2 + 2.4
+        // (a) DB-level advisory lock — paralel cron / manuel tetiklemeye karşı 35 cap garantisi
+        // pg_try_advisory_lock(int): aynı sayıya kilitli süreç varsa false döner
+        const PUBLISH_LOCK_KEY = 73572404; // sabit: 'tutturduk-daily-publish'
+        const lockRes = await pool.query(
+          'SELECT pg_try_advisory_lock($1) AS got',
+          [PUBLISH_LOCK_KEY]
+        );
+        if (!lockRes.rows[0]?.got) {
+          console.log('[AutoPublish] Başka bir publish işi çalışıyor (advisory lock alınamadı), bu çalışma atlandı.');
+          return;
+        }
+        let advisoryLockHeld = true;
+        const releaseLock = async () => {
+          if (!advisoryLockHeld) return;
+          advisoryLockHeld = false;
+          try { await pool.query('SELECT pg_advisory_unlock($1)', [PUBLISH_LOCK_KEY]); } catch { /* skip */ }
+        };
+
+        try {
+        const alreadyPublished = await getTodayPublishedCount(todayStr);
+        const remainingSlots = Math.max(0, MAX_DAILY_MATCHES - alreadyPublished);
+        console.log(`[AutoPublish] DB'de ${alreadyPublished} yayında, ${remainingSlots} slot kaldı (cap=${MAX_DAILY_MATCHES})`);
+        if (remainingSlots === 0) {
+          console.log('[AutoPublish] Günlük 35 maç limiti dolu, AI çalıştırılmadı.');
+          await releaseLock();
+          return;
+        }
+
+        // (b) Skor sırala + erken-elek: yayında olmayan, oran sweet-spotunda olanları al
+        const candidates: MatchWithScore[] = [];
+        for (const m of validatedFixtures) {
+          const fid = m.fixture?.id;
+          if (!fid) continue;
+          const ex = await pool.query('SELECT 1 FROM published_matches WHERE fixture_id = $1', [fid]);
+          if (ex.rows.length > 0) continue;
+          const elim = passesOddsEarlyElim(m.odds);
+          if (!elim.ok) {
+            console.log(`[AutoPublish] Erken-elek (oran): ${m.teams?.home?.name} vs ${m.teams?.away?.name} (${elim.reason})`);
+            continue;
+          }
+          candidates.push(m);
+        }
+        candidates.sort((a, b) => (b.statisticsScore || 0) - (a.statisticsScore || 0));
+
+        // (c) Buffer ile üst N adayı seç (pas oranını telafi etmek için %50 fazla)
+        const bufferSize = Math.min(candidates.length, Math.ceil(remainingSlots * 1.5) + MAX_PREFETCH_BUFFER);
+        const shortlist = candidates.slice(0, bufferSize);
+        console.log(`[AutoPublish] ADIM 2/3: ${candidates.length} aday → top ${shortlist.length} AI'ya gidecek`);
+
+        // (d) Her shortlist maçı için API-Football extra verileri sırayla topla
+        const enriched: { match: MatchWithScore; matchData: MatchData }[] = [];
+        for (const match of shortlist) {
           const homeTeam = match.teams?.home?.name || 'Unknown';
           const awayTeam = match.teams?.away?.name || 'Unknown';
           const leagueName = match.league?.name || '';
@@ -1560,28 +1659,18 @@ export function startAutoPublishService() {
           const homeTeamId = match.teams?.home?.id;
           const awayTeamId = match.teams?.away?.id;
           const fixtureId = match.fixture?.id;
-          
+
           try {
-            const existing = await pool.query(
-              'SELECT id FROM published_matches WHERE fixture_id = $1',
-              [match.fixture.id]
-            );
-            if (existing.rows.length > 0) {
-              console.log(`[AutoPublish] ${homeTeam} vs ${awayTeam} zaten yayinda, atlaniyor`);
-              continue;
-            }
-            
-            const pred = match.prediction?.predictions;
             const teams = match.prediction?.teams;
             const comparison = match.prediction?.comparison;
             const h2h = match.prediction?.h2h || [];
-            
+
             let injuries: any = { home: [], away: [] };
             let homeLastMatches: any[] = [];
             let awayLastMatches: any[] = [];
             let homeSeasonStats: any = null;
             let awaySeasonStats: any = null;
-            
+
             try {
               if (fixtureId) {
                 const injuriesData = await apiFootball.getInjuries(fixtureId);
@@ -1590,25 +1679,22 @@ export function startAutoPublishService() {
                   injuries.away = injuriesData.filter((inj: any) => inj.team?.id === awayTeamId).map((inj: any) => ({ player: inj.player?.name || 'Unknown', reason: inj.player?.reason || 'Injury', type: inj.player?.type || 'Missing' }));
                 }
               }
-            } catch (err: any) { /* skip */ }
-            
+            } catch { /* skip */ }
             try {
               if (homeTeamId) {
-                const homeMatches = await apiFootball.getTeamLastMatches(homeTeamId, 10);
+                const homeMatches = await apiFootball.getTeamLastMatches(homeTeamId, 5);
                 homeLastMatches = homeMatches?.map((m: any) => ({ opponent: m.teams?.home?.id === homeTeamId ? m.teams?.away?.name : m.teams?.home?.name, result: m.teams?.home?.id === homeTeamId ? (m.teams?.home?.winner ? 'W' : m.teams?.away?.winner ? 'L' : 'D') : (m.teams?.away?.winner ? 'W' : m.teams?.home?.winner ? 'L' : 'D'), score: `${m.goals?.home || 0}-${m.goals?.away || 0}`, home: m.teams?.home?.id === homeTeamId })) || [];
               }
-            } catch (err: any) { /* skip */ }
-            
+            } catch { /* skip */ }
             try {
               if (awayTeamId) {
-                const awayMatches = await apiFootball.getTeamLastMatches(awayTeamId, 10);
+                const awayMatches = await apiFootball.getTeamLastMatches(awayTeamId, 5);
                 awayLastMatches = awayMatches?.map((m: any) => ({ opponent: m.teams?.home?.id === awayTeamId ? m.teams?.away?.name : m.teams?.home?.name, result: m.teams?.home?.id === awayTeamId ? (m.teams?.home?.winner ? 'W' : m.teams?.away?.winner ? 'L' : 'D') : (m.teams?.away?.winner ? 'W' : m.teams?.home?.winner ? 'L' : 'D'), score: `${m.goals?.home || 0}-${m.goals?.away || 0}`, home: m.teams?.home?.id === awayTeamId })) || [];
               }
-            } catch (err: any) { /* skip */ }
-            
+            } catch { /* skip */ }
             try { if (homeTeamId && leagueId) homeSeasonStats = await apiFootball.getTeamSeasonGoals(homeTeamId, leagueId, CURRENT_SEASON); } catch { /* skip */ }
             try { if (awayTeamId && leagueId) awaySeasonStats = await apiFootball.getTeamSeasonGoals(awayTeamId, leagueId, CURRENT_SEASON); } catch { /* skip */ }
-            
+
             const matchData: MatchData = {
               homeTeam, awayTeam, league: leagueName, leagueId,
               comparison: comparison || undefined,
@@ -1623,39 +1709,44 @@ export function startAutoPublishService() {
               homeTeamStats: homeSeasonStats ? { cleanSheets: homeSeasonStats.clean_sheet?.total || 0, failedToScore: homeSeasonStats.failed_to_score?.total || 0, avgGoalsHome: homeSeasonStats.goals?.for?.average?.home ? parseFloat(homeSeasonStats.goals.for.average.home) : undefined, avgGoalsAway: homeSeasonStats.goals?.for?.average?.away ? parseFloat(homeSeasonStats.goals.for.average.away) : undefined, avgGoalsConcededHome: homeSeasonStats.goals?.against?.average?.home ? parseFloat(homeSeasonStats.goals.against.average.home) : undefined, avgGoalsConcededAway: homeSeasonStats.goals?.against?.average?.away ? parseFloat(homeSeasonStats.goals.against.average.away) : undefined, biggestWinStreak: homeSeasonStats.biggest?.streak?.wins || 0, biggestLoseStreak: homeSeasonStats.biggest?.streak?.loses || 0 } : undefined,
               awayTeamStats: awaySeasonStats ? { cleanSheets: awaySeasonStats.clean_sheet?.total || 0, failedToScore: awaySeasonStats.failed_to_score?.total || 0, avgGoalsHome: awaySeasonStats.goals?.for?.average?.home ? parseFloat(awaySeasonStats.goals.for.average.home) : undefined, avgGoalsAway: awaySeasonStats.goals?.for?.average?.away ? parseFloat(awaySeasonStats.goals.for.average.away) : undefined, avgGoalsConcededHome: awaySeasonStats.goals?.against?.average?.home ? parseFloat(awaySeasonStats.goals.against.average.home) : undefined, avgGoalsConcededAway: awaySeasonStats.goals?.against?.average?.away ? parseFloat(awaySeasonStats.goals.against.average.away) : undefined, biggestWinStreak: awaySeasonStats.biggest?.streak?.wins || 0, biggestLoseStreak: awaySeasonStats.biggest?.streak?.loses || 0 } : undefined,
             };
-            
-            const aiAnalysis = await generateMatchAnalysis(matchData);
-            
-            // Cache AI analysis result for admin panel display
-            if (aiAnalysis && fixtureId) {
-              try {
-                const aiCacheKey = `ai_analysis_v12_${fixtureId}`;
-                await pool.query(
-                  `INSERT INTO api_cache (key, value, expires_at)
-                   VALUES ($1, $2, NOW() + INTERVAL '24 hours')
-                   ON CONFLICT (key) DO UPDATE SET value = $2, expires_at = NOW() + INTERVAL '24 hours'`,
-                  [aiCacheKey, JSON.stringify(aiAnalysis)]
-                );
-              } catch (cacheErr: any) { /* skip */ }
-            }
-            
-            if (!aiAnalysis || aiAnalysis.karar === 'pas') {
-              pasCount++;
-              console.log(`[AutoPublish] PAS: ${homeTeam} vs ${awayTeam}`);
-            } else {
-              bahisCount++;
-              console.log(`[AutoPublish] BAHIS: ${homeTeam} vs ${awayTeam}`);
-              (match as any).aiAnalysis = aiAnalysis;
-              bahisMatches.push(match);
-            }
-            
-            await new Promise(resolve => setTimeout(resolve, 3000));
-          } catch (error: any) {
-            console.error(`[AutoPublish] AI hata ${homeTeam} vs ${awayTeam}: ${error.message}`);
+            enriched.push({ match, matchData });
+          } catch (err: any) {
+            console.error(`[AutoPublish] Veri zenginleştirme hatası ${homeTeam} vs ${awayTeam}: ${err.message}`);
           }
         }
-        
-        console.log(`[AutoPublish] ADIM 2 TAMAM: ${bahisCount} bahis, ${pasCount} pas`);
+        console.log(`[AutoPublish] ${enriched.length} maç AI batch'e hazır`);
+
+        // (e) Paralel AI batch (FAZ 2.1)
+        const batchInput = enriched
+          .filter(e => e.match.fixture?.id)
+          .map(e => ({ fixtureId: e.match.fixture.id as number, matchData: e.matchData }));
+        const aiResults = await generateBatchAnalysis(batchInput, {
+          concurrency: AI_BATCH_SIZE,
+          delayMs: AI_BATCH_DELAY_MS,
+        });
+
+        // (f) Sonuçları topla — bahis maçlarını cap'e göre kes
+        let bahisCount = 0;
+        let pasCount = 0;
+        const bahisMatches: MatchWithScore[] = [];
+        for (const e of enriched) {
+          const fid = e.match.fixture?.id;
+          if (!fid) continue;
+          const aiAnalysis = aiResults.get(fid);
+          if (!aiAnalysis || aiAnalysis.karar === 'pas') {
+            pasCount++;
+            continue;
+          }
+          if (bahisMatches.length >= remainingSlots) {
+            console.log(`[AutoPublish] Cap dolu, ${e.match.teams?.home?.name} atlandı`);
+            continue;
+          }
+          bahisCount++;
+          (e.match as any).aiAnalysis = aiAnalysis;
+          bahisMatches.push(e.match);
+        }
+
+        console.log(`[AutoPublish] ADIM 2 TAMAM: ${bahisCount} bahis, ${pasCount} pas (cap=${remainingSlots})`);
         
         // ADIM 3: Bahis olan tum maclari yayina al
         console.log(`[AutoPublish] ADIM 3/3: ${bahisMatches.length} bahis mac yayinlaniyor...`);
@@ -1680,7 +1771,8 @@ export function startAutoPublishService() {
             const h2h = match.prediction?.h2h || [];
             const aiAnalysis = (match as any).aiAnalysis;
             
-            await pool.query(
+            // RETURNING id ile gerçekten insert edilip edilmediğini bil
+            const insertResult = await pool.query(
               `INSERT INTO published_matches 
                (fixture_id, home_team, away_team, home_logo, away_logo, league_name, league_logo, league_id,
                 match_date, match_time, timestamp, status, is_featured,
@@ -1688,7 +1780,8 @@ export function startAutoPublishService() {
                 api_under_over, api_goals_home, api_goals_away, api_comparison, api_h2h, api_teams)
                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, 'pending', FALSE,
                        $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
-               ON CONFLICT (fixture_id) DO NOTHING`,
+               ON CONFLICT (fixture_id) DO NOTHING
+               RETURNING id`,
               [
                 match.fixture.id, homeTeam, awayTeam, homeLogo, awayLogo, leagueName, leagueLogo, leagueId,
                 matchDate, matchTime, match.fixture.timestamp,
@@ -1700,17 +1793,15 @@ export function startAutoPublishService() {
                 teams ? JSON.stringify(teams) : null
               ]
             );
-            
-            publishedCount++;
-            
-            const insertedMatch = await pool.query('SELECT id FROM published_matches WHERE fixture_id = $1', [match.fixture.id]);
-            
-            if (insertedMatch.rows.length > 0) {
-              const matchId = insertedMatch.rows[0].id;
+
+            if (insertResult.rowCount && insertResult.rowCount > 0) {
+              publishedCount++;
+              const matchId = insertResult.rows[0].id;
               await saveBestBetsFromAnalysis(matchId, match.fixture.id, homeTeam, awayTeam, homeLogo, awayLogo, leagueName, leagueLogo, matchDate, matchTime, aiAnalysis);
+              console.log(`[AutoPublish] Yayinlandi: ${homeTeam} vs ${awayTeam}`);
+            } else {
+              console.log(`[AutoPublish] Mac zaten yayinlanmış (conflict): ${homeTeam} vs ${awayTeam}`);
             }
-            
-            console.log(`[AutoPublish] Yayinlandi: ${homeTeam} vs ${awayTeam}`);
           } catch (error: any) {
             console.error(`[AutoPublish] Yayinlama hatasi:`, error.message);
           }
@@ -1722,7 +1813,10 @@ export function startAutoPublishService() {
         console.log(`[AutoPublish] AI Bahis: ${bahisCount} | AI Pas: ${pasCount}`);
         console.log(`[AutoPublish] YAYINLANAN: ${publishedCount}`);
         console.log('[AutoPublish] ========================================');
-        
+
+        } finally {
+          await releaseLock();
+        }
       } catch (error) {
         console.error('[AutoPublish] Gunluk islem hatasi:', error);
       }

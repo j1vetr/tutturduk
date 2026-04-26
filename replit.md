@@ -29,12 +29,17 @@ Preferred communication style: Simple, everyday language.
 - **Match Filtering**: Automatic exclusion of youth, women's, reserve, amateur, and B team leagues based on keywords. Matches require a minimum statistics score (35) to be published.
 
 ### Prediction & Coupon System
-- **AI-Powered Analysis**: Utilizes OpenAI GPT-4o for match analysis and value betting, generating predictions with a `karar` field ("bahis" for confident bets, "pas" for uncertain matches).
-- **Value Betting**: Predictions must have a positive value percentage (minimum 5%) and minimum odds of 1.50.
-- **Decision-Based System**: AI explicitly determines whether to "bet" or "pass" on a match based on confidence (minimum 70%) and value.
-- **Dual Bet System**: For each match, AI generates a primary bet (e.g., 2.5 Üst) and an alternative bet (e.g., KG Var).
-- **Coupon Automation**: `autoCreateDailyCoupon()` automatically generates daily coupons by picking 2-3 highest confidence primary bets with real odds.
-- **Match Status Automation**: A service runs every 15 minutes to update match statuses, evaluate predictions, and assess coupon results based on API-Football data.
+- **Central Config**: All thresholds live in `server/predictionConfig.ts` (`MAX_DAILY_MATCHES=35`, `MIN_STATS_SCORE=35`, `MIN_CONF=70`, `MIN_VALUE=0.05`, `MIN_ODDS=1.40`, sweet-spot 1.55–2.20, AI batch size 5).
+- **AI-Powered Analysis**: OpenAI GPT-4o; output includes `karar` (bahis/pas), confidence and probability as separate fields, and an alternative bet decorrelated from the primary.
+- **Value Betting**: Primary bets need ≥5% value and odds ≥1.40. Low-odds (1.40–1.49) require ≥8% edge AND ≥75% confidence.
+- **Adaptive Markets**: 11-market pool — Goal/Result/Safety sets — selected by AI per match (low-scoring leagues prefer Alt 2.5 / 1.5 lines).
+- **Correlation Rule**: Alternative bet is dropped if positively correlated with primary (e.g., 2.5 Üst + KG Var).
+- **Poisson xG**: League-aware expected-goals calc with home advantage factor (1.10) and `LEAGUE_AVG_GOALS=2.65`.
+- **Daily Pipeline (cron 01:00 Türkiye)**: Fetch validated fixtures → Postgres advisory lock (`pg_try_advisory_lock`) → DB count check (35 cap) → odds early-elim (sweet spot) → top-N by stats score + buffer → parallel AI batch (5×) → `INSERT ... ON CONFLICT DO NOTHING RETURNING id` (publishedCount sadece gerçek insert'te artar) → lock'u `finally`'de bırak. Bu sayede paralel cron veya manuel tetiklemede 35 cap atomik korunur.
+- **Cache**: AI results cached in `api_cache` with auto-versioned key `ai_analysis_<md5_8>_<fixtureId>` (24h TTL); prompt/schema changes auto-invalidate the cache.
+- **Coupon Automation**: `autoCreateDailyCoupon()` picks top 2–3 primary bets; bets with missing/invalid odds are excluded — coupon is rolled back if fewer than 2 valid bets remain.
+- **Match Status Automation**: Every 15 minutes, statuses updated and bets evaluated. HT skoru fixture API'sinden (`score.halftime`) çekilip `evaluateBet`'e iletilir; DB-only yeniden değerlendirmede HT için API tekrar çağrılır. Outcomes are `won` / `lost` / `void`; success rate = `won / (won + lost)`. Supports MS, Alt/Üst, KG, çift şans, DNB (void on draw), İY (HT) markets, and HT/FT pairs (HT/FT regex generic HT'den önce çalışır — composite formatlar `1/X`, `İY/MS Ev/Konuk` doğru parse edilir).
+- **Odds Refresh Service**: Her 30 dakikada bir, sonraki 180 dakika içinde başlayacak maçların oranları yeniden çekilir. Eski oran cache'ten (`primaryBet/alternativeBet/predictions[].odds` şeması) okunur. 2.5 Üst veya KG Var oranları %10+ değişmişse AI yeniden çalıştırılır; karar `pas`'a dönerse pending best_bet'ler silinir. Tüm eşikler `predictionConfig`'tedir.
 
 ## External Dependencies
 

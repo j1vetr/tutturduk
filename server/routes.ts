@@ -5,7 +5,7 @@ import session from 'express-session';
 import connectPgSimple from 'connect-pg-simple';
 import { pool } from './db';
 import { apiFootball, SUPPORTED_LEAGUES, CURRENT_SEASON } from './apiFootball';
-import { generateMatchAnalysis, generateAndSavePredictions } from './openai-analysis';
+import { generateMatchAnalysis, generateAndSavePredictions, aiCacheKey } from './openai-analysis';
 import { filterMatches, hasValidStatistics, getStatisticsScore } from './matchFilter';
 import { checkAndUpdateMatchStatuses, reEvaluateAllFinishedMatches } from './matchStatusService';
 
@@ -1424,7 +1424,7 @@ export async function registerRoutes(
       const badges: Record<number, { bestBet?: string; riskLevel?: string; over25?: boolean; btts?: boolean; winner?: string }> = {};
       
       for (const match of matches) {
-        const cacheKey = `ai_analysis_v12_${match.fixture_id}`;
+        const cacheKey = aiCacheKey(match.fixture_id);
         const cachedResult = await pool.query(
           'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
           [cacheKey]
@@ -1574,7 +1574,7 @@ export async function registerRoutes(
         return res.status(404).json({ message: 'Maç bulunamadı' });
       }
 
-      const cacheKey = `ai_analysis_v12_${match.fixture_id}`;
+      const cacheKey = aiCacheKey(match.fixture_id);
       
       // Helper function to reconstruct analysis from best_bets
       const reconstructFromBestBets = async () => {
@@ -2020,7 +2020,7 @@ export async function registerRoutes(
       
       for (const match of todayMatches.slice(0, 10)) {
         try {
-          const cacheKey = `ai_analysis_v12_${match.fixture_id}`;
+          const cacheKey = aiCacheKey(match.fixture_id);
           const analysis = await getCachedData(cacheKey, async () => {
             const homeTeam = match.api_teams?.home;
             const awayTeam = match.api_teams?.away;
@@ -2111,10 +2111,10 @@ export async function registerRoutes(
     const results: any[] = [];
     
     for (const fixtureId of fixtureIds) {
-      const aiCacheKey = `ai_analysis_v12_${fixtureId}`;
+      const cacheKey = aiCacheKey(fixtureId);
       const cachedResult = await pool.query(
         'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
-        [aiCacheKey]
+        [cacheKey]
       );
       
       if (cachedResult.rows.length > 0) {
@@ -2152,10 +2152,10 @@ export async function registerRoutes(
     for (const fixtureId of fixtureIds) {
       try {
         // Check cache first (v12 = enhanced data with injuries, last 10 matches, season stats)
-        const aiCacheKey = `ai_analysis_v12_${fixtureId}`;
+        const cacheKey = aiCacheKey(fixtureId);
         const cachedResult = await pool.query(
           'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
-          [aiCacheKey]
+          [cacheKey]
         );
         
         if (cachedResult.rows.length > 0) {
@@ -2328,7 +2328,7 @@ export async function registerRoutes(
             `INSERT INTO api_cache (key, value, expires_at)
              VALUES ($1, $2, NOW() + INTERVAL '24 hours')
              ON CONFLICT (key) DO UPDATE SET value = $2, expires_at = NOW() + INTERVAL '24 hours'`,
-            [aiCacheKey, JSON.stringify(aiAnalysis)]
+            [cacheKey, JSON.stringify(aiAnalysis)]
           );
         } catch (e) { /* ignore cache errors */ }
         
@@ -2381,13 +2381,13 @@ export async function registerRoutes(
       }
 
       // STEP 1: Check AI cache FIRST - if exists with "bahis", skip all validations
-      const aiCacheKey = `ai_analysis_v12_${fixtureId}`;
+      const aiKey = aiCacheKey(fixtureId);
       let aiAnalysis: any = null;
       let hasCachedAI = false;
       
       const cachedAI = await pool.query(
         'SELECT value FROM api_cache WHERE key = $1 AND expires_at > NOW()',
-        [aiCacheKey]
+        [aiKey]
       );
       
       if (cachedAI.rows.length > 0) {
@@ -3086,7 +3086,7 @@ export async function registerRoutes(
         SELECT 
           COUNT(*) FILTER (WHERE result = 'won') as total_won,
           COUNT(*) FILTER (WHERE result = 'lost') as total_lost,
-          COUNT(*) FILTER (WHERE result != 'pending') as total_evaluated,
+          COUNT(*) FILTER (WHERE result IN ('won','lost')) as total_evaluated,
           COUNT(*) as total
         FROM best_bets
         WHERE COALESCE(bet_category, 'primary') = 'primary'
