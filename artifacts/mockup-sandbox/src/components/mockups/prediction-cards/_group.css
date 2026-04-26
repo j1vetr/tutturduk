@@ -1,0 +1,63 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+.tt-page {
+  background: #0a0a0c;
+  color: #ffffff;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  min-height: 100vh;
+}
+
+.tt-display {
+  font-family: 'Space Grotesk', system-ui, sans-serif;
+  letter-spacing: -0.025em;
+  font-feature-settings: "ss01", "ss02";
+}
+
+.tt-mono {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.tt-tabular {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.tt-eyebrow-tiny {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.tt-bt-hairline { border-top: 1px solid rgba(255, 255, 255, 0.06); }
+.tt-bb-hairline { border-bottom: 1px solid rgba(255, 255, 255, 0.06); }
+.tt-bl-hairline { border-left: 1px solid rgba(255, 255, 255, 0.06); }
+
+.tt-text-lime { color: #d4ff00; }
+.tt-bg-lime { background: #d4ff00; }
+.tt-border-lime { border-color: #d4ff00; }
+
+.tt-card {
+  background: #131316;
+  border-radius: 16px;
+  transition: background 0.18s ease;
+}
+.tt-card:hover { background: #18181c; }
+
+.tt-pulse {
+  animation: tt-pulse-soft 1.6s ease-in-out infinite;
+}
+@keyframes tt-pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+/* Logo plate — solid neutral background so colored crests pop */
+.tt-logo-plate {
+  background: #1d1d22;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
