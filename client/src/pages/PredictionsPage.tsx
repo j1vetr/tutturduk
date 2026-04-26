@@ -122,7 +122,7 @@ export default function PredictionsPage() {
               {sorted.length.toString().padStart(2, "0")} maç
             </span>
             <span className="w-px h-3 bg-white/10" />
-            <span className="text-[11px] text-white/45">GPT-4o · Değer ≥%5</span>
+            <span className="text-[11px] text-white/45">Değer ≥%5</span>
           </div>
         </header>
 

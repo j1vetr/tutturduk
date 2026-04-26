@@ -499,12 +499,10 @@ export default function DashboardPage() {
 
         {/* ════════ METHOD STRIP ════════ */}
         <section className="surface rounded-2xl px-5 py-5" data-testid="section-method">
-          <div className="flex items-center gap-3 mb-3">
-            <span className="w-1.5 h-1.5 rounded-full bg-lime" aria-hidden />
+          <div className="mb-3">
             <span className="eyebrow-tiny">Yöntem</span>
           </div>
           <p className="text-[13.5px] text-white/85 leading-relaxed font-display">
-            Her tahmin <span className="text-lime font-semibold">GPT-4o</span> ile değerlendirilir.
             Form, sakatlık, oran piyasası ve sezon istatistikleri tek bir modelde
             buluşur. Yalnızca <span className="text-white">güven ≥%70</span> ve
             <span className="text-white"> değer ≥%5</span> olan bahisler yayınlanır.
