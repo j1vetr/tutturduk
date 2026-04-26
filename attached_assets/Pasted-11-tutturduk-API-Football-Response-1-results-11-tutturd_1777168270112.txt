@@ -1,0 +1,57 @@
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1490244 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Chicago Fire vs Sporting Kansas City (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1490245' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1490245 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1490245' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1490245 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Austin vs Houston Dynamo (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1490246' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1490246 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1490246' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1490246 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: St. Louis City vs San Jose Earthquakes (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1492055' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1492055 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1492055' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1492055 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: River Plate vs Aldosivi (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1511557' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1511557 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1511557' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1511557 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Deportes Temuco vs Rangers de Talca (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1530508' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1530508 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1530508' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1530508 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1542649' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1542649 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1542649' }
+11|tutturduk  | [API-Football] Response: 0 results
+11|tutturduk  | [API-Football] Cache SET: odds:1542649 (TTL: 15min)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1504949' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1504949 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1504949' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1504949 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Alianza vs Zacatecoluca (score: 100)
+11|tutturduk  | [API-Football] Requesting: /predictions { fixture: '1504952' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: prediction:1504952 (TTL: 240min)
+11|tutturduk  | [API-Football] Requesting: /odds { fixture: '1504952' }
+11|tutturduk  | [API-Football] Response: 1 results
+11|tutturduk  | [API-Football] Cache SET: odds:1504952 (TTL: 15min)
+11|tutturduk  | [Prefetch] Valid: Firpo vs FAS (score: 100)
