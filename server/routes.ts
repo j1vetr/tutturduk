@@ -2784,11 +2784,11 @@ export async function registerRoutes(
       return res.status(403).json({ message: 'Yetkiniz yok' });
     }
     try {
-      const { totalLimit = 70, perHour = 5 } = req.body;
-      const result = await autoPublishTodayMatchesValidated(totalLimit, perHour);
+      const { totalLimit = 70, perHour = 5, refresh = false } = req.body;
+      const result = await autoPublishTodayMatchesValidated(totalLimit, perHour, !!refresh);
       res.json({ 
         success: true, 
-        message: `${result.published} kaliteli maç yayınlandı (bugün ${result.date} için)`,
+        message: `${result.published} kaliteli maç yayınlandı (bugün ${result.date} için)${refresh ? ' — taze veri ile' : ''}`,
         ...result 
       });
     } catch (error: any) {

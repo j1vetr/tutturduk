@@ -1591,11 +1591,21 @@ export async function autoPublishTomorrowMatchesValidated(totalLimit: number = M
   return publishFromPrefetchedFixtures(tomorrowStr, totalLimit, matchesPerHour);
 }
 
-export async function autoPublishTodayMatchesValidated(totalLimit: number = MAX_DAILY_MATCHES, matchesPerHour: number = 5) {
+export async function autoPublishTodayMatchesValidated(totalLimit: number = MAX_DAILY_MATCHES, matchesPerHour: number = 5, refresh: boolean = false) {
   const today = new Date();
   const todayStr = today.toISOString().split('T')[0];
-  
-  console.log(`[AutoPublish] Today's validated matches: ${todayStr}`);
+
+  if (refresh) {
+    const cacheKey = `prefetch_validated_${todayStr}`;
+    try {
+      await pool.query('DELETE FROM api_cache WHERE key = $1', [cacheKey]);
+      console.log(`[AutoPublish] Refresh=true → ${cacheKey} önbelleği silindi, taze fikstür+oran çekilecek.`);
+    } catch (err) {
+      console.warn('[AutoPublish] Önbellek silinirken hata:', err);
+    }
+  }
+
+  console.log(`[AutoPublish] Today's validated matches: ${todayStr} (refresh=${refresh})`);
   return publishFromPrefetchedFixtures(todayStr, totalLimit, matchesPerHour);
 }
 
