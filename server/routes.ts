@@ -8,6 +8,7 @@ import { apiFootball, SUPPORTED_LEAGUES, CURRENT_SEASON } from './apiFootball';
 import { filterMatches, hasValidStatistics, getStatisticsScore } from './matchFilter';
 import { readFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
+import { setManualMatchResult } from './matchStatusService';
 
 function parseApiFootballOdds(oddsData: any[]): any {
   const parsed: any = {};
@@ -2349,9 +2350,7 @@ export async function registerRoutes(
       ``,
       `${leagueEmoji} <b>${m.league_name ?? 'Lig'}</b>`,
       ``,
-      `🏠 <b>${m.home_team}</b>`,
-      `        ⚔️`,
-      `✈️ <b>${m.away_team}</b>`,
+      `🏠 <b>${m.home_team}</b>  ⚔️  <b>${m.away_team}</b> ✈️`,
       ``,
       ...(dateStr ? [`📅 ${dateStr}`] : []),
       ...(time ? [`🕐 ${time}`] : []),
