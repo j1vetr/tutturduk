@@ -2313,7 +2313,6 @@ export async function registerRoutes(
     }
 
     lines.push(`━━━━━━━━━━━━━━━━━━`);
-    lines.push(`📲 <i>Tutturduk — sporu birlikte analiz ediyoruz.</i>`);
 
     return lines.join('\n');
   }
@@ -2449,7 +2448,6 @@ export async function registerRoutes(
       }
 
       lines.push(`━━━━━━━━━━━━━━━━━━`);
-      lines.push(`📲 <i>Tutturduk — sporu birlikte analiz ediyoruz.</i>`);
 
       await sendTelegramMessage(token, chatId, lines.join('\n'));
       res.json({ success: true, message: `${matches.length} maç Telegram'a gönderildi` });
