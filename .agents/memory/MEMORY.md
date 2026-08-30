@@ -1,0 +1,1 @@
+- [Static teams DB](static-teams-db.md) — API-Football kaldırıldı; takımlar client/src/data/teams-static.json içinde, logolar media.api-sports.io CDN'den (key gerektirmez).

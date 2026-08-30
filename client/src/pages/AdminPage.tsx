@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { useLocation } from "wouter";
+import teamsData from "@/data/teams-static.json";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -134,9 +135,26 @@ export default function AdminPage() {
   const [publishedMatches, setPublishedMatches] = useState<any[]>([]);
   const [publishingId, setPublishingId] = useState<number | null>(null);
   
-  // Publish form state
+  // Publish form state (legacy inline form)
   const [publishingMatch, setPublishingMatch] = useState<UpcomingMatch | null>(null);
   const [publishForm, setPublishForm] = useState({ bet_type: '', odds: '', description: '' });
+
+  // Manual match entry form
+  const [manualForm, setManualForm] = useState({
+    leagueId: '',
+    homeTeamId: '',
+    awayTeamId: '',
+    matchDate: new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Istanbul' }),
+    matchTime: '20:00',
+    bet_type: '',
+    odds: '',
+    description: ''
+  });
+  const [homeTeamSearch, setHomeTeamSearch] = useState('');
+  const [awayTeamSearch, setAwayTeamSearch] = useState('');
+  const [showHomeDropdown, setShowHomeDropdown] = useState(false);
+  const [showAwayDropdown, setShowAwayDropdown] = useState(false);
+  const [submittingManual, setSubmittingManual] = useState(false);
 
   // Form states
   const [newCode, setNewCode] = useState({ code: "", type: "standard", maxUses: 1 });
@@ -172,39 +190,6 @@ export default function AdminPage() {
     }
   };
 
-  const loadUpcomingMatches = async (validated: boolean = false) => {
-    setLoadingMatches(true);
-    try {
-      if (validated) {
-        toast({ description: "Kaliteli maçlar yükleniyor..." });
-        const res = await fetch('/api/football/fixtures-validated');
-        if (res.ok) {
-          const data = await res.json();
-          const matchesArray = data.matches || data;
-          const formatted = matchesArray.map((m: any) => ({
-            id: m.id,
-            date: m.date,
-            timestamp: m.timestamp,
-            status: { long: 'Not Started', short: 'NS', elapsed: null },
-            homeTeam: m.homeTeam,
-            awayTeam: m.awayTeam,
-            league: m.league,
-            goals: m.goals || { home: null, away: null },
-            localDate: m.localDate,
-            localTime: m.localTime,
-            validated: true
-          }));
-          setUpcomingMatches(formatted);
-          toast({ description: `${matchesArray.length} maç yüklendi` });
-        }
-      }
-    } catch (error) {
-      console.error('Failed to load predictions:', error);
-      toast({ variant: "destructive", description: "Maçlar yüklenemedi" });
-    } finally {
-      setLoadingMatches(false);
-    }
-  };
 
   const openPublishForm = (match: UpcomingMatch) => {
     setPublishingMatch(match);
@@ -267,6 +252,54 @@ export default function AdminPage() {
 
   const isMatchPublished = (fixtureId: number) => {
     return publishedMatches.some(m => m.fixture_id === fixtureId);
+  };
+
+  const handleManualPublish = async () => {
+    const homeTeam = (teamsData.teams as any[]).find(t => String(t.id) === manualForm.homeTeamId);
+    const awayTeam = (teamsData.teams as any[]).find(t => String(t.id) === manualForm.awayTeamId);
+    const league = (teamsData.leagues as any[]).find(l => String(l.id) === manualForm.leagueId);
+
+    if (!homeTeam || !awayTeam || !league || !manualForm.bet_type || !manualForm.odds) {
+      toast({ variant: 'destructive', description: 'Tüm alanları doldurun.' });
+      return;
+    }
+
+    setSubmittingManual(true);
+    try {
+      const res = await fetch('/api/admin/matches/publish-manual', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          homeTeam: homeTeam.name,
+          awayTeam: awayTeam.name,
+          homeLogo: homeTeam.logo,
+          awayLogo: awayTeam.logo,
+          leagueName: league.name,
+          leagueLogo: league.logo,
+          leagueId: league.id,
+          matchDate: manualForm.matchDate,
+          matchTime: manualForm.matchTime,
+          bet_type: manualForm.bet_type,
+          odds: manualForm.odds,
+          description: manualForm.description
+        })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast({ description: `${homeTeam.name} - ${awayTeam.name} yayınlandı.` });
+        loadPublishedMatches();
+        setManualForm(f => ({ ...f, homeTeamId: '', awayTeamId: '', bet_type: '', odds: '', description: '' }));
+        setHomeTeamSearch('');
+        setAwayTeamSearch('');
+      } else {
+        toast({ variant: 'destructive', description: data.message || 'Yayınlanamadı.' });
+      }
+    } catch {
+      toast({ variant: 'destructive', description: 'Bağlantı hatası.' });
+    } finally {
+      setSubmittingManual(false);
+    }
   };
 
   const loadCoupons = async () => {
@@ -476,15 +509,6 @@ export default function AdminPage() {
       }));
   };
 
-  const getFilteredMatches = () => {
-    if (!searchQuery) return upcomingMatches;
-    const q = searchQuery.toLowerCase();
-    return upcomingMatches.filter(m => 
-      m.homeTeam.name.toLowerCase().includes(q) ||
-      m.awayTeam.name.toLowerCase().includes(q) ||
-      m.league.name.toLowerCase().includes(q)
-    );
-  };
 
   const toggleDay = (date: string) => {
     const newExpanded = new Set(expandedDays);
@@ -690,109 +714,210 @@ export default function AdminPage() {
         {/* Predictions / Matches */}
         {activeTab === "predictions" && (
           <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <h2 className="text-lg font-bold text-slate-800">Mac Yonetimi</h2>
-            </div>
+            <h2 className="text-lg font-bold text-slate-800">Maç Yönetimi</h2>
 
-            {/* Maç Yükle Butonu */}
-            <div className="flex gap-2">
-              <Button
-                onClick={() => loadUpcomingMatches(true)}
-                disabled={loadingMatches}
-                size="sm"
-                className="bg-slate-800 text-white hover:bg-slate-700"
-              >
-                {loadingMatches ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Target className="w-4 h-4 mr-1" />}
-                Maclari Yukle
-              </Button>
-            </div>
+            {/* Manuel Maç Ekle */}
+            <Card className="bg-white border-slate-200">
+              <CardHeader className="pb-2 pt-4 px-4">
+                <CardTitle className="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                  <Plus className="w-4 h-4 text-emerald-500" /> Manuel Maç Ekle
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-4 pb-4 space-y-3">
+                {/* League selector */}
+                <div>
+                  <Label className="text-xs text-slate-500 mb-1 block">Lig</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {teamsData.leagues.map((lg: any) => (
+                      <button
+                        key={lg.id}
+                        onClick={() => setManualForm(f => ({ ...f, leagueId: String(lg.id), homeTeamId: '', awayTeamId: '' }))}
+                        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all ${
+                          manualForm.leagueId === String(lg.id)
+                            ? 'border-emerald-400 bg-emerald-50 text-emerald-700'
+                            : 'border-slate-200 text-slate-600 hover:border-slate-300'
+                        }`}
+                      >
+                        <img src={lg.logo} alt="" className="w-4 h-4 object-contain" />
+                        {lg.shortName}
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-            {/* Admin Utility Buttons */}
-            <div className="flex flex-wrap gap-2">
-              <Button 
-                onClick={async () => {
-                  try {
-                    const res = await fetch('/api/admin/re-evaluate', { method: 'POST', credentials: 'include' });
-                    const data = await res.json();
-                    if (res.ok) toast({ description: data.message });
-                    else toast({ variant: 'destructive', description: data.message });
-                  } catch { toast({ variant: 'destructive', description: 'İşlem başarısız' }); }
-                }}
-                variant="outline"
-                size="sm"
-                className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
-              >
-                <RefreshCcw className="w-4 h-4 mr-1" /> Sonuçları Değerlendir
-              </Button>
-              <Button 
-                onClick={async () => {
-                  if (!confirm('Cache temizlensin mi? AI sonuçları silinecek.')) return;
-                  try {
-                    const res = await fetch('/api/admin/clear-cache', { method: 'POST', credentials: 'include' });
-                    const data = await res.json();
-                    if (res.ok) {
-                      toast({ description: data.message });
-                    } else toast({ variant: 'destructive', description: data.message });
-                  } catch { toast({ variant: 'destructive', description: 'İşlem başarısız' }); }
-                }}
-                variant="outline"
-                size="sm"
-                className="border-purple-200 text-purple-700 hover:bg-purple-50"
-              >
-                <RefreshCcw className="w-4 h-4 mr-1" /> Önbellek Temizle
-              </Button>
-              <Button 
-                onClick={async () => {
-                  if (!confirm('Kaybedilen bahislerin %40\'ı silinecek. Devam edilsin mi?')) return;
-                  try {
-                    const res = await fetch('/api/admin/cleanup-lost-bets', { method: 'POST', credentials: 'include' });
-                    const data = await res.json();
-                    if (res.ok) {
-                      toast({ description: data.message });
-                      loadBestBetsStats();
-                    } else toast({ variant: 'destructive', description: data.message });
-                  } catch { toast({ variant: 'destructive', description: 'İşlem başarısız' }); }
-                }}
-                variant="outline"
-                size="sm"
-                className="border-orange-200 text-orange-700 hover:bg-orange-50"
-              >
-                <Trash2 className="w-4 h-4 mr-1" /> Kayıpları Temizle (%40)
-              </Button>
-              <Button 
-                onClick={async () => {
-                  const code = prompt('Veritabanını sıfırlamak için "SIFIRLA" yazın:');
-                  if (code !== 'SIFIRLA') { toast({ variant: 'destructive', description: 'Onay kodu yanlış' }); return; }
-                  try {
-                    const res = await fetch('/api/admin/reset-database', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      credentials: 'include',
-                      body: JSON.stringify({ confirmReset: 'SIFIRLA' })
-                    });
-                    const data = await res.json();
-                    if (res.ok) { toast({ description: data.message }); loadPublishedMatches(); }
-                    else toast({ variant: 'destructive', description: data.message });
-                  } catch { toast({ variant: 'destructive', description: 'İşlem başarısız' }); }
-                }}
-                variant="outline"
-                size="sm"
-                className="border-red-200 text-red-700 hover:bg-red-50"
-              >
-                <Trash2 className="w-4 h-4 mr-1" /> DB Sıfırla
-              </Button>
-            </div>
+                {/* Teams */}
+                {manualForm.leagueId && (
+                  <div className="grid grid-cols-2 gap-2">
+                    {/* Home Team */}
+                    <div className="relative">
+                      <Label className="text-xs text-slate-500 mb-1 block">Ev Sahibi</Label>
+                      {manualForm.homeTeamId ? (
+                        <div className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg border border-slate-200">
+                          {(() => { const t = teamsData.teams.find((x: any) => String(x.id) === manualForm.homeTeamId); return t ? (
+                            <>
+                              <img src={(t as any).logo} alt="" className="w-5 h-5 object-contain" />
+                              <span className="text-xs text-slate-700 flex-1 truncate">{(t as any).name}</span>
+                              <button onClick={() => setManualForm(f => ({ ...f, homeTeamId: '' }))} className="text-slate-400 hover:text-red-500">
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </>
+                          ) : null; })()}
+                        </div>
+                      ) : (
+                        <>
+                          <div className="relative">
+                            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                            <Input
+                              placeholder="Takım ara..."
+                              value={homeTeamSearch}
+                              onChange={e => { setHomeTeamSearch(e.target.value); setShowHomeDropdown(true); }}
+                              onFocus={() => setShowHomeDropdown(true)}
+                              className="pl-8 h-8 text-xs border-slate-200"
+                            />
+                          </div>
+                          {showHomeDropdown && (
+                            <div className="absolute z-10 top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                              {teamsData.teams
+                                .filter((t: any) =>
+                                  t.leagues.includes(Number(manualForm.leagueId)) &&
+                                  t.id !== Number(manualForm.awayTeamId) &&
+                                  t.name.toLowerCase().includes(homeTeamSearch.toLowerCase())
+                                )
+                                .map((t: any) => (
+                                  <button
+                                    key={t.id}
+                                    onClick={() => { setManualForm(f => ({ ...f, homeTeamId: String(t.id) })); setHomeTeamSearch(''); setShowHomeDropdown(false); }}
+                                    className="w-full flex items-center gap-2 px-3 py-2 hover:bg-slate-50 text-left"
+                                  >
+                                    <img src={t.logo} alt="" className="w-5 h-5 object-contain" />
+                                    <span className="text-xs text-slate-700">{t.name}</span>
+                                  </button>
+                                ))}
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
 
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <Input
-                placeholder="Maç ara..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="pl-9 bg-white border-slate-200"
-              />
-            </div>
+                    {/* Away Team */}
+                    <div className="relative">
+                      <Label className="text-xs text-slate-500 mb-1 block">Deplasman</Label>
+                      {manualForm.awayTeamId ? (
+                        <div className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg border border-slate-200">
+                          {(() => { const t = teamsData.teams.find((x: any) => String(x.id) === manualForm.awayTeamId); return t ? (
+                            <>
+                              <img src={(t as any).logo} alt="" className="w-5 h-5 object-contain" />
+                              <span className="text-xs text-slate-700 flex-1 truncate">{(t as any).name}</span>
+                              <button onClick={() => setManualForm(f => ({ ...f, awayTeamId: '' }))} className="text-slate-400 hover:text-red-500">
+                                <X className="w-3.5 h-3.5" />
+                              </button>
+                            </>
+                          ) : null; })()}
+                        </div>
+                      ) : (
+                        <>
+                          <div className="relative">
+                            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+                            <Input
+                              placeholder="Takım ara..."
+                              value={awayTeamSearch}
+                              onChange={e => { setAwayTeamSearch(e.target.value); setShowAwayDropdown(true); }}
+                              onFocus={() => setShowAwayDropdown(true)}
+                              className="pl-8 h-8 text-xs border-slate-200"
+                            />
+                          </div>
+                          {showAwayDropdown && (
+                            <div className="absolute z-10 top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                              {teamsData.teams
+                                .filter((t: any) =>
+                                  t.leagues.includes(Number(manualForm.leagueId)) &&
+                                  t.id !== Number(manualForm.homeTeamId) &&
+                                  t.name.toLowerCase().includes(awayTeamSearch.toLowerCase())
+                                )
+                                .map((t: any) => (
+                                  <button
+                                    key={t.id}
+                                    onClick={() => { setManualForm(f => ({ ...f, awayTeamId: String(t.id) })); setAwayTeamSearch(''); setShowAwayDropdown(false); }}
+                                    className="w-full flex items-center gap-2 px-3 py-2 hover:bg-slate-50 text-left"
+                                  >
+                                    <img src={t.logo} alt="" className="w-5 h-5 object-contain" />
+                                    <span className="text-xs text-slate-700">{t.name}</span>
+                                  </button>
+                                ))}
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Date + Time */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-xs text-slate-500 mb-1 block">Tarih</Label>
+                    <Input
+                      type="date"
+                      value={manualForm.matchDate}
+                      onChange={e => setManualForm(f => ({ ...f, matchDate: e.target.value }))}
+                      className="h-8 text-xs border-slate-200"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-slate-500 mb-1 block">Saat</Label>
+                    <Input
+                      type="time"
+                      value={manualForm.matchTime}
+                      onChange={e => setManualForm(f => ({ ...f, matchTime: e.target.value }))}
+                      className="h-8 text-xs border-slate-200"
+                    />
+                  </div>
+                </div>
+
+                {/* Prediction fields */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-xs text-slate-500 mb-1 block">Tahmin</Label>
+                    <Input
+                      placeholder="ör. MS1, KG VAR, 2.5 ALT"
+                      value={manualForm.bet_type}
+                      onChange={e => setManualForm(f => ({ ...f, bet_type: e.target.value }))}
+                      className="h-8 text-xs border-slate-200"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-slate-500 mb-1 block">Oran</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder="ör. 1.85"
+                      value={manualForm.odds}
+                      onChange={e => setManualForm(f => ({ ...f, odds: e.target.value }))}
+                      className="h-8 text-xs border-slate-200"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label className="text-xs text-slate-500 mb-1 block">Açıklama (isteğe bağlı)</Label>
+                  <Input
+                    placeholder="Kısa analiz notu..."
+                    value={manualForm.description}
+                    onChange={e => setManualForm(f => ({ ...f, description: e.target.value }))}
+                    className="h-8 text-xs border-slate-200"
+                  />
+                </div>
+
+                <Button
+                  onClick={handleManualPublish}
+                  disabled={submittingManual || !manualForm.homeTeamId || !manualForm.awayTeamId || !manualForm.bet_type || !manualForm.odds}
+                  className="w-full bg-emerald-500 text-white hover:bg-emerald-400 h-9"
+                  size="sm"
+                >
+                  {submittingManual ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Check className="w-4 h-4 mr-2" />}
+                  Maçı Yayınla
+                </Button>
+              </CardContent>
+            </Card>
 
             {/* Published Matches */}
             {publishedMatches.length > 0 && (
@@ -836,143 +961,76 @@ export default function AdminPage() {
               </Card>
             )}
 
-            {/* Match List */}
-            <Card className="bg-white border-slate-200 overflow-hidden">
-              {loadingMatches ? (
-                <div className="flex flex-col items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-slate-400 mb-3" />
-                  <p className="text-sm text-slate-500">Maçlar yükleniyor...</p>
-                </div>
-              ) : getFilteredMatches().length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12">
-                  <Calendar className="w-10 h-10 text-slate-300 mb-3" />
-                  <p className="text-sm text-slate-500">Maç bulunamadı</p>
-                  <p className="text-xs text-slate-400 mt-1">Yukarıyı kullanarak maçları çekin</p>
-                </div>
-              ) : (
-                <div className="divide-y divide-slate-100">
-                  {groupMatchesByDate(getFilteredMatches()).map(({ date, displayDate, matches }) => {
-                    const isExpanded = expandedDays.has(date);
-                    const isToday = date === new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Istanbul' });
-                    
-                    return (
-                      <div key={date}>
-                        <button
-                          onClick={() => toggleDay(date)}
-                          className={`w-full flex items-center justify-between p-3 ${isToday ? 'bg-emerald-50' : 'bg-slate-50'}`}
-                        >
-                          <div className="flex items-center gap-2">
-                            {isExpanded ? <ChevronDown className="w-4 h-4 text-slate-400" /> : <ChevronRight className="w-4 h-4 text-slate-400" />}
-                            <span className={`text-sm font-semibold ${isToday ? 'text-emerald-700' : 'text-slate-700'}`}>
-                              {isToday ? 'Bugun - ' : ''}{displayDate}
-                            </span>
-                            <Badge variant="outline" className="text-[10px] border-slate-300 text-slate-500">{matches.length}</Badge>
-                          </div>
-                        </button>
-                        
-                        {isExpanded && (
-                          <div className="divide-y divide-slate-50">
-                            {matches.map(match => {
-                              const published = isMatchPublished(match.id);
-                              const isPublishingThis = publishingMatch?.id === match.id;
-
-                              return (
-                                <div key={match.id} className={`p-3 ${published ? 'bg-emerald-50/50' : ''}`}>
-                                  <div className="flex items-center justify-between gap-2">
-                                    <div className="flex items-center gap-2 min-w-0 flex-1">
-                                      <span className="text-xs font-mono text-emerald-600 w-12 flex-shrink-0">{match.localTime}</span>
-                                      <img src={match.league.logo} alt="" className="w-4 h-4 object-contain flex-shrink-0" />
-                                      <div className="flex items-center gap-1.5 min-w-0 flex-1">
-                                        <img src={match.homeTeam.logo} alt="" className="w-4 h-4 object-contain flex-shrink-0" />
-                                        <span className="text-xs text-slate-700 truncate">{match.homeTeam.name}</span>
-                                        <span className="text-[10px] text-slate-400">vs</span>
-                                        <span className="text-xs text-slate-700 truncate">{match.awayTeam.name}</span>
-                                        <img src={match.awayTeam.logo} alt="" className="w-4 h-4 object-contain flex-shrink-0" />
-                                      </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-2 flex-shrink-0">
-                                      {published ? (
-                                        <Badge className="bg-emerald-100 text-emerald-700 border-0 text-[10px]">Yayında</Badge>
-                                      ) : isPublishingThis ? (
-                                        <Button
-                                          onClick={closePublishForm}
-                                          size="sm"
-                                          variant="ghost"
-                                          className="h-7 text-xs text-slate-500"
-                                        >
-                                          <X className="w-3 h-3 mr-1" /> İptal
-                                        </Button>
-                                      ) : (
-                                        <Button
-                                          onClick={() => openPublishForm(match)}
-                                          size="sm"
-                                          className="h-7 text-xs bg-emerald-500 text-white hover:bg-emerald-400"
-                                        >
-                                          <Plus className="w-3 h-3 mr-1" /> Yayınla
-                                        </Button>
-                                      )}
-                                    </div>
-                                  </div>
-
-                                  {/* Inline publish form */}
-                                  {isPublishingThis && (
-                                    <div className="mt-3 pt-3 border-t border-slate-100 space-y-2">
-                                      <div className="grid grid-cols-2 gap-2">
-                                        <div>
-                                          <Label className="text-[10px] text-slate-500 mb-1 block">Tahmin *</Label>
-                                          <Input
-                                            placeholder="Örn: 2.5 Üst, MS1, KG Var"
-                                            value={publishForm.bet_type}
-                                            onChange={e => setPublishForm(f => ({ ...f, bet_type: e.target.value }))}
-                                            className="h-8 text-xs bg-white border-slate-200"
-                                            autoFocus
-                                          />
-                                        </div>
-                                        <div>
-                                          <Label className="text-[10px] text-slate-500 mb-1 block">Oran *</Label>
-                                          <Input
-                                            placeholder="Örn: 1.85"
-                                            type="number"
-                                            step="0.01"
-                                            min="1"
-                                            value={publishForm.odds}
-                                            onChange={e => setPublishForm(f => ({ ...f, odds: e.target.value }))}
-                                            className="h-8 text-xs bg-white border-slate-200"
-                                          />
-                                        </div>
-                                      </div>
-                                      <div>
-                                        <Label className="text-[10px] text-slate-500 mb-1 block">Açıklama (opsiyonel)</Label>
-                                        <Input
-                                          placeholder="Kısa analiz veya not"
-                                          value={publishForm.description}
-                                          onChange={e => setPublishForm(f => ({ ...f, description: e.target.value }))}
-                                          className="h-8 text-xs bg-white border-slate-200"
-                                        />
-                                      </div>
-                                      <Button
-                                        onClick={handlePublishSubmit}
-                                        disabled={publishingId === match.id}
-                                        size="sm"
-                                        className="w-full h-8 text-xs bg-emerald-500 text-white hover:bg-emerald-400"
-                                      >
-                                        {publishingId === match.id ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Check className="w-3 h-3 mr-1" />}
-                                        Onayla ve Yayınla
-                                      </Button>
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </Card>
+            {/* Admin Utility Buttons */}
+            <details className="group">
+              <summary className="cursor-pointer text-xs text-slate-400 hover:text-slate-600 flex items-center gap-1 select-none list-none">
+                <ChevronRight className="w-3 h-3 group-open:rotate-90 transition-transform" /> Gelişmiş İşlemler
+              </summary>
+              <div className="flex flex-wrap gap-2 mt-3">
+                <Button 
+                  onClick={async () => {
+                    try {
+                      const res = await fetch('/api/admin/re-evaluate', { method: 'POST', credentials: 'include' });
+                      const data = await res.json();
+                      if (res.ok) toast({ description: data.message });
+                      else toast({ variant: 'destructive', description: data.message });
+                    } catch { toast({ variant: 'destructive', description: 'İşlem başarısız' }); }
+                  }}
+                  variant="outline" size="sm"
+                  className="border-blue-200 text-blue-700 hover:bg-blue-50"
+                >
+                  <RefreshCcw className="w-4 h-4 mr-1" /> Sonuçları Güncelle
+                </Button>
+                <Button 
+                  onClick={async () => {
+                    try {
+                      const res = await fetch('/api/admin/clear-cache', { method: 'POST', credentials: 'include' });
+                      const data = await res.json();
+                      if (res.ok) toast({ description: data.message });
+                      else toast({ variant: 'destructive', description: data.message });
+                    } catch { toast({ variant: 'destructive', description: 'İşlem başarısız' }); }
+                  }}
+                  variant="outline" size="sm"
+                  className="border-purple-200 text-purple-700 hover:bg-purple-50"
+                >
+                  <RefreshCcw className="w-4 h-4 mr-1" /> Önbellek Temizle
+                </Button>
+                <Button 
+                  onClick={async () => {
+                    if (!confirm("Kaybedilen bahislerin yuzde 40i silinecek. Devam?")) return;
+                    try {
+                      const res = await fetch('/api/admin/cleanup-lost-bets', { method: 'POST', credentials: 'include' });
+                      const data = await res.json();
+                      if (res.ok) { toast({ description: data.message }); loadBestBetsStats(); }
+                      else toast({ variant: 'destructive', description: data.message });
+                    } catch { toast({ variant: 'destructive', description: 'İşlem başarısız' }); }
+                  }}
+                  variant="outline" size="sm"
+                  className="border-orange-200 text-orange-700 hover:bg-orange-50"
+                >
+                    if (!confirm("Kaybedilen bahislerin yuzde 40i silinecek. Devam?")) return;
+                </Button>
+                <Button 
+                  onClick={async () => {
+                    const code = prompt('Veritabanını sıfırlamak için "SIFIRLA" yazın:');
+                    if (code !== 'SIFIRLA') { toast({ variant: 'destructive', description: 'Onay kodu yanlış' }); return; }
+                    try {
+                      const res = await fetch('/api/admin/reset-database', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include', body: JSON.stringify({ confirmReset: 'SIFIRLA' })
+                      });
+                      const data = await res.json();
+                      if (res.ok) { toast({ description: data.message }); loadPublishedMatches(); }
+                      else toast({ variant: 'destructive', description: data.message });
+                    } catch { toast({ variant: 'destructive', description: 'İşlem başarısız' }); }
+                  }}
+                  variant="outline" size="sm"
+                  className="border-red-200 text-red-700 hover:bg-red-50"
+                >
+                  <Trash2 className="w-4 h-4 mr-1" /> DB Sıfırla
+                </Button>
+              </div>
+            </details>
           </div>
         )}
 

@@ -2474,6 +2474,88 @@ export async function registerRoutes(
     }
   });
 
+  // Admin: publish a manually-entered match (no API-Football required)
+  app.post('/api/admin/matches/publish-manual', async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ message: 'Oturum açılmamış' });
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') return res.status(403).json({ message: 'Yetkiniz yok' });
+
+    try {
+      const {
+        homeTeam, awayTeam, homeLogo, awayLogo,
+        leagueName, leagueLogo, leagueId,
+        matchDate, matchTime,
+        bet_type, odds, description
+      } = req.body;
+
+      if (!homeTeam || !awayTeam || !matchDate || !matchTime || !bet_type || !odds) {
+        return res.status(400).json({ message: 'Ev sahibi, deplasman, tarih, saat, tahmin ve oran zorunludur.' });
+      }
+
+      // Generate a unique fixture_id for manual entries (large range that won't conflict with real IDs)
+      const fixtureId = Math.floor(Date.now() / 1000) + 2000000000;
+
+      const existing = await pool.query('SELECT id FROM published_matches WHERE fixture_id = $1', [fixtureId]);
+      if (existing.rows.length > 0) {
+        return res.status(400).json({ message: 'Bu maç zaten yayınlanmış' });
+      }
+
+      const client = await pool.connect();
+      let published: any;
+
+      try {
+        await client.query('BEGIN');
+
+        const publishResult = await client.query(
+          `INSERT INTO published_matches
+           (fixture_id, home_team, away_team, home_logo, away_logo, league_id, league_name, league_logo,
+            match_date, match_time, timestamp, api_advice, api_winner_name, api_winner_comment,
+            api_percent_home, api_percent_draw, api_percent_away, api_under_over,
+            api_goals_home, api_goals_away, api_comparison, api_h2h, api_teams, status, is_featured)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25)
+           RETURNING *`,
+          [
+            fixtureId, homeTeam, awayTeam, homeLogo || null, awayLogo || null,
+            leagueId || null, leagueName || null, leagueLogo || null,
+            matchDate, matchTime, null,
+            description || null, null, null, null, null, null, null, null, null, null, null, null,
+            'pending', false
+          ]
+        );
+        published = publishResult.rows[0];
+
+        await client.query(
+          `INSERT INTO best_bets
+           (match_id, fixture_id, home_team, away_team, home_logo, away_logo,
+            league_name, league_logo, match_date, match_time,
+            bet_type, bet_category, odds, confidence, risk_level, reasoning, result, date_for)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,'pending',$17)
+           ON CONFLICT (fixture_id, date_for, bet_category) DO UPDATE SET
+             bet_type = EXCLUDED.bet_type, odds = EXCLUDED.odds, reasoning = EXCLUDED.reasoning`,
+          [
+            published.id, fixtureId, homeTeam, awayTeam, homeLogo || null, awayLogo || null,
+            leagueName || null, leagueLogo || null, matchDate, matchTime,
+            bet_type, 'primary', parseFloat(odds), 70, 'orta',
+            description || null, matchDate
+          ]
+        );
+
+        await client.query('COMMIT');
+        console.log(`[ManualPublish] ${homeTeam} vs ${awayTeam} | ${bet_type} @${odds}`);
+      } catch (txError: any) {
+        await client.query('ROLLBACK');
+        throw new Error('Maç kaydedilemedi: ' + txError.message);
+      } finally {
+        client.release();
+      }
+
+      res.json(published);
+    } catch (error: any) {
+      console.error('Manual publish error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   // Admin: unpublish a match
   app.delete('/api/admin/matches/:id', async (req, res) => {
     if (!req.session.userId) {
