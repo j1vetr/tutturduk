@@ -130,9 +130,12 @@ export function PredictionCard({ prediction }: PredictionCardProps) {
                  </div>
               </div>
 
-              <div className="w-20 flex flex-col items-center justify-center py-2 bg-card rounded-lg border border-border/50 shadow-sm mx-1 group-hover:border-primary/20 transition-colors">
-                 <span className="text-[9px] font-bold text-muted-foreground uppercase tracking-wide mb-0.5">Oran</span>
+              <div className="flex flex-col items-center justify-center py-2 px-3 bg-card rounded-lg border border-border/50 shadow-sm mx-1 group-hover:border-primary/20 transition-colors gap-1">
                  <span className="text-base font-display font-bold text-primary">{oddsValue.toFixed(2)}</span>
+                 <div className="flex items-center gap-1">
+                   <img src="/iddaa-logo.png" alt="iddaa" className="w-3.5 h-3.5 object-contain" />
+                   <span className="text-[8px] text-muted-foreground/60 font-medium tracking-tight">iddaa.com</span>
+                 </div>
               </div>
            </div>
         </div>

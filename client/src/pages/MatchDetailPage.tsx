@@ -380,7 +380,11 @@ function BetRow({ bet, category }: { bet: PredictionItem; category: string }) {
       {bet.odds && (
         <div className="flex items-center justify-between mb-3">
           <span className="label-meta-sm">Oran</span>
-          <span className="num-display text-[13px] text-white/85">{Number(bet.odds).toFixed(2)}</span>
+          <div className="flex items-center gap-1.5 bg-white/[0.05] rounded-lg px-2.5 py-1 border border-white/[0.07]">
+            <img src="/iddaa-logo.png" alt="iddaa" className="w-4 h-4 object-contain" />
+            <span className="num-display text-[14px] text-white/90">{Number(bet.odds).toFixed(2)}</span>
+            <span className="text-[8px] text-white/25 font-medium tracking-tight">iddaa.com</span>
+          </div>
         </div>
       )}
       <div className="h-[2px] bg-white/[0.05] rounded-full overflow-hidden">
