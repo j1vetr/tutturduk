@@ -2,9 +2,6 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
-import { startMatchStatusService } from "./matchStatusService";
-import { startAutoPublishService, startCleanupService, startCouponSchedulerService } from "./autoPublishService";
-import { startOddsRefreshService } from "./oddsRefreshService";
 
 const app = express();
 app.set('trust proxy', 1);
@@ -74,9 +71,6 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
   if (process.env.NODE_ENV === "production") {
     serveStatic(app);
   } else {
@@ -84,10 +78,6 @@ app.use((req, res, next) => {
     await setupVite(httpServer, app);
   }
 
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
   const port = parseInt(process.env.PORT || "5000", 10);
   httpServer.listen(
     {
@@ -97,21 +87,6 @@ app.use((req, res, next) => {
     },
     () => {
       log(`serving on port ${port}`);
-      
-      startMatchStatusService(15);
-      log('Match status service started (15 min interval)');
-      
-      startAutoPublishService();
-      log('Auto-publish multi-pass scheduler started (01:00 / 10:00 / 14:00 / 17:00 Turkey time, cap=40)');
-
-      startCouponSchedulerService();
-      log('Coupon scheduler started (daily at 18:30 Turkey time, lock-aware)');
-
-      startCleanupService();
-      log('Cleanup service started (daily at 21:00 Turkey time)');
-
-      startOddsRefreshService();
-      log('Odds refresh service started (every 30 min, lookahead 180 min)');
     },
   );
 })();

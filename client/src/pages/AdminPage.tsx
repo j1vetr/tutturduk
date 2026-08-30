@@ -1099,45 +1099,16 @@ export default function AdminPage() {
                 <Button 
                   onClick={async () => {
                     try {
-                      const res = await fetch('/api/admin/re-evaluate', { method: 'POST', credentials: 'include' });
+                      const res = await fetch('/api/admin/clear-history', { method: 'POST', credentials: 'include' });
                       const data = await res.json();
-                      if (res.ok) toast({ description: data.message });
-                      else toast({ variant: 'destructive', description: data.message });
-                    } catch { toast({ variant: 'destructive', description: 'İşlem başarısız' }); }
-                  }}
-                  variant="outline" size="sm"
-                  className="border-blue-200 text-blue-700 hover:bg-blue-50"
-                >
-                  <RefreshCcw className="w-4 h-4 mr-1" /> Sonuçları Güncelle
-                </Button>
-                <Button 
-                  onClick={async () => {
-                    try {
-                      const res = await fetch('/api/admin/clear-cache', { method: 'POST', credentials: 'include' });
-                      const data = await res.json();
-                      if (res.ok) toast({ description: data.message });
-                      else toast({ variant: 'destructive', description: data.message });
-                    } catch { toast({ variant: 'destructive', description: 'İşlem başarısız' }); }
-                  }}
-                  variant="outline" size="sm"
-                  className="border-purple-200 text-purple-700 hover:bg-purple-50"
-                >
-                  <RefreshCcw className="w-4 h-4 mr-1" /> Önbellek Temizle
-                </Button>
-                <Button 
-                  onClick={async () => {
-                    if (!confirm("Kaybedilen bahislerin yuzde 40i silinecek. Devam?")) return;
-                    try {
-                      const res = await fetch('/api/admin/cleanup-lost-bets', { method: 'POST', credentials: 'include' });
-                      const data = await res.json();
-                      if (res.ok) { toast({ description: data.message }); loadBestBetsStats(); }
+                      if (res.ok) { toast({ description: data.message }); loadPublishedMatches(); loadBestBetsStats(); }
                       else toast({ variant: 'destructive', description: data.message });
                     } catch { toast({ variant: 'destructive', description: 'İşlem başarısız' }); }
                   }}
                   variant="outline" size="sm"
                   className="border-orange-200 text-orange-700 hover:bg-orange-50"
                 >
-                    if (!confirm("Kaybedilen bahislerin yuzde 40i silinecek. Devam?")) return;
+                  <Trash2 className="w-4 h-4 mr-1" /> Geçmişi Temizle
                 </Button>
                 <Button 
                   onClick={async () => {
