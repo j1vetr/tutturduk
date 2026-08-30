@@ -201,10 +201,9 @@ export default function PredictionsPage() {
         {/* ════════ STATS BAND ════════ */}
         {sorted.length > 0 && (
           <section className="surface rounded-2xl overflow-hidden" data-testid="section-summary">
-            <div className="grid grid-cols-3 divide-x divide-white/[0.06]">
+            <div className="grid grid-cols-2 divide-x divide-white/[0.06]">
               <Stat label="Yayındaki Maç" value={String(sorted.length).padStart(2, "0")} />
               <Stat label="Ortalama Oran" value={aggregate.avgOdds} />
-              <Stat label="Ortalama Güven" value={aggregate.avgConf} accent />
             </div>
           </section>
         )}
@@ -538,12 +537,6 @@ function MatchRow({
                 <div className="num-mono text-[14px] text-white/90 tabular">
                   {parseFloat(bet.odds).toFixed(2)}
                 </div>
-              </div>
-            )}
-            {bet.confidence > 0 && (
-              <div className="text-right">
-                <div className="eyebrow-tiny mb-0.5">Güven</div>
-                <div className="num-mono text-[14px] text-white/90 tabular">%{bet.confidence}</div>
               </div>
             )}
             <ArrowUpRight
