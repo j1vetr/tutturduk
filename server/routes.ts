@@ -1857,6 +1857,17 @@ export async function registerRoutes(
         ht_away !== undefined ? Number(ht_away) : null
       );
 
+      // Manual bet_result override — if provided, stamp it directly on best_bets
+      const { bet_result } = req.body as { bet_result?: string };
+      if (bet_result === 'won' || bet_result === 'lost') {
+        await pool.query(
+          `UPDATE best_bets SET result = $1
+           WHERE match_id = $2 AND COALESCE(bet_category,'primary') = 'primary'`,
+          [bet_result, matchId]
+        );
+        console.log(`[Admin] Manual bet_result override: match ${matchId} → ${bet_result}`);
+      }
+
       // Auto-send result to Telegram if enabled
       const autoSendResult = await getSetting('auto_send_on_result');
       if (autoSendResult === 'true') {
@@ -2308,8 +2319,22 @@ export async function registerRoutes(
 
     if (m.final_score_home !== null && m.final_score_home !== undefined) {
       lines.push(`⚽ SKOR: <b>${m.final_score_home} - ${m.final_score_away}</b>`);
-      if (m.bet_result === 'won') lines.push(`🎯 SONUÇ: <b>TUTTU!</b> ✅`);
-      else if (m.bet_result === 'lost') lines.push(`❌ SONUÇ: <b>TUTMADI</b>`);
+      if (m.bet_result === 'won') {
+        // Replace the divider with a big win block
+        lines.push(`━━━━━━━━━━━━━━━━━━`);
+        lines.push(``);
+        lines.push(`🟩🟩🟩🟩🟩🟩🟩🟩`);
+        lines.push(`🎯🎯  <b>TUTTURDUK!</b>  🎯🎯`);
+        lines.push(`🏆 <b>${m.bet_type ?? 'TAHMİN'} TUTTU!</b> 🏆`);
+        lines.push(`🟩🟩🟩🟩🟩🟩🟩🟩`);
+        lines.push(``);
+        lines.push(`🔥 Tebrikler! Bir daha tutturduk. 🔥`);
+        lines.push(``);
+        return lines.join('\n');
+      } else if (m.bet_result === 'lost') {
+        lines.push(`━━━━━━━━━━━━━━━━━━`);
+        lines.push(`❌ TAHMİN TUTMADI`);
+      }
     }
 
     lines.push(`━━━━━━━━━━━━━━━━━━`);

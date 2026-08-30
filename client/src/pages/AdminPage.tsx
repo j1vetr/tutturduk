@@ -76,7 +76,7 @@ export default function AdminPage() {
 
   /* result form */
   const [resultFormId, setResultFormId] = useState<number | null>(null);
-  const [resultForm, setResultForm] = useState({ home: '', away: '', ht_home: '', ht_away: '' });
+  const [resultForm, setResultForm] = useState({ home: '', away: '', ht_home: '', ht_away: '', bet_result: '' });
   const [submittingResult, setSubmittingResult] = useState(false);
 
   /* invitation form */
@@ -154,9 +154,10 @@ export default function AdminPage() {
       const body: any = { home_score: resultForm.home, away_score: resultForm.away };
       if (resultForm.ht_home !== '') body.ht_home = resultForm.ht_home;
       if (resultForm.ht_away !== '') body.ht_away = resultForm.ht_away;
+      if (resultForm.bet_result !== '') body.bet_result = resultForm.bet_result;
       const r = await fetch(`/api/admin/matches/${matchId}/result`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(body) });
       const d = await r.json();
-      if (r.ok) { toast({ description: d.message }); setResultFormId(null); setResultForm({ home: '', away: '', ht_home: '', ht_away: '' }); loadPublishedMatches(); loadBestBetsStats(); }
+      if (r.ok) { toast({ description: d.message }); setResultFormId(null); setResultForm({ home: '', away: '', ht_home: '', ht_away: '', bet_result: '' }); loadPublishedMatches(); loadBestBetsStats(); }
       else toast({ variant: 'destructive', description: d.message });
     } catch { toast({ variant: 'destructive', description: 'Bağlantı hatası.' }); } finally { setSubmittingResult(false); }
   };
@@ -485,7 +486,7 @@ export default function AdminPage() {
                         {pm.best_bet && <span className="text-[10px] font-mono font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg shrink-0">{pm.best_bet.bet_type}</span>}
 
                         {/* Actions */}
-                        <button onClick={() => { setResultFormId(resultFormId === pm.id ? null : pm.id); setResultForm({ home: '', away: '', ht_home: '', ht_away: '' }); }}
+                        <button onClick={() => { setResultFormId(resultFormId === pm.id ? null : pm.id); setResultForm({ home: '', away: '', ht_home: '', ht_away: '', bet_result: '' }); }}
                           className="shrink-0 text-[10px] font-semibold px-2.5 py-1 rounded-lg border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors">
                           Sonuç Gir
                         </button>
@@ -534,6 +535,26 @@ export default function AdminPage() {
                                 className="w-full h-10 rounded-lg border border-blue-200 text-center text-lg font-bold text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-blue-300" />
                             </div>
                           </div>
+                          {/* Tahmin sonucu seçici */}
+                          <div>
+                            <p className="text-[10px] font-semibold text-gray-500 mb-1.5 uppercase tracking-wide">Tahmin Sonucu</p>
+                            <div className="grid grid-cols-3 gap-1.5">
+                              {[
+                                { val: 'won',  label: '✅ Tuttu',    active: 'bg-emerald-500 text-white border-emerald-500', inactive: 'border-gray-200 text-gray-500 hover:bg-emerald-50' },
+                                { val: 'lost', label: '❌ Tutmadı', active: 'bg-red-500 text-white border-red-500',     inactive: 'border-gray-200 text-gray-500 hover:bg-red-50' },
+                                { val: '',     label: '⚙️ Otomatik', active: 'bg-gray-700 text-white border-gray-700',   inactive: 'border-gray-200 text-gray-500 hover:bg-gray-50' },
+                              ].map(opt => (
+                                <button key={opt.val} type="button"
+                                  onClick={() => setResultForm(f => ({ ...f, bet_result: opt.val }))}
+                                  className={`h-8 rounded-lg border text-[10.5px] font-semibold transition-colors ${resultForm.bet_result === opt.val ? opt.active : opt.inactive}`}
+                                >
+                                  {opt.label}
+                                </button>
+                              ))}
+                            </div>
+                            <p className="text-[9.5px] text-gray-400 mt-1">Otomatik seçiliyse sistem skora göre hesaplar.</p>
+                          </div>
+
                           <details>
                             <summary className="text-[10px] text-gray-400 cursor-pointer hover:text-gray-600 list-none select-none">+ İlk yarı skoru (isteğe bağlı)</summary>
                             <div className="grid grid-cols-2 gap-3 mt-2">
@@ -547,7 +568,7 @@ export default function AdminPage() {
                             <button onClick={() => handleSetResult(pm.id)} disabled={submittingResult || !resultForm.home || !resultForm.away}
                               className="flex-1 h-9 rounded-lg bg-blue-600 text-white text-xs font-semibold hover:bg-blue-700 transition-colors disabled:opacity-40 flex items-center justify-center gap-1.5">
                               {submittingResult ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
-                              Kaydet ve Değerlendir
+                              Kaydet
                             </button>
                             <button onClick={() => setResultFormId(null)} className="w-9 h-9 rounded-lg border border-gray-200 hover:bg-gray-100 flex items-center justify-center text-gray-500 transition-colors">
                               <X className="w-4 h-4" />
