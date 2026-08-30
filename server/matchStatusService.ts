@@ -4,6 +4,9 @@ import { apiFootball } from './apiFootball';
 // FAZ 1.3 + 4.3: bahis sonucu üç değer alır.
 type BetOutcome = 'won' | 'lost' | 'void';
 
+// Manuel olarak eklenen maçların fixture_id eşiği (API-Football ID'leriyle çakışmaz)
+const MANUAL_FIXTURE_THRESHOLD = 2_000_000_000;
+
 interface MatchResult {
   fixtureId: number;
   status: string;
@@ -21,7 +24,9 @@ export async function checkAndUpdateMatchStatuses() {
               final_score_home, final_score_away
        FROM published_matches 
        WHERE status IN ('pending', 'in_progress')
-       ORDER BY timestamp ASC`
+       AND fixture_id < $1
+       ORDER BY timestamp ASC`,
+      [MANUAL_FIXTURE_THRESHOLD]
     );
     
     const matches = result.rows;
@@ -322,8 +327,9 @@ export async function reEvaluateAllFinishedMatches(): Promise<{ evaluated: numbe
        WHERE (final_score_home IS NULL OR final_score_away IS NULL)
        AND timestamp IS NOT NULL 
        AND timestamp < $1
-       AND status != 'cancelled'`,
-      [twoHoursAgo]
+       AND status != 'cancelled'
+       AND fixture_id < $2`,
+      [twoHoursAgo, MANUAL_FIXTURE_THRESHOLD]
     );
     
     let scoresFetched = 0;
@@ -423,6 +429,33 @@ export async function reEvaluateAllFinishedMatches(): Promise<{ evaluated: numbe
     console.error('[MatchStatus] Re-evaluation error:', error);
     throw error;
   }
+}
+
+// Manuel maç sonucu girişi — admin'in skoru girmesiyle tetiklenir, API'ye gerek yok
+export async function setManualMatchResult(
+  matchId: number,
+  homeScore: number,
+  awayScore: number,
+  htHome?: number | null,
+  htAway?: number | null
+): Promise<{ evaluated: number }> {
+  const match = await pool.query(
+    `SELECT id, fixture_id, home_team, away_team FROM published_matches WHERE id = $1`,
+    [matchId]
+  );
+  if (match.rows.length === 0) throw new Error('Maç bulunamadı');
+
+  const { fixture_id, home_team, away_team } = match.rows[0];
+
+  await pool.query(
+    `UPDATE published_matches SET status = 'finished', final_score_home = $1, final_score_away = $2 WHERE id = $3`,
+    [homeScore, awayScore, matchId]
+  );
+
+  console.log(`[ManualResult] ${home_team} ${homeScore}-${awayScore} ${away_team} | HT: ${htHome ?? '-'}-${htAway ?? '-'}`);
+
+  const evaluated = await evaluateMatchPredictions(fixture_id, homeScore, awayScore, htHome, htAway);
+  return { evaluated };
 }
 
 async function updateCouponResults() {

@@ -7,7 +7,7 @@ import { pool } from './db';
 import { apiFootball, SUPPORTED_LEAGUES, CURRENT_SEASON } from './apiFootball';
 import { generateMatchAnalysis, generateAndSavePredictions, aiCacheKey } from './openai-analysis';
 import { filterMatches, hasValidStatistics, getStatisticsScore } from './matchFilter';
-import { checkAndUpdateMatchStatuses, reEvaluateAllFinishedMatches } from './matchStatusService';
+import { checkAndUpdateMatchStatuses, reEvaluateAllFinishedMatches, setManualMatchResult } from './matchStatusService';
 
 function parseApiFootballOdds(oddsData: any[]): any {
   const parsed: any = {};
@@ -2552,6 +2552,34 @@ export async function registerRoutes(
       res.json(published);
     } catch (error: any) {
       console.error('Manual publish error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // Admin: manually set match result + evaluate predictions
+  app.post('/api/admin/matches/:id/result', async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ message: 'Oturum açılmamış' });
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') return res.status(403).json({ message: 'Yetkiniz yok' });
+
+    try {
+      const matchId = parseInt(req.params.id);
+      const { home_score, away_score, ht_home, ht_away } = req.body;
+
+      if (home_score === undefined || away_score === undefined || isNaN(Number(home_score)) || isNaN(Number(away_score))) {
+        return res.status(400).json({ message: 'Ev sahibi ve deplasman skoru zorunludur.' });
+      }
+
+      const result = await setManualMatchResult(
+        matchId,
+        Number(home_score),
+        Number(away_score),
+        ht_home !== undefined ? Number(ht_home) : null,
+        ht_away !== undefined ? Number(ht_away) : null
+      );
+
+      res.json({ success: true, evaluated: result.evaluated, message: `Sonuç kaydedildi. ${result.evaluated} tahmin değerlendirildi.` });
+    } catch (error: any) {
       res.status(500).json({ message: error.message });
     }
   });

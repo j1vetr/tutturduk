@@ -156,6 +156,11 @@ export default function AdminPage() {
   const [showAwayDropdown, setShowAwayDropdown] = useState(false);
   const [submittingManual, setSubmittingManual] = useState(false);
 
+  // Result entry form (per published match)
+  const [resultFormId, setResultFormId] = useState<number | null>(null);
+  const [resultForm, setResultForm] = useState({ home: '', away: '', ht_home: '', ht_away: '' });
+  const [submittingResult, setSubmittingResult] = useState(false);
+
   // Form states
   const [newCode, setNewCode] = useState({ code: "", type: "standard", maxUses: 1 });
 
@@ -252,6 +257,40 @@ export default function AdminPage() {
 
   const isMatchPublished = (fixtureId: number) => {
     return publishedMatches.some(m => m.fixture_id === fixtureId);
+  };
+
+  const handleSetResult = async (matchId: number) => {
+    if (!resultForm.home || !resultForm.away) {
+      toast({ variant: 'destructive', description: 'Ev ve deplasman skorunu girin.' });
+      return;
+    }
+    setSubmittingResult(true);
+    try {
+      const body: any = { home_score: resultForm.home, away_score: resultForm.away };
+      if (resultForm.ht_home !== '') body.ht_home = resultForm.ht_home;
+      if (resultForm.ht_away !== '') body.ht_away = resultForm.ht_away;
+
+      const res = await fetch(`/api/admin/matches/${matchId}/result`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast({ description: data.message });
+        setResultFormId(null);
+        setResultForm({ home: '', away: '', ht_home: '', ht_away: '' });
+        loadPublishedMatches();
+        loadBestBetsStats();
+      } else {
+        toast({ variant: 'destructive', description: data.message });
+      }
+    } catch {
+      toast({ variant: 'destructive', description: 'Bağlantı hatası.' });
+    } finally {
+      setSubmittingResult(false);
+    }
   };
 
   const handleManualPublish = async () => {
@@ -936,24 +975,114 @@ export default function AdminPage() {
                 {expandedDays.has('published') && (
                   <div className="border-t border-slate-100 divide-y divide-slate-50">
                     {publishedMatches.map(pm => (
-                      <div key={pm.id} className="flex items-center justify-between p-3">
-                        <div className="flex items-center gap-2 min-w-0 flex-1">
-                          <span className="text-xs font-mono text-emerald-600 w-12">{pm.match_time}</span>
-                          <img src={pm.home_logo} alt="" className="w-4 h-4 object-contain" />
-                          <span className="text-xs text-slate-700 truncate">{pm.home_team}</span>
-                          <span className="text-[10px] text-slate-400">vs</span>
-                          <span className="text-xs text-slate-700 truncate">{pm.away_team}</span>
-                          <img src={pm.away_logo} alt="" className="w-4 h-4 object-contain" />
-                          {pm.is_featured && <Star className="w-3 h-3 text-amber-500 fill-current" />}
+                      <div key={pm.id}>
+                        <div className="flex items-center justify-between px-3 py-2.5">
+                          <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <span className="text-xs font-mono text-emerald-600 w-12 shrink-0">{pm.match_time}</span>
+                            <img src={pm.home_logo} alt="" className="w-4 h-4 object-contain shrink-0" />
+                            <span className="text-xs text-slate-700 truncate">{pm.home_team}</span>
+                            <span className="text-[10px] text-slate-400 shrink-0">vs</span>
+                            <span className="text-xs text-slate-700 truncate">{pm.away_team}</span>
+                            <img src={pm.away_logo} alt="" className="w-4 h-4 object-contain shrink-0" />
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0">
+                            {pm.status === 'finished' && pm.final_score_home !== null ? (
+                              <span className="text-xs font-mono font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded">
+                                {pm.final_score_home}-{pm.final_score_away}
+                              </span>
+                            ) : pm.status !== 'cancelled' ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setResultFormId(resultFormId === pm.id ? null : pm.id);
+                                  setResultForm({ home: '', away: '', ht_home: '', ht_away: '' });
+                                }}
+                                className="h-6 text-[10px] px-2 border-blue-200 text-blue-600 hover:bg-blue-50"
+                              >
+                                Sonuç Gir
+                              </Button>
+                            ) : (
+                              <span className="text-[10px] text-slate-400">İptal</span>
+                            )}
+                            <Button 
+                              variant="ghost" 
+                              size="icon"
+                              onClick={() => unpublishMatch(pm.id)}
+                              className="h-7 w-7 text-red-500 hover:bg-red-50"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
                         </div>
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          onClick={() => unpublishMatch(pm.id)}
-                          className="h-7 w-7 text-red-500 hover:bg-red-50"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </Button>
+
+                        {/* Inline result entry form */}
+                        {resultFormId === pm.id && (
+                          <div className="mx-3 mb-3 p-3 bg-blue-50 border border-blue-100 rounded-lg space-y-2">
+                            <p className="text-[10px] font-semibold text-blue-600 uppercase tracking-wide">Maç Sonucunu Gir</p>
+                            <div className="grid grid-cols-2 gap-2">
+                              <div>
+                                <Label className="text-[10px] text-slate-500 mb-1 block">{pm.home_team}</Label>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  placeholder="0"
+                                  value={resultForm.home}
+                                  onChange={e => setResultForm(f => ({ ...f, home: e.target.value }))}
+                                  className="h-8 text-sm text-center font-bold border-blue-200"
+                                />
+                              </div>
+                              <div>
+                                <Label className="text-[10px] text-slate-500 mb-1 block">{pm.away_team}</Label>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  placeholder="0"
+                                  value={resultForm.away}
+                                  onChange={e => setResultForm(f => ({ ...f, away: e.target.value }))}
+                                  className="h-8 text-sm text-center font-bold border-blue-200"
+                                />
+                              </div>
+                            </div>
+                            <details className="group">
+                              <summary className="text-[10px] text-slate-400 cursor-pointer select-none list-none hover:text-slate-600">
+                                + İlk yarı skoru (isteğe bağlı)
+                              </summary>
+                              <div className="grid grid-cols-2 gap-2 mt-2">
+                                <Input
+                                  type="number" min="0" placeholder="İY ev"
+                                  value={resultForm.ht_home}
+                                  onChange={e => setResultForm(f => ({ ...f, ht_home: e.target.value }))}
+                                  className="h-7 text-xs text-center border-blue-200"
+                                />
+                                <Input
+                                  type="number" min="0" placeholder="İY dep"
+                                  value={resultForm.ht_away}
+                                  onChange={e => setResultForm(f => ({ ...f, ht_away: e.target.value }))}
+                                  className="h-7 text-xs text-center border-blue-200"
+                                />
+                              </div>
+                            </details>
+                            <div className="flex gap-2">
+                              <Button
+                                size="sm"
+                                onClick={() => handleSetResult(pm.id)}
+                                disabled={submittingResult || !resultForm.home || !resultForm.away}
+                                className="flex-1 h-8 text-xs bg-blue-600 text-white hover:bg-blue-500"
+                              >
+                                {submittingResult ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Check className="w-3 h-3 mr-1" />}
+                                Kaydet ve Değerlendir
+                              </Button>
+                              <Button
+                                variant="outline" size="sm"
+                                onClick={() => setResultFormId(null)}
+                                className="h-8 text-xs"
+                              >
+                                <X className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
