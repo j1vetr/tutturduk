@@ -204,38 +204,20 @@ export default function PredictionsPage() {
 
           <div className="relative px-6 pt-6 pb-7">
             {/* date pill */}
-            <div className="inline-flex items-center gap-2 bg-lime/[0.08] border border-lime/[0.18] rounded-full px-3 py-1 mb-5">
-              <span className="w-1.5 h-1.5 rounded-full bg-lime animate-pulse" />
+            <div className="inline-flex items-center bg-lime/[0.08] border border-lime/[0.18] rounded-full px-3 py-1 mb-5">
               <span className="text-[11px] font-semibold tracking-widest text-lime/90 num-mono">
                 {dateLabel}
               </span>
             </div>
 
             {/* title row */}
-            <div className="flex items-end justify-between gap-3">
-              <div className="flex-1 min-w-0">
-                <div className="text-[10px] font-bold tracking-[0.22em] text-lime/70 num-mono mb-1.5">
-                  {weekLabel.split("·")[0].trim()}
-                </div>
-                <h1
-                  className="font-display leading-none text-white"
-                  style={{ fontSize: "clamp(38px, 11vw, 52px)" }}
-                >
-                  Tahminler<span className="text-lime">.</span>
-                </h1>
-              </div>
-
-              {/* ghost week number */}
-              <div
-                className="font-black num-mono leading-none select-none text-right flex-shrink-0"
-                style={{
-                  fontSize: "clamp(56px, 18vw, 80px)",
-                  color: "rgba(50,232,122,0.07)",
-                  lineHeight: 1,
-                }}
+            <div>
+              <h1
+                className="font-display leading-none text-white"
+                style={{ fontSize: "clamp(38px, 11vw, 52px)" }}
               >
-                {weekLabel.match(/\d+/)?.[0] ?? "—"}
-              </div>
+                Tahminler<span className="text-lime">.</span>
+              </h1>
             </div>
 
             {/* sub-line */}
