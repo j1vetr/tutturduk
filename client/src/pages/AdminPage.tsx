@@ -87,9 +87,12 @@ export default function AdminPage() {
   const [tgToken, setTgToken] = useState("");
   const [tgChatId, setTgChatId] = useState("");
   const [tgTokenVisible, setTgTokenVisible] = useState(false);
+  const [autoSendOnPublish, setAutoSendOnPublish] = useState(false);
+  const [autoSendOnResult, setAutoSendOnResult] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
   const [sharingTelegram, setSharingTelegram] = useState(false);
   const [testingTelegram, setTestingTelegram] = useState(false);
+  const [sendingMatchId, setSendingMatchId] = useState<number | null>(null);
 
   /* close dropdowns on outside click */
   useEffect(() => {
@@ -118,7 +121,7 @@ export default function AdminPage() {
   const loadInvitationCodes = async () => { try { const r = await fetch('/api/admin/invitations', { credentials: 'include' }); if (r.ok) setInvitationCodes(await r.json()); } catch {} };
   const loadCouponDetails = async (id: number) => { try { const r = await fetch(`/api/admin/coupons/${id}`, { credentials: 'include' }); if (r.ok) setCouponDetails(await r.json()); } catch {} };
   const loadAvailableBestBets = async () => { setLoadingBestBets(true); try { const r = await fetch('/api/admin/best-bets/all', { credentials: 'include' }); if (r.ok) setAvailableBestBets(await r.json()); } catch {} finally { setLoadingBestBets(false); } };
-  const loadSettings = async () => { try { const r = await fetch('/api/admin/settings', { credentials: 'include' }); if (r.ok) { const s = await r.json(); setTgToken(s.telegram_bot_token || ''); setTgChatId(s.telegram_chat_id || ''); } } catch {} };
+  const loadSettings = async () => { try { const r = await fetch('/api/admin/settings', { credentials: 'include' }); if (r.ok) { const s = await r.json(); setTgToken(s.telegram_bot_token || ''); setTgChatId(s.telegram_chat_id || ''); setAutoSendOnPublish(s.auto_send_on_publish === 'true'); setAutoSendOnResult(s.auto_send_on_result === 'true'); } } catch {} };
 
   /* ── Actions ──────────────────────────────────────────────── */
   const handleLogout = () => { logout(); setLocation("/admin-login"); };
@@ -486,6 +489,30 @@ export default function AdminPage() {
                           className="shrink-0 text-[10px] font-semibold px-2.5 py-1 rounded-lg border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors">
                           Sonuç Gir
                         </button>
+                        {/* Telegram send */}
+                        <button
+                          title="Telegram'a gönder"
+                          disabled={sendingMatchId === pm.id}
+                          onClick={async () => {
+                            setSendingMatchId(pm.id);
+                            try {
+                              const r = await fetch(`/api/admin/telegram/share-match/${pm.id}`, {
+                                method: 'POST', credentials: 'include',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({}),
+                              });
+                              const d = await r.json();
+                              if (r.ok) toast({ description: 'Telegram\'a gönderildi!' });
+                              else toast({ variant: 'destructive', description: d.message });
+                            } finally { setSendingMatchId(null); }
+                          }}
+                          className="shrink-0 w-7 h-7 rounded-lg hover:bg-[#229ED9]/10 flex items-center justify-center text-gray-300 hover:text-[#229ED9] transition-colors disabled:opacity-40"
+                        >
+                          {sendingMatchId === pm.id
+                            ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            : <Send className="w-3.5 h-3.5" />
+                          }
+                        </button>
                         <button onClick={() => unpublishMatch(pm.id)} className="shrink-0 w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-gray-300 hover:text-red-500 transition-colors">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -792,6 +819,43 @@ export default function AdminPage() {
                   </p>
                 </div>
 
+                {/* Auto-send toggles */}
+                <div className="space-y-2 pt-1 border-t border-gray-100">
+                  <p className="text-xs font-semibold text-gray-500 pt-1">Otomatik Gönderim</p>
+                  <label className="flex items-center justify-between py-2 cursor-pointer">
+                    <div>
+                      <p className="text-xs font-medium text-gray-700">Maç yayınlandığında gönder</p>
+                      <p className="text-[10.5px] text-gray-400">Yeni maç eklendiğinde Telegram'a bildirim gider</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setAutoSendOnPublish(v => !v)}
+                      className={`relative w-10 h-5.5 rounded-full transition-colors shrink-0 ml-3 ${autoSendOnPublish ? 'bg-emerald-500' : 'bg-gray-200'}`}
+                      style={{ width: 40, height: 22 }}
+                    >
+                      <span className={`absolute top-0.5 w-4.5 h-4.5 rounded-full bg-white shadow transition-transform ${autoSendOnPublish ? 'translate-x-[19px]' : 'translate-x-0.5'}`}
+                        style={{ width: 18, height: 18, top: 2, left: autoSendOnPublish ? 20 : 2 }}
+                      />
+                    </button>
+                  </label>
+                  <label className="flex items-center justify-between py-2 cursor-pointer">
+                    <div>
+                      <p className="text-xs font-medium text-gray-700">Sonuç girildiğinde gönder</p>
+                      <p className="text-[10.5px] text-gray-400">Maç sonucu eklendiğinde tahmin sonucu bildirilir</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setAutoSendOnResult(v => !v)}
+                      className={`relative rounded-full transition-colors shrink-0 ml-3 ${autoSendOnResult ? 'bg-emerald-500' : 'bg-gray-200'}`}
+                      style={{ width: 40, height: 22 }}
+                    >
+                      <span className={`absolute rounded-full bg-white shadow transition-all`}
+                        style={{ width: 18, height: 18, top: 2, left: autoSendOnResult ? 20 : 2 }}
+                      />
+                    </button>
+                  </label>
+                </div>
+
                 {/* Action buttons */}
                 <div className="flex items-center gap-2 pt-1">
                   <button
@@ -801,7 +865,12 @@ export default function AdminPage() {
                         const r = await fetch('/api/admin/settings', {
                           method: 'POST', credentials: 'include',
                           headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ telegram_bot_token: tgToken, telegram_chat_id: tgChatId }),
+                          body: JSON.stringify({
+                            telegram_bot_token: tgToken,
+                            telegram_chat_id: tgChatId,
+                            auto_send_on_publish: String(autoSendOnPublish),
+                            auto_send_on_result: String(autoSendOnResult),
+                          }),
                         });
                         const d = await r.json();
                         if (r.ok) toast({ description: 'Ayarlar kaydedildi' });

@@ -1809,6 +1809,25 @@ export async function registerRoutes(
         client.release();
       }
 
+      // Auto-send to Telegram if enabled
+      const autoSend = await getSetting('auto_send_on_publish');
+      if (autoSend === 'true') {
+        try {
+          const creds = await getTelegramCreds();
+          if (creds) {
+            const text = buildSingleMatchMessage({
+              home_team: homeTeam, away_team: awayTeam,
+              league_name: leagueName, match_date: matchDate, match_time: matchTime,
+              bet_type, odds,
+            });
+            await sendTelegramMessage(creds.token, creds.chatId, text);
+            console.log(`[Telegram] Auto-sent: ${homeTeam} vs ${awayTeam}`);
+          }
+        } catch (tgErr: any) {
+          console.error('[Telegram] Auto-send failed:', tgErr.message);
+        }
+      }
+
       res.json(published);
     } catch (error: any) {
       console.error('Manual publish error:', error);
@@ -1837,6 +1856,28 @@ export async function registerRoutes(
         ht_home !== undefined ? Number(ht_home) : null,
         ht_away !== undefined ? Number(ht_away) : null
       );
+
+      // Auto-send result to Telegram if enabled
+      const autoSendResult = await getSetting('auto_send_on_result');
+      if (autoSendResult === 'true') {
+        try {
+          const creds = await getTelegramCreds();
+          if (creds) {
+            const matchRow = await pool.query(
+              `SELECT pm.*, bb.bet_type, bb.odds, bb.result AS bet_result
+               FROM published_matches pm
+               LEFT JOIN best_bets bb ON bb.match_id = pm.id AND COALESCE(bb.bet_category,'primary')='primary'
+               WHERE pm.id = $1`, [matchId]
+            );
+            if (matchRow.rows.length) {
+              const text = buildSingleMatchMessage(matchRow.rows[0]);
+              await sendTelegramMessage(creds.token, creds.chatId, text);
+            }
+          }
+        } catch (tgErr: any) {
+          console.error('[Telegram] Auto-send result failed:', tgErr.message);
+        }
+      }
 
       res.json({ success: true, evaluated: result.evaluated, message: `Sonuç kaydedildi. ${result.evaluated} tahmin değerlendirildi.` });
     } catch (error: any) {
@@ -2195,6 +2236,88 @@ export async function registerRoutes(
     }
   });
 
+  // ─── Telegram Helpers ─────────────────────────────────────────────────────
+
+  async function getTelegramCreds(): Promise<{ token: string; chatId: string } | null> {
+    const cfg = await pool.query(
+      `SELECT key, value FROM app_settings WHERE key IN ('telegram_bot_token','telegram_chat_id')`
+    );
+    const s: Record<string, string> = {};
+    for (const row of cfg.rows) s[row.key] = row.value;
+    if (!s['telegram_bot_token'] || !s['telegram_chat_id']) return null;
+    return { token: s['telegram_bot_token'], chatId: s['telegram_chat_id'] };
+  }
+
+  async function getSetting(key: string): Promise<string | null> {
+    const r = await pool.query(`SELECT value FROM app_settings WHERE key = $1`, [key]);
+    return r.rows[0]?.value ?? null;
+  }
+
+  async function sendTelegramMessage(token: string, chatId: string, text: string): Promise<void> {
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML', disable_web_page_preview: true }),
+    });
+    const data = await res.json() as any;
+    if (!data.ok) throw new Error(`Telegram API: ${data.description}`);
+  }
+
+  function buildSingleMatchMessage(m: {
+    home_team: string; away_team: string;
+    league_name?: string; match_date?: string; match_time?: string;
+    bet_type?: string; odds?: string | number;
+    final_score_home?: number | null; final_score_away?: number | null;
+    bet_result?: string;
+  }): string {
+    const LEAGUE_EMOJI: Record<string, string> = {
+      'Premier League': '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
+      'La Liga': '🇪🇸', 'Serie A': '🇮🇹', 'Bundesliga': '🇩🇪',
+      'Ligue 1': '🇫🇷', 'Süper Lig': '🇹🇷', 'Eredivisie': '🇳🇱',
+      'Champions League': '⭐', 'Europa League': '🌍', 'Conference League': '🌐',
+    };
+    const leagueEmoji = Object.entries(LEAGUE_EMOJI).find(([k]) =>
+      m.league_name?.toLowerCase().includes(k.toLowerCase())
+    )?.[1] ?? '🏆';
+
+    const dateStr = m.match_date
+      ? new Date(m.match_date + 'T12:00:00').toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', weekday: 'long' })
+      : '';
+    const time = m.match_time ? m.match_time.slice(0, 5) : '';
+    const odds = m.odds ? parseFloat(String(m.odds)).toFixed(2) : null;
+
+    const lines = [
+      `⚽ <b>TAHMİN DUYURUSU</b>`,
+      ``,
+      `${leagueEmoji} <b>${m.league_name ?? 'Lig'}</b>`,
+      ``,
+      `🏠 <b>${m.home_team}</b>`,
+      `        ⚔️`,
+      `✈️ <b>${m.away_team}</b>`,
+      ``,
+      ...(dateStr ? [`📅 ${dateStr}`] : []),
+      ...(time ? [`🕐 ${time}`] : []),
+      ``,
+      `━━━━━━━━━━━━━━━━━━`,
+    ];
+
+    if (m.bet_type) {
+      lines.push(`💡 TAHMİN: <b>${m.bet_type}</b>`);
+      if (odds) lines.push(`💰 ORAN: <b>${odds}</b>`);
+    }
+
+    if (m.final_score_home !== null && m.final_score_home !== undefined) {
+      lines.push(`⚽ SKOR: <b>${m.final_score_home} - ${m.final_score_away}</b>`);
+      if (m.bet_result === 'won') lines.push(`🎯 SONUÇ: <b>TUTTU!</b> ✅`);
+      else if (m.bet_result === 'lost') lines.push(`❌ SONUÇ: <b>TUTMADI</b>`);
+    }
+
+    lines.push(`━━━━━━━━━━━━━━━━━━`);
+    lines.push(`📲 <i>Tutturduk — sporu birlikte analiz ediyoruz.</i>`);
+
+    return lines.join('\n');
+  }
+
   // ─── App Settings ──────────────────────────────────────────────────────────
 
   app.get('/api/admin/settings', async (req, res) => {
@@ -2231,7 +2354,36 @@ export async function registerRoutes(
     }
   });
 
-  // ─── Telegram Share ────────────────────────────────────────────────────────
+  // ─── Telegram: share single match ─────────────────────────────────────────
+
+  app.post('/api/admin/telegram/share-match/:id', async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ message: 'Oturum açılmamış' });
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') return res.status(403).json({ message: 'Yetkiniz yok' });
+    try {
+      const creds = await getTelegramCreds();
+      if (!creds) return res.status(400).json({ message: 'Bot token veya Chat ID eksik' });
+
+      const matchId = parseInt(req.params.id);
+      const r = await pool.query(
+        `SELECT pm.*, bb.bet_type, bb.odds, bb.result AS bet_result,
+                pm.final_score_home, pm.final_score_away
+         FROM published_matches pm
+         LEFT JOIN best_bets bb ON bb.match_id = pm.id AND COALESCE(bb.bet_category,'primary')='primary'
+         WHERE pm.id = $1`, [matchId]
+      );
+      if (!r.rows.length) return res.status(404).json({ message: 'Maç bulunamadı' });
+
+      const text = buildSingleMatchMessage(r.rows[0]);
+      await sendTelegramMessage(creds.token, creds.chatId, text);
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error('[Telegram] share-match error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // ─── Telegram: share all today's matches ───────────────────────────────────
 
   app.post('/api/admin/telegram/share', async (req, res) => {
     if (!req.session.userId) return res.status(401).json({ message: 'Oturum açılmamış' });
@@ -2264,47 +2416,42 @@ export async function registerRoutes(
       const matches = matchesResult.rows;
       if (!matches.length) return res.status(400).json({ message: 'Bugün yayında maç yok' });
 
-      // Build message
-      const { dateText } = req.body as { dateText?: string };
-      const dayStr = dateText || new Date().toLocaleDateString('tr-TR', {
+      // Build digest message
+      const dayStr = new Date().toLocaleDateString('tr-TR', {
         day: 'numeric', month: 'long', weekday: 'long', timeZone: 'Europe/Istanbul',
       });
 
       const lines: string[] = [
         `⚽ <b>GÜNÜN TAHMİNLERİ</b>`,
-        `📅 ${dayStr}`,
+        `📅 <b>${dayStr}</b>`,
+        `📊 ${matches.length} maç analiz edildi`,
         ``,
+        `━━━━━━━━━━━━━━━━━━`,
       ];
 
+      const LEAGUE_EMOJI: Record<string, string> = {
+        'Premier League': '🏴󠁧󠁢󠁥󠁮󠁧󠁿', 'La Liga': '🇪🇸', 'Serie A': '🇮🇹',
+        'Bundesliga': '🇩🇪', 'Ligue 1': '🇫🇷', 'Süper Lig': '🇹🇷',
+        'Eredivisie': '🇳🇱', 'Champions League': '⭐', 'Europa League': '🌍',
+        'Conference League': '🌐',
+      };
+
       for (const m of matches) {
+        const leagueEmoji = Object.entries(LEAGUE_EMOJI).find(([k]) =>
+          m.league_name?.toLowerCase().includes(k.toLowerCase())
+        )?.[1] ?? '🏆';
         const time = m.match_time ? m.match_time.slice(0, 5) : '';
-        const league = m.league_name ? `🏆 <i>${m.league_name}</i>\n` : '';
-        const prediction = m.bet_type ? `\nTahmin: <b>${m.bet_type}</b>` : '';
-        const odds = m.odds ? `  |  Oran: <b>${parseFloat(m.odds).toFixed(2)}</b>` : '';
-        lines.push(`${league}${m.home_team} - ${m.away_team}`);
-        lines.push(`🕐 ${time}${prediction}${odds}`);
+        const odds = m.odds ? ` — Oran <b>${parseFloat(m.odds).toFixed(2)}</b>` : '';
+        lines.push(`${leagueEmoji} <b>${m.home_team} vs ${m.away_team}</b>`);
+        if (time) lines.push(`🕐 ${time}`);
+        if (m.bet_type) lines.push(`💡 <b>${m.bet_type}</b>${odds}`);
         lines.push('');
       }
 
-      lines.push(`📊 Bugün ${matches.length} maç`);
-      lines.push(`\n<i>Tutturduk — tutturmak için takipte kal.</i>`);
+      lines.push(`━━━━━━━━━━━━━━━━━━`);
+      lines.push(`📲 <i>Tutturduk — sporu birlikte analiz ediyoruz.</i>`);
 
-      const text = lines.join('\n');
-
-      const tgRes = await fetch(
-        `https://api.telegram.org/bot${token}/sendMessage`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' }),
-        }
-      );
-      const tgData = await tgRes.json() as any;
-      if (!tgData.ok) {
-        console.error('[Telegram] API error:', tgData);
-        return res.status(502).json({ message: `Telegram hatası: ${tgData.description}` });
-      }
-
+      await sendTelegramMessage(token, chatId, lines.join('\n'));
       res.json({ success: true, message: `${matches.length} maç Telegram'a gönderildi` });
     } catch (error: any) {
       console.error('[Telegram] share error:', error);
