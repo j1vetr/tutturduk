@@ -10,7 +10,7 @@ import {
   LayoutDashboard, Users, Trophy, LogOut, Plus, Trash2, RefreshCcw, 
   CheckCircle, XCircle, Clock, Star, Ticket, Calendar, Loader2,
   TrendingUp, Target, Zap, ChevronRight, ChevronDown, Search,
-  Award, Menu, X, Check, Brain
+  Award, Menu, X, Check
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -134,13 +134,10 @@ export default function AdminPage() {
   const [publishedMatches, setPublishedMatches] = useState<any[]>([]);
   const [publishingId, setPublishingId] = useState<number | null>(null);
   
-  // AI Check states
-  const [aiCheckResults, setAiCheckResults] = useState<Map<number, { karar: string; prediction?: any; reason?: string }>>(new Map());
-  const [aiCheckLoading, setAiCheckLoading] = useState(false);
-  const [aiCheckProgress, setAiCheckProgress] = useState({ current: 0, total: 0 });
-  const [bulkPublishing, setBulkPublishing] = useState(false);
-  const [autoPublishing, setAutoPublishing] = useState(false);
-  
+  // Publish form state
+  const [publishingMatch, setPublishingMatch] = useState<UpcomingMatch | null>(null);
+  const [publishForm, setPublishForm] = useState({ bet_type: '', odds: '', description: '' });
+
   // Form states
   const [newCode, setNewCode] = useState({ code: "", type: "standard", maxUses: 1 });
 
@@ -198,10 +195,6 @@ export default function AdminPage() {
             validated: true
           }));
           setUpcomingMatches(formatted);
-          
-          const unpublishedIds = formatted.filter((m: any) => !publishedMatches.some((p: any) => p.fixture_id === m.id)).map((m: any) => m.id);
-          loadCachedAIResults(unpublishedIds);
-          
           toast({ description: `${matchesArray.length} maç yüklendi` });
         }
       }
@@ -213,113 +206,48 @@ export default function AdminPage() {
     }
   };
 
-  const loadCachedAIResults = async (fixtureIds: number[]) => {
-    if (fixtureIds.length === 0) return;
-    try {
-      const res = await fetch('/api/admin/matches/ai-cache', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ fixtureIds })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.results && data.results.length > 0) {
-          const newResults = new Map<number, { karar: string; prediction?: any; reason?: string }>();
-          for (const result of data.results) {
-            newResults.set(result.fixtureId, {
-              karar: result.karar,
-              prediction: result.prediction,
-              reason: result.reason
-            });
-          }
-          setAiCheckResults(newResults);
-        }
-      }
-    } catch (error) {
-      console.error('Failed to load cached AI results:', error);
-    }
+  const openPublishForm = (match: UpcomingMatch) => {
+    setPublishingMatch(match);
+    setPublishForm({ bet_type: '', odds: '', description: '' });
   };
 
-  const runAICheck = async () => {
-    if (upcomingMatches.length === 0) {
-      toast({ variant: "destructive", description: "Önce maçları yükleyin" });
-      return;
-    }
-    
-    const unpublishedMatches = upcomingMatches.filter(m => !isMatchPublished(m.id));
-    if (unpublishedMatches.length === 0) {
-      toast({ description: "Tüm maçlar zaten yayınlanmış" });
-      return;
-    }
-    
-    const fixtureIds = unpublishedMatches.map(m => m.id);
-    setAiCheckLoading(true);
-    setAiCheckProgress({ current: 0, total: fixtureIds.length });
-    setAiCheckResults(new Map());
-    
-    const newResults = new Map<number, { karar: string; prediction?: any; reason?: string }>();
-    const BATCH_SIZE = 5;
-    const BATCH_DELAY = 3000;
-    
-    try {
-      toast({ description: `${fixtureIds.length} maç analiz edilecek` });
-      
-      for (let i = 0; i < fixtureIds.length; i += BATCH_SIZE) {
-        const batch = fixtureIds.slice(i, i + BATCH_SIZE);
-        
-        const res = await fetch('/api/admin/matches/ai-check', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ fixtureIds: batch })
-        });
-        
-        if (res.ok) {
-          const data = await res.json();
-          for (const result of data.results) {
-            newResults.set(result.fixtureId, {
-              karar: result.karar,
-              prediction: result.prediction,
-              reason: result.reason
-            });
-          }
-          setAiCheckResults(new Map(newResults));
-          setAiCheckProgress({ current: Math.min(i + BATCH_SIZE, fixtureIds.length), total: fixtureIds.length });
-        }
-        
-        if (i + BATCH_SIZE < fixtureIds.length) {
-          await new Promise(resolve => setTimeout(resolve, BATCH_DELAY));
-        }
-      }
-      
-      const bahisCount = Array.from(newResults.values()).filter(r => r.karar === 'bahis').length;
-      toast({ description: `${bahisCount} bahis bulundu` });
-    } catch (error) {
-      toast({ variant: "destructive", description: "AI kontrol başarısız" });
-    } finally {
-      setAiCheckLoading(false);
-    }
+  const closePublishForm = () => {
+    setPublishingMatch(null);
+    setPublishForm({ bet_type: '', odds: '', description: '' });
   };
 
-  const publishMatch = async (match: UpcomingMatch) => {
-    setPublishingId(match.id);
+  const handlePublishSubmit = async () => {
+    if (!publishingMatch) return;
+    if (!publishForm.bet_type.trim() || !publishForm.odds.trim()) {
+      toast({ variant: 'destructive', description: 'Tahmin ve oran zorunludur.' });
+      return;
+    }
+    setPublishingId(publishingMatch.id);
     try {
       const res = await fetch('/api/admin/matches/publish', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ fixtureId: match.id, isFeatured: false })
+        body: JSON.stringify({
+          fixtureId: publishingMatch.id,
+          isFeatured: false,
+          manualPrediction: {
+            bet_type: publishForm.bet_type.trim(),
+            odds: publishForm.odds.trim(),
+            description: publishForm.description.trim()
+          }
+        })
       });
       if (res.ok) {
-        toast({ description: `${match.homeTeam.name} vs ${match.awayTeam.name} yayınlandı` });
+        toast({ description: `${publishingMatch.homeTeam.name} vs ${publishingMatch.awayTeam.name} yayinlandi` });
+        closePublishForm();
         loadPublishedMatches();
       } else {
         const err = await res.json();
-        toast({ variant: "destructive", description: err.message });
+        toast({ variant: 'destructive', description: err.message });
       }
-    } catch (error) {
-      toast({ variant: "destructive", description: "Maç yayınlanamadı" });
+    } catch {
+      toast({ variant: 'destructive', description: 'Mac yayinlanamadi' });
     } finally {
       setPublishingId(null);
     }
@@ -329,74 +257,16 @@ export default function AdminPage() {
     try {
       const res = await fetch(`/api/admin/matches/${id}`, { method: 'DELETE', credentials: 'include' });
       if (res.ok) {
-        toast({ description: "Maç kaldırıldı" });
+        toast({ description: "Mac kaldirildi" });
         loadPublishedMatches();
       }
     } catch (error) {
-      toast({ variant: "destructive", description: "Maç kaldırılamadı" });
+      toast({ variant: "destructive", description: "Mac kaldinlamadi" });
     }
   };
 
   const isMatchPublished = (fixtureId: number) => {
     return publishedMatches.some(m => m.fixture_id === fixtureId);
-  };
-
-  const publishTodayMatches = async () => {
-    const todayStr = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Istanbul' });
-    
-    const bahisMatches = upcomingMatches.filter(m => {
-      const aiResult = aiCheckResults.get(m.id);
-      const matchDate = m.localDate || m.date.split('T')[0];
-      return aiResult?.karar === 'bahis' && matchDate === todayStr && !isMatchPublished(m.id);
-    });
-    
-    if (bahisMatches.length === 0) {
-      toast({ variant: 'destructive', description: 'Bugün için AI onaylı maç bulunamadı' });
-      return;
-    }
-    
-    setBulkPublishing(true);
-    let success = 0;
-    
-    for (const match of bahisMatches) {
-      try {
-        const res = await fetch('/api/admin/matches/publish', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ fixtureId: match.id, isFeatured: false })
-        });
-        if (res.ok) success++;
-      } catch {}
-    }
-    
-    setBulkPublishing(false);
-    loadPublishedMatches();
-    toast({ description: `${success} maç yayınlandı` });
-  };
-
-  const autoPublishToday = async () => {
-    setAutoPublishing(true);
-    try {
-      toast({ description: "Otomatik yayınlama başlatıldı... Bu işlem birkaç dakika sürebilir." });
-      const res = await fetch('/api/admin/auto-publish-today', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ totalLimit: 70, perHour: 5 })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        toast({ description: data.message });
-        loadPublishedMatches();
-      } else {
-        toast({ variant: 'destructive', description: data.message });
-      }
-    } catch {
-      toast({ variant: 'destructive', description: 'Otomatik yayınlama başarısız' });
-    } finally {
-      setAutoPublishing(false);
-    }
   };
 
   const loadCoupons = async () => {
@@ -821,67 +691,21 @@ export default function AdminPage() {
         {activeTab === "predictions" && (
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <h2 className="text-lg font-bold text-slate-800">Maç Yönetimi</h2>
+              <h2 className="text-lg font-bold text-slate-800">Mac Yonetimi</h2>
             </div>
 
-            {/* Tek Tik Otomatik Yayinla */}
-            <div className="bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-xl p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-bold text-slate-800">Otomatik Yayınla</h3>
-                  <p className="text-[11px] text-slate-500 mt-0.5">Maçları çek → AI analiz → Yayınla (tek tık)</p>
-                  <p className="text-[10px] text-emerald-600 mt-0.5 font-medium">Min. %60 güven · Min. %2 değer · İstatistik skoru ≥20</p>
-                </div>
-                <Button 
-                  onClick={autoPublishToday}
-                  disabled={autoPublishing}
-                  size="sm"
-                  className="bg-emerald-600 text-white hover:bg-emerald-500 shadow-md"
-                >
-                  {autoPublishing ? <><Loader2 className="w-4 h-4 mr-1 animate-spin" />İşlem devam ediyor...</> : <><Zap className="w-4 h-4 mr-1" />Bugünü Yayınla</>}
-                </Button>
-              </div>
+            {/* Maç Yükle Butonu */}
+            <div className="flex gap-2">
+              <Button
+                onClick={() => loadUpcomingMatches(true)}
+                disabled={loadingMatches}
+                size="sm"
+                className="bg-slate-800 text-white hover:bg-slate-700"
+              >
+                {loadingMatches ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Target className="w-4 h-4 mr-1" />}
+                Maclari Yukle
+              </Button>
             </div>
-
-            {/* Manuel Kontrol */}
-            <details className="group">
-              <summary className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer select-none py-1">
-                <ChevronRight className="w-3 h-3 transition-transform group-open:rotate-90" />
-                Manuel Kontrol
-              </summary>
-              <div className="flex flex-wrap gap-2 mt-2">
-                <Button 
-                  onClick={() => loadUpcomingMatches(true)} 
-                  disabled={loadingMatches}
-                  size="sm"
-                  className="bg-slate-800 text-white hover:bg-slate-700"
-                >
-                  {loadingMatches ? <Loader2 className="w-4 h-4 animate-spin" /> : <Target className="w-4 h-4 mr-1" />}
-                  Kaliteli Maçlar
-                </Button>
-                <Button 
-                  onClick={runAICheck}
-                  disabled={aiCheckLoading || upcomingMatches.length === 0}
-                  size="sm"
-                  className="bg-purple-600 text-white hover:bg-purple-500"
-                >
-                  {aiCheckLoading ? (
-                    <><Loader2 className="w-4 h-4 mr-1 animate-spin" />{aiCheckProgress.current}/{aiCheckProgress.total}</>
-                  ) : (
-                    <><Brain className="w-4 h-4 mr-1" /> AI Kontrol</>
-                  )}
-                </Button>
-                <Button 
-                  onClick={publishTodayMatches}
-                  disabled={bulkPublishing || aiCheckResults.size === 0}
-                  size="sm"
-                  className="bg-emerald-500 text-white hover:bg-emerald-400"
-                >
-                  {bulkPublishing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4 mr-1" />}
-                  Seçilenleri Yayınla
-                </Button>
-              </div>
-            </details>
 
             {/* Admin Utility Buttons */}
             <div className="flex flex-wrap gap-2">
@@ -907,7 +731,6 @@ export default function AdminPage() {
                     const res = await fetch('/api/admin/clear-cache', { method: 'POST', credentials: 'include' });
                     const data = await res.json();
                     if (res.ok) {
-                      setAiCheckResults(new Map());
                       toast({ description: data.message });
                     } else toast({ variant: 'destructive', description: data.message });
                   } catch { toast({ variant: 'destructive', description: 'İşlem başarısız' }); }
@@ -959,18 +782,6 @@ export default function AdminPage() {
                 <Trash2 className="w-4 h-4 mr-1" /> DB Sıfırla
               </Button>
             </div>
-
-            {/* AI Stats */}
-            {aiCheckResults.size > 0 && (
-              <div className="flex gap-2">
-                <Badge className="bg-emerald-100 text-emerald-700 border-0">
-                  {Array.from(aiCheckResults.values()).filter(r => r.karar === 'bahis').length} Bahis
-                </Badge>
-                <Badge className="bg-red-100 text-red-700 border-0">
-                  {Array.from(aiCheckResults.values()).filter(r => r.karar === 'pas').length} Pas
-                </Badge>
-              </div>
-            )}
 
             {/* Search */}
             <div className="relative">
@@ -1063,8 +874,8 @@ export default function AdminPage() {
                           <div className="divide-y divide-slate-50">
                             {matches.map(match => {
                               const published = isMatchPublished(match.id);
-                              const aiResult = aiCheckResults.get(match.id);
-                              
+                              const isPublishingThis = publishingMatch?.id === match.id;
+
                               return (
                                 <div key={match.id} className={`p-3 ${published ? 'bg-emerald-50/50' : ''}`}>
                                   <div className="flex items-center justify-between gap-2">
@@ -1079,50 +890,78 @@ export default function AdminPage() {
                                         <img src={match.awayTeam.logo} alt="" className="w-4 h-4 object-contain flex-shrink-0" />
                                       </div>
                                     </div>
-                                    
-                                    {/* AI Result + Actions */}
+
                                     <div className="flex items-center gap-2 flex-shrink-0">
-                                      {aiResult && (
-                                        aiResult.karar === 'bahis' ? (
-                                          <div className="flex items-center gap-1">
-                                            <Badge className="bg-emerald-100 text-emerald-700 border-0 text-[10px]">
-                                              <CheckCircle className="w-3 h-3 mr-0.5" /> Bahis
-                                            </Badge>
-                                            {aiResult.prediction?.confidence && (
-                                              <Badge className={`border-0 text-[10px] ${
-                                                aiResult.prediction.confidence >= 75
-                                                  ? 'bg-emerald-50 text-emerald-600'
-                                                  : 'bg-amber-50 text-amber-600'
-                                              }`}>
-                                                %{aiResult.prediction.confidence}
-                                              </Badge>
-                                            )}
-                                          </div>
-                                        ) : (
-                                          <Badge className="bg-slate-100 text-slate-500 border-0 text-[10px]">
-                                            <XCircle className="w-3 h-3 mr-0.5" /> Pas
-                                          </Badge>
-                                        )
-                                      )}
-                                      
                                       {published ? (
                                         <Badge className="bg-emerald-100 text-emerald-700 border-0 text-[10px]">Yayında</Badge>
-                                      ) : (
-                                        <Button 
-                                          onClick={() => publishMatch(match)}
-                                          disabled={publishingId === match.id || aiResult?.karar === 'pas'}
+                                      ) : isPublishingThis ? (
+                                        <Button
+                                          onClick={closePublishForm}
                                           size="sm"
-                                          className={`h-7 text-xs ${
-                                            aiResult?.karar === 'pas' 
-                                              ? 'bg-slate-200 text-slate-400' 
-                                              : 'bg-emerald-500 text-white hover:bg-emerald-400'
-                                          }`}
+                                          variant="ghost"
+                                          className="h-7 text-xs text-slate-500"
                                         >
-                                          {publishingId === match.id ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Yayınla'}
+                                          <X className="w-3 h-3 mr-1" /> İptal
+                                        </Button>
+                                      ) : (
+                                        <Button
+                                          onClick={() => openPublishForm(match)}
+                                          size="sm"
+                                          className="h-7 text-xs bg-emerald-500 text-white hover:bg-emerald-400"
+                                        >
+                                          <Plus className="w-3 h-3 mr-1" /> Yayınla
                                         </Button>
                                       )}
                                     </div>
                                   </div>
+
+                                  {/* Inline publish form */}
+                                  {isPublishingThis && (
+                                    <div className="mt-3 pt-3 border-t border-slate-100 space-y-2">
+                                      <div className="grid grid-cols-2 gap-2">
+                                        <div>
+                                          <Label className="text-[10px] text-slate-500 mb-1 block">Tahmin *</Label>
+                                          <Input
+                                            placeholder="Örn: 2.5 Üst, MS1, KG Var"
+                                            value={publishForm.bet_type}
+                                            onChange={e => setPublishForm(f => ({ ...f, bet_type: e.target.value }))}
+                                            className="h-8 text-xs bg-white border-slate-200"
+                                            autoFocus
+                                          />
+                                        </div>
+                                        <div>
+                                          <Label className="text-[10px] text-slate-500 mb-1 block">Oran *</Label>
+                                          <Input
+                                            placeholder="Örn: 1.85"
+                                            type="number"
+                                            step="0.01"
+                                            min="1"
+                                            value={publishForm.odds}
+                                            onChange={e => setPublishForm(f => ({ ...f, odds: e.target.value }))}
+                                            className="h-8 text-xs bg-white border-slate-200"
+                                          />
+                                        </div>
+                                      </div>
+                                      <div>
+                                        <Label className="text-[10px] text-slate-500 mb-1 block">Açıklama (opsiyonel)</Label>
+                                        <Input
+                                          placeholder="Kısa analiz veya not"
+                                          value={publishForm.description}
+                                          onChange={e => setPublishForm(f => ({ ...f, description: e.target.value }))}
+                                          className="h-8 text-xs bg-white border-slate-200"
+                                        />
+                                      </div>
+                                      <Button
+                                        onClick={handlePublishSubmit}
+                                        disabled={publishingId === match.id}
+                                        size="sm"
+                                        className="w-full h-8 text-xs bg-emerald-500 text-white hover:bg-emerald-400"
+                                      >
+                                        {publishingId === match.id ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Check className="w-3 h-3 mr-1" />}
+                                        Onayla ve Yayınla
+                                      </Button>
+                                    </div>
+                                  )}
                                 </div>
                               );
                             })}

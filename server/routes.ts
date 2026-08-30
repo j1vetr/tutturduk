@@ -2372,40 +2372,20 @@ export async function registerRoutes(
       return res.status(403).json({ message: 'Yetkiniz yok' });
     }
     try {
-      const { fixtureId, isFeatured } = req.body;
-      
+      const { fixtureId, isFeatured, manualPrediction } = req.body;
+
+      // manualPrediction: { bet_type, odds, description }
+      if (!manualPrediction || !manualPrediction.bet_type || !manualPrediction.odds) {
+        return res.status(400).json({ message: 'Tahmin ve oran girilmesi zorunludur.' });
+      }
+
       // Check if already published
       const existing = await storage.getPublishedMatchByFixtureId(fixtureId);
       if (existing) {
         return res.status(400).json({ message: 'Bu maç zaten yayınlanmış' });
       }
 
-      // STEP 1: Check AI cache FIRST - if exists with "bahis", skip all validations
-      const aiKey = aiCacheKey(fixtureId);
-      let aiAnalysis: any = null;
-      let hasCachedAI = false;
-      
-      const cachedAI = await pool.query(
-        'SELECT data FROM api_cache WHERE key = $1 AND expires_at > NOW()',
-        [aiKey]
-      );
-      
-      if (cachedAI.rows.length > 0) {
-        aiAnalysis = (typeof cachedAI.rows[0].data === 'string' ? JSON.parse(cachedAI.rows[0].data) : cachedAI.rows[0].data);
-        hasCachedAI = true;
-        console.log(`[ManualPublish] Found cached AI analysis for fixture ${fixtureId}`);
-        
-        // If cached analysis says "pas", reject immediately
-        if (aiAnalysis.karar === 'pas' || !aiAnalysis.predictions || aiAnalysis.predictions.length === 0) {
-          return res.status(400).json({ 
-            message: 'Bu maç için AI "pas" kararı vermiş.',
-            reason: aiAnalysis?.analysis || 'AI değer bulunamadığı için bahis önermiyor.',
-            karar: 'pas'
-          });
-        }
-      }
-
-      // Get fixture details (needed for publishing)
+      // Get fixture details
       const cacheKey = `fixture_${fixtureId}`;
       const fixture = await getCachedData(cacheKey, async () => {
         return apiFootball.getFixtureById(fixtureId);
@@ -2422,41 +2402,18 @@ export async function registerRoutes(
       const leagueName = fixture.league?.name || '';
       const leagueLogo = fixture.league?.logo || '';
       const leagueId = fixture.league?.id;
-      
+
       const matchDate = new Date(fixture.fixture?.date);
-      // Use Turkey timezone for the date (sv-SE gives YYYY-MM-DD format)
       const isoDate = matchDate.toLocaleDateString('sv-SE', { timeZone: 'Europe/Istanbul' });
-      const displayDate = matchDate.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Europe/Istanbul' });
       const localTime = matchDate.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Europe/Istanbul' });
 
-      if (!hasCachedAI) {
-        console.log(`[ManualPublish] No cached AI for fixture ${fixtureId} - must run AI check first`);
-        return res.status(400).json({ 
-          message: 'Bu maç için henüz AI analizi yapılmamış. Önce "AI Kontrol Et" butonunu kullanın.',
-          requiresAICheck: true
-        });
-      }
-      
-      // STEP 2: Check if AI has a valid prediction
-      if (!aiAnalysis || aiAnalysis.karar === 'pas' || !aiAnalysis.predictions || aiAnalysis.predictions.length === 0) {
-        console.log(`[ManualPublish] AI returned 'pas' for ${homeTeamName} vs ${awayTeamName} - NOT publishing`);
-        return res.status(400).json({ 
-          message: 'Bu maç için güvenilir bir tahmin bulunamadı. AI analizi "pas" kararı verdi.',
-          reason: aiAnalysis?.analysis || 'AI değer bulunamadığı için bahis önermiyor.',
-          karar: 'pas'
-        });
-      }
-      
-      console.log(`[ManualPublish] AI approved: ${aiAnalysis.predictions.map(p => p.bet).join(', ')}`);
-      
-      // STEP 3: Use transaction to publish match and save predictions atomically
+      // Use transaction to publish match and save prediction atomically
       const client = await pool.connect();
       let published: any;
-      
+
       try {
         await client.query('BEGIN');
-        
-        // Insert published match
+
         const publishResult = await client.query(
           `INSERT INTO published_matches 
            (fixture_id, home_team, away_team, home_logo, away_logo, league_id, league_name, league_logo,
@@ -2466,158 +2423,42 @@ export async function registerRoutes(
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
            RETURNING *`,
           [
-            fixtureId,
-            homeTeamName,
-            awayTeamName,
-            homeLogo,
-            awayLogo,
-            leagueId,
-            leagueName,
-            leagueLogo,
-            isoDate,
-            localTime,
+            fixtureId, homeTeamName, awayTeamName, homeLogo, awayLogo,
+            leagueId, leagueName, leagueLogo, isoDate, localTime,
             fixture.fixture?.timestamp,
-            aiAnalysis?.analysis || null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            'pending',
-            isFeatured || false
+            manualPrediction.description || null,
+            null, null, null, null, null, null, null, null, null, null, null,
+            'pending', isFeatured || false
           ]
         );
         published = publishResult.rows[0];
-        
-        // Save predictions to best_bets using the new dual-bet system
-        // Primary bet (2.5 Üst)
-        if (aiAnalysis.primaryBet) {
-          await client.query(
-            `INSERT INTO best_bets 
-             (match_id, fixture_id, home_team, away_team, home_logo, away_logo, 
-              league_name, league_logo, match_date, match_time,
-              bet_type, bet_category, odds, confidence, risk_level, reasoning, result, date_for)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, 'pending', $17)
-             ON CONFLICT (fixture_id, date_for, bet_category) DO UPDATE SET
-               bet_type = EXCLUDED.bet_type,
-               odds = EXCLUDED.odds,
-               confidence = EXCLUDED.confidence,
-               risk_level = EXCLUDED.risk_level,
-               reasoning = EXCLUDED.reasoning`,
-            [
-              published.id,
-              fixtureId,
-              homeTeamName,
-              awayTeamName,
-              homeLogo,
-              awayLogo,
-              leagueName,
-              leagueLogo,
-              isoDate,
-              localTime,
-              aiAnalysis.primaryBet.bet,
-              'primary',
-              aiAnalysis.primaryBet.odds,
-              aiAnalysis.primaryBet.confidence,
-              aiAnalysis.primaryBet.riskLevel,
-              aiAnalysis.primaryBet.reasoning,
-              isoDate
-            ]
-          );
-          console.log(`[ManualPublish] Saved PRIMARY: ${aiAnalysis.primaryBet.bet} for fixture ${fixtureId}`);
-        }
-        
-        // Alternative bet (KG Var)
-        if (aiAnalysis.alternativeBet) {
-          await client.query(
-            `INSERT INTO best_bets 
-             (match_id, fixture_id, home_team, away_team, home_logo, away_logo, 
-              league_name, league_logo, match_date, match_time,
-              bet_type, bet_category, odds, confidence, risk_level, reasoning, result, date_for)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, 'pending', $17)
-             ON CONFLICT (fixture_id, date_for, bet_category) DO UPDATE SET
-               bet_type = EXCLUDED.bet_type,
-               odds = EXCLUDED.odds,
-               confidence = EXCLUDED.confidence,
-               risk_level = EXCLUDED.risk_level,
-               reasoning = EXCLUDED.reasoning`,
-            [
-              published.id,
-              fixtureId,
-              homeTeamName,
-              awayTeamName,
-              homeLogo,
-              awayLogo,
-              leagueName,
-              leagueLogo,
-              isoDate,
-              localTime,
-              aiAnalysis.alternativeBet.bet,
-              'alternative',
-              aiAnalysis.alternativeBet.odds,
-              aiAnalysis.alternativeBet.confidence,
-              aiAnalysis.alternativeBet.riskLevel,
-              aiAnalysis.alternativeBet.reasoning,
-              isoDate
-            ]
-          );
-          console.log(`[ManualPublish] Saved ALTERNATIVE: ${aiAnalysis.alternativeBet.bet} for fixture ${fixtureId}`);
-        }
-        
-        // Fallback: save from predictions array if no primaryBet/alternativeBet
-        if (!aiAnalysis.primaryBet && !aiAnalysis.alternativeBet && aiAnalysis.predictions?.length > 0) {
-          const riskToLevel: Record<string, string> = {
-            'expected': 'düşük',
-            'medium': 'orta',
-            'risky': 'yüksek'
-          };
-          
-          for (let i = 0; i < Math.min(aiAnalysis.predictions.length, 2); i++) {
-            const pred = aiAnalysis.predictions[i];
-            const category = i === 0 ? 'primary' : 'alternative';
-            await client.query(
-              `INSERT INTO best_bets 
-               (match_id, fixture_id, home_team, away_team, home_logo, away_logo, 
-                league_name, league_logo, match_date, match_time,
-                bet_type, bet_category, odds, confidence, risk_level, reasoning, result, date_for)
-               VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, 'pending', $17)
-               ON CONFLICT (fixture_id, date_for, bet_category) DO UPDATE SET
-                 bet_type = EXCLUDED.bet_type,
-                 odds = EXCLUDED.odds,
-                 confidence = EXCLUDED.confidence,
-                 risk_level = EXCLUDED.risk_level,
-                 reasoning = EXCLUDED.reasoning`,
-              [
-                published.id,
-                fixtureId,
-                homeTeamName,
-                awayTeamName,
-                homeLogo,
-                awayLogo,
-                leagueName,
-                leagueLogo,
-                isoDate,
-                localTime,
-                pred.bet,
-                category,
-                pred.odds || null,
-                pred.confidence,
-                riskToLevel[pred.type] || 'orta',
-                pred.reasoning,
-                isoDate
-              ]
-            );
-            console.log(`[ManualPublish] Saved prediction (fallback): ${pred.bet} for fixture ${fixtureId}`);
-          }
-        }
-        
+
+        // Save manual prediction to best_bets
+        await client.query(
+          `INSERT INTO best_bets 
+           (match_id, fixture_id, home_team, away_team, home_logo, away_logo,
+            league_name, league_logo, match_date, match_time,
+            bet_type, bet_category, odds, confidence, risk_level, reasoning, result, date_for)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, 'pending', $17)
+           ON CONFLICT (fixture_id, date_for, bet_category) DO UPDATE SET
+             bet_type = EXCLUDED.bet_type,
+             odds = EXCLUDED.odds,
+             reasoning = EXCLUDED.reasoning`,
+          [
+            published.id, fixtureId, homeTeamName, awayTeamName, homeLogo, awayLogo,
+            leagueName, leagueLogo, isoDate, localTime,
+            manualPrediction.bet_type,
+            'primary',
+            parseFloat(manualPrediction.odds),
+            70,
+            'orta',
+            manualPrediction.description || null,
+            isoDate
+          ]
+        );
+
         await client.query('COMMIT');
+        console.log(`[ManualPublish] Published ${homeTeamName} vs ${awayTeamName}: ${manualPrediction.bet_type} @${manualPrediction.odds}`);
       } catch (txError: any) {
         await client.query('ROLLBACK');
         console.error(`[ManualPublish] Transaction failed:`, txError.message);
@@ -2625,10 +2466,7 @@ export async function registerRoutes(
       } finally {
         client.release();
       }
-      
-      // AI analysis is already cached in STEP 1
-      
-      console.log(`[ManualPublish] Successfully published ${homeTeamName} vs ${awayTeamName} with ${aiAnalysis.predictions.length} predictions`);
+
       res.json(published);
     } catch (error: any) {
       console.error('Publish match error:', error);
