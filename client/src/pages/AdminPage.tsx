@@ -10,7 +10,7 @@ import {
   LayoutDashboard, Users, Trophy, LogOut, Plus, Trash2, RefreshCw,
   CheckCircle, Clock, Ticket, Loader2, TrendingUp, Target,
   Zap, Search, Award, X, Check, Database, ChevronDown,
-  AlertCircle, Circle, CheckSquare
+  AlertCircle, Circle, CheckSquare, Settings, Send, Eye, EyeOff
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -30,6 +30,7 @@ const TABS = [
   { id: "users", icon: Users, label: "Üyeler" },
   { id: "invitations", icon: Award, label: "Davetiye" },
   { id: "database", icon: Database, label: "Veritabanı" },
+  { id: "settings", icon: Settings, label: "Ayarlar" },
 ];
 
 function fmtDate(s: string | null) {
@@ -82,6 +83,14 @@ export default function AdminPage() {
   const [newCode, setNewCode] = useState({ code: "", type: "standard", maxUses: 1 });
   const [newCouponName, setNewCouponName] = useState("");
 
+  /* telegram / settings */
+  const [tgToken, setTgToken] = useState("");
+  const [tgChatId, setTgChatId] = useState("");
+  const [tgTokenVisible, setTgTokenVisible] = useState(false);
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [sharingTelegram, setSharingTelegram] = useState(false);
+  const [testingTelegram, setTestingTelegram] = useState(false);
+
   /* close dropdowns on outside click */
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -98,6 +107,7 @@ export default function AdminPage() {
   }, [user]);
 
   useEffect(() => { if (activeTab === "matches") loadPublishedMatches(); }, [activeTab]);
+  useEffect(() => { if (activeTab === "settings") loadSettings(); }, [activeTab]);
 
   /* ── Loaders ──────────────────────────────────────────────── */
   const loadAll = () => { loadPublishedMatches(); loadBestBetsStats(); loadCoupons(); loadUsers(); loadInvitationCodes(); };
@@ -108,6 +118,7 @@ export default function AdminPage() {
   const loadInvitationCodes = async () => { try { const r = await fetch('/api/admin/invitations', { credentials: 'include' }); if (r.ok) setInvitationCodes(await r.json()); } catch {} };
   const loadCouponDetails = async (id: number) => { try { const r = await fetch(`/api/admin/coupons/${id}`, { credentials: 'include' }); if (r.ok) setCouponDetails(await r.json()); } catch {} };
   const loadAvailableBestBets = async () => { setLoadingBestBets(true); try { const r = await fetch('/api/admin/best-bets/all', { credentials: 'include' }); if (r.ok) setAvailableBestBets(await r.json()); } catch {} finally { setLoadingBestBets(false); } };
+  const loadSettings = async () => { try { const r = await fetch('/api/admin/settings', { credentials: 'include' }); if (r.ok) { const s = await r.json(); setTgToken(s.telegram_bot_token || ''); setTgChatId(s.telegram_chat_id || ''); } } catch {} };
 
   /* ── Actions ──────────────────────────────────────────────── */
   const handleLogout = () => { logout(); setLocation("/admin-login"); };
@@ -713,6 +724,157 @@ export default function AdminPage() {
                   </div>
                 ))}
                 {invitationCodes.length === 0 && <p className="text-gray-400 text-center py-10 text-sm">Henüz davetiye kodu yok</p>}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ═══════════════════ SETTINGS ═══════════════════ */}
+        {activeTab === "settings" && (
+          <>
+            <h2 className="text-base font-bold text-gray-800">Ayarlar</h2>
+
+            {/* Telegram Section */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              {/* Header */}
+              <div className="flex items-center gap-3 px-4 py-4 border-b border-gray-100 bg-gradient-to-r from-[#229ED9]/10 to-transparent">
+                <div className="w-9 h-9 rounded-xl bg-[#229ED9] flex items-center justify-center shrink-0">
+                  <Send className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <p className="font-semibold text-gray-800 text-sm">Telegram Entegrasyonu</p>
+                  <p className="text-xs text-gray-400">Tahminleri gruba otomatik gönder</p>
+                </div>
+                {tgToken && tgChatId && (
+                  <span className="ml-auto inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-700">
+                    <CheckCircle className="w-3 h-3" /> Aktif
+                  </span>
+                )}
+              </div>
+
+              <div className="p-4 space-y-4">
+                {/* Bot Token */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-gray-600">Bot Token</Label>
+                  <div className="relative">
+                    <Input
+                      type={tgTokenVisible ? "text" : "password"}
+                      value={tgToken}
+                      onChange={e => setTgToken(e.target.value)}
+                      placeholder="1234567890:AAE..."
+                      className="pr-10 font-mono text-xs"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setTgTokenVisible(v => !v)}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      {tgTokenVisible ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  <p className="text-[10.5px] text-gray-400">
+                    BotFather'dan aldığın token. Kimseyle paylaşma.
+                  </p>
+                </div>
+
+                {/* Chat ID */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-medium text-gray-600">Chat ID / Kanal ID</Label>
+                  <Input
+                    type="text"
+                    value={tgChatId}
+                    onChange={e => setTgChatId(e.target.value)}
+                    placeholder="-1001234567890"
+                    className="font-mono text-xs"
+                  />
+                  <p className="text-[10.5px] text-gray-400">
+                    Grubun ID'si. Grupta <span className="font-mono">@userinfobot</span>'a yazarak öğrenebilirsin.
+                  </p>
+                </div>
+
+                {/* Action buttons */}
+                <div className="flex items-center gap-2 pt-1">
+                  <button
+                    onClick={async () => {
+                      setSavingSettings(true);
+                      try {
+                        const r = await fetch('/api/admin/settings', {
+                          method: 'POST', credentials: 'include',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ telegram_bot_token: tgToken, telegram_chat_id: tgChatId }),
+                        });
+                        const d = await r.json();
+                        if (r.ok) toast({ description: 'Ayarlar kaydedildi' });
+                        else toast({ variant: 'destructive', description: d.message });
+                      } finally { setSavingSettings(false); }
+                    }}
+                    disabled={savingSettings || !tgToken || !tgChatId}
+                    className="flex-1 h-9 rounded-lg bg-gray-800 text-white text-xs font-semibold hover:bg-gray-900 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {savingSettings ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+                    Kaydet
+                  </button>
+
+                  <button
+                    onClick={async () => {
+                      setTestingTelegram(true);
+                      try {
+                        const r = await fetch('/api/admin/telegram/test', {
+                          method: 'POST', credentials: 'include',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ token: tgToken, chatId: tgChatId }),
+                        });
+                        const d = await r.json();
+                        if (r.ok) toast({ description: 'Test mesajı gönderildi! Grubu kontrol et.' });
+                        else toast({ variant: 'destructive', description: d.message });
+                      } finally { setTestingTelegram(false); }
+                    }}
+                    disabled={testingTelegram || !tgToken || !tgChatId}
+                    className="h-9 px-4 rounded-lg border border-gray-200 text-gray-600 text-xs font-semibold hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {testingTelegram ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Zap className="w-3.5 h-3.5" />}
+                    Test Et
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Share Today's Matches */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0">
+                  <Send className="w-5 h-5 text-emerald-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-gray-800 text-sm">Tahminleri Paylaş</p>
+                  <p className="text-xs text-gray-400 mt-0.5 mb-3">
+                    Bugün yayındaki tüm maçları Telegram grubuna gönderir.
+                  </p>
+                  <button
+                    onClick={async () => {
+                      if (!tgToken || !tgChatId) {
+                        toast({ variant: 'destructive', description: 'Önce token ve Chat ID kaydet' });
+                        return;
+                      }
+                      setSharingTelegram(true);
+                      try {
+                        const r = await fetch('/api/admin/telegram/share', {
+                          method: 'POST', credentials: 'include',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({}),
+                        });
+                        const d = await r.json();
+                        if (r.ok) toast({ description: d.message });
+                        else toast({ variant: 'destructive', description: d.message });
+                      } finally { setSharingTelegram(false); }
+                    }}
+                    disabled={sharingTelegram || !tgToken || !tgChatId}
+                    className="h-8 px-4 rounded-lg bg-emerald-500 text-white text-xs font-semibold hover:bg-emerald-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+                  >
+                    {sharingTelegram ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                    Gruba Gönder
+                  </button>
+                </div>
               </div>
             </div>
           </>

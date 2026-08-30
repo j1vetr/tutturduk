@@ -2195,5 +2195,153 @@ export async function registerRoutes(
     }
   });
 
+  // ─── App Settings ──────────────────────────────────────────────────────────
+
+  app.get('/api/admin/settings', async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ message: 'Oturum açılmamış' });
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') return res.status(403).json({ message: 'Yetkiniz yok' });
+    try {
+      const result = await pool.query('SELECT key, value FROM app_settings');
+      const settings: Record<string, string> = {};
+      for (const row of result.rows) settings[row.key] = row.value;
+      res.json(settings);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  app.post('/api/admin/settings', async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ message: 'Oturum açılmamış' });
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') return res.status(403).json({ message: 'Yetkiniz yok' });
+    try {
+      const pairs: Record<string, string> = req.body;
+      for (const [key, value] of Object.entries(pairs)) {
+        await pool.query(
+          `INSERT INTO app_settings (key, value, updated_at)
+           VALUES ($1, $2, NOW())
+           ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()`,
+          [key, value]
+        );
+      }
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // ─── Telegram Share ────────────────────────────────────────────────────────
+
+  app.post('/api/admin/telegram/share', async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ message: 'Oturum açılmamış' });
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') return res.status(403).json({ message: 'Yetkiniz yok' });
+
+    try {
+      // Load credentials from settings
+      const cfg = await pool.query(
+        `SELECT key, value FROM app_settings WHERE key IN ('telegram_bot_token','telegram_chat_id')`
+      );
+      const s: Record<string, string> = {};
+      for (const row of cfg.rows) s[row.key] = row.value;
+
+      const token = s['telegram_bot_token'];
+      const chatId = s['telegram_chat_id'];
+      if (!token || !chatId) return res.status(400).json({ message: 'Bot token veya Chat ID eksik' });
+
+      // Load today's matches
+      const today = new Date().toLocaleDateString('tr-TR', { timeZone: 'Europe/Istanbul' })
+        .split('.').reverse().join('-'); // YYYY-MM-DD
+      const matchesResult = await pool.query(
+        `SELECT pm.*, bb.bet_type, bb.odds
+         FROM published_matches pm
+         LEFT JOIN best_bets bb ON bb.match_id = pm.id AND COALESCE(bb.bet_category,'primary') = 'primary'
+         WHERE pm.match_date::date = $1::date
+         ORDER BY pm.match_time ASC`,
+        [today]
+      );
+      const matches = matchesResult.rows;
+      if (!matches.length) return res.status(400).json({ message: 'Bugün yayında maç yok' });
+
+      // Build message
+      const { dateText } = req.body as { dateText?: string };
+      const dayStr = dateText || new Date().toLocaleDateString('tr-TR', {
+        day: 'numeric', month: 'long', weekday: 'long', timeZone: 'Europe/Istanbul',
+      });
+
+      const lines: string[] = [
+        `⚽ <b>GÜNÜN TAHMİNLERİ</b>`,
+        `📅 ${dayStr}`,
+        ``,
+      ];
+
+      for (const m of matches) {
+        const time = m.match_time ? m.match_time.slice(0, 5) : '';
+        const league = m.league_name ? `🏆 <i>${m.league_name}</i>\n` : '';
+        const prediction = m.bet_type ? `\nTahmin: <b>${m.bet_type}</b>` : '';
+        const odds = m.odds ? `  |  Oran: <b>${parseFloat(m.odds).toFixed(2)}</b>` : '';
+        lines.push(`${league}${m.home_team} - ${m.away_team}`);
+        lines.push(`🕐 ${time}${prediction}${odds}`);
+        lines.push('');
+      }
+
+      lines.push(`📊 Bugün ${matches.length} maç`);
+      lines.push(`\n<i>Tutturduk — tutturmak için takipte kal.</i>`);
+
+      const text = lines.join('\n');
+
+      const tgRes = await fetch(
+        `https://api.telegram.org/bot${token}/sendMessage`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' }),
+        }
+      );
+      const tgData = await tgRes.json() as any;
+      if (!tgData.ok) {
+        console.error('[Telegram] API error:', tgData);
+        return res.status(502).json({ message: `Telegram hatası: ${tgData.description}` });
+      }
+
+      res.json({ success: true, message: `${matches.length} maç Telegram'a gönderildi` });
+    } catch (error: any) {
+      console.error('[Telegram] share error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // ─── Telegram Test ─────────────────────────────────────────────────────────
+
+  app.post('/api/admin/telegram/test', async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ message: 'Oturum açılmamış' });
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') return res.status(403).json({ message: 'Yetkiniz yok' });
+
+    try {
+      const { token, chatId } = req.body as { token: string; chatId: string };
+      if (!token || !chatId) return res.status(400).json({ message: 'Token ve Chat ID gerekli' });
+
+      const tgRes = await fetch(
+        `https://api.telegram.org/bot${token}/sendMessage`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: '✅ <b>Tutturduk bağlantısı başarılı!</b>\n\nBot aktif ve çalışıyor.',
+            parse_mode: 'HTML',
+          }),
+        }
+      );
+      const tgData = await tgRes.json() as any;
+      if (!tgData.ok) return res.status(502).json({ message: `Telegram hatası: ${tgData.description}` });
+      res.json({ success: true });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   return httpServer;
 }

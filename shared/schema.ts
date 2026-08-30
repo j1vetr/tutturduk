@@ -189,6 +189,14 @@ export const teamCompetitions = pgTable("team_competitions", {
   season: text("season"),
 });
 
+export const appSettings = pgTable("app_settings", {
+  key: text("key").primaryKey(),
+  value: text("value"),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+export type AppSetting = typeof appSettings.$inferSelect;
+
 export type FootballTeam = typeof footballTeams.$inferSelect;
 export type Competition = typeof competitions.$inferSelect;
 export type TeamCompetition = typeof teamCompetitions.$inferSelect;
