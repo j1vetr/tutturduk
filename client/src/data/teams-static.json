@@ -2,58 +2,1607 @@
   "leagues": [
     {
       "id": 2,
+      "slug": "champions-league",
       "name": "Şampiyonlar Ligi",
       "shortName": "UCL",
       "logo": "https://media.api-sports.io/football/leagues/2.png"
     },
     {
       "id": 3,
+      "slug": "europa-league",
       "name": "Avrupa Ligi",
       "shortName": "UEL",
       "logo": "https://media.api-sports.io/football/leagues/3.png"
     },
     {
       "id": 848,
+      "slug": "conference-league",
       "name": "Konferans Ligi",
       "shortName": "UECL",
       "logo": "https://media.api-sports.io/football/leagues/848.png"
     },
     {
       "id": 39,
+      "slug": "premier-league",
       "name": "Premier League",
       "shortName": "PL",
       "logo": "https://media.api-sports.io/football/leagues/39.png"
     },
     {
       "id": 140,
+      "slug": "la-liga",
       "name": "La Liga",
       "shortName": "LL",
       "logo": "https://media.api-sports.io/football/leagues/140.png"
     },
     {
       "id": 135,
+      "slug": "serie-a",
       "name": "Serie A",
       "shortName": "SA",
       "logo": "https://media.api-sports.io/football/leagues/135.png"
     },
     {
       "id": 78,
+      "slug": "bundesliga",
       "name": "Bundesliga",
       "shortName": "BL",
       "logo": "https://media.api-sports.io/football/leagues/78.png"
     },
     {
       "id": 61,
+      "slug": "ligue-1",
       "name": "Ligue 1",
       "shortName": "L1",
       "logo": "https://media.api-sports.io/football/leagues/61.png"
     },
     {
       "id": 203,
+      "slug": "super-lig",
       "name": "Süper Lig",
       "shortName": "SL",
       "logo": "https://media.api-sports.io/football/leagues/203.png"
+    },
+    {
+      "id": 88,
+      "slug": "eredivisie",
+      "name": "Eredivisie",
+      "shortName": "ERE",
+      "logo": "https://media.api-sports.io/football/leagues/88.png"
+    },
+    {
+      "id": 94,
+      "slug": "primeira-liga",
+      "name": "Primeira Liga",
+      "shortName": "PL1",
+      "logo": "https://media.api-sports.io/football/leagues/94.png"
+    },
+    {
+      "id": 144,
+      "slug": "pro-league",
+      "name": "Belgian Pro League",
+      "shortName": "BPL",
+      "logo": "https://media.api-sports.io/football/leagues/144.png"
     }
   ],
-  "teams": []
+  "teams": [
+    {
+      "id": 41,
+      "name": "AC Milan",
+      "logo": "/team-logos/milan.svg",
+      "country": "Italy",
+      "leagues": [
+        135
+      ]
+    },
+    {
+      "id": 135,
+      "name": "Académico de Viseu",
+      "logo": "/team-logos/academico-de-viseu.svg",
+      "country": "Portugal",
+      "leagues": [
+        94
+      ]
+    },
+    {
+      "id": 116,
+      "name": "ADO Den Haag",
+      "logo": "/team-logos/den-haag.svg",
+      "country": "Netherlands",
+      "leagues": [
+        88
+      ]
+    },
+    {
+      "id": 79,
+      "name": "AJ Auxerre",
+      "logo": "https://media.api-sports.io/football/teams/79.png",
+      "country": "France",
+      "leagues": [
+        61
+      ]
+    },
+    {
+      "id": 115,
+      "name": "Ajax Amsterdam",
+      "logo": "https://media.api-sports.io/football/teams/115.png",
+      "country": "Netherlands",
+      "leagues": [
+        88
+      ]
+    },
+    {
+      "id": 97,
+      "name": "Alanyaspor",
+      "logo": "/team-logos/alanyaspor.svg",
+      "country": "Turkey",
+      "leagues": [
+        203
+      ]
+    },
+    {
+      "id": 150,
+      "name": "Alverca",
+      "logo": "/team-logos/alverca.svg",
+      "country": "Portugal",
+      "leagues": [
+        94
+      ]
+    },
+    {
+      "id": 98,
+      "name": "Amed SFK",
+      "logo": "/team-logos/amed-sfk.svg",
+      "country": "Turkey",
+      "leagues": [
+        203
+      ]
+    },
+    {
+      "id": 151,
+      "name": "Anderlecht",
+      "logo": "/team-logos/anderlecht.svg",
+      "country": "Belgium",
+      "leagues": [
+        144
+      ]
+    },
+    {
+      "id": 80,
+      "name": "Angers",
+      "logo": "/team-logos/angers.svg",
+      "country": "France",
+      "leagues": [
+        61
+      ]
+    },
+    {
+      "id": 152,
+      "name": "Antwerp",
+      "logo": "/team-logos/antwerp.svg",
+      "country": "Belgium",
+      "leagues": [
+        144
+      ]
+    },
+    {
+      "id": 133,
+      "name": "Arouca",
+      "logo": "/team-logos/arouca.svg",
+      "country": "Portugal",
+      "leagues": [
+        94
+      ]
+    },
+    {
+      "id": 1,
+      "name": "Arsenal",
+      "logo": "/team-logos/arsenal.svg",
+      "country": "England",
+      "leagues": [
+        39,
+        2
+      ]
+    },
+    {
+      "id": 81,
+      "name": "AS Monaco",
+      "logo": "/team-logos/monaco.svg",
+      "country": "France",
+      "leagues": [
+        61,
+        2
+      ]
+    },
+    {
+      "id": 56,
+      "name": "AS Roma",
+      "logo": "/team-logos/roma.svg",
+      "country": "Italy",
+      "leagues": [
+        135
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Aston Villa",
+      "logo": "/team-logos/aston-villa.svg",
+      "country": "England",
+      "leagues": [
+        39
+      ]
+    },
+    {
+      "id": 42,
+      "name": "Atalanta",
+      "logo": "/team-logos/atalanta.svg",
+      "country": "Italy",
+      "leagues": [
+        135
+      ]
+    },
+    {
+      "id": 23,
+      "name": "Athletic Club",
+      "logo": "/team-logos/athletic-club.svg",
+      "country": "Spain",
+      "leagues": [
+        140,
+        2
+      ]
+    },
+    {
+      "id": 24,
+      "name": "Atlético Madrid",
+      "logo": "/team-logos/atletico-madrid.svg",
+      "country": "Spain",
+      "leagues": [
+        140
+      ]
+    },
+    {
+      "id": 117,
+      "name": "AZ Alkmaar",
+      "logo": "/team-logos/alkmaar.svg",
+      "country": "Netherlands",
+      "leagues": [
+        88
+      ]
+    },
+    {
+      "id": 107,
+      "name": "Başakşehir",
+      "logo": "/team-logos/basaksehir.svg",
+      "country": "Turkey",
+      "leagues": [
+        203
+      ]
+    },
+    {
+      "id": 62,
+      "name": "Bayer Leverkusen",
+      "logo": "/team-logos/bayer-leverkusen.svg",
+      "country": "Germany",
+      "leagues": [
+        78
+      ]
+    },
+    {
+      "id": 63,
+      "name": "Bayern Munich",
+      "logo": "/team-logos/bayern-munich.svg",
+      "country": "Germany",
+      "leagues": [
+        78
+      ]
+    },
+    {
+      "id": 134,
+      "name": "Benfica",
+      "logo": "/team-logos/benfica.svg",
+      "country": "Portugal",
+      "leagues": [
+        94
+      ]
+    },
+    {
+      "id": 99,
+      "name": "Beşiktaş",
+      "logo": "/team-logos/besiktas.svg",
+      "country": "Turkey",
+      "leagues": [
+        203
+      ]
+    },
+    {
+      "id": 43,
+      "name": "Bologna",
+      "logo": "/team-logos/bologna.svg",
+      "country": "Italy",
+      "leagues": [
+        135
+      ]
+    },
+    {
+      "id": 64,
+      "name": "Borussia Dortmund",
+      "logo": "/team-logos/borussia-dortmund.svg",
+      "country": "Germany",
+      "leagues": [
+        78,
+        2
+      ]
+    },
+    {
+      "id": 65,
+      "name": "Borussia Monchengladbach",
+      "logo": "/team-logos/borussia-monchengladbach.svg",
+      "country": "Germany",
+      "leagues": [
+        78
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Bournemouth",
+      "logo": "/team-logos/bournemouth.svg",
+      "country": "England",
+      "leagues": [
+        39
+      ]
+    },
+    {
+      "id": 136,
+      "name": "Braga",
+      "logo": "/team-logos/braga.svg",
+      "country": "Portugal",
+      "leagues": [
+        94
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Brentford",
+      "logo": "/team-logos/brentford.svg",
+      "country": "England",
+      "leagues": [
+        39
+      ]
+    },
+    {
+      "id": 82,
+      "name": "Brest",
+      "logo": "/team-logos/brest.svg",
+      "country": "France",
+      "leagues": [
+        61
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Brighton",
+      "logo": "/team-logos/brighton.svg",
+      "country": "England",
+      "leagues": [
+        39
+      ]
+    },
+    {
+      "id": 146,
+      "name": "C.D. Nacional",
+      "logo": "https://media.api-sports.io/football/teams/146.png",
+      "country": "Portugal",
+      "leagues": [
+        94
+      ]
+    },
+    {
+      "id": 32,
+      "name": "CA Osasuna",
+      "logo": "/team-logos/ca-osasuna.svg",
+      "country": "Spain",
+      "leagues": [
+        140
+      ]
+    },
+    {
+      "id": 44,
+      "name": "Cagliari",
+      "logo": "/team-logos/cagliari.svg",
+      "country": "Italy",
+      "leagues": [
+        135
+      ]
+    },
+    {
+      "id": 137,
+      "name": "Casa Pia",
+      "logo": "/team-logos/casa-pia.svg",
+      "country": "Portugal",
+      "leagues": [
+        94
+      ]
+    },
+    {
+      "id": 27,
+      "name": "Celta Vigo",
+      "logo": "/team-logos/celta-vigo.svg",
+      "country": "Spain",
+      "leagues": [
+        140
+      ]
+    },
+    {
+      "id": 153,
+      "name": "Cercle Brugge KSV",
+      "logo": "/team-logos/cercle-brugge-ksv.svg",
+      "country": "Belgium",
+      "leagues": [
+        144
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Chelsea",
+      "logo": "/team-logos/chelsea.svg",
+      "country": "England",
+      "leagues": [
+        39,
+        2
+      ]
+    },
+    {
+      "id": 154,
+      "name": "Club Brugge",
+      "logo": "/team-logos/club-brugge.svg",
+      "country": "Belgium",
+      "leagues": [
+        144
+      ]
+    },
+    {
+      "id": 45,
+      "name": "Como",
+      "logo": "/team-logos/como.svg",
+      "country": "Italy",
+      "leagues": [
+        135
+      ]
+    },
+    {
+      "id": 17,
+      "name": "Coventry City",
+      "logo": "/team-logos/coventry-city.svg",
+      "country": "England",
+      "leagues": [
+        39
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Crystal Palace",
+      "logo": "/team-logos/crystal-palace.svg",
+      "country": "England",
+      "leagues": [
+        39
+      ]
+    },
+    {
+      "id": 111,
+      "name": "Çaykur Rizespor",
+      "logo": "/team-logos/caykur-rizespor.svg",
+      "country": "Turkey",
+      "leagues": [
+        203
+      ]
+    },
+    {
+      "id": 114,
+      "name": "Çorum FK",
+      "logo": "/team-logos/corum.svg",
+      "country": "Turkey",
+      "leagues": [
+        203
+      ]
+    },
+    {
+      "id": 21,
+      "name": "Deportivo Alavés",
+      "logo": "/team-logos/deportivo-alaves.svg",
+      "country": "Spain",
+      "leagues": [
+        140
+      ]
+    },
+    {
+      "id": 22,
+      "name": "Deportivo La Coruña",
+      "logo": "/team-logos/deportivo-la-coruna.svg",
+      "country": "Spain",
+      "leagues": [
+        140
+      ]
+    },
+    {
+      "id": 66,
+      "name": "Eintracht Frankfurt",
+      "logo": "/team-logos/eintracht-frankfurt.svg",
+      "country": "Germany",
+      "leagues": [
+        78,
+        2
+      ]
+    },
+    {
+      "id": 26,
+      "name": "Elche",
+      "logo": "/team-logos/elche.svg",
+      "country": "Spain",
+      "leagues": [
+        140
+      ]
+    },
+    {
+      "id": 100,
+      "name": "Erzurum BB",
+      "logo": "/team-logos/erzurum-bb.svg",
+      "country": "Turkey",
+      "leagues": [
+        203
+      ]
+    },
+    {
+      "id": 28,
+      "name": "Espanyol",
+      "logo": "/team-logos/espanyol.svg",
+      "country": "Spain",
+      "leagues": [
+        140
+      ]
+    },
+    {
+      "id": 138,
+      "name": "Estoril",
+      "logo": "/team-logos/estoril.svg",
+      "country": "Portugal",
+      "leagues": [
+        94
+      ]
+    },
+    {
+      "id": 139,
+      "name": "Estrela",
+      "logo": "/team-logos/estrela.svg",
+      "country": "Portugal",
+      "leagues": [
+        94
+      ]
+    },
+    {
+      "id": 8,
+      "name": "Everton",
+      "logo": "/team-logos/everton.svg",
+      "country": "England",
+      "leagues": [
+        39
+      ]
+    },
+    {
+      "id": 118,
+      "name": "Excelsior",
+      "logo": "/team-logos/excelsior.svg",
+      "country": "Netherlands",
+      "leagues": [
+        88
+      ]
+    },
+    {
+      "id": 101,
+      "name": "Eyüpspor",
+      "logo": "/team-logos/eyupspor.svg",
+      "country": "Turkey",
+      "leagues": [
+        203
+      ]
+    },
+    {
+      "id": 61,
+      "name": "FC Augsburg",
+      "logo": "/team-logos/augsburg.svg",
+      "country": "Germany",
+      "leagues": [
+        78
+      ]
+    },
+    {
+      "id": 25,
+      "name": "FC Barcelona",
+      "logo": "/team-logos/barcelona.svg",
+      "country": "Spain",
+      "leagues": [
+        140,
+        2
+      ]
+    },
+    {
+      "id": 68,
+      "name": "FC Cologne",
+      "logo": "/team-logos/cologne.svg",
+      "country": "Germany",
+      "leagues": [
+        78
+      ]
+    },
+    {
+      "id": 140,
+      "name": "FC Famalicão",
+      "logo": "/team-logos/famalic-o.svg",
+      "country": "Portugal",
+      "leagues": [
+        94
+      ]
+    },
+    {
+      "id": 124,
+      "name": "FC Groningen",
+      "logo": "/team-logos/groningen.svg",
+      "country": "Netherlands",
+      "leagues": [
+        88
+      ]
+    },
+    {
+      "id": 69,
+      "name": "FC Mainz",
+      "logo": "/team-logos/mainz.svg",
+      "country": "Germany",
+      "leagues": [
+        78
+      ]
+    },
+    {
+      "id": 141,
+      "name": "FC Porto",
+      "logo": "/team-logos/porto.svg",
+      "country": "Portugal",
+      "leagues": [
+        94
+      ]
+    },
+    {
+      "id": 122,
+      "name": "FC Twente",
+      "logo": "/team-logos/twente.svg",
+      "country": "Netherlands",
+      "leagues": [
+        88
+      ]
+    },
+    {
+      "id": 77,
+      "name": "FC Union Berlin",
+      "logo": "/team-logos/union-berlin.svg",
+      "country": "Germany",
+      "leagues": [
+        78
+      ]
+    },
+    {
+      "id": 123,
+      "name": "FC Utrecht",
+      "logo": "/team-logos/utrecht.svg",
+      "country": "Netherlands",
+      "leagues": [
+        88
+      ]
+    },
+    {
+      "id": 102,
+      "name": "Fenerbahçe",
+      "logo": "/team-logos/fenerbahce.svg",
+      "country": "Turkey",
+      "leagues": [
+        203
+      ]
+    },
+    {
+      "id": 119,
+      "name": "Feyenoord Rotterdam",
+      "logo": "/team-logos/feyenoord-rotterdam.svg",
+      "country": "Netherlands",
+      "leagues": [
+        88
+      ]
+    },
+    {
+      "id": 46,
+      "name": "Fiorentina",
+      "logo": "/team-logos/fiorentina.svg",
+      "country": "Italy",
+      "leagues": [
+        135
+      ]
+    },
+    {
+      "id": 120,
+      "name": "Fortuna Sittard",
+      "logo": "/team-logos/fortuna-sittard.svg",
+      "country": "Netherlands",
+      "leagues": [
+        88
+      ]
+    },
+    {
+      "id": 47,
+      "name": "Frosinone",
+      "logo": "https://media.api-sports.io/football/teams/47.png",
+      "country": "Italy",
+      "leagues": [
+        135
+      ]
+    },
+    {
+      "id": 9,
+      "name": "Fulham",
+      "logo": "/team-logos/fulham.svg",
+      "country": "England",
+      "leagues": [
+        39
+      ]
+    },
+    {
+      "id": 103,
+      "name": "Galatasaray",
+      "logo": "/team-logos/galatasaray.svg",
+      "country": "Turkey",
+      "leagues": [
+        203,
+        2
+      ]
+    },
+    {
+      "id": 104,
+      "name": "Gaziantep FK",
+      "logo": "/team-logos/gaziantep.svg",
+      "country": "Turkey",
+      "leagues": [
+        203
+      ]
+    },
+    {
+      "id": 105,
+      "name": "Gençlerbirliği",
+      "logo": "/team-logos/genclerbirligi.svg",
+      "country": "Turkey",
+      "leagues": [
+        203
+      ]
+    },
+    {
+      "id": 48,
+      "name": "Genoa",
+      "logo": "/team-logos/genoa.svg",
+      "country": "Italy",
+      "leagues": [
+        135
+      ]
+    },
+    {
+      "id": 29,
+      "name": "Getafe CF",
+      "logo": "/team-logos/getafe.svg",
+      "country": "Spain",
+      "leagues": [
+        140
+      ]
+    },
+    {
+      "id": 143,
+      "name": "Gil Vicente",
+      "logo": "/team-logos/gil-vicente.svg",
+      "country": "Portugal",
+      "leagues": [
+        94
+      ]
+    },
+    {
+      "id": 121,
+      "name": "Go Ahead Eagles",
+      "logo": "/team-logos/ahead-eagles.svg",
+      "country": "Netherlands",
+      "leagues": [
+        88
+      ]
+    },
+    {
+      "id": 106,
+      "name": "Göztepe",
+      "logo": "/team-logos/goztepe.svg",
+      "country": "Turkey",
+      "leagues": [
+        203
+      ]
+    },
+    {
+      "id": 70,
+      "name": "Hamburg SV",
+      "logo": "/team-logos/hamburg.svg",
+      "country": "Germany",
+      "leagues": [
+        78
+      ]
+    },
+    {
+      "id": 125,
+      "name": "Heerenveen",
+      "logo": "/team-logos/heerenveen.svg",
+      "country": "Netherlands",
+      "leagues": [
+        88
+      ]
+    },
+    {
+      "id": 20,
+      "name": "Hull City",
+      "logo": "/team-logos/hull-city.svg",
+      "country": "England",
+      "leagues": [
+        39
+      ]
+    },
+    {
+      "id": 49,
+      "name": "Internazionale",
+      "logo": "/team-logos/internazionale.svg",
+      "country": "Italy",
+      "leagues": [
+        135
+      ]
+    },
+    {
+      "id": 10,
+      "name": "Ipswich Town",
+      "logo": "/team-logos/ipswich-town.svg",
+      "country": "England",
+      "leagues": [
+        39
+      ]
+    },
+    {
+      "id": 50,
+      "name": "Juventus",
+      "logo": "/team-logos/juventus.svg",
+      "country": "Italy",
+      "leagues": [
+        135,
+        2
+      ]
+    },
+    {
+      "id": 156,
+      "name": "KAA Gent",
+      "logo": "/team-logos/kaa-gent.svg",
+      "country": "Belgium",
+      "leagues": [
+        144
+      ]
+    },
+    {
+      "id": 108,
+      "name": "Kasımpaşa",
+      "logo": "/team-logos/kasimpasa.svg",
+      "country": "Turkey",
+      "leagues": [
+        203
+      ]
+    },
+    {
+      "id": 109,
+      "name": "Kocaelispor",
+      "logo": "/team-logos/kocaelispor.svg",
+      "country": "Turkey",
+      "leagues": [
+        203
+      ]
+    },
+    {
+      "id": 110,
+      "name": "Konyaspor",
+      "logo": "/team-logos/konyaspor.svg",
+      "country": "Turkey",
+      "leagues": [
+        203
+      ]
+    },
+    {
+      "id": 157,
+      "name": "KV Kortrijk",
+      "logo": "/team-logos/kv-kortrijk.svg",
+      "country": "Belgium",
+      "leagues": [
+        144
+      ]
+    },
+    {
+      "id": 158,
+      "name": "KV Mechelen",
+      "logo": "/team-logos/kv-mechelen.svg",
+      "country": "Belgium",
+      "leagues": [
+        144
+      ]
+    },
+    {
+      "id": 159,
+      "name": "KVC Westerlo",
+      "logo": "/team-logos/kvc-westerlo.svg",
+      "country": "Belgium",
+      "leagues": [
+        144
+      ]
+    },
+    {
+      "id": 51,
+      "name": "Lazio",
+      "logo": "/team-logos/lazio.svg",
+      "country": "Italy",
+      "leagues": [
+        135
+      ]
+    },
+    {
+      "id": 83,
+      "name": "Le Havre AC",
+      "logo": "/team-logos/le-havre.svg",
+      "country": "France",
+      "leagues": [
+        61
+      ]
+    },
+    {
+      "id": 87,
+      "name": "Le Mans",
+      "logo": "/team-logos/le-mans.svg",
+      "country": "France",
+      "leagues": [
+        61
+      ]
+    },
+    {
+      "id": 52,
+      "name": "Lecce",
+      "logo": "/team-logos/lecce.svg",
+      "country": "Italy",
+      "leagues": [
+        135
+      ]
+    },
+    {
+      "id": 11,
+      "name": "Leicester City",
+      "logo": "/team-logos/leicester-city.svg",
+      "country": "England",
+      "leagues": [
+        39
+      ]
+    },
+    {
+      "id": 95,
+      "name": "Lens",
+      "logo": "/team-logos/lens.svg",
+      "country": "France",
+      "leagues": [
+        61
+      ]
+    },
+    {
+      "id": 30,
+      "name": "Levante",
+      "logo": "/team-logos/levante.svg",
+      "country": "Spain",
+      "leagues": [
+        140
+      ]
+    },
+    {
+      "id": 84,
+      "name": "Lille",
+      "logo": "/team-logos/lille.svg",
+      "country": "France",
+      "leagues": [
+        61
+      ]
+    },
+    {
+      "id": 12,
+      "name": "Liverpool",
+      "logo": "/team-logos/liverpool.svg",
+      "country": "England",
+      "leagues": [
+        39,
+        2
+      ]
+    },
+    {
+      "id": 163,
+      "name": "Lommel SK",
+      "logo": "/team-logos/lommel.svg",
+      "country": "Belgium",
+      "leagues": [
+        144
+      ]
+    },
+    {
+      "id": 89,
+      "name": "Lorient",
+      "logo": "/team-logos/lorient.svg",
+      "country": "France",
+      "leagues": [
+        61
+      ]
+    },
+    {
+      "id": 85,
+      "name": "Lyon",
+      "logo": "/team-logos/lyon.svg",
+      "country": "France",
+      "leagues": [
+        61
+      ]
+    },
+    {
+      "id": 31,
+      "name": "Málaga",
+      "logo": "/team-logos/malaga.svg",
+      "country": "Spain",
+      "leagues": [
+        140
+      ]
+    },
+    {
+      "id": 13,
+      "name": "Manchester City",
+      "logo": "/team-logos/manchester-city.svg",
+      "country": "England",
+      "leagues": [
+        39,
+        2
+      ]
+    },
+    {
+      "id": 14,
+      "name": "Manchester United",
+      "logo": "/team-logos/manchester-united.svg",
+      "country": "England",
+      "leagues": [
+        39
+      ]
+    },
+    {
+      "id": 142,
+      "name": "Marítimo",
+      "logo": "/team-logos/mar-timo.svg",
+      "country": "Portugal",
+      "leagues": [
+        94
+      ]
+    },
+    {
+      "id": 86,
+      "name": "Marseille",
+      "logo": "/team-logos/marseille.svg",
+      "country": "France",
+      "leagues": [
+        61
+      ]
+    },
+    {
+      "id": 53,
+      "name": "Monza",
+      "logo": "/team-logos/monza.svg",
+      "country": "Italy",
+      "leagues": [
+        135
+      ]
+    },
+    {
+      "id": 145,
+      "name": "Moreirense",
+      "logo": "/team-logos/moreirense.svg",
+      "country": "Portugal",
+      "leagues": [
+        94
+      ]
+    },
+    {
+      "id": 54,
+      "name": "Napoli",
+      "logo": "/team-logos/napoli.svg",
+      "country": "Italy",
+      "leagues": [
+        135,
+        2
+      ]
+    },
+    {
+      "id": 126,
+      "name": "NEC Nijmegen",
+      "logo": "/team-logos/nijmegen.svg",
+      "country": "Netherlands",
+      "leagues": [
+        88
+      ]
+    },
+    {
+      "id": 15,
+      "name": "Newcastle",
+      "logo": "/team-logos/newcastle.svg",
+      "country": "England",
+      "leagues": [
+        39
+      ]
+    },
+    {
+      "id": 88,
+      "name": "Nice",
+      "logo": "/team-logos/nice.svg",
+      "country": "France",
+      "leagues": [
+        61
+      ]
+    },
+    {
+      "id": 16,
+      "name": "Nottm Forest",
+      "logo": "/team-logos/nottm-forest.svg",
+      "country": "England",
+      "leagues": [
+        39
+      ]
+    },
+    {
+      "id": 160,
+      "name": "Oud-Heverlee Leuven",
+      "logo": "/team-logos/oud-heverlee-leuven.svg",
+      "country": "Belgium",
+      "leagues": [
+        144
+      ]
+    },
+    {
+      "id": 92,
+      "name": "Paris FC",
+      "logo": "/team-logos/paris.svg",
+      "country": "France",
+      "leagues": [
+        61
+      ]
+    },
+    {
+      "id": 90,
+      "name": "Paris Saint-Germain",
+      "logo": "/team-logos/paris-saint-germain.svg",
+      "country": "France",
+      "leagues": [
+        61,
+        2
+      ]
+    },
+    {
+      "id": 55,
+      "name": "Parma",
+      "logo": "/team-logos/parma.svg",
+      "country": "Italy",
+      "leagues": [
+        135
+      ]
+    },
+    {
+      "id": 127,
+      "name": "PEC Zwolle",
+      "logo": "/team-logos/zwolle.svg",
+      "country": "Netherlands",
+      "leagues": [
+        88
+      ]
+    },
+    {
+      "id": 128,
+      "name": "PSV Eindhoven",
+      "logo": "/team-logos/psv-eindhoven.svg",
+      "country": "Netherlands",
+      "leagues": [
+        88
+      ]
+    },
+    {
+      "id": 167,
+      "name": "RAAL La Louvière",
+      "logo": "/team-logos/raal-la-louviere.svg",
+      "country": "Belgium",
+      "leagues": [
+        144
+      ]
+    },
+    {
+      "id": 161,
+      "name": "Racing Genk",
+      "logo": "/team-logos/racing-genk.svg",
+      "country": "Belgium",
+      "leagues": [
+        144
+      ]
+    },
+    {
+      "id": 33,
+      "name": "Racing Santander",
+      "logo": "/team-logos/racing-santander.svg",
+      "country": "Spain",
+      "leagues": [
+        140
+      ]
+    },
+    {
+      "id": 34,
+      "name": "Rayo Vallecano",
+      "logo": "/team-logos/rayo-vallecano.svg",
+      "country": "Spain",
+      "leagues": [
+        140
+      ]
+    },
+    {
+      "id": 71,
+      "name": "RB Leipzig",
+      "logo": "/team-logos/leipzig.svg",
+      "country": "Germany",
+      "leagues": [
+        78
+      ]
+    },
+    {
+      "id": 35,
+      "name": "Real Betis",
+      "logo": "/team-logos/real-betis.svg",
+      "country": "Spain",
+      "leagues": [
+        140
+      ]
+    },
+    {
+      "id": 36,
+      "name": "Real Madrid",
+      "logo": "/team-logos/real-madrid.svg",
+      "country": "Spain",
+      "leagues": [
+        140,
+        2
+      ]
+    },
+    {
+      "id": 37,
+      "name": "Real Sociedad",
+      "logo": "/team-logos/real-sociedad.svg",
+      "country": "Spain",
+      "leagues": [
+        140
+      ]
+    },
+    {
+      "id": 91,
+      "name": "Rennes",
+      "logo": "/team-logos/rennes.svg",
+      "country": "France",
+      "leagues": [
+        61
+      ]
+    },
+    {
+      "id": 147,
+      "name": "Rio Ave",
+      "logo": "/team-logos/rio-ave.svg",
+      "country": "Portugal",
+      "leagues": [
+        94
+      ]
+    },
+    {
+      "id": 162,
+      "name": "Royal Charleroi SC",
+      "logo": "/team-logos/royal-charleroi.svg",
+      "country": "Belgium",
+      "leagues": [
+        144
+      ]
+    },
+    {
+      "id": 112,
+      "name": "Samsunspor",
+      "logo": "/team-logos/samsunspor.svg",
+      "country": "Turkey",
+      "leagues": [
+        203
+      ]
+    },
+    {
+      "id": 148,
+      "name": "Santa Clara",
+      "logo": "/team-logos/santa-clara.svg",
+      "country": "Portugal",
+      "leagues": [
+        94
+      ]
+    },
+    {
+      "id": 57,
+      "name": "Sassuolo",
+      "logo": "/team-logos/sassuolo.svg",
+      "country": "Italy",
+      "leagues": [
+        135
+      ]
+    },
+    {
+      "id": 130,
+      "name": "SC Cambuur",
+      "logo": "/team-logos/cambuur.svg",
+      "country": "Netherlands",
+      "leagues": [
+        88
+      ]
+    },
+    {
+      "id": 72,
+      "name": "SC Freiburg",
+      "logo": "/team-logos/freiburg.svg",
+      "country": "Germany",
+      "leagues": [
+        78
+      ]
+    },
+    {
+      "id": 73,
+      "name": "SC Paderborn 07",
+      "logo": "/team-logos/paderborn-07.svg",
+      "country": "Germany",
+      "leagues": [
+        78
+      ]
+    },
+    {
+      "id": 76,
+      "name": "Schalke 04",
+      "logo": "/team-logos/schalke-04.svg",
+      "country": "Germany",
+      "leagues": [
+        78
+      ]
+    },
+    {
+      "id": 38,
+      "name": "Sevilla FC",
+      "logo": "/team-logos/sevilla.svg",
+      "country": "Spain",
+      "leagues": [
+        140
+      ]
+    },
+    {
+      "id": 164,
+      "name": "Sint-Truidense",
+      "logo": "/team-logos/sint-truidense.svg",
+      "country": "Belgium",
+      "leagues": [
+        144
+      ]
+    },
+    {
+      "id": 129,
+      "name": "Sparta Rotterdam",
+      "logo": "/team-logos/sparta-rotterdam.svg",
+      "country": "Netherlands",
+      "leagues": [
+        88
+      ]
+    },
+    {
+      "id": 149,
+      "name": "Sporting CP",
+      "logo": "/team-logos/sporting-cp.svg",
+      "country": "Portugal",
+      "leagues": [
+        94
+      ]
+    },
+    {
+      "id": 165,
+      "name": "Standard Liege",
+      "logo": "/team-logos/standard-liege.svg",
+      "country": "Belgium",
+      "leagues": [
+        144
+      ]
+    },
+    {
+      "id": 93,
+      "name": "Strasbourg",
+      "logo": "/team-logos/strasbourg.svg",
+      "country": "France",
+      "leagues": [
+        61
+      ]
+    },
+    {
+      "id": 67,
+      "name": "SV Elversberg",
+      "logo": "/team-logos/elversberg.svg",
+      "country": "Germany",
+      "leagues": [
+        78
+      ]
+    },
+    {
+      "id": 131,
+      "name": "Telstar",
+      "logo": "/team-logos/telstar.svg",
+      "country": "Netherlands",
+      "leagues": [
+        88
+      ]
+    },
+    {
+      "id": 58,
+      "name": "Torino",
+      "logo": "/team-logos/torino.svg",
+      "country": "Italy",
+      "leagues": [
+        135
+      ]
+    },
+    {
+      "id": 18,
+      "name": "Tottenham",
+      "logo": "/team-logos/tottenham.svg",
+      "country": "England",
+      "leagues": [
+        39
+      ]
+    },
+    {
+      "id": 94,
+      "name": "Toulouse",
+      "logo": "/team-logos/toulouse.svg",
+      "country": "France",
+      "leagues": [
+        61
+      ]
+    },
+    {
+      "id": 113,
+      "name": "Trabzonspor",
+      "logo": "/team-logos/trabzonspor.svg",
+      "country": "Turkey",
+      "leagues": [
+        203
+      ]
+    },
+    {
+      "id": 96,
+      "name": "Troyes",
+      "logo": "/team-logos/troyes.svg",
+      "country": "France",
+      "leagues": [
+        61
+      ]
+    },
+    {
+      "id": 74,
+      "name": "TSG Hoffenheim",
+      "logo": "/team-logos/hoffenheim.svg",
+      "country": "Germany",
+      "leagues": [
+        78
+      ]
+    },
+    {
+      "id": 59,
+      "name": "Udinese",
+      "logo": "/team-logos/udinese.svg",
+      "country": "Italy",
+      "leagues": [
+        135
+      ]
+    },
+    {
+      "id": 166,
+      "name": "Union St.-Gilloise",
+      "logo": "/team-logos/union-st-gilloise.svg",
+      "country": "Belgium",
+      "leagues": [
+        144
+      ]
+    },
+    {
+      "id": 39,
+      "name": "Valencia CF",
+      "logo": "/team-logos/valencia.svg",
+      "country": "Spain",
+      "leagues": [
+        140
+      ]
+    },
+    {
+      "id": 60,
+      "name": "Venezia",
+      "logo": "/team-logos/venezia.svg",
+      "country": "Italy",
+      "leagues": [
+        135
+      ]
+    },
+    {
+      "id": 75,
+      "name": "VfB Stuttgart",
+      "logo": "/team-logos/stuttgart.svg",
+      "country": "Germany",
+      "leagues": [
+        78
+      ]
+    },
+    {
+      "id": 40,
+      "name": "Villarreal CF",
+      "logo": "/team-logos/villarreal.svg",
+      "country": "Spain",
+      "leagues": [
+        140,
+        2
+      ]
+    },
+    {
+      "id": 144,
+      "name": "Vitória Guimarães",
+      "logo": "/team-logos/vitoria-guimar-es.svg",
+      "country": "Portugal",
+      "leagues": [
+        94
+      ]
+    },
+    {
+      "id": 155,
+      "name": "Waasland-Beveren",
+      "logo": "https://media.api-sports.io/football/teams/155.png",
+      "country": "Belgium",
+      "leagues": [
+        144
+      ]
+    },
+    {
+      "id": 78,
+      "name": "Werder Bremen",
+      "logo": "/team-logos/werder-bremen.svg",
+      "country": "Germany",
+      "leagues": [
+        78
+      ]
+    },
+    {
+      "id": 132,
+      "name": "Willem II",
+      "logo": "/team-logos/willem-ii.svg",
+      "country": "Netherlands",
+      "leagues": [
+        88
+      ]
+    },
+    {
+      "id": 168,
+      "name": "Zulte-Waregem",
+      "logo": "/team-logos/zulte-waregem.svg",
+      "country": "Belgium",
+      "leagues": [
+        144
+      ]
+    }
+  ]
 }

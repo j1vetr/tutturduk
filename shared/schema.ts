@@ -158,6 +158,43 @@ export const userCouponItems = pgTable("user_coupon_items", {
   created_at: timestamp("created_at").defaultNow(),
 });
 
+// ── Football Team Database ────────────────────────────────────
+export const footballTeams = pgTable("football_teams", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(),
+  normalized_name: text("normalized_name").notNull(),
+  country: text("country"),
+  abbreviation: text("abbreviation"),
+  stadium: text("stadium"),
+  logo: text("logo"),                // e.g. /team-logos/galatasaray.svg
+  logo_source: text("logo_source"),  // 'local' | 'cdn' | null
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow(),
+});
+
+export const competitions = pgTable("competitions", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(),
+  country: text("country"),
+  type: text("type"),   // 'league' | 'cup' | 'european'
+  season: text("season"),
+});
+
+export const teamCompetitions = pgTable("team_competitions", {
+  id: serial("id").primaryKey(),
+  team_id: integer("team_id").notNull(),
+  competition_id: integer("competition_id").notNull(),
+  season: text("season"),
+});
+
+export type FootballTeam = typeof footballTeams.$inferSelect;
+export type Competition = typeof competitions.$inferSelect;
+export type TeamCompetition = typeof teamCompetitions.$inferSelect;
+
+// ─────────────────────────────────────────────────────────────
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password_hash: true,

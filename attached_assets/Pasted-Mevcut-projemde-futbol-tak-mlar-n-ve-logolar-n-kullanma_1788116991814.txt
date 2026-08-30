@@ -1,0 +1,266 @@
+Mevcut projemde futbol takımlarını ve logolarını kullanmak istiyorum. API-Football veya ücretli herhangi bir futbol API'si KULLANMA.
+
+Amaç:
+Avrupa'nın büyük ligleri, Süper Lig ve UEFA turnuvalarındaki takımları açık kaynak GitHub repolarından çekip kendi PostgreSQL veritabanımıza kaydetmek ve takım logolarını kendi sunucumuzda lokal olarak saklamak.
+
+Kullanılacak açık kaynaklar:
+
+1. Takım logoları:
+   https://github.com/JoseArroyave/football-logos
+
+Bu repo 2800+ takımın SVG logosunu içeriyor.
+Logo dosyalarını mümkün olduğunca buradan kullan.
+
+2. Lig takım listeleri:
+   https://github.com/oritzio/football-database
+
+Buradan güncel sezon takım listelerini al.
+
+3. UEFA turnuvaları:
+   https://github.com/openfootball/champions-league
+
+Buradan:
+
+* UEFA Champions League
+* UEFA Europa League
+* UEFA Conference League
+
+takımlarını çek.
+
+Kapsanacak ligler:
+
+* English Premier League
+* Spanish La Liga
+* Italian Serie A
+* German Bundesliga
+* French Ligue 1
+* Turkish Süper Lig
+* Netherlands Eredivisie
+* Portuguese Primeira Liga
+* Belgian Pro League
+
+Ek olarak:
+
+* UEFA Champions League
+* UEFA Europa League
+* UEFA Conference League
+
+2026/2027 sezonunu esas al.
+
+ÖNEMLİ:
+Aynı takım birden fazla turnuvada olabilir.
+
+Örneğin:
+
+Galatasaray
+
+* Süper Lig
+* Champions League
+
+şeklinde tek takım kaydı olmalı, fakat birden fazla competition ilişkisi bulunabilmeli.
+
+PostgreSQL yapısını buna göre oluştur.
+
+Önerilen tablolar:
+
+teams
+
+* id
+* slug
+* name
+* normalized_name
+* country
+* abbreviation
+* stadium
+* logo
+* logo_source
+* created_at
+* updated_at
+
+competitions
+
+* id
+* slug
+* name
+* country
+* type
+* season
+
+team_competitions
+
+* id
+* team_id
+* competition_id
+* season
+
+Aynı takımın duplicate kayıt olarak eklenmesini engelle.
+
+Takım eşleştirmesinde sadece birebir dosya adına güvenme.
+
+Normalize sistemi oluştur.
+
+Örneğin:
+
+Fenerbahçe -> fenerbahce
+Galatasaray SK -> galatasaray
+Manchester United FC -> manchester-united
+Paris Saint-Germain FC -> paris-saint-germain
+Internazionale -> inter-milan
+
+Normalize sırasında:
+
+* Türkçe karakterleri dönüştür
+* aksanları kaldır
+* büyük/küçük harfi önemseme
+* FC
+* FK
+* SK
+* CF
+* AFC
+* AC
+* SSC
+
+gibi gereksiz kulüp eklerini gerektiğinde temizle.
+
+Fuzzy matching uygulanabilir fakat yanlış logo eşleşmesini engelle.
+
+Eşleşme güvenilir değilse otomatik yanlış logo atamak yerine:
+
+logo = null
+
+bırak ve loglarda göster.
+
+LOGOLAR:
+
+GitHub raw URL'lerini uygulamada doğrudan kullanmak istemiyorum.
+
+Bulunan SVG logolarını indir ve proje içerisinde:
+
+public/team-logos/
+
+klasörüne kaydet.
+
+Örneğin:
+
+public/team-logos/galatasaray.svg
+public/team-logos/fenerbahce.svg
+public/team-logos/arsenal.svg
+public/team-logos/real-madrid.svg
+
+Veritabanındaki logo değeri:
+
+/team-logos/galatasaray.svg
+
+şeklinde olsun.
+
+Yani uygulama çalışırken GitHub'a bağımlı olmayalım.
+
+Bir import scripti oluştur.
+
+Örneğin:
+
+scripts/import-football-teams.ts
+
+ve mümkünse package.json'a:
+
+npm run import:football
+
+komutu ekle.
+
+Script çalıştığında:
+
+1. Kaynak verileri indir
+2. Ligleri oluştur/güncelle
+3. Takımları normalize et
+4. Duplicate takımları engelle
+5. Takımları competitions ile eşleştir
+6. Logo reposundan doğru SVG'yi bul
+7. SVG'yi public/team-logos klasörüne indir
+8. PostgreSQL'e kaydet
+9. Sonuç raporu göster
+
+İşlem sonunda terminalde şöyle bir çıktı istiyorum:
+
+Football import completed
+
+Competitions: 12
+Unique teams: 214
+Logos found: 207
+Logos missing: 7
+Duplicates merged: 36
+
+Logosu bulunamayanları ayrıca listele:
+
+Missing logos:
+
+* Team Name
+* Team Name
+
+Script tekrar çalıştırıldığında duplicate oluşturmamalı.
+
+UPSERT mantığı kullan.
+
+Mevcut takım varsa güncelle.
+
+Takımın turnuvası değiştiyse team_competitions tablosunu güncelle.
+
+Bir takım hem lig hem Avrupa kupasında varsa tek takım kaydı oluştur.
+
+Ayrıca basit bir endpoint oluştur:
+
+GET /api/football/teams
+
+Filtreler:
+
+?competition=super-lig
+?competition=champions-league
+?country=turkey
+?search=galatasaray
+
+Response örneği:
+
+{
+"teams": [
+{
+"id": 1,
+"name": "Galatasaray",
+"slug": "galatasaray",
+"country": "Turkey",
+"logo": "/team-logos/galatasaray.svg",
+"competitions": [
+{
+"name": "Turkish Süper Lig",
+"slug": "super-lig"
+},
+{
+"name": "UEFA Champions League",
+"slug": "champions-league"
+}
+]
+}
+]
+}
+
+Ek olarak:
+
+GET /api/football/competitions
+
+endpoint'i de oluştur.
+
+ÖNEMLİ KURALLAR:
+
+* API-Football kullanma.
+* RapidAPI kullanma.
+* Ücretli API kullanma.
+* API key gerektiren bir sisteme bağımlı olma.
+* Logo URL'lerini üçüncü taraf CDN'den runtime sırasında çağırma.
+* Logoları lokal sakla.
+* Mevcut uygulamanın yapısını bozma.
+* Önce mevcut database/schema yapısını incele ve ona uygun entegrasyon yap.
+* Eğer projede Prisma/Drizzle/Sequelize gibi mevcut ORM varsa onu kullan, yeni ORM ekleme.
+* TypeScript kullanılıyorsa TypeScript ile devam et.
+* Var olan kod standardını koru.
+
+Import işlemini mümkün olduğunca otomatik ve sürdürülebilir yap.
+
+İlk olarak mevcut projeyi analiz et, ardından gerekli migration/schema, import scripti, logo indirme sistemi ve API endpointlerini uygula.

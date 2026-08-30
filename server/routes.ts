@@ -2145,5 +2145,55 @@ export async function registerRoutes(
     }
   });
 
+  // ── Football Teams Public API ────────────────────────────────
+
+  // GET /api/football/teams
+  app.get('/api/football/teams', async (req, res) => {
+    try {
+      const { competition, country, search } = req.query as Record<string, string>;
+      let query = `
+        SELECT
+          ft.id, ft.slug, ft.name, ft.country, ft.abbreviation, ft.stadium, ft.logo,
+          COALESCE(json_agg(DISTINCT jsonb_build_object('name', c.name, 'slug', c.slug)) FILTER (WHERE c.id IS NOT NULL), '[]') AS competitions
+        FROM football_teams ft
+        LEFT JOIN team_competitions tc ON tc.team_id = ft.id
+        LEFT JOIN competitions c ON c.id = tc.competition_id
+      `;
+      const conditions: string[] = [];
+      const params: any[] = [];
+
+      if (competition) {
+        params.push(competition);
+        conditions.push(`ft.id IN (SELECT tc2.team_id FROM team_competitions tc2 JOIN competitions c2 ON c2.id = tc2.competition_id WHERE c2.slug = $${params.length})`);
+      }
+      if (country) {
+        params.push(country);
+        conditions.push(`LOWER(ft.country) = LOWER($${params.length})`);
+      }
+      if (search) {
+        params.push(`%${search.toLowerCase()}%`);
+        conditions.push(`(LOWER(ft.name) LIKE $${params.length} OR LOWER(ft.normalized_name) LIKE $${params.length} OR LOWER(ft.abbreviation) LIKE $${params.length})`);
+      }
+
+      if (conditions.length > 0) query += ' WHERE ' + conditions.join(' AND ');
+      query += ' GROUP BY ft.id ORDER BY ft.name';
+
+      const result = await pool.query(query, params);
+      res.json({ teams: result.rows });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // GET /api/football/competitions
+  app.get('/api/football/competitions', async (req, res) => {
+    try {
+      const result = await pool.query('SELECT * FROM competitions ORDER BY type, name');
+      res.json({ competitions: result.rows });
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   return httpServer;
 }
