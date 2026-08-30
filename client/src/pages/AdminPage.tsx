@@ -89,6 +89,7 @@ export default function AdminPage() {
   const [tgTokenVisible, setTgTokenVisible] = useState(false);
   const [autoSendOnPublish, setAutoSendOnPublish] = useState(false);
   const [autoSendOnResult, setAutoSendOnResult] = useState(false);
+  const [autoSendKickoff, setAutoSendKickoff] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
   const [sharingTelegram, setSharingTelegram] = useState(false);
   const [testingTelegram, setTestingTelegram] = useState(false);
@@ -121,7 +122,7 @@ export default function AdminPage() {
   const loadInvitationCodes = async () => { try { const r = await fetch('/api/admin/invitations', { credentials: 'include' }); if (r.ok) setInvitationCodes(await r.json()); } catch {} };
   const loadCouponDetails = async (id: number) => { try { const r = await fetch(`/api/admin/coupons/${id}`, { credentials: 'include' }); if (r.ok) setCouponDetails(await r.json()); } catch {} };
   const loadAvailableBestBets = async () => { setLoadingBestBets(true); try { const r = await fetch('/api/admin/best-bets/all', { credentials: 'include' }); if (r.ok) setAvailableBestBets(await r.json()); } catch {} finally { setLoadingBestBets(false); } };
-  const loadSettings = async () => { try { const r = await fetch('/api/admin/settings', { credentials: 'include' }); if (r.ok) { const s = await r.json(); setTgToken(s.telegram_bot_token || ''); setTgChatId(s.telegram_chat_id || ''); setAutoSendOnPublish(s.auto_send_on_publish === 'true'); setAutoSendOnResult(s.auto_send_on_result === 'true'); } } catch {} };
+  const loadSettings = async () => { try { const r = await fetch('/api/admin/settings', { credentials: 'include' }); if (r.ok) { const s = await r.json(); setTgToken(s.telegram_bot_token || ''); setTgChatId(s.telegram_chat_id || ''); setAutoSendOnPublish(s.auto_send_on_publish === 'true'); setAutoSendOnResult(s.auto_send_on_result === 'true'); setAutoSendKickoff(s.auto_send_kickoff === 'true'); } } catch {} };
 
   /* ── Actions ──────────────────────────────────────────────── */
   const handleLogout = () => { logout(); setLocation("/admin-login"); };
@@ -875,6 +876,22 @@ export default function AdminPage() {
                       />
                     </button>
                   </label>
+                  <label className="flex items-center justify-between py-2 cursor-pointer">
+                    <div>
+                      <p className="text-xs font-medium text-gray-700">Maç başladığında bildirim gönder</p>
+                      <p className="text-[10.5px] text-gray-400">Kickoff saatinde GIF'li bildirim gönderilir (her dakika kontrol)</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setAutoSendKickoff(v => !v)}
+                      className={`relative rounded-full transition-colors shrink-0 ml-3 ${autoSendKickoff ? 'bg-emerald-500' : 'bg-gray-200'}`}
+                      style={{ width: 40, height: 22 }}
+                    >
+                      <span className={`absolute rounded-full bg-white shadow transition-all`}
+                        style={{ width: 18, height: 18, top: 2, left: autoSendKickoff ? 20 : 2 }}
+                      />
+                    </button>
+                  </label>
                 </div>
 
                 {/* Action buttons */}
@@ -891,6 +908,7 @@ export default function AdminPage() {
                             telegram_chat_id: tgChatId,
                             auto_send_on_publish: String(autoSendOnPublish),
                             auto_send_on_result: String(autoSendOnResult),
+                            auto_send_kickoff: String(autoSendKickoff),
                           }),
                         });
                         const d = await r.json();

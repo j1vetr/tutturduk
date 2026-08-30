@@ -6,6 +6,8 @@ import connectPgSimple from 'connect-pg-simple';
 import { pool } from './db';
 import { apiFootball, SUPPORTED_LEAGUES, CURRENT_SEASON } from './apiFootball';
 import { filterMatches, hasValidStatistics, getStatisticsScore } from './matchFilter';
+import { readFileSync, existsSync } from 'fs';
+import { resolve } from 'path';
 
 function parseApiFootballOdds(oddsData: any[]): any {
   const parsed: any = {};
@@ -1881,8 +1883,14 @@ export async function registerRoutes(
                WHERE pm.id = $1`, [matchId]
             );
             if (matchRow.rows.length) {
-              const text = buildSingleMatchMessage(matchRow.rows[0]);
-              await sendTelegramMessage(creds.token, creds.chatId, text);
+              const m = matchRow.rows[0];
+              if (m.bet_result === 'won') {
+                const caption = buildWinCaption(m);
+                await sendTelegramAnimation(creds.token, creds.chatId, './client/public/telegram-gifs/kazan.gif', caption);
+              } else {
+                const text = buildSingleMatchMessage(m);
+                await sendTelegramMessage(creds.token, creds.chatId, text);
+              }
             }
           }
         } catch (tgErr: any) {
@@ -2274,6 +2282,45 @@ export async function registerRoutes(
     if (!data.ok) throw new Error(`Telegram API: ${data.description}`);
   }
 
+  async function sendTelegramAnimation(token: string, chatId: string, gifPath: string, caption: string): Promise<void> {
+    const absPath = resolve(gifPath);
+    if (!existsSync(absPath)) {
+      // Fallback: send as plain message if gif missing
+      await sendTelegramMessage(token, chatId, caption);
+      return;
+    }
+    const fileBuffer = readFileSync(absPath);
+    const blob = new Blob([fileBuffer], { type: 'image/gif' });
+    const form = new FormData();
+    form.append('chat_id', chatId);
+    form.append('animation', blob, 'tutturduk.gif');
+    form.append('caption', caption);
+    form.append('parse_mode', 'HTML');
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendAnimation`, { method: 'POST', body: form });
+    const data = await res.json() as any;
+    if (!data.ok) throw new Error(`Telegram sendAnimation: ${data.description}`);
+  }
+
+  function buildWinCaption(m: {
+    home_team: string; away_team: string;
+    league_name?: string; bet_type?: string;
+    final_score_home?: number | null; final_score_away?: number | null;
+  }): string {
+    const score = (m.final_score_home !== null && m.final_score_home !== undefined)
+      ? `${m.final_score_home} - ${m.final_score_away}` : '';
+    return [
+      `🟩🟩🟩🟩🟩🟩🟩🟩`,
+      `🎯🎯  <b>TUTTURDUK!</b>  🎯🎯`,
+      `🟩🟩🟩🟩🟩🟩🟩🟩`,
+      ``,
+      `⚽ <b>${m.home_team} vs ${m.away_team}</b>`,
+      ...(score ? [`📊 Skor: <b>${score}</b>`] : []),
+      ...(m.bet_type ? [`💡 Tahmin: <b>${m.bet_type}</b> TUTTU! 🏆`] : []),
+      ``,
+      `🔥 Tebrikler! Bir daha tutturduk. 🔥`,
+    ].join('\n');
+  }
+
   function buildSingleMatchMessage(m: {
     home_team: string; away_team: string;
     league_name?: string; match_date?: string; match_time?: string;
@@ -2319,19 +2366,7 @@ export async function registerRoutes(
 
     if (m.final_score_home !== null && m.final_score_home !== undefined) {
       lines.push(`⚽ SKOR: <b>${m.final_score_home} - ${m.final_score_away}</b>`);
-      if (m.bet_result === 'won') {
-        // Replace the divider with a big win block
-        lines.push(`━━━━━━━━━━━━━━━━━━`);
-        lines.push(``);
-        lines.push(`🟩🟩🟩🟩🟩🟩🟩🟩`);
-        lines.push(`🎯🎯  <b>TUTTURDUK!</b>  🎯🎯`);
-        lines.push(`🏆 <b>${m.bet_type ?? 'TAHMİN'} TUTTU!</b> 🏆`);
-        lines.push(`🟩🟩🟩🟩🟩🟩🟩🟩`);
-        lines.push(``);
-        lines.push(`🔥 Tebrikler! Bir daha tutturduk. 🔥`);
-        lines.push(``);
-        return lines.join('\n');
-      } else if (m.bet_result === 'lost') {
+      if (m.bet_result === 'lost') {
         lines.push(`━━━━━━━━━━━━━━━━━━`);
         lines.push(`❌ TAHMİN TUTMADI`);
       }
@@ -2398,8 +2433,14 @@ export async function registerRoutes(
       );
       if (!r.rows.length) return res.status(404).json({ message: 'Maç bulunamadı' });
 
-      const text = buildSingleMatchMessage(r.rows[0]);
-      await sendTelegramMessage(creds.token, creds.chatId, text);
+      const m = r.rows[0];
+      if (m.bet_result === 'won') {
+        const caption = buildWinCaption(m);
+        await sendTelegramAnimation(creds.token, creds.chatId, './client/public/telegram-gifs/kazan.gif', caption);
+      } else {
+        const text = buildSingleMatchMessage(m);
+        await sendTelegramMessage(creds.token, creds.chatId, text);
+      }
       res.json({ success: true });
     } catch (error: any) {
       console.error('[Telegram] share-match error:', error);
