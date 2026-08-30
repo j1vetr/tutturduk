@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar, serial, integer, boolean, timestamp, decimal, jsonb, uniqueIndex } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, serial, integer, bigint, boolean, timestamp, decimal, jsonb, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -24,7 +24,7 @@ export const invitationCodes = pgTable("invitation_codes", {
 
 export const publishedMatches = pgTable("published_matches", {
   id: serial("id").primaryKey(),
-  fixture_id: integer("fixture_id").notNull().unique(),
+  fixture_id: bigint("fixture_id", { mode: "number" }).notNull().unique(),
   home_team: text("home_team").notNull(),
   away_team: text("away_team").notNull(),
   home_logo: text("home_logo"),
@@ -107,7 +107,7 @@ export const couponPredictions = pgTable("coupon_predictions", {
 export const bestBets = pgTable("best_bets", {
   id: serial("id").primaryKey(),
   match_id: integer("match_id"),
-  fixture_id: integer("fixture_id").notNull(),
+  fixture_id: bigint("fixture_id", { mode: "number" }).notNull(),
   home_team: text("home_team").notNull(),
   away_team: text("away_team").notNull(),
   home_logo: text("home_logo"),
@@ -144,7 +144,7 @@ export const userCouponItems = pgTable("user_coupon_items", {
   id: serial("id").primaryKey(),
   coupon_id: integer("coupon_id").notNull(),
   match_id: integer("match_id"),
-  fixture_id: integer("fixture_id").notNull(),
+  fixture_id: bigint("fixture_id", { mode: "number" }).notNull(),
   home_team: text("home_team").notNull(),
   away_team: text("away_team").notNull(),
   home_logo: text("home_logo"),
