@@ -1,0 +1,59 @@
+{
+  "leagues": [
+    {
+      "id": 2,
+      "logo": "https://media.api-sports.io/football/leagues/2.png",
+      "name": "Şampiyonlar Ligi",
+      "shortName": "UCL"
+    },
+    {
+      "id": 3,
+      "logo": "https://media.api-sports.io/football/leagues/3.png",
+      "name": "Avrupa Ligi",
+      "shortName": "UEL"
+    },
+    {
+      "id": 848,
+      "logo": "https://media.api-sports.io/football/leagues/848.png",
+      "name": "Konferans Ligi",
+      "shortName": "UECL"
+    },
+    {
+      "id": 39,
+      "logo": "https://media.api-sports.io/football/leagues/39.png",
+      "name": "Premier League",
+      "shortName": "PL"
+    },
+    {
+      "id": 140,
+      "logo": "https://media.api-sports.io/football/leagues/140.png",
+      "name": "La Liga",
+      "shortName": "LL"
+    },
+    {
+      "id": 135,
+      "logo": "https://media.api-sports.io/football/leagues/135.png",
+      "name": "Serie A",
+      "shortName": "SA"
+    },
+    {
+      "id": 78,
+      "logo": "https://media.api-sports.io/football/leagues/78.png",
+      "name": "Bundesliga",
+      "shortName": "BL"
+    },
+    {
+      "id": 61,
+      "logo": "https://media.api-sports.io/football/leagues/61.png",
+      "name": "Ligue 1",
+      "shortName": "L1"
+    },
+    {
+      "id": 203,
+      "logo": "https://media.api-sports.io/football/leagues/203.png",
+      "name": "Süper Lig",
+      "shortName": "SL"
+    }
+  ],
+  "teams": []
+}
