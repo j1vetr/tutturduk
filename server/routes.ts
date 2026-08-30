@@ -1822,7 +1822,7 @@ export async function registerRoutes(
               league_name: leagueName, match_date: matchDate, match_time: matchTime,
               bet_type, odds,
             });
-            await sendTelegramMessage(creds.token, creds.chatId, text);
+            await sendTelegramAnimation(creds.token, creds.chatId, './client/public/telegram-gifs/tahmin.gif', text);
             console.log(`[Telegram] Auto-sent: ${homeTeam} vs ${awayTeam}`);
           }
         } catch (tgErr: any) {
@@ -2439,7 +2439,13 @@ export async function registerRoutes(
         await sendTelegramAnimation(creds.token, creds.chatId, './client/public/telegram-gifs/kazan.gif', caption);
       } else {
         const text = buildSingleMatchMessage(m);
-        await sendTelegramMessage(creds.token, creds.chatId, text);
+        // Sonuç girilmişse düz mesaj, henüz pending ise tahmin GIF'i
+        const isResult = m.final_score_home !== null && m.final_score_home !== undefined;
+        if (isResult) {
+          await sendTelegramMessage(creds.token, creds.chatId, text);
+        } else {
+          await sendTelegramAnimation(creds.token, creds.chatId, './client/public/telegram-gifs/tahmin.gif', text);
+        }
       }
       res.json({ success: true });
     } catch (error: any) {
