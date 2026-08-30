@@ -183,19 +183,68 @@ export default function PredictionsPage() {
     <MobileLayout activeTab="predictions">
       <div className="space-y-9 pt-7 pb-2">
         {/* ════════ MASTHEAD ════════ */}
-        <header className="animate-fade-in" data-testid="predictions-hero">
-          <div className="flex items-center justify-between mb-4">
-            <span className="eyebrow num-mono">{dateLabel}</span>
-            <span className="eyebrow-tiny num-mono">{weekLabel}</span>
+        <header
+          className="animate-fade-in relative overflow-hidden rounded-3xl"
+          data-testid="predictions-hero"
+        >
+          {/* layered background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-[#0d231a] via-[#0b1812] to-[#0a0a0c]" />
+          {/* glow blobs */}
+          <div className="absolute -top-10 -right-10 w-48 h-48 bg-lime/[0.12] rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute bottom-0 left-4 w-32 h-20 bg-lime/[0.05] rounded-full blur-2xl pointer-events-none" />
+          {/* decorative diagonal stripes */}
+          <div
+            className="absolute inset-0 opacity-[0.025] pointer-events-none"
+            style={{
+              backgroundImage:
+                "repeating-linear-gradient(135deg, #32e87a 0, #32e87a 1px, transparent 0, transparent 50%)",
+              backgroundSize: "18px 18px",
+            }}
+          />
+
+          <div className="relative px-6 pt-6 pb-7">
+            {/* date pill */}
+            <div className="inline-flex items-center gap-2 bg-lime/[0.08] border border-lime/[0.18] rounded-full px-3 py-1 mb-5">
+              <span className="w-1.5 h-1.5 rounded-full bg-lime animate-pulse" />
+              <span className="text-[11px] font-semibold tracking-widest text-lime/90 num-mono">
+                {dateLabel}
+              </span>
+            </div>
+
+            {/* title row */}
+            <div className="flex items-end justify-between gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="text-[10px] font-bold tracking-[0.22em] text-lime/70 num-mono mb-1.5">
+                  {weekLabel.split("·")[0].trim()}
+                </div>
+                <h1
+                  className="font-display leading-none text-white"
+                  style={{ fontSize: "clamp(38px, 11vw, 52px)" }}
+                >
+                  Tahminler<span className="text-lime">.</span>
+                </h1>
+              </div>
+
+              {/* ghost week number */}
+              <div
+                className="font-black num-mono leading-none select-none text-right flex-shrink-0"
+                style={{
+                  fontSize: "clamp(56px, 18vw, 80px)",
+                  color: "rgba(50,232,122,0.07)",
+                  lineHeight: 1,
+                }}
+              >
+                {weekLabel.match(/\d+/)?.[0] ?? "—"}
+              </div>
+            </div>
+
+            {/* sub-line */}
+            <p className="mt-4 text-[13px] text-white/45 leading-relaxed">
+              {sorted.length > 0
+                ? `Bugün ${sorted.length} maç yayında.`
+                : "Bugün için yayında maç yok."}
+            </p>
           </div>
-          <h1 className="text-display-3xl text-white">
-            Tahminler<span className="text-lime">.</span>
-          </h1>
-          <p className="mt-4 text-[14px] text-white/55 leading-relaxed max-w-[88%]">
-            {sorted.length > 0
-              ? `Bugün ${sorted.length} maç incelendi. Yalnızca güven oranı yüksek olanlar listede.`
-              : "Bugün için yayında maç yok."}
-          </p>
         </header>
 
         {/* ════════ STATS BAND ════════ */}
