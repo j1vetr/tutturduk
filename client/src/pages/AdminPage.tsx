@@ -64,6 +64,15 @@ export default function AdminPage() {
   const [availableBestBets, setAvailableBestBets] = useState<BestBet[]>([]);
   const [loadingBestBets, setLoadingBestBets] = useState(false);
 
+  /* coupon matches (manuel kupon maçları) */
+  interface CouponMatch { id: number; coupon_id: number; home_team: string; away_team: string; home_logo?: string; away_logo?: string; league_name?: string; bet_type: string; odds: string; final_score_home: number | null; final_score_away: number | null; result: string; }
+  const [couponMatches, setCouponMatches] = useState<CouponMatch[]>([]);
+  const [loadingCouponMatches, setLoadingCouponMatches] = useState(false);
+  const [scoreEdits, setScoreEdits] = useState<Record<number, { home: string; away: string; result: string }>>({});
+  const [savingScores, setSavingScores] = useState<Record<number, boolean>>({});
+  const [sharingCouponResult, setSharingCouponResult] = useState(false);
+  const [updatingCouponResult, setUpdatingCouponResult] = useState(false);
+
   /* match form */
   const [manualForm, setManualForm] = useState({ leagueId: '', homeTeamId: '', awayTeamId: '', matchDate: new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Istanbul' }), matchTime: '20:00', bet_type: '', odds: '', description: '' });
   const [homeSearch, setHomeSearch] = useState('');
@@ -94,11 +103,17 @@ export default function AdminPage() {
   const [sharingTelegram, setSharingTelegram] = useState(false);
   const [testingTelegram, setTestingTelegram] = useState(false);
 
-  /* matches tab — digest + coupon */
+  /* matches tab — digest */
   const [sendingDigest, setSendingDigest] = useState(false);
+
+  /* kupon modülü */
+  const emptyCRow = () => ({ leagueId: '', homeTeamId: '', awayTeamId: '', homeSearch: '', awaySearch: '', showHomeDD: false, showAwayDD: false, bet: '', odds: '' });
   const [couponOpen, setCouponOpen] = useState(false);
-  const [couponRows, setCouponRows] = useState([{ label: '', bet: '', odds: '' }]);
+  const [couponRows, setCouponRows] = useState([emptyCRow()]);
   const [sendingCoupon, setSendingCoupon] = useState(false);
+
+  const updateCRow = (idx: number, patch: Partial<ReturnType<typeof emptyCRow>>) =>
+    setCouponRows(rows => rows.map((r, i) => i === idx ? { ...r, ...patch } : r));
 
   /* serbest mesaj */
   const [freeMsg, setFreeMsg] = useState('');
@@ -185,7 +200,31 @@ export default function AdminPage() {
     } catch { toast({ variant: "destructive", description: "Oluşturulamadı" }); }
   };
 
-  const handleSelectCoupon = async (coupon: Coupon) => { setSelectedCoupon(coupon); await loadCouponDetails(coupon.id); await loadAvailableBestBets(); };
+  const loadCouponMatches = async (couponId: number) => {
+    setLoadingCouponMatches(true);
+    try {
+      const r = await fetch(`/api/admin/coupons/${couponId}/matches`, { credentials: 'include' });
+      if (r.ok) {
+        const data = await r.json();
+        setCouponMatches(data);
+        const edits: Record<number, { home: string; away: string; result: string }> = {};
+        for (const m of data) {
+          edits[m.id] = {
+            home: m.final_score_home !== null ? String(m.final_score_home) : '',
+            away: m.final_score_away !== null ? String(m.final_score_away) : '',
+            result: m.result ?? 'pending',
+          };
+        }
+        setScoreEdits(edits);
+      }
+    } finally { setLoadingCouponMatches(false); }
+  };
+
+  const handleSelectCoupon = async (coupon: Coupon) => {
+    setSelectedCoupon(coupon);
+    setCouponMatches([]);
+    await Promise.all([loadCouponDetails(coupon.id), loadAvailableBestBets(), loadCouponMatches(coupon.id)]);
+  };
   const handleDeleteCoupon = async (id: number) => { try { const r = await fetch(`/api/admin/coupons/${id}`, { method: 'DELETE', credentials: 'include' }); if (r.ok) { loadCoupons(); setSelectedCoupon(null); setCouponDetails(null); toast({ description: "Kupon silindi" }); } } catch { toast({ variant: "destructive", description: "Silinemedi" }); } };
   const handleAddBestBet = async (bestBetId: number) => { if (!selectedCoupon) return; try { const r = await fetch(`/api/admin/coupons/${selectedCoupon.id}/best-bets`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify({ bestBetId }) }); if (r.ok) { setCouponDetails(await r.json()); loadCoupons(); toast({ description: "Eklendi" }); } } catch {} };
   const handleRemoveBestBet = async (bbId: number) => { if (!selectedCoupon) return; try { const r = await fetch(`/api/admin/coupons/${selectedCoupon.id}/best-bets/${bbId}`, { method: 'DELETE', credentials: 'include' }); if (r.ok) { setCouponDetails(await r.json()); loadCoupons(); toast({ description: "Kaldırıldı" }); } } catch {} };
@@ -512,7 +551,7 @@ export default function AdminPage() {
                 {/* Coupon toggle */}
                 <button
                   onClick={() => setCouponOpen(v => !v)}
-                  className="w-full h-9 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+                  className={`w-full h-9 rounded-xl border text-sm font-semibold transition-colors flex items-center justify-center gap-2 ${couponOpen ? 'border-amber-400 bg-amber-50 text-amber-700' : 'border-gray-200 text-gray-600 hover:bg-gray-50'}`}
                 >
                   <span>🎯</span>
                   Günün Kuponu
@@ -551,82 +590,268 @@ export default function AdminPage() {
                   </button>
                 </div>
 
-                {/* Coupon form */}
-                {couponOpen && (
-                  <div className="space-y-3 pt-1">
-                    {couponRows.map((row, idx) => (
-                      <div key={idx} className="flex gap-2 items-start">
-                        <div className="flex-1 grid grid-cols-3 gap-1.5">
-                          <input
-                            placeholder="Takım / Maç"
-                            value={row.label}
-                            onChange={e => setCouponRows(rows => rows.map((r, i) => i === idx ? { ...r, label: e.target.value } : r))}
-                            className="col-span-3 h-8 rounded-lg border border-gray-200 px-2.5 text-xs text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-300"
-                          />
-                          <input
-                            placeholder="Tahmin (MS1...)"
-                            value={row.bet}
-                            onChange={e => setCouponRows(rows => rows.map((r, i) => i === idx ? { ...r, bet: e.target.value } : r))}
-                            className="col-span-2 h-8 rounded-lg border border-gray-200 px-2.5 text-xs text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-300"
-                          />
-                          <input
-                            type="number" step="0.01" placeholder="Oran"
-                            value={row.odds}
-                            onChange={e => setCouponRows(rows => rows.map((r, i) => i === idx ? { ...r, odds: e.target.value } : r))}
-                            className="h-8 rounded-lg border border-gray-200 px-2.5 text-xs text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-300"
-                          />
-                        </div>
-                        {couponRows.length > 1 && (
-                          <button onClick={() => setCouponRows(rows => rows.filter((_, i) => i !== idx))} className="w-8 h-8 mt-0 rounded-lg hover:bg-red-50 flex items-center justify-center text-gray-300 hover:text-red-500 shrink-0">
-                            <X className="w-3.5 h-3.5" />
-                          </button>
-                        )}
+              </div>
+            </div>
+
+            {/* ══ Kupon Modülü ══ */}
+            {couponOpen && (() => {
+              const buildMatchPayload = () => {
+                const valid = couponRows.filter(r => r.homeTeamId && r.awayTeamId && r.bet && r.odds);
+                return valid.map(r => {
+                  const ht = (teamsData.teams as any[]).find(t => String(t.id) === r.homeTeamId);
+                  const at = (teamsData.teams as any[]).find(t => String(t.id) === r.awayTeamId);
+                  const lg = (teamsData.leagues as any[]).find(l => String(l.id) === r.leagueId);
+                  return { home_team: ht?.name ?? '?', away_team: at?.name ?? '?', home_logo: ht?.logo, away_logo: at?.logo, league_name: lg?.name ?? '', label: `${ht?.name ?? '?'} - ${at?.name ?? '?'}`, bet: r.bet, bet_type: r.bet, odds: r.odds };
+                });
+              };
+
+              const saveToDb = async () => {
+                const matches = buildMatchPayload();
+                if (!matches.length) { toast({ variant: 'destructive', description: 'En az bir maç ekleyin.' }); return null; }
+                const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Istanbul' });
+                const dayStr = new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', timeZone: 'Europe/Istanbul' });
+                const r = await fetch('/api/admin/coupons/create-with-matches', {
+                  method: 'POST', credentials: 'include',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ name: `Sönmez Dayının ${dayStr} Kuponu`, date: today, matches }),
+                });
+                const d = await r.json();
+                if (r.ok) { loadCoupons(); return { couponId: d.id, matches }; }
+                toast({ variant: 'destructive', description: d.message });
+                return null;
+              };
+
+              const sendCoupon = async () => {
+                const matches = buildMatchPayload();
+                if (!matches.length) { toast({ variant: 'destructive', description: 'En az bir maç ekleyin.' }); return; }
+                setSendingCoupon(true);
+                try {
+                  const saved = await saveToDb();
+                  const rows = matches.map(m => ({ label: m.label, leagueName: m.league_name, bet: m.bet, odds: m.odds }));
+                  const res = await fetch('/api/admin/telegram/share-coupon', {
+                    method: 'POST', credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ rows }),
+                  });
+                  const d = await res.json();
+                  if (res.ok) { toast({ description: saved ? 'Kaydedildi ve gönderildi' : d.message }); setCouponOpen(false); setCouponRows([emptyCRow()]); }
+                  else toast({ variant: 'destructive', description: d.message });
+                } finally { setSendingCoupon(false); }
+              };
+
+              const saveOnlyCoupon = async () => {
+                setSendingCoupon(true);
+                try {
+                  const saved = await saveToDb();
+                  if (saved) { toast({ description: 'Kupon kaydedildi' }); setCouponOpen(false); setCouponRows([emptyCRow()]); }
+                } finally { setSendingCoupon(false); }
+              };
+
+              return (
+                <div className="bg-white rounded-2xl border border-amber-200 shadow-sm overflow-hidden">
+                  {/* Header */}
+                  <div className="flex items-center justify-between px-4 py-3 bg-amber-50 border-b border-amber-100">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">🎯</span>
+                      <div>
+                        <p className="text-sm font-bold text-amber-800">Günün Kuponu</p>
+                        <p className="text-[10.5px] text-amber-600">Ligler ve takımları seçerek oluştur</p>
                       </div>
-                    ))}
+                    </div>
+                    <button onClick={() => { setCouponOpen(false); setCouponRows([emptyCRow()]); }} className="text-amber-400 hover:text-amber-600">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <div className="p-4 space-y-5">
+                    {couponRows.map((row, idx) => {
+                      const rowTeams = (teamsData.teams as any[]).filter(t => t.leagues.includes(Number(row.leagueId)));
+                      const rowHome = (teamsData.teams as any[]).find(t => String(t.id) === row.homeTeamId);
+                      const rowAway = (teamsData.teams as any[]).find(t => String(t.id) === row.awayTeamId);
+                      const rowLeague = (teamsData.leagues as any[]).find(l => String(l.id) === row.leagueId);
+
+                      return (
+                        <div key={idx} className="relative bg-gray-50 rounded-2xl p-3 space-y-3 border border-gray-100">
+                          {/* Row header */}
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Maç {idx + 1}</span>
+                            {couponRows.length > 1 && (
+                              <button onClick={() => setCouponRows(rows => rows.filter((_, i) => i !== idx))}
+                                className="w-6 h-6 rounded-lg hover:bg-red-100 flex items-center justify-center text-gray-300 hover:text-red-500">
+                                <X className="w-3 h-3" />
+                              </button>
+                            )}
+                          </div>
+
+                          {/* League picker */}
+                          <div>
+                            <p className="text-[10.5px] font-medium text-gray-500 mb-1.5">Lig</p>
+                            <div className="flex flex-wrap gap-1">
+                              {(teamsData.leagues as any[]).map(lg => (
+                                <button key={lg.id}
+                                  onClick={() => updateCRow(idx, { leagueId: String(lg.id), homeTeamId: '', awayTeamId: '', homeSearch: '', awaySearch: '' })}
+                                  className={`flex items-center gap-1 px-2 py-1 rounded-lg border text-[11px] font-medium transition-all ${row.leagueId === String(lg.id) ? 'border-amber-400 bg-amber-100 text-amber-800 shadow-sm' : 'border-gray-200 text-gray-500 hover:border-gray-300 bg-white'}`}
+                                >
+                                  <img src={lg.logo} alt="" className="w-3.5 h-3.5 object-contain" onError={e => (e.currentTarget.style.display='none')} />
+                                  {lg.shortName}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Team pickers */}
+                          {row.leagueId && (
+                            <div className="grid grid-cols-2 gap-2">
+                              {/* Home */}
+                              <div>
+                                <p className="text-[10.5px] font-medium text-gray-500 mb-1">Ev Sahibi</p>
+                                {rowHome ? (
+                                  <div className="flex items-center gap-1.5 p-2 bg-emerald-50 border border-emerald-200 rounded-xl">
+                                    <img src={rowHome.logo} alt="" className="w-5 h-5 object-contain shrink-0" onError={e => (e.currentTarget.style.display='none')} />
+                                    <span className="text-[11px] font-medium text-gray-800 flex-1 truncate">{rowHome.name}</span>
+                                    <button onClick={() => updateCRow(idx, { homeTeamId: '' })} className="text-gray-300 hover:text-red-400 shrink-0"><X className="w-3 h-3" /></button>
+                                  </div>
+                                ) : (
+                                  <div className="relative">
+                                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" />
+                                    <input
+                                      placeholder="Ara..."
+                                      value={row.homeSearch}
+                                      onChange={e => updateCRow(idx, { homeSearch: e.target.value, showHomeDD: true })}
+                                      onFocus={() => updateCRow(idx, { showHomeDD: true })}
+                                      onBlur={() => setTimeout(() => updateCRow(idx, { showHomeDD: false }), 150)}
+                                      className="w-full pl-7 pr-2 h-8 rounded-xl border border-gray-200 text-[11px] bg-white focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                                    />
+                                    {row.showHomeDD && (
+                                      <div className="absolute z-30 top-full left-0 right-0 mt-0.5 bg-white border border-gray-200 rounded-xl shadow-xl max-h-40 overflow-y-auto">
+                                        {rowTeams.filter(t => t.id !== Number(row.awayTeamId) && t.name.toLowerCase().includes(row.homeSearch.toLowerCase())).slice(0, 20).map(t => (
+                                          <button key={t.id} onMouseDown={() => updateCRow(idx, { homeTeamId: String(t.id), homeSearch: '', showHomeDD: false })}
+                                            className="w-full flex items-center gap-2 px-2.5 py-1.5 hover:bg-gray-50 text-left">
+                                            <img src={t.logo} alt="" className="w-4 h-4 object-contain shrink-0" onError={e => (e.currentTarget.style.display='none')} />
+                                            <span className="text-[11px] text-gray-700">{t.name}</span>
+                                          </button>
+                                        ))}
+                                        {rowTeams.filter(t => t.name.toLowerCase().includes(row.homeSearch.toLowerCase())).length === 0 && (
+                                          <p className="text-[11px] text-gray-400 text-center py-2">Bulunamadı</p>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Away */}
+                              <div>
+                                <p className="text-[10.5px] font-medium text-gray-500 mb-1">Deplasman</p>
+                                {rowAway ? (
+                                  <div className="flex items-center gap-1.5 p-2 bg-blue-50 border border-blue-200 rounded-xl">
+                                    <img src={rowAway.logo} alt="" className="w-5 h-5 object-contain shrink-0" onError={e => (e.currentTarget.style.display='none')} />
+                                    <span className="text-[11px] font-medium text-gray-800 flex-1 truncate">{rowAway.name}</span>
+                                    <button onClick={() => updateCRow(idx, { awayTeamId: '' })} className="text-gray-300 hover:text-red-400 shrink-0"><X className="w-3 h-3" /></button>
+                                  </div>
+                                ) : (
+                                  <div className="relative">
+                                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" />
+                                    <input
+                                      placeholder="Ara..."
+                                      value={row.awaySearch}
+                                      onChange={e => updateCRow(idx, { awaySearch: e.target.value, showAwayDD: true })}
+                                      onFocus={() => updateCRow(idx, { showAwayDD: true })}
+                                      onBlur={() => setTimeout(() => updateCRow(idx, { showAwayDD: false }), 150)}
+                                      className="w-full pl-7 pr-2 h-8 rounded-xl border border-gray-200 text-[11px] bg-white focus:outline-none focus:ring-2 focus:ring-blue-300"
+                                    />
+                                    {row.showAwayDD && (
+                                      <div className="absolute z-30 top-full left-0 right-0 mt-0.5 bg-white border border-gray-200 rounded-xl shadow-xl max-h-40 overflow-y-auto">
+                                        {rowTeams.filter(t => t.id !== Number(row.homeTeamId) && t.name.toLowerCase().includes(row.awaySearch.toLowerCase())).slice(0, 20).map(t => (
+                                          <button key={t.id} onMouseDown={() => updateCRow(idx, { awayTeamId: String(t.id), awaySearch: '', showAwayDD: false })}
+                                            className="w-full flex items-center gap-2 px-2.5 py-1.5 hover:bg-gray-50 text-left">
+                                            <img src={t.logo} alt="" className="w-4 h-4 object-contain shrink-0" onError={e => (e.currentTarget.style.display='none')} />
+                                            <span className="text-[11px] text-gray-700">{t.name}</span>
+                                          </button>
+                                        ))}
+                                        {rowTeams.filter(t => t.name.toLowerCase().includes(row.awaySearch.toLowerCase())).length === 0 && (
+                                          <p className="text-[11px] text-gray-400 text-center py-2">Bulunamadı</p>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Selected match preview */}
+                          {rowHome && rowAway && rowLeague && (
+                            <div className="flex items-center gap-2 px-2.5 py-1.5 bg-white rounded-xl border border-gray-100">
+                              <img src={rowLeague.logo} alt="" className="w-3.5 h-3.5 object-contain shrink-0" onError={e => (e.currentTarget.style.display='none')} />
+                              <img src={rowHome.logo} alt="" className="w-4 h-4 object-contain shrink-0" onError={e => (e.currentTarget.style.display='none')} />
+                              <span className="text-[11px] text-gray-700 font-medium truncate">{rowHome.name}</span>
+                              <span className="text-[10px] text-gray-300 shrink-0">vs</span>
+                              <span className="text-[11px] text-gray-700 font-medium truncate">{rowAway.name}</span>
+                              <img src={rowAway.logo} alt="" className="w-4 h-4 object-contain shrink-0" onError={e => (e.currentTarget.style.display='none')} />
+                            </div>
+                          )}
+
+                          {/* Bet + Odds */}
+                          <div className="grid grid-cols-3 gap-2">
+                            <input
+                              placeholder="Tahmin (MS1, KG VAR...)"
+                              value={row.bet}
+                              onChange={e => updateCRow(idx, { bet: e.target.value })}
+                              className="col-span-2 h-8 rounded-xl border border-gray-200 px-2.5 text-[11px] text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-amber-300"
+                            />
+                            <input
+                              type="number" step="0.01" placeholder="Oran"
+                              value={row.odds}
+                              onChange={e => updateCRow(idx, { odds: e.target.value })}
+                              className="h-8 rounded-xl border border-gray-200 px-2.5 text-[11px] text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-amber-300"
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {/* Add row */}
+                    <button
+                      onClick={() => setCouponRows(rows => [...rows, emptyCRow()])}
+                      className="w-full h-9 rounded-xl border border-dashed border-amber-300 text-amber-600 text-xs font-semibold hover:bg-amber-50 flex items-center justify-center gap-1.5 transition-colors"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> Maç Ekle
+                    </button>
 
                     {/* Total odds preview */}
                     {couponRows.some(r => r.odds) && (
-                      <p className="text-[11px] text-gray-500">
-                        Toplam oran: <span className="font-bold text-emerald-600">
+                      <div className="flex items-center justify-between px-3 py-2 bg-emerald-50 rounded-xl border border-emerald-100">
+                        <span className="text-xs text-emerald-700 font-medium">Toplam Oran</span>
+                        <span className="text-sm font-bold text-emerald-600">
                           {couponRows.reduce((acc, r) => acc * (parseFloat(r.odds) || 1), 1).toFixed(2)}
                         </span>
-                      </p>
+                      </div>
                     )}
 
-                    <div className="flex gap-2">
+                    {/* Buttons */}
+                    <div className="grid grid-cols-2 gap-2">
                       <button
-                        onClick={() => setCouponRows(rows => [...rows, { label: '', bet: '', odds: '' }])}
-                        className="flex-1 h-8 rounded-lg border border-dashed border-gray-300 text-gray-500 text-xs hover:bg-gray-50 flex items-center justify-center gap-1 transition-colors"
+                        onClick={saveOnlyCoupon}
+                        disabled={sendingCoupon || !couponRows.some(r => r.homeTeamId && r.awayTeamId && r.bet && r.odds)}
+                        className="h-10 rounded-xl border-2 border-amber-400 text-amber-700 text-sm font-bold hover:bg-amber-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
                       >
-                        <Plus className="w-3.5 h-3.5" /> Satır Ekle
+                        {sendingCoupon ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+                        Kaydet
                       </button>
                       <button
-                        onClick={async () => {
-                          const valid = couponRows.filter(r => r.label && r.bet && r.odds);
-                          if (!valid.length) { toast({ variant: 'destructive', description: 'En az bir satır doldurun.' }); return; }
-                          setSendingCoupon(true);
-                          try {
-                            const r = await fetch('/api/admin/telegram/share-coupon', {
-                              method: 'POST', credentials: 'include',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({ rows: valid }),
-                            });
-                            const d = await r.json();
-                            if (r.ok) { toast({ description: d.message }); setCouponOpen(false); setCouponRows([{ label: '', bet: '', odds: '' }]); }
-                            else toast({ variant: 'destructive', description: d.message });
-                          } finally { setSendingCoupon(false); }
-                        }}
-                        disabled={sendingCoupon}
-                        className="flex-1 h-8 rounded-lg bg-emerald-500 text-white text-xs font-semibold hover:bg-emerald-600 transition-colors disabled:opacity-40 flex items-center justify-center gap-1"
+                        onClick={sendCoupon}
+                        disabled={sendingCoupon || !couponRows.some(r => r.homeTeamId && r.awayTeamId && r.bet && r.odds)}
+                        className="h-10 rounded-xl bg-amber-500 text-white text-sm font-bold hover:bg-amber-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
                       >
-                        {sendingCoupon ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
-                        Kuponu Gönder
+                        {sendingCoupon ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                        Kaydet + Gönder
                       </button>
                     </div>
                   </div>
-                )}
-              </div>
-            </div>
+                </div>
+              );
+            })()}
 
             {/* ── Pending matches ── */}
             {pending.length > 0 && (
@@ -782,60 +1007,133 @@ export default function AdminPage() {
               </div>
             </div>
 
-            <div className="space-y-2">
-              {coupons.map(coupon => (
-                <div key={coupon.id}
-                  onClick={() => handleSelectCoupon(coupon)}
-                  className={`bg-white rounded-2xl border shadow-sm p-4 cursor-pointer transition-all ${selectedCoupon?.id === coupon.id ? 'border-emerald-300 ring-2 ring-emerald-100' : 'border-gray-100 hover:border-gray-200'}`}>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-semibold text-gray-800 text-sm">{coupon.name}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{fmtDate(coupon.coupon_date)}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${coupon.result === 'won' ? 'bg-emerald-100 text-emerald-700' : coupon.result === 'lost' ? 'bg-red-100 text-red-600' : 'bg-amber-50 text-amber-600'}`}>
-                        {coupon.result === 'won' ? 'Kazandı' : coupon.result === 'lost' ? 'Kaybetti' : 'Bekliyor'}
+            <div className="space-y-3">
+              {coupons.map(coupon => {
+                const isSelected = selectedCoupon?.id === coupon.id;
+                const myMatches = isSelected ? couponMatches : [];
+                const hasCouponMatches = isSelected && myMatches.length > 0;
+
+                return (
+                  <div key={coupon.id} className={`bg-white rounded-2xl border shadow-sm overflow-hidden transition-all ${isSelected ? 'border-emerald-300 ring-2 ring-emerald-100' : 'border-gray-100'}`}>
+                    {/* Coupon header */}
+                    <div onClick={() => isSelected ? (setSelectedCoupon(null), setCouponMatches([])) : handleSelectCoupon(coupon)}
+                      className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-gray-800 text-sm truncate">{coupon.name}</p>
+                        <p className="text-xs text-gray-400">{fmtDate(coupon.coupon_date)} · Oran: {parseFloat(coupon.combined_odds ?? '1').toFixed(2)}</p>
+                      </div>
+                      <span className={`text-[10.5px] font-bold px-2.5 py-1 rounded-full shrink-0 ${coupon.result === 'won' ? 'bg-emerald-100 text-emerald-700' : coupon.result === 'lost' ? 'bg-red-100 text-red-600' : 'bg-amber-50 text-amber-600'}`}>
+                        {coupon.result === 'won' ? '🏆 Kazandı' : coupon.result === 'lost' ? '❌ Kaybetti' : '⏳ Bekliyor'}
                       </span>
-                      <button onClick={e => { e.stopPropagation(); handleDeleteCoupon(coupon.id); }} className="w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-gray-300 hover:text-red-500 transition-colors">
+                      <button onClick={e => { e.stopPropagation(); handleDeleteCoupon(coupon.id); }} className="w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-gray-300 hover:text-red-500 transition-colors shrink-0">
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </div>
-                  </div>
 
-                  {selectedCoupon?.id === coupon.id && couponDetails && (
-                    <div className="mt-3 pt-3 border-t border-gray-100 space-y-2" onClick={e => e.stopPropagation()}>
-                      {couponDetails.predictions && couponDetails.predictions.length > 0 && (
-                        <div>
-                          <p className="text-[11px] text-gray-400 font-medium mb-1.5">Kupona ekli tahminler:</p>
-                          {couponDetails.predictions.map(p => (
-                            <div key={p.id} className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-gray-50 mb-1">
-                              <div className="flex items-center gap-1.5 min-w-0">
-                                <span className="text-xs text-gray-700 truncate">{p.home_team} vs {p.away_team}</span>
-                                <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-mono shrink-0">{p.prediction}</span>
+                    {/* Expanded detail */}
+                    {isSelected && (
+                      <div className="border-t border-gray-100 divide-y divide-gray-50">
+
+                        {/* ── Manuel coupon matches ── */}
+                        {loadingCouponMatches && (
+                          <div className="flex justify-center py-4"><Loader2 className="w-4 h-4 animate-spin text-gray-400" /></div>
+                        )}
+
+                        {hasCouponMatches && myMatches.map(m => {
+                          const edit = scoreEdits[m.id] ?? { home: '', away: '', result: m.result };
+                          const saving = savingScores[m.id];
+                          const saveScore = async () => {
+                            setSavingScores(p => ({ ...p, [m.id]: true }));
+                            try {
+                              const r = await fetch(`/api/admin/coupons/${coupon.id}/matches/${m.id}`, {
+                                method: 'PATCH', credentials: 'include',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ final_score_home: edit.home !== '' ? edit.home : undefined, final_score_away: edit.away !== '' ? edit.away : undefined, result: edit.result !== 'pending' ? edit.result : undefined }),
+                              });
+                              if (r.ok) { const data = await r.json(); setCouponMatches(data); toast({ description: 'Kaydedildi' }); }
+                              else { const d = await r.json(); toast({ variant: 'destructive', description: d.message }); }
+                            } finally { setSavingScores(p => ({ ...p, [m.id]: false })); }
+                          };
+                          return (
+                            <div key={m.id} className="px-4 py-3 space-y-2">
+                              {/* Match info */}
+                              <div className="flex items-center gap-2">
+                                {m.home_logo && <img src={m.home_logo} alt="" className="w-4 h-4 object-contain shrink-0" onError={e => (e.currentTarget.style.display='none')} />}
+                                <span className="text-xs font-medium text-gray-800 flex-1 truncate">{m.home_team} <span className="text-gray-300">vs</span> {m.away_team}</span>
+                                {m.away_logo && <img src={m.away_logo} alt="" className="w-4 h-4 object-contain shrink-0" onError={e => (e.currentTarget.style.display='none')} />}
+                                <span className="text-[10px] font-mono bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded shrink-0">{m.bet_type} @ {parseFloat(m.odds).toFixed(2)}</span>
                               </div>
-                              <button onClick={() => handleRemoveBestBet(p.id)} className="text-gray-300 hover:text-red-500"><X className="w-3.5 h-3.5" /></button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      <div>
-                        <p className="text-[11px] text-gray-400 font-medium mb-1.5">Eklenebilir tahminler:</p>
-                        {loadingBestBets ? <div className="flex justify-center py-3"><Loader2 className="w-4 h-4 animate-spin text-gray-400" /></div>
-                          : availableBestBets.length > 0
-                          ? <div className="max-h-40 overflow-y-auto space-y-1">
-                              {availableBestBets.map(b => (
-                                <button key={b.id} onClick={() => handleAddBestBet(b.id)} className="w-full flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-emerald-50 transition-colors text-left">
-                                  <span className="text-xs text-gray-700 truncate">{b.home_team} vs {b.away_team}</span>
-                                  <div className="flex items-center gap-1 shrink-0"><span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-mono">{b.bet_type}</span><Plus className="w-3 h-3 text-emerald-500" /></div>
+                              {/* Score + result entry */}
+                              <div className="flex items-center gap-2">
+                                <input type="number" min="0" placeholder="0" value={edit.home}
+                                  onChange={e => setScoreEdits(p => ({ ...p, [m.id]: { ...edit, home: e.target.value } }))}
+                                  className="w-12 h-8 rounded-lg border border-gray-200 text-center text-sm font-bold text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-300" />
+                                <span className="text-gray-300 text-sm font-bold">-</span>
+                                <input type="number" min="0" placeholder="0" value={edit.away}
+                                  onChange={e => setScoreEdits(p => ({ ...p, [m.id]: { ...edit, away: e.target.value } }))}
+                                  className="w-12 h-8 rounded-lg border border-gray-200 text-center text-sm font-bold text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-300" />
+                                {(['won','lost','pending'] as const).map(val => (
+                                  <button key={val} onClick={() => setScoreEdits(p => ({ ...p, [m.id]: { ...edit, result: val } }))}
+                                    className={`h-8 px-2.5 rounded-lg text-[10.5px] font-semibold border transition-colors ${edit.result === val ? val === 'won' ? 'bg-emerald-500 text-white border-emerald-500' : val === 'lost' ? 'bg-red-500 text-white border-red-500' : 'bg-gray-600 text-white border-gray-600' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
+                                    {val === 'won' ? '✅' : val === 'lost' ? '❌' : '⏳'}
+                                  </button>
+                                ))}
+                                <button onClick={saveScore} disabled={saving}
+                                  className="ml-auto h-8 px-3 rounded-lg bg-emerald-500 text-white text-[10.5px] font-semibold hover:bg-emerald-600 transition-colors disabled:opacity-40 flex items-center gap-1">
+                                  {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                                  Kaydet
                                 </button>
-                              ))}
+                              </div>
                             </div>
-                          : <p className="text-xs text-gray-400 text-center py-3">Eklenebilir tahmin yok</p>}
+                          );
+                        })}
+
+                        {/* ── Kupon sonucu + Telegram paylaşımı ── */}
+                        <div className="px-4 py-3 space-y-2" onClick={e => e.stopPropagation()}>
+                          {/* Kupon genel sonucu */}
+                          <p className="text-[10.5px] font-semibold text-gray-400 uppercase tracking-wide">Kupon Sonucu</p>
+                          <div className="flex gap-2">
+                            {(['won','lost','pending'] as const).map(val => (
+                              <button key={val}
+                                disabled={updatingCouponResult}
+                                onClick={async () => {
+                                  setUpdatingCouponResult(true);
+                                  try {
+                                    const r = await fetch(`/api/admin/coupons/${coupon.id}/result`, { method: 'PUT', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ result: val }) });
+                                    if (r.ok) { loadCoupons(); toast({ description: val === 'won' ? 'Kazandı olarak işaretlendi' : val === 'lost' ? 'Kaybetti olarak işaretlendi' : 'Beklemeye alındı' }); }
+                                  } finally { setUpdatingCouponResult(false); }
+                                }}
+                                className={`flex-1 h-9 rounded-xl text-xs font-bold border transition-colors ${coupon.result === val ? val === 'won' ? 'bg-emerald-500 text-white border-emerald-500' : val === 'lost' ? 'bg-red-500 text-white border-red-500' : 'bg-gray-600 text-white border-gray-600' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}>
+                                {val === 'won' ? '🏆 Kazandı' : val === 'lost' ? '❌ Kaybetti' : '⏳ Bekliyor'}
+                              </button>
+                            ))}
+                          </div>
+
+                          {/* Telegram paylaşım butonu */}
+                          {coupon.result !== 'pending' && (
+                            <button
+                              disabled={sharingCouponResult}
+                              onClick={async () => {
+                                setSharingCouponResult(true);
+                                try {
+                                  const r = await fetch(`/api/admin/telegram/share-coupon-result/${coupon.id}`, { method: 'POST', credentials: 'include' });
+                                  const d = await r.json();
+                                  if (r.ok) toast({ description: 'Sonuç Telegram\'a gönderildi' });
+                                  else toast({ variant: 'destructive', description: d.message });
+                                } finally { setSharingCouponResult(false); }
+                              }}
+                              className={`w-full h-9 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-colors ${coupon.result === 'won' ? 'bg-emerald-500 hover:bg-emerald-600 text-white' : 'bg-[#229ED9] hover:bg-[#1a8fc4] text-white'}`}
+                            >
+                              {sharingCouponResult ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                              {coupon.result === 'won' ? '🏆 Kazandı paylaş' : '❌ Kaybetti paylaş'}
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </div>
-              ))}
+                    )}
+                  </div>
+                );
+              })}
               {coupons.length === 0 && <p className="text-gray-400 text-center py-10 text-sm">Henüz kupon oluşturulmamış</p>}
             </div>
           </>

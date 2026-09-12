@@ -685,6 +685,144 @@ export async function registerRoutes(
     }
   });
 
+  // ─── Kupon: maçlarla birlikte oluştur ────────────────────────────────────
+  app.post('/api/admin/coupons/create-with-matches', async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ message: 'Oturum açılmamış' });
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') return res.status(403).json({ message: 'Yetkiniz yok' });
+
+    try {
+      const { name, date, matches } = req.body as {
+        name: string;
+        date: string;
+        matches: Array<{ home_team: string; away_team: string; home_logo?: string; away_logo?: string; league_name?: string; bet_type: string; odds: string }>;
+      };
+      if (!name || !date || !matches?.length) return res.status(400).json({ message: 'Eksik veri' });
+
+      const totalOdds = matches.reduce((acc, m) => acc * parseFloat(m.odds || '1'), 1);
+
+      const couponRes = await pool.query(
+        `INSERT INTO coupons (name, coupon_date, combined_odds) VALUES ($1, $2, $3) RETURNING *`,
+        [name, date, totalOdds.toFixed(2)]
+      );
+      const coupon = couponRes.rows[0];
+
+      for (const m of matches) {
+        await pool.query(
+          `INSERT INTO coupon_matches (coupon_id, home_team, away_team, home_logo, away_logo, league_name, bet_type, odds)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8)`,
+          [coupon.id, m.home_team, m.away_team, m.home_logo || null, m.away_logo || null,
+           m.league_name || null, m.bet_type, parseFloat(m.odds)]
+        );
+      }
+
+      res.json({ ...coupon, match_count: matches.length });
+    } catch (error: any) {
+      console.error('[Coupon] create-with-matches error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // ─── Kupon: maçları listele ───────────────────────────────────────────────
+  app.get('/api/admin/coupons/:id/matches', async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ message: 'Oturum açılmamış' });
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') return res.status(403).json({ message: 'Yetkiniz yok' });
+
+    try {
+      const { rows } = await pool.query(
+        `SELECT * FROM coupon_matches WHERE coupon_id = $1 ORDER BY id ASC`,
+        [parseInt(req.params.id)]
+      );
+      res.json(rows);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // ─── Kupon: maç skoru ve sonucunu güncelle ───────────────────────────────
+  app.patch('/api/admin/coupons/:id/matches/:matchId', async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ message: 'Oturum açılmamış' });
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') return res.status(403).json({ message: 'Yetkiniz yok' });
+
+    try {
+      const { final_score_home, final_score_away, result } = req.body;
+      await pool.query(
+        `UPDATE coupon_matches
+         SET final_score_home = COALESCE($1, final_score_home),
+             final_score_away = COALESCE($2, final_score_away),
+             result = COALESCE($3, result)
+         WHERE id = $4 AND coupon_id = $5`,
+        [
+          final_score_home !== undefined ? parseInt(final_score_home) : null,
+          final_score_away !== undefined ? parseInt(final_score_away) : null,
+          result ?? null,
+          parseInt(req.params.matchId),
+          parseInt(req.params.id),
+        ]
+      );
+      const { rows } = await pool.query(
+        `SELECT * FROM coupon_matches WHERE coupon_id = $1 ORDER BY id ASC`,
+        [parseInt(req.params.id)]
+      );
+      res.json(rows);
+    } catch (error: any) {
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // ─── Telegram: kupon sonucunu paylaş ─────────────────────────────────────
+  app.post('/api/admin/telegram/share-coupon-result/:id', async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ message: 'Oturum açılmamış' });
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') return res.status(403).json({ message: 'Yetkiniz yok' });
+
+    try {
+      const creds = await getTelegramCreds();
+      if (!creds) return res.status(400).json({ message: 'Bot token veya Chat ID eksik' });
+
+      const couponId = parseInt(req.params.id);
+      const { rows: [coupon] } = await pool.query(`SELECT * FROM coupons WHERE id = $1`, [couponId]);
+      if (!coupon) return res.status(404).json({ message: 'Kupon bulunamadı' });
+
+      const { rows: matches } = await pool.query(
+        `SELECT * FROM coupon_matches WHERE coupon_id = $1 ORDER BY id ASC`, [couponId]
+      );
+
+      const won = coupon.result === 'won';
+      const dayStr = new Date(coupon.coupon_date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', timeZone: 'UTC' });
+
+      const lines: string[] = [
+        won
+          ? `🏆 <b>SÖNMEZ DAYININ ${dayStr.toUpperCase()} KUPONU TUTTURDU!</b>`
+          : `😔 <b>SÖNMEZ DAYININ ${dayStr.toUpperCase()} KUPONU TUTMADI</b>`,
+        ``,
+      ];
+
+      for (const m of matches) {
+        const icon = m.result === 'won' ? '✅' : m.result === 'lost' ? '❌' : '⚽';
+        const score = m.final_score_home !== null && m.final_score_away !== null
+          ? ` <b>${m.final_score_home}-${m.final_score_away}</b>` : '';
+        lines.push(`${icon} ${m.home_team} - ${m.away_team}${score}`);
+        lines.push(`   🎯 ${m.bet_type}  💰 ${parseFloat(m.odds).toFixed(2)}`);
+        lines.push('');
+      }
+
+      lines.push(`➖➖➖➖➖➖➖➖➖`);
+      lines.push(`🔥 <b>Toplam Oran: ${parseFloat(coupon.combined_odds).toFixed(2)}</b>`);
+      if (won) lines.push(`🎉 Tebrikler!`);
+
+      const caption = lines.join('\n');
+      const photoType = won ? 'kazan' : 'tahmin';
+      await sendTelegramPhoto(creds.token, creds.chatId, photoType, caption.slice(0, 1024));
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error('[Telegram] share-coupon-result error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
   app.put('/api/admin/coupons/:id/result', async (req, res) => {
     if (!req.session.userId) {
       return res.status(401).json({ message: 'Oturum açılmamış' });
