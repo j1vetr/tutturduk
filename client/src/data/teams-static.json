@@ -92,16 +92,8 @@
       "logo": "/team-logos/milan.svg",
       "country": "Italy",
       "leagues": [
-        135
-      ]
-    },
-    {
-      "id": 135,
-      "name": "Académico de Viseu",
-      "logo": "/team-logos/academico-de-viseu.svg",
-      "country": "Portugal",
-      "leagues": [
-        94
+        135,
+        2
       ]
     },
     {
@@ -123,12 +115,52 @@
       ]
     },
     {
+      "id": 81,
+      "name": "AS Monaco",
+      "logo": "/team-logos/monaco.svg",
+      "country": "France",
+      "leagues": [
+        61,
+        2
+      ]
+    },
+    {
+      "id": 56,
+      "name": "AS Roma",
+      "logo": "/team-logos/roma.svg",
+      "country": "Italy",
+      "leagues": [
+        135,
+        3
+      ]
+    },
+    {
+      "id": 117,
+      "name": "AZ Alkmaar",
+      "logo": "/team-logos/alkmaar.svg",
+      "country": "Netherlands",
+      "leagues": [
+        88,
+        3
+      ]
+    },
+    {
+      "id": 135,
+      "name": "Académico de Viseu",
+      "logo": "/team-logos/academico-de-viseu.svg",
+      "country": "Portugal",
+      "leagues": [
+        94
+      ]
+    },
+    {
       "id": 115,
       "name": "Ajax Amsterdam",
       "logo": "https://media.api-sports.io/football/teams/115.png",
       "country": "Netherlands",
       "leagues": [
-        88
+        88,
+        3
       ]
     },
     {
@@ -164,7 +196,8 @@
       "logo": "/team-logos/anderlecht.svg",
       "country": "Belgium",
       "leagues": [
-        144
+        144,
+        3
       ]
     },
     {
@@ -205,31 +238,13 @@
       ]
     },
     {
-      "id": 81,
-      "name": "AS Monaco",
-      "logo": "/team-logos/monaco.svg",
-      "country": "France",
-      "leagues": [
-        61,
-        2
-      ]
-    },
-    {
-      "id": 56,
-      "name": "AS Roma",
-      "logo": "/team-logos/roma.svg",
-      "country": "Italy",
-      "leagues": [
-        135
-      ]
-    },
-    {
       "id": 2,
       "name": "Aston Villa",
       "logo": "/team-logos/aston-villa.svg",
       "country": "England",
       "leagues": [
-        39
+        39,
+        2
       ]
     },
     {
@@ -238,7 +253,8 @@
       "logo": "/team-logos/atalanta.svg",
       "country": "Italy",
       "leagues": [
-        135
+        135,
+        2
       ]
     },
     {
@@ -248,7 +264,7 @@
       "country": "Spain",
       "leagues": [
         140,
-        2
+        3
       ]
     },
     {
@@ -257,16 +273,28 @@
       "logo": "/team-logos/atletico-madrid.svg",
       "country": "Spain",
       "leagues": [
-        140
+        140,
+        2
       ]
     },
     {
-      "id": 117,
-      "name": "AZ Alkmaar",
-      "logo": "/team-logos/alkmaar.svg",
-      "country": "Netherlands",
+      "id": 62,
+      "name": "Bayer Leverkusen",
+      "logo": "/team-logos/bayer-leverkusen.svg",
+      "country": "Germany",
       "leagues": [
-        88
+        78,
+        2
+      ]
+    },
+    {
+      "id": 63,
+      "name": "Bayern Munich",
+      "logo": "/team-logos/bayern-munich.svg",
+      "country": "Germany",
+      "leagues": [
+        78,
+        2
       ]
     },
     {
@@ -279,30 +307,13 @@
       ]
     },
     {
-      "id": 62,
-      "name": "Bayer Leverkusen",
-      "logo": "/team-logos/bayer-leverkusen.svg",
-      "country": "Germany",
-      "leagues": [
-        78
-      ]
-    },
-    {
-      "id": 63,
-      "name": "Bayern Munich",
-      "logo": "/team-logos/bayern-munich.svg",
-      "country": "Germany",
-      "leagues": [
-        78
-      ]
-    },
-    {
       "id": 134,
       "name": "Benfica",
       "logo": "/team-logos/benfica.svg",
       "country": "Portugal",
       "leagues": [
-        94
+        94,
+        2
       ]
     },
     {
@@ -311,7 +322,8 @@
       "logo": "/team-logos/besiktas.svg",
       "country": "Turkey",
       "leagues": [
-        203
+        203,
+        848
       ]
     },
     {
@@ -320,7 +332,8 @@
       "logo": "/team-logos/bologna.svg",
       "country": "Italy",
       "leagues": [
-        135
+        135,
+        2
       ]
     },
     {
@@ -357,7 +370,8 @@
       "logo": "/team-logos/braga.svg",
       "country": "Portugal",
       "leagues": [
-        94
+        94,
+        3
       ]
     },
     {
@@ -375,7 +389,8 @@
       "logo": "/team-logos/brest.svg",
       "country": "France",
       "leagues": [
-        61
+        61,
+        2
       ]
     },
     {
@@ -433,6 +448,15 @@
       ]
     },
     {
+      "id": 31,
+      "name": "Celtic",
+      "logo": "https://media.api-sports.io/football/teams/31.png",
+      "country": "Scotland",
+      "leagues": [
+        2
+      ]
+    },
+    {
       "id": 153,
       "name": "Cercle Brugge KSV",
       "logo": "/team-logos/cercle-brugge-ksv.svg",
@@ -448,7 +472,7 @@
       "country": "England",
       "leagues": [
         39,
-        2
+        848
       ]
     },
     {
@@ -457,7 +481,8 @@
       "logo": "/team-logos/club-brugge.svg",
       "country": "Belgium",
       "leagues": [
-        144
+        144,
+        2
       ]
     },
     {
@@ -488,24 +513,6 @@
       ]
     },
     {
-      "id": 111,
-      "name": "Çaykur Rizespor",
-      "logo": "/team-logos/caykur-rizespor.svg",
-      "country": "Turkey",
-      "leagues": [
-        203
-      ]
-    },
-    {
-      "id": 114,
-      "name": "Çorum FK",
-      "logo": "/team-logos/corum.svg",
-      "country": "Turkey",
-      "leagues": [
-        203
-      ]
-    },
-    {
       "id": 21,
       "name": "Deportivo Alavés",
       "logo": "/team-logos/deportivo-alaves.svg",
@@ -524,13 +531,22 @@
       ]
     },
     {
+      "id": 211,
+      "name": "Dinamo Zagreb",
+      "logo": "https://media.api-sports.io/football/teams/211.png",
+      "country": "Croatia",
+      "leagues": [
+        2
+      ]
+    },
+    {
       "id": 66,
       "name": "Eintracht Frankfurt",
       "logo": "/team-logos/eintracht-frankfurt.svg",
       "country": "Germany",
       "leagues": [
         78,
-        2
+        3
       ]
     },
     {
@@ -666,7 +682,8 @@
       "logo": "/team-logos/porto.svg",
       "country": "Portugal",
       "leagues": [
-        94
+        94,
+        3
       ]
     },
     {
@@ -675,7 +692,8 @@
       "logo": "/team-logos/twente.svg",
       "country": "Netherlands",
       "leagues": [
-        88
+        88,
+        3
       ]
     },
     {
@@ -702,7 +720,8 @@
       "logo": "/team-logos/fenerbahce.svg",
       "country": "Turkey",
       "leagues": [
-        203
+        203,
+        3
       ]
     },
     {
@@ -711,7 +730,8 @@
       "logo": "/team-logos/feyenoord-rotterdam.svg",
       "country": "Netherlands",
       "leagues": [
-        88
+        88,
+        2
       ]
     },
     {
@@ -720,7 +740,8 @@
       "logo": "/team-logos/fiorentina.svg",
       "country": "Italy",
       "leagues": [
-        135
+        135,
+        3
       ]
     },
     {
@@ -770,21 +791,21 @@
       ]
     },
     {
-      "id": 105,
-      "name": "Gençlerbirliği",
-      "logo": "/team-logos/genclerbirligi.svg",
-      "country": "Turkey",
-      "leagues": [
-        203
-      ]
-    },
-    {
       "id": 48,
       "name": "Genoa",
       "logo": "/team-logos/genoa.svg",
       "country": "Italy",
       "leagues": [
         135
+      ]
+    },
+    {
+      "id": 105,
+      "name": "Gençlerbirliği",
+      "logo": "/team-logos/genclerbirligi.svg",
+      "country": "Turkey",
+      "leagues": [
+        203
       ]
     },
     {
@@ -803,6 +824,16 @@
       "country": "Portugal",
       "leagues": [
         94
+      ]
+    },
+    {
+      "id": 547,
+      "name": "Girona",
+      "logo": "https://media.api-sports.io/football/teams/547.png",
+      "country": "Spain",
+      "leagues": [
+        140,
+        2
       ]
     },
     {
@@ -856,7 +887,8 @@
       "logo": "/team-logos/internazionale.svg",
       "country": "Italy",
       "leagues": [
-        135
+        135,
+        2
       ]
     },
     {
@@ -882,6 +914,33 @@
       "id": 156,
       "name": "KAA Gent",
       "logo": "/team-logos/kaa-gent.svg",
+      "country": "Belgium",
+      "leagues": [
+        144
+      ]
+    },
+    {
+      "id": 157,
+      "name": "KV Kortrijk",
+      "logo": "/team-logos/kv-kortrijk.svg",
+      "country": "Belgium",
+      "leagues": [
+        144
+      ]
+    },
+    {
+      "id": 158,
+      "name": "KV Mechelen",
+      "logo": "/team-logos/kv-mechelen.svg",
+      "country": "Belgium",
+      "leagues": [
+        144
+      ]
+    },
+    {
+      "id": 159,
+      "name": "KVC Westerlo",
+      "logo": "/team-logos/kvc-westerlo.svg",
       "country": "Belgium",
       "leagues": [
         144
@@ -915,39 +974,13 @@
       ]
     },
     {
-      "id": 157,
-      "name": "KV Kortrijk",
-      "logo": "/team-logos/kv-kortrijk.svg",
-      "country": "Belgium",
-      "leagues": [
-        144
-      ]
-    },
-    {
-      "id": 158,
-      "name": "KV Mechelen",
-      "logo": "/team-logos/kv-mechelen.svg",
-      "country": "Belgium",
-      "leagues": [
-        144
-      ]
-    },
-    {
-      "id": 159,
-      "name": "KVC Westerlo",
-      "logo": "/team-logos/kvc-westerlo.svg",
-      "country": "Belgium",
-      "leagues": [
-        144
-      ]
-    },
-    {
       "id": 51,
       "name": "Lazio",
       "logo": "/team-logos/lazio.svg",
       "country": "Italy",
       "leagues": [
-        135
+        135,
+        3
       ]
     },
     {
@@ -960,7 +993,7 @@
       ]
     },
     {
-      "id": 87,
+      "id": 3002,
       "name": "Le Mans",
       "logo": "/team-logos/le-mans.svg",
       "country": "France",
@@ -1010,7 +1043,8 @@
       "logo": "/team-logos/lille.svg",
       "country": "France",
       "leagues": [
-        61
+        61,
+        2
       ]
     },
     {
@@ -1047,16 +1081,8 @@
       "logo": "/team-logos/lyon.svg",
       "country": "France",
       "leagues": [
-        61
-      ]
-    },
-    {
-      "id": 31,
-      "name": "Málaga",
-      "logo": "/team-logos/malaga.svg",
-      "country": "Spain",
-      "leagues": [
-        140
+        61,
+        3
       ]
     },
     {
@@ -1079,21 +1105,22 @@
       ]
     },
     {
+      "id": 86,
+      "name": "Marseille",
+      "logo": "/team-logos/marseille.svg",
+      "country": "France",
+      "leagues": [
+        61,
+        3
+      ]
+    },
+    {
       "id": 142,
       "name": "Marítimo",
       "logo": "/team-logos/mar-timo.svg",
       "country": "Portugal",
       "leagues": [
         94
-      ]
-    },
-    {
-      "id": 86,
-      "name": "Marseille",
-      "logo": "/team-logos/marseille.svg",
-      "country": "France",
-      "leagues": [
-        61
       ]
     },
     {
@@ -1115,13 +1142,12 @@
       ]
     },
     {
-      "id": 54,
-      "name": "Napoli",
-      "logo": "/team-logos/napoli.svg",
-      "country": "Italy",
+      "id": 3001,
+      "name": "Málaga",
+      "logo": "/team-logos/malaga.svg",
+      "country": "Spain",
       "leagues": [
-        135,
-        2
+        140
       ]
     },
     {
@@ -1131,6 +1157,15 @@
       "country": "Netherlands",
       "leagues": [
         88
+      ]
+    },
+    {
+      "id": 54,
+      "name": "Napoli",
+      "logo": "/team-logos/napoli.svg",
+      "country": "Italy",
+      "leagues": [
+        135
       ]
     },
     {
@@ -1148,7 +1183,8 @@
       "logo": "/team-logos/nice.svg",
       "country": "France",
       "leagues": [
-        61
+        61,
+        3
       ]
     },
     {
@@ -1161,12 +1197,49 @@
       ]
     },
     {
+      "id": 584,
+      "name": "Olympiacos",
+      "logo": "https://media.api-sports.io/football/teams/584.png",
+      "country": "Greece",
+      "leagues": [
+        3
+      ]
+    },
+    {
       "id": 160,
       "name": "Oud-Heverlee Leuven",
       "logo": "/team-logos/oud-heverlee-leuven.svg",
       "country": "Belgium",
       "leagues": [
         144
+      ]
+    },
+    {
+      "id": 1069,
+      "name": "PAOK",
+      "logo": "https://media.api-sports.io/football/teams/1069.png",
+      "country": "Greece",
+      "leagues": [
+        3
+      ]
+    },
+    {
+      "id": 127,
+      "name": "PEC Zwolle",
+      "logo": "/team-logos/zwolle.svg",
+      "country": "Netherlands",
+      "leagues": [
+        88
+      ]
+    },
+    {
+      "id": 128,
+      "name": "PSV Eindhoven",
+      "logo": "/team-logos/psv-eindhoven.svg",
+      "country": "Netherlands",
+      "leagues": [
+        88,
+        2
       ]
     },
     {
@@ -1198,30 +1271,31 @@
       ]
     },
     {
-      "id": 127,
-      "name": "PEC Zwolle",
-      "logo": "/team-logos/zwolle.svg",
-      "country": "Netherlands",
-      "leagues": [
-        88
-      ]
-    },
-    {
-      "id": 128,
-      "name": "PSV Eindhoven",
-      "logo": "/team-logos/psv-eindhoven.svg",
-      "country": "Netherlands",
-      "leagues": [
-        88
-      ]
-    },
-    {
       "id": 167,
       "name": "RAAL La Louvière",
       "logo": "/team-logos/raal-la-louviere.svg",
       "country": "Belgium",
       "leagues": [
         144
+      ]
+    },
+    {
+      "id": 71,
+      "name": "RB Leipzig",
+      "logo": "/team-logos/leipzig.svg",
+      "country": "Germany",
+      "leagues": [
+        78,
+        2
+      ]
+    },
+    {
+      "id": 409,
+      "name": "RB Salzburg",
+      "logo": "https://media.api-sports.io/football/teams/409.png",
+      "country": "Austria",
+      "leagues": [
+        2
       ]
     },
     {
@@ -1243,6 +1317,15 @@
       ]
     },
     {
+      "id": 186,
+      "name": "Rangers",
+      "logo": "https://media.api-sports.io/football/teams/186.png",
+      "country": "Scotland",
+      "leagues": [
+        3
+      ]
+    },
+    {
       "id": 34,
       "name": "Rayo Vallecano",
       "logo": "/team-logos/rayo-vallecano.svg",
@@ -1252,21 +1335,13 @@
       ]
     },
     {
-      "id": 71,
-      "name": "RB Leipzig",
-      "logo": "/team-logos/leipzig.svg",
-      "country": "Germany",
-      "leagues": [
-        78
-      ]
-    },
-    {
       "id": 35,
       "name": "Real Betis",
       "logo": "/team-logos/real-betis.svg",
       "country": "Spain",
       "leagues": [
-        140
+        140,
+        3
       ]
     },
     {
@@ -1285,7 +1360,17 @@
       "logo": "/team-logos/real-sociedad.svg",
       "country": "Spain",
       "leagues": [
-        140
+        140,
+        3
+      ]
+    },
+    {
+      "id": 87,
+      "name": "Red Star Belgrade",
+      "logo": "https://media.api-sports.io/football/teams/87.png",
+      "country": "Serbia",
+      "leagues": [
+        2
       ]
     },
     {
@@ -1316,33 +1401,6 @@
       ]
     },
     {
-      "id": 112,
-      "name": "Samsunspor",
-      "logo": "/team-logos/samsunspor.svg",
-      "country": "Turkey",
-      "leagues": [
-        203
-      ]
-    },
-    {
-      "id": 148,
-      "name": "Santa Clara",
-      "logo": "/team-logos/santa-clara.svg",
-      "country": "Portugal",
-      "leagues": [
-        94
-      ]
-    },
-    {
-      "id": 57,
-      "name": "Sassuolo",
-      "logo": "/team-logos/sassuolo.svg",
-      "country": "Italy",
-      "leagues": [
-        135
-      ]
-    },
-    {
       "id": 130,
       "name": "SC Cambuur",
       "logo": "/team-logos/cambuur.svg",
@@ -1370,6 +1428,42 @@
       ]
     },
     {
+      "id": 67,
+      "name": "SV Elversberg",
+      "logo": "/team-logos/elversberg.svg",
+      "country": "Germany",
+      "leagues": [
+        78
+      ]
+    },
+    {
+      "id": 112,
+      "name": "Samsunspor",
+      "logo": "/team-logos/samsunspor.svg",
+      "country": "Turkey",
+      "leagues": [
+        203
+      ]
+    },
+    {
+      "id": 148,
+      "name": "Santa Clara",
+      "logo": "/team-logos/santa-clara.svg",
+      "country": "Portugal",
+      "leagues": [
+        94
+      ]
+    },
+    {
+      "id": 57,
+      "name": "Sassuolo",
+      "logo": "/team-logos/sassuolo.svg",
+      "country": "Italy",
+      "leagues": [
+        135
+      ]
+    },
+    {
       "id": 76,
       "name": "Schalke 04",
       "logo": "/team-logos/schalke-04.svg",
@@ -1388,12 +1482,30 @@
       ]
     },
     {
+      "id": 232,
+      "name": "Shakhtar Donetsk",
+      "logo": "https://media.api-sports.io/football/teams/232.png",
+      "country": "Ukraine",
+      "leagues": [
+        2
+      ]
+    },
+    {
       "id": 164,
       "name": "Sint-Truidense",
       "logo": "/team-logos/sint-truidense.svg",
       "country": "Belgium",
       "leagues": [
         144
+      ]
+    },
+    {
+      "id": 261,
+      "name": "Sparta Prague",
+      "logo": "https://media.api-sports.io/football/teams/261.png",
+      "country": "Czech Republic",
+      "leagues": [
+        2
       ]
     },
     {
@@ -1411,7 +1523,8 @@
       "logo": "/team-logos/sporting-cp.svg",
       "country": "Portugal",
       "leagues": [
-        94
+        94,
+        2
       ]
     },
     {
@@ -1433,12 +1546,22 @@
       ]
     },
     {
-      "id": 67,
-      "name": "SV Elversberg",
-      "logo": "/team-logos/elversberg.svg",
+      "id": 2270,
+      "name": "Sturm Graz",
+      "logo": "https://media.api-sports.io/football/teams/2270.png",
+      "country": "Austria",
+      "leagues": [
+        2
+      ]
+    },
+    {
+      "id": 74,
+      "name": "TSG Hoffenheim",
+      "logo": "/team-logos/hoffenheim.svg",
       "country": "Germany",
       "leagues": [
-        78
+        78,
+        3
       ]
     },
     {
@@ -1474,7 +1597,8 @@
       "logo": "/team-logos/toulouse.svg",
       "country": "France",
       "leagues": [
-        61
+        61,
+        3
       ]
     },
     {
@@ -1483,7 +1607,8 @@
       "logo": "/team-logos/trabzonspor.svg",
       "country": "Turkey",
       "leagues": [
-        203
+        203,
+        848
       ]
     },
     {
@@ -1493,15 +1618,6 @@
       "country": "France",
       "leagues": [
         61
-      ]
-    },
-    {
-      "id": 74,
-      "name": "TSG Hoffenheim",
-      "logo": "/team-logos/hoffenheim.svg",
-      "country": "Germany",
-      "leagues": [
-        78
       ]
     },
     {
@@ -1519,7 +1635,8 @@
       "logo": "/team-logos/union-st-gilloise.svg",
       "country": "Belgium",
       "leagues": [
-        144
+        144,
+        3
       ]
     },
     {
@@ -1546,7 +1663,8 @@
       "logo": "/team-logos/stuttgart.svg",
       "country": "Germany",
       "leagues": [
-        78
+        78,
+        2
       ]
     },
     {
@@ -1556,7 +1674,7 @@
       "country": "Spain",
       "leagues": [
         140,
-        2
+        3
       ]
     },
     {
@@ -1596,12 +1714,39 @@
       ]
     },
     {
+      "id": 1365,
+      "name": "Young Boys",
+      "logo": "https://media.api-sports.io/football/teams/1365.png",
+      "country": "Switzerland",
+      "leagues": [
+        2
+      ]
+    },
+    {
       "id": 168,
       "name": "Zulte-Waregem",
       "logo": "/team-logos/zulte-waregem.svg",
       "country": "Belgium",
       "leagues": [
         144
+      ]
+    },
+    {
+      "id": 111,
+      "name": "Çaykur Rizespor",
+      "logo": "/team-logos/caykur-rizespor.svg",
+      "country": "Turkey",
+      "leagues": [
+        203
+      ]
+    },
+    {
+      "id": 114,
+      "name": "Çorum FK",
+      "logo": "/team-logos/corum.svg",
+      "country": "Turkey",
+      "leagues": [
+        203
       ]
     }
   ]
