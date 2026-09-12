@@ -627,14 +627,12 @@ export default function AdminPage() {
                 setSendingCoupon(true);
                 try {
                   const saved = await saveToDb();
-                  const rows = matches.map(m => ({ label: m.label, leagueName: m.league_name, bet: m.bet, odds: m.odds }));
-                  const res = await fetch('/api/admin/telegram/share-coupon', {
+                  if (!saved) return;
+                  const res = await fetch(`/api/admin/telegram/send-coupon-announcement/${saved.couponId}`, {
                     method: 'POST', credentials: 'include',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ rows }),
                   });
                   const d = await res.json();
-                  if (res.ok) { toast({ description: saved ? 'Kaydedildi ve gönderildi' : d.message }); setCouponOpen(false); setCouponRows([emptyCRow()]); }
+                  if (res.ok) { toast({ description: 'Kaydedildi ve Telegram\'a gönderildi' }); setCouponOpen(false); setCouponRows([emptyCRow()]); loadCoupons(); }
                   else toast({ variant: 'destructive', description: d.message });
                 } finally { setSendingCoupon(false); }
               };
@@ -1020,7 +1018,12 @@ export default function AdminPage() {
                       className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors">
                       <div className="flex-1 min-w-0">
                         <p className="font-semibold text-gray-800 text-sm truncate">{coupon.name}</p>
-                        <p className="text-xs text-gray-400">{fmtDate(coupon.coupon_date)} · Oran: {parseFloat(coupon.combined_odds ?? '1').toFixed(2)}</p>
+                        <p className="text-xs text-gray-400">
+                          {fmtDate(coupon.coupon_date)} · Oran: {parseFloat(coupon.combined_odds ?? '1').toFixed(2)}
+                          {coupon.telegram_sent
+                            ? <span className="ml-1.5 text-emerald-500 font-medium">· ✈ Gönderildi</span>
+                            : <span className="ml-1.5 text-amber-500 font-medium">· Gönderilmedi</span>}
+                        </p>
                       </div>
                       <span className={`text-[10.5px] font-bold px-2.5 py-1 rounded-full shrink-0 ${coupon.result === 'won' ? 'bg-emerald-100 text-emerald-700' : coupon.result === 'lost' ? 'bg-red-100 text-red-600' : 'bg-amber-50 text-amber-600'}`}>
                         {coupon.result === 'won' ? '🏆 Kazandı' : coupon.result === 'lost' ? '❌ Kaybetti' : '⏳ Bekliyor'}
@@ -1090,6 +1093,26 @@ export default function AdminPage() {
 
                         {/* ── Kupon sonucu + Telegram paylaşımı ── */}
                         <div className="px-4 py-3 space-y-2" onClick={e => e.stopPropagation()}>
+                          {/* Telegram duyuru gönder — sadece gönderilmemiş + maçlı kupona */}
+                          {!coupon.telegram_sent && hasCouponMatches && (
+                            <button
+                              disabled={sharingCouponResult}
+                              onClick={async () => {
+                                setSharingCouponResult(true);
+                                try {
+                                  const r = await fetch(`/api/admin/telegram/send-coupon-announcement/${coupon.id}`, { method: 'POST', credentials: 'include' });
+                                  const d = await r.json();
+                                  if (r.ok) { toast({ description: 'Kupon duyurusu Telegram\'a gönderildi' }); loadCoupons(); }
+                                  else toast({ variant: 'destructive', description: d.message });
+                                } finally { setSharingCouponResult(false); }
+                              }}
+                              className="w-full h-9 rounded-xl bg-[#229ED9] hover:bg-[#1a8fc4] text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors disabled:opacity-40"
+                            >
+                              {sharingCouponResult ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                              Kuponu Telegram'a Gönder
+                            </button>
+                          )}
+
                           {/* Kupon genel sonucu */}
                           <p className="text-[10.5px] font-semibold text-gray-400 uppercase tracking-wide">Kupon Sonucu</p>
                           <div className="flex gap-2">

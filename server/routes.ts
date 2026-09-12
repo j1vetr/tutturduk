@@ -159,6 +159,7 @@ export async function registerRoutes(
       created_at TIMESTAMP DEFAULT NOW()
     )
   `);
+  await pool.query(`ALTER TABLE coupons ADD COLUMN IF NOT EXISTS telegram_sent BOOLEAN DEFAULT FALSE`);
 
   // Multer instance (memory storage, 20 MB limit)
   const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
@@ -2716,6 +2717,57 @@ export async function registerRoutes(
       res.json({ success: true, message: 'Fotoğraf yüklendi', type });
     } catch (error: any) {
       console.error('[Photos] Upload error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // ─── Telegram: kupon duyurusunu ID ile gönder (Kuponlar sekmesinden) ────────
+  app.post('/api/admin/telegram/send-coupon-announcement/:id', async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ message: 'Oturum açılmamış' });
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') return res.status(403).json({ message: 'Yetkiniz yok' });
+
+    try {
+      const creds = await getTelegramCreds();
+      if (!creds) return res.status(400).json({ message: 'Bot token veya Chat ID eksik' });
+
+      const couponId = parseInt(req.params.id);
+      const { rows: [coupon] } = await pool.query(`SELECT * FROM coupons WHERE id = $1`, [couponId]);
+      if (!coupon) return res.status(404).json({ message: 'Kupon bulunamadı' });
+
+      const { rows: matches } = await pool.query(
+        `SELECT * FROM coupon_matches WHERE coupon_id = $1 ORDER BY id ASC`, [couponId]
+      );
+      if (!matches.length) return res.status(400).json({ message: 'Kupona ekli maç yok' });
+
+      const totalOdds = matches.reduce((acc: number, m: any) => acc * parseFloat(m.odds || '1'), 1);
+      const now = new Date();
+      const dayStr = now.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', timeZone: 'Europe/Istanbul' });
+
+      const lines: string[] = [
+        `🎰 <b>SÖNMEZ DAYININ ${dayStr.toUpperCase()} KUPONU GELDİ</b>`,
+        ``,
+        `📱 Detaylı analiz videosu için Instagram'ı ziyaret etmeyi unutmayın!`,
+        ``,
+        `İşte kupon 👇`,
+        ``,
+      ];
+      for (const m of matches) {
+        lines.push(`⚽ <b>${m.home_team} - ${m.away_team}</b>`);
+        lines.push(`🎯 ${m.bet_type}  💰 <b>${parseFloat(m.odds).toFixed(2)}</b>`);
+        lines.push('');
+      }
+      lines.push(`➖➖➖➖➖➖➖➖➖`);
+      lines.push(`🔥 <b>Toplam Oran: ${totalOdds.toFixed(2)}</b>`);
+      lines.push(`✅ İyi şanslar!`);
+
+      const caption = lines.join('\n');
+      await sendTelegramPhoto(creds.token, creds.chatId, 'tahmin', caption.slice(0, 1024));
+      await pool.query(`UPDATE coupons SET telegram_sent = TRUE WHERE id = $1`, [couponId]);
+
+      res.json({ success: true, message: `Kupon Telegram'a gönderildi` });
+    } catch (error: any) {
+      console.error('[Telegram] send-coupon-announcement error:', error);
       res.status(500).json({ message: error.message });
     }
   });
