@@ -141,6 +141,25 @@ export async function registerRoutes(
   // Ensure telegram-photos directory exists
   mkdirSync(resolve('./client/public/telegram-photos'), { recursive: true });
 
+  // Ensure coupon_matches table exists
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS coupon_matches (
+      id SERIAL PRIMARY KEY,
+      coupon_id INTEGER NOT NULL REFERENCES coupons(id) ON DELETE CASCADE,
+      home_team TEXT NOT NULL,
+      away_team TEXT NOT NULL,
+      home_logo TEXT,
+      away_logo TEXT,
+      league_name TEXT,
+      bet_type TEXT NOT NULL,
+      odds NUMERIC(5,2),
+      final_score_home INTEGER,
+      final_score_away INTEGER,
+      result TEXT DEFAULT 'pending',
+      created_at TIMESTAMP DEFAULT NOW()
+    )
+  `);
+
   // Multer instance (memory storage, 20 MB limit)
   const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
 
