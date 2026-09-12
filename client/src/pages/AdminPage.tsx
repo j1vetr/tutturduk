@@ -1448,7 +1448,7 @@ export default function AdminPage() {
                       }
                       <input
                         type="file"
-                        accept="image/*"
+                        accept="image/jpeg,image/png,image/webp,image/gif"
                         className="hidden"
                         onChange={async e => {
                           const file = e.target.files?.[0];
@@ -1460,13 +1460,16 @@ export default function AdminPage() {
                             const r = await fetch(`/api/admin/telegram/upload-photo/${type}`, {
                               method: 'POST', credentials: 'include', body: form,
                             });
-                            const d = await r.json();
+                            let d: any;
+                            try { d = await r.json(); } catch { d = { message: `Sunucu hatası (${r.status})` }; }
                             if (r.ok) {
-                              toast({ description: d.message });
+                              toast({ description: d.message ?? 'Fotoğraf yüklendi' });
                               setPhotoTimestamps(ts => ({ ...ts, [type]: Date.now() }));
                             } else {
-                              toast({ variant: 'destructive', description: d.message });
+                              toast({ variant: 'destructive', description: d.message ?? 'Yükleme başarısız' });
                             }
+                          } catch (err: any) {
+                            toast({ variant: 'destructive', description: err?.message ?? 'Bağlantı hatası' });
                           } finally { setUploadingPhoto(null); e.target.value = ''; }
                         }}
                       />

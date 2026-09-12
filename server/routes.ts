@@ -2696,7 +2696,15 @@ export async function registerRoutes(
 
   // ─── Telegram: upload photo ────────────────────────────────────────────────
 
-  app.post('/api/admin/telegram/upload-photo/:type', upload.single('photo'), async (req, res) => {
+  app.post('/api/admin/telegram/upload-photo/:type', (req, res, next) => {
+    upload.single('photo')(req, res, (err) => {
+      if (err) {
+        console.error('[Photos] Multer error:', err);
+        return res.status(400).json({ message: err.message ?? 'Dosya yükleme hatası' });
+      }
+      next();
+    });
+  }, async (req, res) => {
     if (!req.session.userId) return res.status(401).json({ message: 'Oturum açılmamış' });
     const user = await storage.getUser(req.session.userId);
     if (!user || user.role !== 'admin') return res.status(403).json({ message: 'Yetkiniz yok' });
@@ -2713,7 +2721,7 @@ export async function registerRoutes(
         .resize(1280, 1280, { fit: 'inside', withoutEnlargement: true })
         .jpeg({ quality: 90 })
         .toFile(destPath);
-      console.log(`[Photos] Uploaded: ${type}.jpg (${req.file.size} bytes → compressed)`);
+      console.log(`[Photos] Uploaded: ${type}.jpg (${req.file.originalname} → compressed JPEG)`);
       res.json({ success: true, message: 'Fotoğraf yüklendi', type });
     } catch (error: any) {
       console.error('[Photos] Upload error:', error);
