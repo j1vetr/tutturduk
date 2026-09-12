@@ -6,9 +6,11 @@ import connectPgSimple from 'connect-pg-simple';
 import { pool } from './db';
 import { apiFootball, SUPPORTED_LEAGUES, CURRENT_SEASON } from './apiFootball';
 import { filterMatches, hasValidStatistics, getStatisticsScore } from './matchFilter';
-import { readFileSync, existsSync } from 'fs';
-import { resolve } from 'path';
+import { readFileSync, existsSync, mkdirSync } from 'fs';
+import { resolve, join } from 'path';
 import { setManualMatchResult } from './matchStatusService';
+import multer from 'multer';
+import sharp from 'sharp';
 
 function parseApiFootballOdds(oddsData: any[]): any {
   const parsed: any = {};
@@ -136,6 +138,12 @@ export async function registerRoutes(
   app: Express
 ): Promise<Server> {
   
+  // Ensure telegram-photos directory exists
+  mkdirSync(resolve('./client/public/telegram-photos'), { recursive: true });
+
+  // Multer instance (memory storage, 20 MB limit)
+  const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
+
   // Session setup
   app.use(
     session({
@@ -1823,7 +1831,7 @@ export async function registerRoutes(
               league_name: leagueName, match_date: matchDate, match_time: matchTime,
               bet_type, odds,
             });
-            await sendTelegramAnimation(creds.token, creds.chatId, './client/public/telegram-gifs/tahmin.gif', text);
+            await sendTelegramPhoto(creds.token, creds.chatId, 'tahmin', text);
             console.log(`[Telegram] Auto-sent: ${homeTeam} vs ${awayTeam}`);
           }
         } catch (tgErr: any) {
@@ -1887,7 +1895,7 @@ export async function registerRoutes(
               const m = matchRow.rows[0];
               if (m.bet_result === 'won') {
                 const caption = buildWinCaption(m);
-                await sendTelegramAnimation(creds.token, creds.chatId, './client/public/telegram-gifs/kazan.gif', caption);
+                await sendTelegramPhoto(creds.token, creds.chatId, 'kazan', caption);
               } else {
                 const text = buildSingleMatchMessage(m);
                 await sendTelegramMessage(creds.token, creds.chatId, text);
@@ -2283,23 +2291,23 @@ export async function registerRoutes(
     if (!data.ok) throw new Error(`Telegram API: ${data.description}`);
   }
 
-  async function sendTelegramAnimation(token: string, chatId: string, gifPath: string, caption: string): Promise<void> {
-    const absPath = resolve(gifPath);
-    if (!existsSync(absPath)) {
-      // Fallback: send as plain message if gif missing
+  async function sendTelegramPhoto(token: string, chatId: string, type: 'tahmin' | 'kazan' | 'basladi', caption: string): Promise<void> {
+    const photoPath = resolve(`./client/public/telegram-photos/${type}.jpg`);
+    if (existsSync(photoPath)) {
+      const fileBuffer = readFileSync(photoPath);
+      const blob = new Blob([fileBuffer], { type: 'image/jpeg' });
+      const form = new FormData();
+      form.append('chat_id', chatId);
+      form.append('photo', blob, `${type}.jpg`);
+      form.append('caption', caption);
+      form.append('parse_mode', 'HTML');
+      const res = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: form });
+      const data = await res.json() as any;
+      if (!data.ok) throw new Error(`Telegram sendPhoto: ${data.description}`);
+    } else {
+      // Fotoğraf henüz yüklenmemişse düz mesaj gönder
       await sendTelegramMessage(token, chatId, caption);
-      return;
     }
-    const fileBuffer = readFileSync(absPath);
-    const blob = new Blob([fileBuffer], { type: 'image/gif' });
-    const form = new FormData();
-    form.append('chat_id', chatId);
-    form.append('animation', blob, 'tutturduk.gif');
-    form.append('caption', caption);
-    form.append('parse_mode', 'HTML');
-    const res = await fetch(`https://api.telegram.org/bot${token}/sendAnimation`, { method: 'POST', body: form });
-    const data = await res.json() as any;
-    if (!data.ok) throw new Error(`Telegram sendAnimation: ${data.description}`);
   }
 
   function buildWinCaption(m: {
@@ -2435,15 +2443,14 @@ export async function registerRoutes(
       const m = r.rows[0];
       if (m.bet_result === 'won') {
         const caption = buildWinCaption(m);
-        await sendTelegramAnimation(creds.token, creds.chatId, './client/public/telegram-gifs/kazan.gif', caption);
+        await sendTelegramPhoto(creds.token, creds.chatId, 'kazan', caption);
       } else {
         const text = buildSingleMatchMessage(m);
-        // Sonuç girilmişse düz mesaj, henüz pending ise tahmin GIF'i
         const isResult = m.final_score_home !== null && m.final_score_home !== undefined;
         if (isResult) {
           await sendTelegramMessage(creds.token, creds.chatId, text);
         } else {
-          await sendTelegramAnimation(creds.token, creds.chatId, './client/public/telegram-gifs/tahmin.gif', text);
+          await sendTelegramPhoto(creds.token, creds.chatId, 'tahmin', text);
         }
       }
       res.json({ success: true });
@@ -2520,10 +2527,85 @@ export async function registerRoutes(
 
       lines.push(`━━━━━━━━━━━━━━━━━━`);
 
-      await sendTelegramMessage(token, chatId, lines.join('\n'));
+      const caption = lines.join('\n');
+      await sendTelegramPhoto(token, chatId, 'tahmin', caption);
       res.json({ success: true, message: `${matches.length} maç Telegram'a gönderildi` });
     } catch (error: any) {
       console.error('[Telegram] share error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // ─── Telegram: upload photo ────────────────────────────────────────────────
+
+  app.post('/api/admin/telegram/upload-photo/:type', upload.single('photo'), async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ message: 'Oturum açılmamış' });
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') return res.status(403).json({ message: 'Yetkiniz yok' });
+
+    const type = req.params.type;
+    if (!['tahmin', 'kazan', 'basladi'].includes(type)) {
+      return res.status(400).json({ message: 'Geçersiz tip. tahmin / kazan / basladi olmalı.' });
+    }
+    if (!req.file) return res.status(400).json({ message: 'Dosya seçilmedi' });
+
+    try {
+      const destPath = resolve(`./client/public/telegram-photos/${type}.jpg`);
+      await sharp(req.file.buffer)
+        .resize(1280, 1280, { fit: 'inside', withoutEnlargement: true })
+        .jpeg({ quality: 90 })
+        .toFile(destPath);
+      console.log(`[Photos] Uploaded: ${type}.jpg (${req.file.size} bytes → compressed)`);
+      res.json({ success: true, message: 'Fotoğraf yüklendi', type });
+    } catch (error: any) {
+      console.error('[Photos] Upload error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // ─── Telegram: share coupon ────────────────────────────────────────────────
+
+  app.post('/api/admin/telegram/share-coupon', async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ message: 'Oturum açılmamış' });
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') return res.status(403).json({ message: 'Yetkiniz yok' });
+
+    try {
+      const creds = await getTelegramCreds();
+      if (!creds) return res.status(400).json({ message: 'Bot token veya Chat ID eksik' });
+
+      const { rows } = req.body as { rows: Array<{ label: string; bet: string; odds: string }> };
+      if (!rows || !rows.length) return res.status(400).json({ message: 'En az bir satır gerekli' });
+
+      const totalOdds = rows.reduce((acc, r) => acc * parseFloat(r.odds || '1'), 1);
+
+      const dayStr = new Date().toLocaleDateString('tr-TR', {
+        day: 'numeric', month: 'long', weekday: 'long', timeZone: 'Europe/Istanbul',
+      });
+
+      const lines: string[] = [
+        `🎯 <b>GÜNÜN KUPONU</b>`,
+        `📅 ${dayStr}`,
+        ``,
+        `━━━━━━━━━━━━━━━━━━`,
+        ``,
+      ];
+
+      for (const r of rows) {
+        lines.push(`⚽ <b>${r.label}</b>`);
+        lines.push(`💡 ${r.bet}  💰 <b>${parseFloat(r.odds).toFixed(2)}</b>`);
+        lines.push('');
+      }
+
+      lines.push(`━━━━━━━━━━━━━━━━━━`);
+      lines.push(`🔥 <b>Toplam Oran: ${totalOdds.toFixed(2)}</b>`);
+
+      const caption = lines.join('\n');
+      // Telegram caption limit is 1024 chars
+      await sendTelegramPhoto(creds.token, creds.chatId, 'tahmin', caption.slice(0, 1024));
+      res.json({ success: true, message: `Kupon ${rows.length} satırla gönderildi` });
+    } catch (error: any) {
+      console.error('[Telegram] share-coupon error:', error);
       res.status(500).json({ message: error.message });
     }
   });

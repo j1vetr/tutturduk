@@ -10,7 +10,7 @@ import {
   LayoutDashboard, Users, Trophy, LogOut, Plus, Trash2, RefreshCw,
   CheckCircle, Clock, Ticket, Loader2, TrendingUp, Target,
   Zap, Search, Award, X, Check, Database, ChevronDown,
-  AlertCircle, Circle, CheckSquare, Settings, Send, Eye, EyeOff
+  AlertCircle, Circle, CheckSquare, Settings, Send, Eye, EyeOff, Upload
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -93,7 +93,16 @@ export default function AdminPage() {
   const [savingSettings, setSavingSettings] = useState(false);
   const [sharingTelegram, setSharingTelegram] = useState(false);
   const [testingTelegram, setTestingTelegram] = useState(false);
-  const [sendingMatchId, setSendingMatchId] = useState<number | null>(null);
+
+  /* matches tab — digest + coupon */
+  const [sendingDigest, setSendingDigest] = useState(false);
+  const [couponOpen, setCouponOpen] = useState(false);
+  const [couponRows, setCouponRows] = useState([{ label: '', bet: '', odds: '' }]);
+  const [sendingCoupon, setSendingCoupon] = useState(false);
+
+  /* ayarlar — photo management */
+  const [uploadingPhoto, setUploadingPhoto] = useState<string | null>(null);
+  const [photoTimestamps, setPhotoTimestamps] = useState<Record<string, number>>({});
 
   /* close dropdowns on outside click */
   useEffect(() => {
@@ -462,6 +471,127 @@ export default function AdminPage() {
               </div>
             </div>
 
+            {/* ── Digest + Coupon actions ── */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-50">
+                <div className="w-8 h-8 rounded-xl bg-[#229ED9]/10 flex items-center justify-center shrink-0">
+                  <Send className="w-4 h-4 text-[#229ED9]" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-gray-800">Telegram'a Gönder</p>
+                  <p className="text-[10.5px] text-gray-400">Bugünkü tahminleri toplu paylaş veya kupon oluştur</p>
+                </div>
+              </div>
+              <div className="p-4 space-y-3">
+                {/* Digest button */}
+                <button
+                  onClick={async () => {
+                    setSendingDigest(true);
+                    try {
+                      const r = await fetch('/api/admin/telegram/share', {
+                        method: 'POST', credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({}),
+                      });
+                      const d = await r.json();
+                      if (r.ok) toast({ description: d.message });
+                      else toast({ variant: 'destructive', description: d.message });
+                    } finally { setSendingDigest(false); }
+                  }}
+                  disabled={sendingDigest}
+                  className="w-full h-9 rounded-xl bg-[#229ED9] text-white text-sm font-semibold hover:bg-[#1a8fc4] transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  {sendingDigest ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  Tahminleri Gönder
+                </button>
+
+                {/* Coupon toggle */}
+                <button
+                  onClick={() => setCouponOpen(v => !v)}
+                  className="w-full h-9 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold hover:bg-gray-50 transition-colors flex items-center justify-center gap-2"
+                >
+                  <span>🎯</span>
+                  Günün Kuponu
+                  <ChevronDown className={`w-4 h-4 ml-auto transition-transform ${couponOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {/* Coupon form */}
+                {couponOpen && (
+                  <div className="space-y-3 pt-1">
+                    {couponRows.map((row, idx) => (
+                      <div key={idx} className="flex gap-2 items-start">
+                        <div className="flex-1 grid grid-cols-3 gap-1.5">
+                          <input
+                            placeholder="Takım / Maç"
+                            value={row.label}
+                            onChange={e => setCouponRows(rows => rows.map((r, i) => i === idx ? { ...r, label: e.target.value } : r))}
+                            className="col-span-3 h-8 rounded-lg border border-gray-200 px-2.5 text-xs text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                          />
+                          <input
+                            placeholder="Tahmin (MS1...)"
+                            value={row.bet}
+                            onChange={e => setCouponRows(rows => rows.map((r, i) => i === idx ? { ...r, bet: e.target.value } : r))}
+                            className="col-span-2 h-8 rounded-lg border border-gray-200 px-2.5 text-xs text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                          />
+                          <input
+                            type="number" step="0.01" placeholder="Oran"
+                            value={row.odds}
+                            onChange={e => setCouponRows(rows => rows.map((r, i) => i === idx ? { ...r, odds: e.target.value } : r))}
+                            className="h-8 rounded-lg border border-gray-200 px-2.5 text-xs text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-300"
+                          />
+                        </div>
+                        {couponRows.length > 1 && (
+                          <button onClick={() => setCouponRows(rows => rows.filter((_, i) => i !== idx))} className="w-8 h-8 mt-0 rounded-lg hover:bg-red-50 flex items-center justify-center text-gray-300 hover:text-red-500 shrink-0">
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+
+                    {/* Total odds preview */}
+                    {couponRows.some(r => r.odds) && (
+                      <p className="text-[11px] text-gray-500">
+                        Toplam oran: <span className="font-bold text-emerald-600">
+                          {couponRows.reduce((acc, r) => acc * (parseFloat(r.odds) || 1), 1).toFixed(2)}
+                        </span>
+                      </p>
+                    )}
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setCouponRows(rows => [...rows, { label: '', bet: '', odds: '' }])}
+                        className="flex-1 h-8 rounded-lg border border-dashed border-gray-300 text-gray-500 text-xs hover:bg-gray-50 flex items-center justify-center gap-1 transition-colors"
+                      >
+                        <Plus className="w-3.5 h-3.5" /> Satır Ekle
+                      </button>
+                      <button
+                        onClick={async () => {
+                          const valid = couponRows.filter(r => r.label && r.bet && r.odds);
+                          if (!valid.length) { toast({ variant: 'destructive', description: 'En az bir satır doldurun.' }); return; }
+                          setSendingCoupon(true);
+                          try {
+                            const r = await fetch('/api/admin/telegram/share-coupon', {
+                              method: 'POST', credentials: 'include',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ rows: valid }),
+                            });
+                            const d = await r.json();
+                            if (r.ok) { toast({ description: d.message }); setCouponOpen(false); setCouponRows([{ label: '', bet: '', odds: '' }]); }
+                            else toast({ variant: 'destructive', description: d.message });
+                          } finally { setSendingCoupon(false); }
+                        }}
+                        disabled={sendingCoupon}
+                        className="flex-1 h-8 rounded-lg bg-emerald-500 text-white text-xs font-semibold hover:bg-emerald-600 transition-colors disabled:opacity-40 flex items-center justify-center gap-1"
+                      >
+                        {sendingCoupon ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                        Kuponu Gönder
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* ── Pending matches ── */}
             {pending.length > 0 && (
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -490,30 +620,6 @@ export default function AdminPage() {
                         <button onClick={() => { setResultFormId(resultFormId === pm.id ? null : pm.id); setResultForm({ home: '', away: '', ht_home: '', ht_away: '', bet_result: '' }); }}
                           className="shrink-0 text-[10px] font-semibold px-2.5 py-1 rounded-lg border border-blue-200 text-blue-600 hover:bg-blue-50 transition-colors">
                           Sonuç Gir
-                        </button>
-                        {/* Telegram send */}
-                        <button
-                          title="Telegram'a gönder"
-                          disabled={sendingMatchId === pm.id}
-                          onClick={async () => {
-                            setSendingMatchId(pm.id);
-                            try {
-                              const r = await fetch(`/api/admin/telegram/share-match/${pm.id}`, {
-                                method: 'POST', credentials: 'include',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({}),
-                              });
-                              const d = await r.json();
-                              if (r.ok) toast({ description: 'Telegram\'a gönderildi!' });
-                              else toast({ variant: 'destructive', description: d.message });
-                            } finally { setSendingMatchId(null); }
-                          }}
-                          className="shrink-0 w-7 h-7 rounded-lg hover:bg-[#229ED9]/10 flex items-center justify-center text-gray-300 hover:text-[#229ED9] transition-colors disabled:opacity-40"
-                        >
-                          {sendingMatchId === pm.id
-                            ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            : <Send className="w-3.5 h-3.5" />
-                          }
                         </button>
                         <button onClick={() => unpublishMatch(pm.id)} className="shrink-0 w-7 h-7 rounded-lg hover:bg-red-50 flex items-center justify-center text-gray-300 hover:text-red-500 transition-colors">
                           <Trash2 className="w-3.5 h-3.5" />
@@ -947,42 +1053,69 @@ export default function AdminPage() {
               </div>
             </div>
 
-            {/* Share Today's Matches */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center shrink-0">
-                  <Send className="w-5 h-5 text-emerald-600" />
+            {/* Photo Management */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100">
+                <div className="w-8 h-8 rounded-xl bg-purple-50 flex items-center justify-center shrink-0">
+                  <Upload className="w-4 h-4 text-purple-500" />
                 </div>
-                <div className="flex-1">
-                  <p className="font-semibold text-gray-800 text-sm">Tahminleri Paylaş</p>
-                  <p className="text-xs text-gray-400 mt-0.5 mb-3">
-                    Bugün yayındaki tüm maçları Telegram grubuna gönderir.
-                  </p>
-                  <button
-                    onClick={async () => {
-                      if (!tgToken || !tgChatId) {
-                        toast({ variant: 'destructive', description: 'Önce token ve Chat ID kaydet' });
-                        return;
+                <div>
+                  <p className="font-semibold text-gray-800 text-sm">Telegram Fotoğrafları</p>
+                  <p className="text-[10.5px] text-gray-400">Mesajlara eklenecek görselleri yükle (maks. 1280px, JPEG)</p>
+                </div>
+              </div>
+              <div className="p-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {([
+                  { type: 'tahmin', label: 'Tahmin Duyurusu', desc: 'Yeni maç / toplu paylaşım' },
+                  { type: 'kazan', label: 'Kazandık', desc: 'Sonuç tuttuğunda' },
+                  { type: 'basladi', label: 'Maç Başladı', desc: 'Kickoff bildirimi' },
+                ] as const).map(({ type, label, desc }) => (
+                  <div key={type} className="border border-gray-100 rounded-xl p-3 flex flex-col gap-2">
+                    <div className="aspect-video rounded-lg bg-gray-50 overflow-hidden flex items-center justify-center">
+                      <img
+                        key={photoTimestamps[type] ?? 0}
+                        src={`/telegram-photos/${type}.jpg?t=${photoTimestamps[type] ?? 0}`}
+                        alt={label}
+                        className="w-full h-full object-cover"
+                        onError={e => { e.currentTarget.style.display = 'none'; }}
+                      />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-gray-700">{label}</p>
+                      <p className="text-[10px] text-gray-400">{desc}</p>
+                    </div>
+                    <label className={`h-8 rounded-lg border border-dashed border-gray-300 flex items-center justify-center gap-1.5 text-[11px] font-medium cursor-pointer hover:bg-gray-50 transition-colors ${uploadingPhoto === type ? 'opacity-50 pointer-events-none' : 'text-gray-500'}`}>
+                      {uploadingPhoto === type
+                        ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Yükleniyor...</>
+                        : <><Upload className="w-3.5 h-3.5" /> Fotoğraf Seç</>
                       }
-                      setSharingTelegram(true);
-                      try {
-                        const r = await fetch('/api/admin/telegram/share', {
-                          method: 'POST', credentials: 'include',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({}),
-                        });
-                        const d = await r.json();
-                        if (r.ok) toast({ description: d.message });
-                        else toast({ variant: 'destructive', description: d.message });
-                      } finally { setSharingTelegram(false); }
-                    }}
-                    disabled={sharingTelegram || !tgToken || !tgChatId}
-                    className="h-8 px-4 rounded-lg bg-emerald-500 text-white text-xs font-semibold hover:bg-emerald-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
-                  >
-                    {sharingTelegram ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
-                    Gruba Gönder
-                  </button>
-                </div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={async e => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          setUploadingPhoto(type);
+                          try {
+                            const form = new FormData();
+                            form.append('photo', file);
+                            const r = await fetch(`/api/admin/telegram/upload-photo/${type}`, {
+                              method: 'POST', credentials: 'include', body: form,
+                            });
+                            const d = await r.json();
+                            if (r.ok) {
+                              toast({ description: d.message });
+                              setPhotoTimestamps(ts => ({ ...ts, [type]: Date.now() }));
+                            } else {
+                              toast({ variant: 'destructive', description: d.message });
+                            }
+                          } finally { setUploadingPhoto(null); e.target.value = ''; }
+                        }}
+                      />
+                    </label>
+                  </div>
+                ))}
               </div>
             </div>
           </>

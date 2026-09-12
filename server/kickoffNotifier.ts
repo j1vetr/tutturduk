@@ -8,8 +8,6 @@ import { pool } from './db';
 import { readFileSync, existsSync } from 'fs';
 import { resolve } from 'path';
 
-const GIF_PATH = './client/public/telegram-gifs/basladi.gif';
-
 // In-memory set — restart edilince sıfırlanır ama bu yeterli
 const notifiedMatchIds = new Set<number>();
 
@@ -28,21 +26,21 @@ async function isSendKickoffEnabled(): Promise<boolean> {
   return r.rows[0]?.value === 'true';
 }
 
-async function sendAnimation(token: string, chatId: string, caption: string): Promise<void> {
-  const absPath = resolve(GIF_PATH);
-  if (existsSync(absPath)) {
-    const fileBuffer = readFileSync(absPath);
-    const blob = new Blob([fileBuffer], { type: 'image/gif' });
+async function sendPhoto(token: string, chatId: string, caption: string): Promise<void> {
+  const photoPath = resolve('./client/public/telegram-photos/basladi.jpg');
+  if (existsSync(photoPath)) {
+    const fileBuffer = readFileSync(photoPath);
+    const blob = new Blob([fileBuffer], { type: 'image/jpeg' });
     const form = new FormData();
     form.append('chat_id', chatId);
-    form.append('animation', blob, 'basladi.gif');
+    form.append('photo', blob, 'basladi.jpg');
     form.append('caption', caption);
     form.append('parse_mode', 'HTML');
-    const res = await fetch(`https://api.telegram.org/bot${token}/sendAnimation`, { method: 'POST', body: form });
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, { method: 'POST', body: form });
     const data = await res.json() as any;
     if (!data.ok) throw new Error(data.description);
   } else {
-    // GIF yoksa düz mesaj gönder
+    // Fotoğraf henüz yüklenmemişse düz mesaj gönder
     await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -112,7 +110,7 @@ async function checkAndNotify(): Promise<void> {
 
       try {
         const caption = buildKickoffCaption(m);
-        await sendAnimation(creds.token, creds.chatId, caption);
+        await sendPhoto(creds.token, creds.chatId, caption);
         console.log(`[Kickoff] Bildirim gönderildi: ${m.home_team} vs ${m.away_team} (${currentTime})`);
       } catch (err: any) {
         console.error(`[Kickoff] Gönderilemedi (maç ${m.id}):`, err.message);
