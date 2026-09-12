@@ -144,10 +144,6 @@ export default function DashboardPage() {
   const tickerItems: string[] = [
     "TUTTURDUK.COM · TÜRKİYE'NİN YAPAY ZEKA BAHİS TAHMİN PLATFORMU",
   ];
-  if (stats && stats.total > 0) {
-    tickerItems.push(`BUGÜNE KADAR · %${stats.successRate} İSABET`);
-    tickerItems.push(`${stats.won}/${stats.total} TUTAN BAHİS`);
-  }
   if (featuredBet) {
     tickerItems.push(
       `GÜNÜN BAHSİ · ${featuredBet.bet_type.toUpperCase()} · ORAN ${parseFloat(featuredBet.odds).toFixed(2)}`
