@@ -219,6 +219,24 @@
       ]
     },
     {
+      "id": 2233,
+      "name": "Ankara Keçiörengücü",
+      "logo": "https://media.api-sports.io/football/teams/2233.png",
+      "country": "Turkey",
+      "leagues": [
+        204
+      ]
+    },
+    {
+      "id": 172,
+      "name": "Antalyaspor",
+      "logo": "https://media.api-sports.io/football/teams/172.png",
+      "country": "Turkey",
+      "leagues": [
+        204
+      ]
+    },
+    {
       "id": 152,
       "name": "Antwerp",
       "logo": "/team-logos/antwerp.svg",
@@ -286,6 +304,24 @@
       ]
     },
     {
+      "id": 2244,
+      "name": "Bandırmaspor",
+      "logo": "https://media.api-sports.io/football/teams/2244.png",
+      "country": "Turkey",
+      "leagues": [
+        204
+      ]
+    },
+    {
+      "id": 9762,
+      "name": "Batman Petrolspor",
+      "logo": "https://media.api-sports.io/football/teams/9762.png",
+      "country": "Turkey",
+      "leagues": [
+        204
+      ]
+    },
+    {
       "id": 62,
       "name": "Bayer Leverkusen",
       "logo": "/team-logos/bayer-leverkusen.svg",
@@ -335,12 +371,30 @@
       ]
     },
     {
+      "id": 9761,
+      "name": "Bodrum FK",
+      "logo": "https://media.api-sports.io/football/teams/9761.png",
+      "country": "Turkey",
+      "leagues": [
+        204
+      ]
+    },
+    {
       "id": 43,
       "name": "Bologna",
       "logo": "/team-logos/bologna.svg",
       "country": "Italy",
       "leagues": [
         135
+      ]
+    },
+    {
+      "id": 636,
+      "name": "Boluspor",
+      "logo": "https://media.api-sports.io/football/teams/636.png",
+      "country": "Turkey",
+      "leagues": [
+        204
       ]
     },
     {
@@ -408,6 +462,15 @@
       "leagues": [
         39,
         848
+      ]
+    },
+    {
+      "id": 108,
+      "name": "Bursaspor",
+      "logo": "https://media.api-sports.io/football/teams/108.png",
+      "country": "Turkey",
+      "leagues": [
+        204
       ]
     },
     {
@@ -585,6 +648,15 @@
       "country": "Turkey",
       "leagues": [
         203
+      ]
+    },
+    {
+      "id": 7174,
+      "name": "Esenler Erokspor",
+      "logo": "https://media.api-sports.io/football/teams/7174.png",
+      "country": "Turkey",
+      "leagues": [
+        204
       ]
     },
     {
@@ -768,6 +840,15 @@
       "country": "Norway",
       "leagues": [
         2
+      ]
+    },
+    {
+      "id": 2213,
+      "name": "Fatih Karagümrük",
+      "logo": "https://media.api-sports.io/football/teams/2213.png",
+      "country": "Turkey",
+      "leagues": [
+        204
       ]
     },
     {
@@ -984,6 +1065,15 @@
       ]
     },
     {
+      "id": 2250,
+      "name": "Iğdır FK",
+      "logo": "https://media.api-sports.io/football/teams/2250.png",
+      "country": "Turkey",
+      "leagues": [
+        204
+      ]
+    },
+    {
       "id": 567,
       "name": "Jagiellonia Białystok",
       "logo": "https://media.api-sports.io/football/teams/567.png",
@@ -1039,12 +1129,21 @@
       ]
     },
     {
-      "id": 108,
+      "id": 3100,
       "name": "Kasımpaşa",
       "logo": "/team-logos/kasimpasa.svg",
       "country": "Turkey",
       "leagues": [
         203
+      ]
+    },
+    {
+      "id": 176,
+      "name": "Kayserispor",
+      "logo": "https://media.api-sports.io/football/teams/176.png",
+      "country": "Turkey",
+      "leagues": [
+        204
       ]
     },
     {
@@ -1235,6 +1334,24 @@
       ]
     },
     {
+      "id": 2242,
+      "name": "Manisa FK",
+      "logo": "https://media.api-sports.io/football/teams/2242.png",
+      "country": "Turkey",
+      "leagues": [
+        204
+      ]
+    },
+    {
+      "id": 9763,
+      "name": "Mardin 1969",
+      "logo": "https://media.api-sports.io/football/teams/9763.png",
+      "country": "Turkey",
+      "leagues": [
+        204
+      ]
+    },
+    {
       "id": 86,
       "name": "Marseille",
       "logo": "/team-logos/marseille.svg",
@@ -1269,6 +1386,15 @@
       "country": "Portugal",
       "leagues": [
         94
+      ]
+    },
+    {
+      "id": 638,
+      "name": "Muğlaspor",
+      "logo": "https://media.api-sports.io/football/teams/638.png",
+      "country": "Turkey",
+      "leagues": [
+        204
       ]
     },
     {
@@ -1426,6 +1552,15 @@
       "country": "Italy",
       "leagues": [
         135
+      ]
+    },
+    {
+      "id": 2215,
+      "name": "Pendikspor",
+      "logo": "https://media.api-sports.io/football/teams/2215.png",
+      "country": "Turkey",
+      "leagues": [
+        204
       ]
     },
     {
@@ -1642,6 +1777,15 @@
       ]
     },
     {
+      "id": 641,
+      "name": "Sarıyer",
+      "logo": "https://media.api-sports.io/football/teams/641.png",
+      "country": "Turkey",
+      "leagues": [
+        204
+      ]
+    },
+    {
       "id": 57,
       "name": "Sassuolo",
       "logo": "/team-logos/sassuolo.svg",
@@ -1684,6 +1828,15 @@
       "country": "Belgium",
       "leagues": [
         144
+      ]
+    },
+    {
+      "id": 173,
+      "name": "Sivasspor",
+      "logo": "https://media.api-sports.io/football/teams/173.png",
+      "country": "Turkey",
+      "leagues": [
+        204
       ]
     },
     {
@@ -1853,6 +2006,15 @@
       ]
     },
     {
+      "id": 7173,
+      "name": "Vanspor",
+      "logo": "https://media.api-sports.io/football/teams/7173.png",
+      "country": "Turkey",
+      "leagues": [
+        204
+      ]
+    },
+    {
       "id": 60,
       "name": "Venezia",
       "logo": "/team-logos/venezia.svg",
@@ -1957,6 +2119,24 @@
       "country": "Turkey",
       "leagues": [
         203
+      ]
+    },
+    {
+      "id": 7170,
+      "name": "Ümraniyespor",
+      "logo": "https://media.api-sports.io/football/teams/7170.png",
+      "country": "Turkey",
+      "leagues": [
+        204
+      ]
+    },
+    {
+      "id": 629,
+      "name": "İstanbulspor",
+      "logo": "https://media.api-sports.io/football/teams/629.png",
+      "country": "Turkey",
+      "leagues": [
+        204
       ]
     }
   ]
