@@ -2579,26 +2579,29 @@ export async function registerRoutes(
 
       const totalOdds = rows.reduce((acc, r) => acc * parseFloat(r.odds || '1'), 1);
 
-      const dayStr = new Date().toLocaleDateString('tr-TR', {
-        day: 'numeric', month: 'long', weekday: 'long', timeZone: 'Europe/Istanbul',
+      const now = new Date();
+      const dayStr = now.toLocaleDateString('tr-TR', {
+        day: 'numeric', month: 'long', timeZone: 'Europe/Istanbul',
       });
 
       const lines: string[] = [
-        `🎯 <b>GÜNÜN KUPONU</b>`,
-        `📅 ${dayStr}`,
+        `🎰 <b>SÖNMEZ DAYININ ${dayStr.toUpperCase()} KUPONU GELDİ</b>`,
         ``,
-        `━━━━━━━━━━━━━━━━━━`,
+        `📱 Detaylı analiz videosu için Instagram'ı ziyaret etmeyi unutmayın!`,
+        ``,
+        `İşte kupon 👇`,
         ``,
       ];
 
       for (const r of rows) {
         lines.push(`⚽ <b>${r.label}</b>`);
-        lines.push(`💡 ${r.bet}  💰 <b>${parseFloat(r.odds).toFixed(2)}</b>`);
+        lines.push(`🎯 ${r.bet}  💰 <b>${parseFloat(r.odds).toFixed(2)}</b>`);
         lines.push('');
       }
 
-      lines.push(`━━━━━━━━━━━━━━━━━━`);
+      lines.push(`➖➖➖➖➖➖➖➖➖`);
       lines.push(`🔥 <b>Toplam Oran: ${totalOdds.toFixed(2)}</b>`);
+      lines.push(`✅ İyi şanslar!`);
 
       const caption = lines.join('\n');
       // Telegram caption limit is 1024 chars
@@ -2606,6 +2609,28 @@ export async function registerRoutes(
       res.json({ success: true, message: `Kupon ${rows.length} satırla gönderildi` });
     } catch (error: any) {
       console.error('[Telegram] share-coupon error:', error);
+      res.status(500).json({ message: error.message });
+    }
+  });
+
+  // ─── Telegram: serbest mesaj gönder ───────────────────────────────────────
+
+  app.post('/api/admin/telegram/send-message', async (req, res) => {
+    if (!req.session.userId) return res.status(401).json({ message: 'Oturum açılmamış' });
+    const user = await storage.getUser(req.session.userId);
+    if (!user || user.role !== 'admin') return res.status(403).json({ message: 'Yetkiniz yok' });
+
+    try {
+      const creds = await getTelegramCreds();
+      if (!creds) return res.status(400).json({ message: 'Bot token veya Chat ID eksik' });
+
+      const { text } = req.body as { text: string };
+      if (!text?.trim()) return res.status(400).json({ message: 'Mesaj boş olamaz' });
+
+      await sendTelegramMessage(creds.token, creds.chatId, text.trim());
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error('[Telegram] send-message error:', error);
       res.status(500).json({ message: error.message });
     }
   });

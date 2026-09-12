@@ -100,6 +100,10 @@ export default function AdminPage() {
   const [couponRows, setCouponRows] = useState([{ label: '', bet: '', odds: '' }]);
   const [sendingCoupon, setSendingCoupon] = useState(false);
 
+  /* serbest mesaj */
+  const [freeMsg, setFreeMsg] = useState('');
+  const [sendingFreeMsg, setSendingFreeMsg] = useState(false);
+
   /* ayarlar — photo management */
   const [uploadingPhoto, setUploadingPhoto] = useState<string | null>(null);
   const [photoTimestamps, setPhotoTimestamps] = useState<Record<string, number>>({});
@@ -514,6 +518,38 @@ export default function AdminPage() {
                   Günün Kuponu
                   <ChevronDown className={`w-4 h-4 ml-auto transition-transform ${couponOpen ? 'rotate-180' : ''}`} />
                 </button>
+
+                {/* ── Serbest mesaj ── */}
+                <div className="pt-1 border-t border-gray-100 space-y-2">
+                  <p className="text-[10.5px] font-semibold text-gray-400 uppercase tracking-wide">Serbest Mesaj</p>
+                  <textarea
+                    rows={3}
+                    placeholder="Gruba göndermek istediğin mesajı yaz..."
+                    value={freeMsg}
+                    onChange={e => setFreeMsg(e.target.value)}
+                    className="w-full rounded-xl border border-gray-200 px-3 py-2 text-xs text-gray-800 bg-white focus:outline-none focus:ring-2 focus:ring-[#229ED9]/40 focus:border-[#229ED9] resize-none leading-relaxed"
+                  />
+                  <button
+                    disabled={sendingFreeMsg || !freeMsg.trim()}
+                    onClick={async () => {
+                      setSendingFreeMsg(true);
+                      try {
+                        const r = await fetch('/api/admin/telegram/send-message', {
+                          method: 'POST', credentials: 'include',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ text: freeMsg }),
+                        });
+                        const d = await r.json();
+                        if (r.ok) { toast({ description: 'Mesaj gönderildi' }); setFreeMsg(''); }
+                        else toast({ variant: 'destructive', description: d.message });
+                      } finally { setSendingFreeMsg(false); }
+                    }}
+                    className="w-full h-8 rounded-xl bg-gray-800 text-white text-xs font-semibold hover:bg-gray-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+                  >
+                    {sendingFreeMsg ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                    Gönder
+                  </button>
+                </div>
 
                 {/* Coupon form */}
                 {couponOpen && (
@@ -952,8 +988,8 @@ export default function AdminPage() {
                   <p className="text-xs font-semibold text-gray-500 pt-1">Otomatik Gönderim</p>
                   <label className="flex items-center justify-between py-2 cursor-pointer">
                     <div>
-                      <p className="text-xs font-medium text-gray-700">Maç yayınlandığında gönder</p>
-                      <p className="text-[10.5px] text-gray-400">Yeni maç eklendiğinde Telegram'a bildirim gider</p>
+                      <p className="text-xs font-medium text-gray-700">Maç eklenince tek tek gönder</p>
+                      <p className="text-[10.5px] text-gray-400">Kapalıysa maçlar otomatik gönderilmez, toplu gönderimi kendin yaparsın</p>
                     </div>
                     <button
                       type="button"
