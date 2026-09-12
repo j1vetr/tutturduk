@@ -83,6 +83,13 @@
       "name": "Belgian Pro League",
       "shortName": "BPL",
       "logo": "https://media.api-sports.io/football/leagues/144.png"
+    },
+    {
+      "id": 204,
+      "slug": "tff-1-lig",
+      "name": "TFF 1. Lig",
+      "shortName": "TFF1",
+      "logo": "https://media.api-sports.io/football/leagues/204.png"
     }
   ],
   "teams": [
