@@ -93,7 +93,7 @@
       "country": "Italy",
       "leagues": [
         135,
-        2
+        3
       ]
     },
     {
@@ -103,6 +103,15 @@
       "country": "Netherlands",
       "leagues": [
         88
+      ]
+    },
+    {
+      "id": 1062,
+      "name": "AEK Athens",
+      "logo": "https://media.api-sports.io/football/teams/1062.png",
+      "country": "Greece",
+      "leagues": [
+        2
       ]
     },
     {
@@ -121,7 +130,7 @@
       "country": "France",
       "leagues": [
         61,
-        2
+        848
       ]
     },
     {
@@ -131,7 +140,7 @@
       "country": "Italy",
       "leagues": [
         135,
-        3
+        2
       ]
     },
     {
@@ -160,7 +169,7 @@
       "country": "Netherlands",
       "leagues": [
         88,
-        3
+        848
       ]
     },
     {
@@ -254,7 +263,7 @@
       "country": "Italy",
       "leagues": [
         135,
-        2
+        848
       ]
     },
     {
@@ -263,8 +272,7 @@
       "logo": "/team-logos/athletic-club.svg",
       "country": "Spain",
       "leagues": [
-        140,
-        3
+        140
       ]
     },
     {
@@ -284,7 +292,7 @@
       "country": "Germany",
       "leagues": [
         78,
-        2
+        3
       ]
     },
     {
@@ -313,7 +321,7 @@
       "country": "Portugal",
       "leagues": [
         94,
-        2
+        3
       ]
     },
     {
@@ -323,7 +331,7 @@
       "country": "Turkey",
       "leagues": [
         203,
-        848
+        3
       ]
     },
     {
@@ -332,8 +340,7 @@
       "logo": "/team-logos/bologna.svg",
       "country": "Italy",
       "leagues": [
-        135,
-        2
+        135
       ]
     },
     {
@@ -361,7 +368,8 @@
       "logo": "/team-logos/bournemouth.svg",
       "country": "England",
       "leagues": [
-        39
+        39,
+        3
       ]
     },
     {
@@ -371,7 +379,7 @@
       "country": "Portugal",
       "leagues": [
         94,
-        3
+        848
       ]
     },
     {
@@ -389,8 +397,7 @@
       "logo": "/team-logos/brest.svg",
       "country": "France",
       "leagues": [
-        61,
-        2
+        61
       ]
     },
     {
@@ -399,7 +406,8 @@
       "logo": "/team-logos/brighton.svg",
       "country": "England",
       "leagues": [
-        39
+        39,
+        848
       ]
     },
     {
@@ -444,7 +452,8 @@
       "logo": "/team-logos/celta-vigo.svg",
       "country": "Spain",
       "leagues": [
-        140
+        140,
+        3
       ]
     },
     {
@@ -491,7 +500,8 @@
       "logo": "/team-logos/como.svg",
       "country": "Italy",
       "leagues": [
-        135
+        135,
+        2
       ]
     },
     {
@@ -509,7 +519,8 @@
       "logo": "/team-logos/crystal-palace.svg",
       "country": "England",
       "leagues": [
-        39
+        39,
+        3
       ]
     },
     {
@@ -536,7 +547,16 @@
       "logo": "https://media.api-sports.io/football/teams/211.png",
       "country": "Croatia",
       "leagues": [
-        2
+        3
+      ]
+    },
+    {
+      "id": 238,
+      "name": "Dynamo Kyiv",
+      "logo": "https://media.api-sports.io/football/teams/238.png",
+      "country": "Ukraine",
+      "leagues": [
+        3
       ]
     },
     {
@@ -677,13 +697,31 @@
       ]
     },
     {
+      "id": 1360,
+      "name": "FC Midtjylland",
+      "logo": "https://media.api-sports.io/football/teams/1360.png",
+      "country": "Denmark",
+      "leagues": [
+        848
+      ]
+    },
+    {
       "id": 141,
       "name": "FC Porto",
       "logo": "/team-logos/porto.svg",
       "country": "Portugal",
       "leagues": [
         94,
-        3
+        2
+      ]
+    },
+    {
+      "id": 411,
+      "name": "FC Sheriff Tiraspol",
+      "logo": "https://media.api-sports.io/football/teams/411.png",
+      "country": "Moldova",
+      "leagues": [
+        848
       ]
     },
     {
@@ -693,7 +731,7 @@
       "country": "Netherlands",
       "leagues": [
         88,
-        3
+        848
       ]
     },
     {
@@ -715,13 +753,40 @@
       ]
     },
     {
+      "id": 267,
+      "name": "FC Viktoria Plzeň",
+      "logo": "https://media.api-sports.io/football/teams/267.png",
+      "country": "Czech Republic",
+      "leagues": [
+        3
+      ]
+    },
+    {
+      "id": 1503,
+      "name": "FK Bodø/Glimt",
+      "logo": "https://media.api-sports.io/football/teams/1503.png",
+      "country": "Norway",
+      "leagues": [
+        2
+      ]
+    },
+    {
       "id": 102,
       "name": "Fenerbahçe",
       "logo": "/team-logos/fenerbahce.svg",
       "country": "Turkey",
       "leagues": [
         203,
-        3
+        2
+      ]
+    },
+    {
+      "id": 1064,
+      "name": "Ferencváros",
+      "logo": "https://media.api-sports.io/football/teams/1064.png",
+      "country": "Hungary",
+      "leagues": [
+        848
       ]
     },
     {
@@ -814,7 +879,8 @@
       "logo": "/team-logos/getafe.svg",
       "country": "Spain",
       "leagues": [
-        140
+        140,
+        848
       ]
     },
     {
@@ -832,8 +898,7 @@
       "logo": "https://media.api-sports.io/football/teams/547.png",
       "country": "Spain",
       "leagues": [
-        140,
-        2
+        140
       ]
     },
     {
@@ -855,12 +920,30 @@
       ]
     },
     {
+      "id": 216,
+      "name": "HNK Hajduk Split",
+      "logo": "https://media.api-sports.io/football/teams/216.png",
+      "country": "Croatia",
+      "leagues": [
+        848
+      ]
+    },
+    {
       "id": 70,
       "name": "Hamburg SV",
       "logo": "/team-logos/hamburg.svg",
       "country": "Germany",
       "leagues": [
         78
+      ]
+    },
+    {
+      "id": 185,
+      "name": "Heart of Midlothian",
+      "logo": "https://media.api-sports.io/football/teams/185.png",
+      "country": "Scotland",
+      "leagues": [
+        848
       ]
     },
     {
@@ -901,13 +984,22 @@
       ]
     },
     {
+      "id": 567,
+      "name": "Jagiellonia Białystok",
+      "logo": "https://media.api-sports.io/football/teams/567.png",
+      "country": "Poland",
+      "leagues": [
+        3
+      ]
+    },
+    {
       "id": 50,
       "name": "Juventus",
       "logo": "/team-logos/juventus.svg",
       "country": "Italy",
       "leagues": [
         135,
-        2
+        3
       ]
     },
     {
@@ -974,6 +1066,15 @@
       ]
     },
     {
+      "id": 1048,
+      "name": "LASK",
+      "logo": "https://media.api-sports.io/football/teams/1048.png",
+      "country": "Austria",
+      "leagues": [
+        2
+      ]
+    },
+    {
       "id": 51,
       "name": "Lazio",
       "logo": "/team-logos/lazio.svg",
@@ -1011,6 +1112,15 @@
       ]
     },
     {
+      "id": 558,
+      "name": "Lech Poznań",
+      "logo": "https://media.api-sports.io/football/teams/558.png",
+      "country": "Poland",
+      "leagues": [
+        3
+      ]
+    },
+    {
       "id": 11,
       "name": "Leicester City",
       "logo": "/team-logos/leicester-city.svg",
@@ -1025,7 +1135,8 @@
       "logo": "/team-logos/lens.svg",
       "country": "France",
       "leagues": [
-        61
+        61,
+        2
       ]
     },
     {
@@ -1045,6 +1156,15 @@
       "leagues": [
         61,
         2
+      ]
+    },
+    {
+      "id": 1347,
+      "name": "Lillestrøm SK",
+      "logo": "https://media.api-sports.io/football/teams/1347.png",
+      "country": "Norway",
+      "leagues": [
+        3
       ]
     },
     {
@@ -1082,7 +1202,16 @@
       "country": "France",
       "leagues": [
         61,
-        3
+        2
+      ]
+    },
+    {
+      "id": 673,
+      "name": "Maccabi Tel Aviv",
+      "logo": "https://media.api-sports.io/football/teams/673.png",
+      "country": "Israel",
+      "leagues": [
+        848
       ]
     },
     {
@@ -1101,7 +1230,8 @@
       "logo": "/team-logos/manchester-united.svg",
       "country": "England",
       "leagues": [
-        39
+        39,
+        2
       ]
     },
     {
@@ -1156,7 +1286,17 @@
       "logo": "/team-logos/nijmegen.svg",
       "country": "Netherlands",
       "leagues": [
-        88
+        88,
+        2
+      ]
+    },
+    {
+      "id": 2541,
+      "name": "NK Celje",
+      "logo": "https://media.api-sports.io/football/teams/2541.png",
+      "country": "Slovenia",
+      "leagues": [
+        2
       ]
     },
     {
@@ -1165,7 +1305,8 @@
       "logo": "/team-logos/napoli.svg",
       "country": "Italy",
       "leagues": [
-        135
+        135,
+        2
       ]
     },
     {
@@ -1183,8 +1324,7 @@
       "logo": "/team-logos/nice.svg",
       "country": "France",
       "leagues": [
-        61,
-        3
+        61
       ]
     },
     {
@@ -1197,12 +1337,21 @@
       ]
     },
     {
+      "id": 1063,
+      "name": "OFI Crete",
+      "logo": "https://media.api-sports.io/football/teams/1063.png",
+      "country": "Greece",
+      "leagues": [
+        3
+      ]
+    },
+    {
       "id": 584,
       "name": "Olympiacos",
       "logo": "https://media.api-sports.io/football/teams/584.png",
       "country": "Greece",
       "leagues": [
-        3
+        2
       ]
     },
     {
@@ -1243,6 +1392,15 @@
       ]
     },
     {
+      "id": 2280,
+      "name": "Pafos FC",
+      "logo": "https://media.api-sports.io/football/teams/2280.png",
+      "country": "Cyprus",
+      "leagues": [
+        848
+      ]
+    },
+    {
       "id": 92,
       "name": "Paris FC",
       "logo": "/team-logos/paris.svg",
@@ -1271,6 +1429,15 @@
       ]
     },
     {
+      "id": 417,
+      "name": "Qarabağ FK",
+      "logo": "https://media.api-sports.io/football/teams/417.png",
+      "country": "Azerbaijan",
+      "leagues": [
+        848
+      ]
+    },
+    {
       "id": 167,
       "name": "RAAL La Louvière",
       "logo": "/team-logos/raal-la-louviere.svg",
@@ -1295,7 +1462,7 @@
       "logo": "https://media.api-sports.io/football/teams/409.png",
       "country": "Austria",
       "leagues": [
-        2
+        3
       ]
     },
     {
@@ -1341,7 +1508,7 @@
       "country": "Spain",
       "leagues": [
         140,
-        3
+        2
       ]
     },
     {
@@ -1370,7 +1537,7 @@
       "logo": "https://media.api-sports.io/football/teams/87.png",
       "country": "Serbia",
       "leagues": [
-        2
+        848
       ]
     },
     {
@@ -1379,7 +1546,8 @@
       "logo": "/team-logos/rennes.svg",
       "country": "France",
       "leagues": [
-        61
+        61,
+        3
       ]
     },
     {
@@ -1415,7 +1583,8 @@
       "logo": "/team-logos/freiburg.svg",
       "country": "Germany",
       "leagues": [
-        78
+        78,
+        848
       ]
     },
     {
@@ -1428,12 +1597,30 @@
       ]
     },
     {
+      "id": 1051,
+      "name": "SK Slavia Prague",
+      "logo": "https://media.api-sports.io/football/teams/1051.png",
+      "country": "Czech Republic",
+      "leagues": [
+        2
+      ]
+    },
+    {
       "id": 67,
       "name": "SV Elversberg",
       "logo": "/team-logos/elversberg.svg",
       "country": "Germany",
       "leagues": [
         78
+      ]
+    },
+    {
+      "id": 9768,
+      "name": "Sabah FK",
+      "logo": "https://media.api-sports.io/football/teams/9768.png",
+      "country": "Azerbaijan",
+      "leagues": [
+        2
       ]
     },
     {
@@ -1500,12 +1687,21 @@
       ]
     },
     {
+      "id": 2287,
+      "name": "Slovan Bratislava",
+      "logo": "https://media.api-sports.io/football/teams/2287.png",
+      "country": "Slovakia",
+      "leagues": [
+        2
+      ]
+    },
+    {
       "id": 261,
       "name": "Sparta Prague",
       "logo": "https://media.api-sports.io/football/teams/261.png",
       "country": "Czech Republic",
       "leagues": [
-        2
+        3
       ]
     },
     {
@@ -1551,7 +1747,16 @@
       "logo": "https://media.api-sports.io/football/teams/2270.png",
       "country": "Austria",
       "leagues": [
-        2
+        3
+      ]
+    },
+    {
+      "id": 1031,
+      "name": "Sunderland",
+      "logo": "https://media.api-sports.io/football/teams/1031.png",
+      "country": "England",
+      "leagues": [
+        3
       ]
     },
     {
@@ -1597,8 +1802,7 @@
       "logo": "/team-logos/toulouse.svg",
       "country": "France",
       "leagues": [
-        61,
-        3
+        61
       ]
     },
     {
@@ -1608,7 +1812,7 @@
       "country": "Turkey",
       "leagues": [
         203,
-        848
+        3
       ]
     },
     {
@@ -1636,7 +1840,7 @@
       "country": "Belgium",
       "leagues": [
         144,
-        3
+        2
       ]
     },
     {
@@ -1668,13 +1872,21 @@
       ]
     },
     {
+      "id": 1346,
+      "name": "Viking FK",
+      "logo": "https://media.api-sports.io/football/teams/1346.png",
+      "country": "Norway",
+      "leagues": [
+        2
+      ]
+    },
+    {
       "id": 40,
       "name": "Villarreal CF",
       "logo": "/team-logos/villarreal.svg",
       "country": "Spain",
       "leagues": [
-        140,
-        3
+        140
       ]
     },
     {
@@ -1718,9 +1930,7 @@
       "name": "Young Boys",
       "logo": "https://media.api-sports.io/football/teams/1365.png",
       "country": "Switzerland",
-      "leagues": [
-        2
-      ]
+      "leagues": []
     },
     {
       "id": 168,
